@@ -1,5 +1,7 @@
 "use client";
 
-export default function Page() {
-  return <div className="p-8 text-fg-2">overview</div>;
+import { ProjectOverview } from "@/features/projects/overview";
+
+export default function ProjectOverviewPage() {
+  return <ProjectOverview />;
 }

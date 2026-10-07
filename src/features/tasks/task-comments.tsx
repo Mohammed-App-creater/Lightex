@@ -229,8 +229,10 @@ const VERB: Record<ActivityEntry["verb"], (a: ActivityEntry) => string> = {
   member_added: (a) => `added ${a.data.member ?? "a member"}`,
 };
 
-export function activityText(a: ActivityEntry) {
-  return VERB[a.verb]?.(a) ?? a.verb;
+export function activityText(a: ActivityEntry, subject?: string) {
+  const text = VERB[a.verb]?.(a) ?? a.verb;
+  // In a project/workspace feed, name the task instead of "this" / "the task".
+  return subject ? text.replace("moved this", `moved ${subject}`).replace("the task", subject) : text;
 }
 
 function Activity({ task }: { task: TaskDetail }) {

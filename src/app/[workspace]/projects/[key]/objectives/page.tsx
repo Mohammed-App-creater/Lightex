@@ -1,5 +1,7 @@
 "use client";
 
+import { GoalsScreen } from "@/features/goals/goals-screen";
+
 export default function Page() {
-  return <div className="p-8 text-fg-2">objectives</div>;
+  return <GoalsScreen tab="objectives" />;
 }
