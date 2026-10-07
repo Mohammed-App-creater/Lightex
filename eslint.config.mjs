@@ -5,14 +5,16 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
+  {
+    rules: {
+      // `const { secret: _secret, ...rest } = obj` is the idiom for omitting fields.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+      ],
+    },
+  },
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "design/**", "playwright-report/**", "test-results/**"]),
 ]);
 
 export default eslintConfig;

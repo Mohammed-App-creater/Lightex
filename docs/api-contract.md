@@ -127,3 +127,20 @@ type that is not a raster image. HTML and SVG are always served as downloads.
 | POST | /notifications/:id/read | `{read: boolean}` |
 | POST | /notifications/read-all | `{before}` (so undo can re-mark) |
 | GET/PUT | /notification-preferences | `{events: {event: {in_app, email}}, emailDelivery: instant|hourly|daily}` |
+
+## Additions found while building the client
+
+These were needed by the designed screens and are implemented in the mock:
+
+| Method | Path | Why |
+|---|---|---|
+| GET | /workspaces/:slug/project-directory | every project in the workspace with admins + `isMember` (403 screen context, "assign project admin" for `project.assign_admin`) |
+| GET | /projects/:id/access-requests | pending requests for project admins (`project.manage_members`) |
+| GET | /projects/:id/active-sprint | sidebar sprint card (name, progress, days left) |
+| GET | /tasks/:id/attachments | attachment list with fresh signed URLs |
+| GET | /me/recents | command palette "Recent" section (tasks + projects) |
+| GET | /projects/:id/reports/kpis | Reports KPI tiles (completed vs planned, cycle time avg/p85, overdue, scope change) |
+| GET | /notifications?filter[workspace]= | inbox scoped to the current workspace |
+
+`GET /notifications` also returns `counts: { all, mentions, assigned, unread }` for the tab counters.
+`POST /notifications/read-all` returns the ids it changed and accepts `{ ids, unread: true }` to undo.
