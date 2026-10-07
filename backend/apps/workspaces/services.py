@@ -207,13 +207,10 @@ def remove_member(actor: User, ws: Workspace, user_id: Any) -> None:
 
 
 def _remove_project_memberships(ws: Workspace, user_id: Any) -> None:
-    from django.apps import apps as django_apps
+    from apps.projects.models import AccessRequest, ProjectMember
 
-    try:
-        project_member = django_apps.get_model("projects", "ProjectMember")  # type: ignore[misc]
-    except LookupError:  # projects app not migrated yet
-        return
-    project_member.objects.filter(project__workspace=ws, user_id=user_id).delete()
+    ProjectMember.objects.filter(project__workspace=ws, user_id=user_id).delete()
+    AccessRequest.objects.filter(project__workspace=ws, user_id=user_id, status="pending").update(status="withdrawn")
 
 
 def touch_last_active(user: User) -> None:

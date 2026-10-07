@@ -1,0 +1,80 @@
+"""A small, complete world for the permission matrix: one workspace with a project and one user per
+role, plus an outsider who belongs to a different workspace."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from django.utils import timezone
+
+from apps.common.testing import UserFactory, add_member, make_workspace
+from apps.common.tokens import new_token
+
+ACTORS = ("owner", "ws_admin", "ws_member", "manager", "pmember", "viewer", "outsider", "anon")
+
+
+@dataclass
+class World:
+    ws: Any
+    other_ws: Any
+    users: dict[str, Any]
+    invite: Any
+    invite_token: str
+    custom_role: Any
+    project: Any = None
+    extra: dict[str, Any] = field(default_factory=dict)
+
+    def role(self, key: str):
+        return self.ws.roles.get(system_key=key)
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self.__dict__["extra"][name]
+        except KeyError as exc:
+            raise AttributeError(name) from exc
+
+
+def build_world() -> World:
+    from apps.access.models import Role
+    from apps.workspaces.models import Invitation
+
+    owner = UserFactory(name="Owner")
+    ws = make_workspace(owner, name="Platform team", slug="platform")
+    users = {"owner": owner}
+    users["ws_admin"] = add_member(ws, UserFactory(name="WS Admin"), "admin")
+    users["ws_member"] = add_member(ws, UserFactory(name="WS Member"), "member")
+    users["manager"] = add_member(ws, UserFactory(name="Manager"), "member")
+    users["pmember"] = add_member(ws, UserFactory(name="Project Member"), "member")
+    users["viewer"] = add_member(ws, UserFactory(name="Viewer"), "member")
+    outsider = UserFactory(name="Outsider")
+    other_ws = make_workspace(outsider, name="Elsewhere", slug="elsewhere")
+    users["outsider"] = outsider
+
+    raw, digest = new_token()
+    invite = Invitation.objects.create(
+        workspace=ws,
+        email="invitee@x.dev",
+        role=ws.roles.get(system_key="member"),
+        invited_by=owner,
+        token_hash=digest,
+        expires_at=timezone.now() + timezone.timedelta(days=7),
+    )
+    custom_role = Role.objects.create(workspace=ws, name="Custom", scope="project")
+    world = World(ws=ws, other_ws=other_ws, users=users, invite=invite, invite_token=raw, custom_role=custom_role)
+    _add_project(world)
+    return world
+
+
+def _add_project(w: World) -> None:
+    from apps.projects.models import Project, ProjectMember
+
+    project = Project.objects.create(workspace=w.ws, key="PRJ", name="Platform Rebuild")
+    for actor, key in (
+        ("owner", "project_admin"),
+        ("manager", "manager"),
+        ("pmember", "project_member"),
+        ("viewer", "viewer"),
+    ):
+        ProjectMember.objects.create(project=project, user=w.users[actor], role=w.role(key))
+    w.project = project
