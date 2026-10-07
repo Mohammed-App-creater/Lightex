@@ -452,7 +452,7 @@ export interface AuditEntry {
 /* ───────────────────────── Search, reports, misc ───────────────────────── */
 
 export type SearchResult =
-  | { type: "task"; task: Task; projectKey: string; projectName: string }
+  | { type: "task"; task: Task; projectKey: string; projectName: string; status: Pick<Status, "name" | "glyph"> }
   | { type: "project"; project: Project }
   | { type: "user"; user: User; roleName: string };
 

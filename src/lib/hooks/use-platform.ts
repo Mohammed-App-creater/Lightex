@@ -24,5 +24,9 @@ export function useModKey() {
 
 /** Replaces the ⌘ glyph in a design shortcut with the platform modifier. */
 export function formatKeys(keys: string[], isMac: boolean): string[] {
-  return keys.map((k) => (k === "⌘" || k === "Mod" ? (isMac ? "⌘" : "Ctrl") : k));
+  return keys.map((k) => {
+    if (k === "⌘" || k === "Mod") return isMac ? "⌘" : "Ctrl";
+    if (k.startsWith("⌘") && k.length > 1) return isMac ? k : `Ctrl+${k.slice(1)}`;
+    return k;
+  });
 }

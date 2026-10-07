@@ -66,11 +66,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const signedIn = useCallback(
     (result: { accessToken: string; user: User }) => {
       tokenStore.set(result.accessToken);
-      setUserState(result.user);
+      setUserState((prev) => {
+        // A different user (dev role switcher, account change): drop every cached response.
+        // Re-auth as the same user keeps the cache so nothing on screen is lost.
+        if (prev?.id !== result.user.id) qc.clear();
+        return result.user;
+      });
       setExpired(false);
       setStatus("authenticated");
-      // Another user may have signed in (dev role switcher): drop every cached response.
-      qc.clear();
     },
     [qc],
   );

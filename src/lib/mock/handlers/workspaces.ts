@@ -329,7 +329,8 @@ function searchHandler(ctx: Ctx) {
       .slice(0, Number(ctx.query.limit) || 50);
     for (const t of tasks) {
       const p = ctx.db.projects.find((x) => x.id === t.projectId)!;
-      out.push({ type: "task", task: toTask(ctx.db, t), projectKey: p.key, projectName: p.name });
+      const s = ctx.db.statuses.find((x) => x.id === t.statusId)!;
+      out.push({ type: "task", task: toTask(ctx.db, t), projectKey: p.key, projectName: p.name, status: { name: s.name, glyph: s.glyph } });
     }
   }
   if (want("project")) {

@@ -19,12 +19,17 @@ export function CommandShell({
   children,
   wide,
   label = "Search and commands",
+  value,
+  onValueChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
   wide?: boolean;
   label?: string;
+  /** Controlled active item (cmdk value). */
+  value?: string;
+  onValueChange?: (v: string) => void;
 }) {
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
@@ -42,7 +47,14 @@ export function CommandShell({
           )}
         >
           <D.Title className="sr-only">{label}</D.Title>
-          <Command shouldFilter={false} loop label={label} className="flex min-h-0 flex-1 flex-col">
+          <Command
+            shouldFilter={false}
+            loop
+            label={label}
+            value={value}
+            onValueChange={onValueChange}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             {children}
           </Command>
         </D.Content>

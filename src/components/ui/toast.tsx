@@ -6,6 +6,7 @@ import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { createStore } from "@/lib/utils/store";
 import { t } from "@/lib/motion";
 import { cn } from "@/lib/utils/cn";
+import { devToolsEnabled } from "@/lib/env";
 import { ErrorGlyph, StatusGlyph } from "./glyphs";
 import { Kbd } from "./kbd";
 
@@ -137,7 +138,8 @@ export function Toaster({ className }: { className?: string }) {
     <div
       aria-live="polite"
       className={cn(
-        "pointer-events-none fixed bottom-4 right-4 z-[90] flex flex-col items-end gap-2.5 max-[760px]:inset-x-4 max-[760px]:items-center",
+        devToolsEnabled ? "bottom-16" : "bottom-4",
+        "pointer-events-none fixed right-4 z-[90] flex flex-col items-end gap-2.5 max-[760px]:inset-x-4 max-[760px]:items-center",
         className,
       )}
     >
