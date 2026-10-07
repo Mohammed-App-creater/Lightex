@@ -83,6 +83,12 @@ class Command(BaseCommand):
     def date(self, value: str | None) -> dt.date | None:
         return dt.date.fromisoformat(value) + self.shift if value else None
 
+    def day(self, value: str) -> dt.date:
+        return dt.date.fromisoformat(value) + self.shift
+
+    def moment(self, value: str) -> dt.datetime:
+        return dt.datetime.fromisoformat(value.replace("Z", "+00:00")) + self.shift
+
     def ts(self, value: str | None) -> dt.datetime | None:
         if not value:
             return None
@@ -126,7 +132,7 @@ class Command(BaseCommand):
                 user=self.users[m["userId"]],
                 role=self.roles[m["roleId"]],
                 status=m["status"],
-                joined_at=self.ts(m["joinedAt"]),
+                joined_at=self.moment(m["joinedAt"]),
                 last_active_at=self.ts(m["lastActiveAt"]),
             )
         self.load_projects(data)
@@ -168,7 +174,7 @@ class Command(BaseCommand):
                 project=self.projects[m["projectId"]],
                 user=self.users[m["userId"]],
                 role=self.roles[m["roleId"]],
-                added_at=self.ts(m["addedAt"]),
+                added_at=self.moment(m["addedAt"]),
             )
 
     def load_planning(self, data: dict[str, Any]) -> None:
@@ -182,7 +188,7 @@ class Command(BaseCommand):
                 quarter=o["quarter"],
                 due_date=self.date(o["dueDate"]),
                 status=o["status"],
-                created_at=self.ts(o["createdAt"]),
+                created_at=self.moment(o["createdAt"]),
             )
         for m in data["milestones"]:
             self.milestones[m["id"]] = Milestone.objects.create(
@@ -190,8 +196,8 @@ class Command(BaseCommand):
                 name=m["name"],
                 description=m["description"],
                 owner=self.users.get(m["ownerId"]),
-                start_date=self.date(m["startDate"]),
-                due_date=self.date(m["dueDate"]),
+                start_date=self.day(m["startDate"]),
+                due_date=self.day(m["dueDate"]),
                 completed_at=self.ts(m["completedAt"]),
             )
         for e in data["epics"]:
@@ -205,7 +211,7 @@ class Command(BaseCommand):
                 archived_at=self.ts(e.get("archivedAt")),
             )
         for s in data["sprints"]:
-            start, end = self.date(s["startDate"]), self.date(s["endDate"])
+            start, end = self.day(s["startDate"]), self.day(s["endDate"])
             self.sprints[s["id"]] = Sprint.objects.create(
                 project=self.projects[s["projectId"]],
                 name=s["name"],
@@ -276,7 +282,7 @@ class Command(BaseCommand):
             (s for s in sorted(statuses, key=lambda s: s.position) if s.category == "in_progress"),
             first.get("in_progress"),
         )
-        rows = []
+        rows: list[tuple[Status | None, Status, dt.datetime]] = []
         current = task.status
         initial = current if (current.category == "todo" or not task.started_at) and not task.completed_at else todo
         rows.append((None, initial, task.created_at))
@@ -341,7 +347,7 @@ class Command(BaseCommand):
                 type=n["type"],
                 actor=self.users.get(n["actorId"]),
                 payload=n["payload"],
-                created_at=self.ts(n["createdAt"]),
+                created_at=self.moment(n["createdAt"]),
                 read_at=self.ts(n["readAt"]),
             )
         for a in data["activity"]:
@@ -363,7 +369,7 @@ class Command(BaseCommand):
                 task_key=task.key if task else None,
                 task_title=task.title if task else None,
                 data=a.get("data") or {},
-                created_at=self.ts(a["createdAt"]),
+                created_at=self.moment(a["createdAt"]),
             )
         self.invite_links = []
         for inv in data["invites"]:
