@@ -23,6 +23,14 @@ def PU(user: str):
     return lambda w: {"project_id": w.project.id, "user_id": w.users[user].id}
 
 
+def T(name: str):
+    return lambda w: {"task_id": getattr(w, name).id}
+
+
+def TR(name: str):
+    return lambda w: {"task_ref": str(getattr(w, name).id)}
+
+
 OUT = ("outsider",)
 
 ROWS = [
@@ -170,4 +178,78 @@ ROWS = [
         allow=("manager",),
         deny=("pmember", "outsider"),
     ),
+    # ── tasks ──
+    _row("project-tasks", "GET", P, allow=("viewer", "owner"), deny=("ws_admin", "ws_member", "outsider")),
+    _row(
+        "project-tasks",
+        "POST",
+        P,
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"title": "New"},
+    ),
+    _row(
+        "project-tasks-bulk",
+        "POST",
+        P,
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"ids": [str(w.task.id)], "patch": {"priority": 2}},
+    ),
+    _row("project-activity", "GET", P, allow=("viewer",), deny=("ws_member", "outsider")),
+    _row(
+        "workspace-tasks",
+        "GET",
+        S,
+        allow=("ws_member", "viewer"),
+        deny=("outsider", "anon"),
+        query="?filter[assignee]=me",
+    ),
+    _row(
+        "workspace-task-by-key",
+        "GET",
+        lambda w: {"slug": w.ws.slug, "key": w.task.key},
+        allow=("viewer",),
+        deny=("ws_admin", "ws_member", "outsider"),
+    ),
+    _row("workspace-activity", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row("task-restore", "POST", T("deleted_task"), allow=("manager", "owner"), deny=("pmember", "viewer", "outsider")),
+    _row("task-subtasks", "GET", T("task"), allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "task-subtasks",
+        "POST",
+        T("task"),
+        allow=("pmember",),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"title": "Sub"},
+    ),
+    _row(
+        "task-objectives",
+        "PUT",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"objectiveIds": []},
+    ),
+    _row(
+        "task-labels",
+        "PUT",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"labelIds": []},
+    ),
+    _row("task-activity", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row("task-detail", "GET", TR("task"), allow=("viewer",), deny=("ws_admin", "ws_member", "outsider")),
+    _row(
+        "task-detail",
+        "PATCH",
+        TR("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"title": "Edited", "version": w.task.version},
+    ),
+    _row("task-detail", "DELETE", TR("task"), allow=("manager",), deny=("pmember", "viewer", "outsider")),
+    _row("my-tasks", "GET", allow=("owner", "viewer", "outsider"), deny=("anon",)),
+    _row("my-recents", "GET", allow=("owner", "viewer", "outsider"), deny=("anon",)),
 ]

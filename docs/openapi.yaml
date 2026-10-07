@@ -197,6 +197,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/AcceptInviteOut'
           description: ''
+  /api/v1/me/recents:
+    get:
+      operationId: me_recents_list
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recent'
+          description: ''
+  /api/v1/me/tasks:
+    get:
+      operationId: me_tasks_retrieve
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPageOut'
+          description: ''
   /api/v1/permissions:
     get:
       operationId: permissions_list
@@ -367,6 +402,31 @@ paths:
       - access requests
       responses:
         '204':
+          description: No response body
+  /api/v1/projects/{project_id}/activity:
+    get:
+      operationId: projects_activity_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - activity
+      responses:
+        '200':
           description: No response body
   /api/v1/projects/{project_id}/archive:
     post:
@@ -725,6 +785,149 @@ paths:
                 items:
                   $ref: '#/components/schemas/Status'
           description: ''
+  /api/v1/projects/{project_id}/tasks:
+    get:
+      operationId: projects_tasks_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[assignee]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id, `me` or `none`
+      - in: query
+        name: filter[epic]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[label]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[milestone]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[parent]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[priority]
+        schema:
+          type: array
+          items:
+            type: integer
+      - in: query
+        name: filter[sprint]
+        schema:
+          type: array
+          items:
+            type: string
+        description: sprint id or `none`
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: number, title, priority, dueDate, estimate, createdAt, updatedAt
+          or position; - for descending
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPageOut'
+          description: ''
+    post:
+      operationId: projects_tasks_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskWriteInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/projects/{project_id}/tasks/bulk:
+    post:
+      operationId: projects_tasks_bulk_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskOut'
+          description: ''
   /api/v1/projects/{project_id}/unarchive:
     post:
       operationId: projects_unarchive_create
@@ -812,6 +1015,202 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
+  /api/v1/tasks/{task_id}/activity:
+    get:
+      operationId: tasks_activity_list
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - activity
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityOut'
+          description: ''
+  /api/v1/tasks/{task_id}/labels:
+    put:
+      operationId: tasks_labels_update
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskLabelsInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/tasks/{task_id}/objectives:
+    put:
+      operationId: tasks_objectives_update
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskObjectivesInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/tasks/{task_id}/restore:
+    post:
+      operationId: tasks_restore_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/tasks/{task_id}/subtasks:
+    get:
+      operationId: tasks_subtasks_list
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskOut'
+          description: ''
+    post:
+      operationId: tasks_subtasks_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskWriteInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/tasks/{task_ref}:
+    get:
+      operationId: tasks_retrieve
+      description: GET/PATCH/DELETE tasks/{id or key}.
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDetailOut'
+          description: ''
+    patch:
+      operationId: tasks_partial_update
+      description: GET/PATCH/DELETE tasks/{id or key}.
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskWriteInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+    delete:
+      operationId: tasks_destroy
+      description: GET/PATCH/DELETE tasks/{id or key}.
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - tasks
+      responses:
+        '204':
+          description: No response body
   /api/v1/workspaces:
     get:
       operationId: workspaces_list
@@ -949,6 +1348,29 @@ paths:
       - workspaces
       responses:
         '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/activity:
+    get:
+      operationId: workspaces_activity_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - activity
+      responses:
+        '200':
           description: No response body
   /api/v1/workspaces/{slug}/invites:
     get:
@@ -1284,6 +1706,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/SlugAvailability'
           description: ''
+  /api/v1/workspaces/{slug}/tasks:
+    get:
+      operationId: workspaces_tasks_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[assignee]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPageOut'
+          description: ''
+  /api/v1/workspaces/{slug}/tasks/{key}:
+    get:
+      operationId: workspaces_tasks_retrieve_2
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDetailOut'
+          description: ''
   /health:
     get:
       operationId: health_retrieve_2
@@ -1381,6 +1860,45 @@ components:
       - status
       - user
       - userId
+    ActivityOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          format: uuid
+          nullable: true
+        verb:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        taskKey:
+          type: string
+          nullable: true
+        taskTitle:
+          type: string
+          nullable: true
+        data: {}
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - actorId
+      - createdAt
+      - data
+      - id
+      - projectId
+      - taskId
+      - taskKey
+      - taskTitle
+      - verb
     AuthOut:
       type: object
       properties:
@@ -1391,6 +1909,22 @@ components:
       required:
       - accessToken
       - user
+    BulkInRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        patch:
+          $ref: '#/components/schemas/TaskWriteInRequest'
+        delete:
+          type: boolean
+        restore:
+          type: boolean
+      required:
+      - ids
     ChangePasswordInRequest:
       type: object
       properties:
@@ -1632,6 +2166,62 @@ components:
           type: string
           nullable: true
           minLength: 1
+    PatchedTaskWriteInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        statusId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        priority:
+          type: integer
+          maximum: 4
+          minimum: 0
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+        epicId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        labelIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        objectiveIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description:
+          nullable: true
+        estimate:
+          type: integer
+          nullable: true
+        version:
+          type: integer
     PatchedWorkspaceCreateInRequest:
       type: object
       properties:
@@ -1793,6 +2383,21 @@ components:
       - kanban
       - bugs
       type: string
+    Recent:
+      type: object
+      properties:
+        kind:
+          type: string
+        id:
+          type: string
+          format: uuid
+        at:
+          type: string
+          format: date-time
+      required:
+      - at
+      - id
+      - kind
     RegisterInRequest:
       type: object
       properties:
@@ -1951,6 +2556,352 @@ components:
           type: string
           nullable: true
           minLength: 1
+    TaskDetailOut:
+      type: object
+      description: Schema for the Task payload (built by task_data).
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        key:
+          type: string
+        number:
+          type: integer
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        priority:
+          type: integer
+          maximum: 4
+          minimum: 0
+        statusId:
+          type: string
+          format: uuid
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+        reporterId:
+          type: string
+          format: uuid
+        estimate:
+          type: integer
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        epicId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        objectiveIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        labelIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        position:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        subtaskCount:
+          type: integer
+        subtaskDoneCount:
+          type: integer
+        commentCount:
+          type: integer
+        attachmentCount:
+          type: integer
+        description:
+          nullable: true
+        subtasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskOut'
+        project: {}
+      required:
+      - assigneeId
+      - attachmentCount
+      - commentCount
+      - completedAt
+      - createdAt
+      - deletedAt
+      - description
+      - dueDate
+      - epicId
+      - estimate
+      - id
+      - key
+      - labelIds
+      - milestoneId
+      - number
+      - objectiveIds
+      - parentId
+      - position
+      - priority
+      - project
+      - projectId
+      - reporterId
+      - sprintId
+      - statusId
+      - subtaskCount
+      - subtaskDoneCount
+      - subtasks
+      - title
+      - type
+      - updatedAt
+      - version
+    TaskLabelsInRequest:
+      type: object
+      properties:
+        labelIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - labelIds
+    TaskObjectivesInRequest:
+      type: object
+      properties:
+        objectiveIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - objectiveIds
+    TaskOut:
+      type: object
+      description: Schema for the Task payload (built by task_data).
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        key:
+          type: string
+        number:
+          type: integer
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        priority:
+          type: integer
+          maximum: 4
+          minimum: 0
+        statusId:
+          type: string
+          format: uuid
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+        reporterId:
+          type: string
+          format: uuid
+        estimate:
+          type: integer
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        epicId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        objectiveIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        labelIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        position:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        subtaskCount:
+          type: integer
+        subtaskDoneCount:
+          type: integer
+        commentCount:
+          type: integer
+        attachmentCount:
+          type: integer
+      required:
+      - assigneeId
+      - attachmentCount
+      - commentCount
+      - completedAt
+      - createdAt
+      - deletedAt
+      - dueDate
+      - epicId
+      - estimate
+      - id
+      - key
+      - labelIds
+      - milestoneId
+      - number
+      - objectiveIds
+      - parentId
+      - position
+      - priority
+      - projectId
+      - reporterId
+      - sprintId
+      - statusId
+      - subtaskCount
+      - subtaskDoneCount
+      - title
+      - type
+      - updatedAt
+      - version
+    TaskPageOut:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskOut'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    TaskWriteInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        statusId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        priority:
+          type: integer
+          maximum: 4
+          minimum: 0
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+        epicId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        labelIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        objectiveIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description:
+          nullable: true
+        estimate:
+          type: integer
+          nullable: true
+        version:
+          type: integer
+    TypeEnum:
+      enum:
+      - feature
+      - bug
+      - chore
+      - spike
+      type: string
     User:
       type: object
       properties:

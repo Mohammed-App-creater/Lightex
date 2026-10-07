@@ -80,3 +80,14 @@ def _add_project(w: World) -> None:
     w.extra["label"] = Label.objects.create(project=project, name="matrix")
     w.extra["access_request"] = AccessRequest.objects.create(project=project, user=w.users["ws_member"])
     w.extra["status_ids"] = [str(i) for i in project.statuses.order_by("position").values_list("id", flat=True)]
+    _add_tasks(w)
+
+
+def _add_tasks(w: World) -> None:
+    from apps.tasks.services import create_task, delete_task
+
+    w.extra["task"] = create_task(w.users["owner"], w.project, {"title": "Owner task"})
+    w.extra["own_task"] = create_task(w.users["pmember"], w.project, {"title": "Member task"})
+    gone = create_task(w.users["owner"], w.project, {"title": "Deleted task"})
+    delete_task(w.users["owner"], gone)
+    w.extra["deleted_task"] = gone

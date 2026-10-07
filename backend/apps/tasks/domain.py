@@ -31,7 +31,7 @@ def apply_status(task: Task, status: Any, actor: Any, *, at: Any = None) -> bool
         task.completed_at = None
     if status.category == "in_progress" and task.started_at is None:
         task.started_at = at
-    if task.pk:
+    if not task._state.adding:
         TaskStatusHistory.objects.create(
             task=task,
             from_status=previous,
