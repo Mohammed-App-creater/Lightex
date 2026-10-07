@@ -6,7 +6,7 @@ from apps.access.permissions import MEMBER, ScopedView
 from apps.common.params import body, filter_value
 from apps.workspaces.views import WorkspaceScopedView
 
-from . import selectors, services
+from . import saved_views, selectors, services
 from .serializers import (
     AccessRequestSerializer,
     AccessRequestWithUserSerializer,
@@ -238,4 +238,47 @@ class LabelDetailView(ProjectScopedView):
     @extend_schema(tags=["labels"], responses={204: None})
     def delete(self, request, project_id, label_id):
         services.delete_label(request.user, self.scope, label_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ───────────────────────── saved views (board 30) ─────────────────────────
+
+
+class SavedViewsView(WorkspaceScopedView):
+    required = {"GET": "workspace.view", "POST": "workspace.view"}
+
+    @extend_schema(tags=["views"])
+    def get(self, request, slug):
+        return Response(saved_views.list_for(request.user, self.scope))
+
+    @extend_schema(tags=["views"])
+    def post(self, request, slug):
+        view = saved_views.create_view(request.user, self.scope, body(request))
+        return Response(saved_views.view_data(view, request.user), status=status.HTTP_201_CREATED)
+
+
+class SavedViewsOrderView(WorkspaceScopedView):
+    required = {"PUT": "workspace.view"}
+
+    @extend_schema(tags=["views"])
+    def put(self, request, slug):
+        saved_views.reorder_pins(request.user, body(request).get("ids"))
+        return Response(saved_views.list_for(request.user, self.scope))
+
+
+class SavedViewDetailView(ScopedView):
+    required = {"PATCH": MEMBER, "DELETE": MEMBER}
+
+    def get_scope(self):
+        self.view_obj = saved_views.view_for(self.request.user, self.kwargs["view_id"])
+        return self.view_obj.project
+
+    @extend_schema(tags=["views"])
+    def patch(self, request, view_id):
+        view = saved_views.update_view(request.user, self.view_obj, body(request))
+        return Response(saved_views.view_data(view, request.user))
+
+    @extend_schema(tags=["views"])
+    def delete(self, request, view_id):
+        saved_views.delete_view(request.user, self.view_obj)
         return Response(status=status.HTTP_204_NO_CONTENT)

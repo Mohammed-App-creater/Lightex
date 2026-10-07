@@ -2431,6 +2431,37 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/views/{view_id}:
+    patch:
+      operationId: views_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: view_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - views
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: views_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: view_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - views
+      responses:
+        '204':
+          description: No response body
   /api/v1/workspaces:
     get:
       operationId: workspaces_list
@@ -3130,6 +3161,50 @@ paths:
             schema:
               $ref: '#/components/schemas/TrashItemsRequest'
         required: true
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/views:
+    get:
+      operationId: workspaces_views_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - views
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: workspaces_views_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - views
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/views/order:
+    put:
+      operationId: workspaces_views_order_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - views
       responses:
         '200':
           description: No response body

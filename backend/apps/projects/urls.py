@@ -29,4 +29,7 @@ urlpatterns = [
     path(f"{P}/statuses/<uuid:status_id>", views.StatusDetailView.as_view(), name="project-status-detail"),
     path(f"{P}/labels", views.LabelsView.as_view(), name="project-labels"),
     path(f"{P}/labels/<uuid:label_id>", views.LabelDetailView.as_view(), name="project-label-detail"),
+    path("workspaces/<str:slug>/views", views.SavedViewsView.as_view(), name="workspace-views"),
+    path("workspaces/<str:slug>/views/order", views.SavedViewsOrderView.as_view(), name="workspace-views-order"),
+    path("views/<uuid:view_id>", views.SavedViewDetailView.as_view(), name="view-detail"),
 ]

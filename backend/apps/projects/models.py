@@ -126,3 +126,29 @@ class Recent(BaseModel):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "object_id"], name="recent_unique")]
         indexes = [models.Index(fields=["user", "-at"], name="recent_user_at")]
+
+
+class SavedView(BaseModel):
+    """Board 30: a saved filter for one project, private ("me") or shared with the project."""
+
+    ICONS = [(i, i) for i in ("filter", "star", "user", "calendar", "bolt", "flag")]
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="saved_views")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    name = models.CharField(max_length=40)
+    icon = models.CharField(max_length=16, choices=ICONS, default="filter")
+    visibility = models.CharField(max_length=8, choices=[("me", "Only me"), ("project", "Project")], default="me")
+    layout = models.CharField(max_length=8, choices=[("board", "Board"), ("list", "List")], default="list")
+    filters = models.JSONField(default=list)
+
+
+class ViewPin(BaseModel):
+    """A view pinned to one user's sidebar, in that user's order."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    view = models.ForeignKey(SavedView, on_delete=models.CASCADE, related_name="pins")
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "view"], name="view_pin_unique")]

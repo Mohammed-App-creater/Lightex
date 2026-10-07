@@ -457,4 +457,34 @@ ROWS = [
         for name in ("kpis", "burndown", "velocity", "cycle-time", "throughput", "progress")
     ],
     _row("project-summary", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    # ── saved views ──
+    _row("workspace-views", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row(
+        "workspace-views",
+        "POST",
+        S,
+        allow=("pmember",),
+        deny=("ws_member", "outsider"),
+        body=lambda w: {
+            "projectId": str(w.project.id),
+            "name": "Mine",
+            "filters": [{"field": "priority", "op": "is", "values": ["1"]}],
+        },
+    ),
+    _row("workspace-views-order", "PUT", S, allow=("viewer",), deny=("outsider", "anon"), body=lambda w: {"ids": []}),
+    _row(
+        "view-detail",
+        "PATCH",
+        lambda w: {"view_id": w.view.id},
+        allow=("owner", "viewer"),
+        deny=("ws_member", "outsider"),
+        body=lambda w: {"pinned": True},
+    ),
+    _row(
+        "view-detail",
+        "DELETE",
+        lambda w: {"view_id": w.view.id},
+        allow=("owner",),
+        deny=("viewer", "ws_member", "outsider"),
+    ),
 ]

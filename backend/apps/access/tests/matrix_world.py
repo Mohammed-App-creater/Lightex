@@ -84,6 +84,7 @@ def _add_project(w: World) -> None:
     _add_planning(w)
     _add_collaboration(w)
     _add_notifications(w)
+    _add_views(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -134,3 +135,12 @@ def _add_notifications(w: World) -> None:
     w.extra["notification"] = Notification.objects.create(
         recipient=w.users["owner"], workspace=w.ws, project=w.project, task=w.task, type="assigned"
     )
+
+
+def _add_views(w: World) -> None:
+    from apps.projects.models import SavedView
+
+    w.extra["view"] = SavedView.objects.create(
+        workspace=w.ws, project=w.project, owner=w.users["owner"], name="Shared", visibility="project",
+        filters=[{"field": "priority", "op": "is", "values": ["3"]}],
+    )  # fmt: skip
