@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Notifications</title>
+<script src="../assets/d3db38df-4865-47e8-868c-cbab2cb698c9.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--danger-solid:#C23A30}
+.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--danger-solid:#C23A30}
+.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--danger-solid:#B92F26}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;display:flex;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text)}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+/* shared controls */
+.btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;text-decoration:none;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),border-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn.icon{width:32px;padding:0;justify-content:center}
+.btn.sm.icon{width:28px}
+.btn-primary .kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;position:relative}
+.av.s20{width:20px;height:20px;font-size:9px}.av.s24{width:24px;height:24px;font-size:10px}.av.s30{width:30px;height:30px;font-size:11px}
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-chip{display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 9px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 12px/1 'Inter',sans-serif;white-space:nowrap}
+.tp-mention{color:var(--accent-t);background:var(--accent-s);padding:0 3px;border-radius:4px;font-weight:500}
+.tp-grab{display:none;width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:8px auto 0;flex:none}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--text-2);animation:spin .7s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tg{appearance:none;-webkit-appearance:none;width:32px;height:18px;margin:0;border-radius:9px;border:1px solid var(--control);background:var(--raised);position:relative;cursor:pointer;flex:none;transition:background-color 150ms var(--ease),border-color 150ms var(--ease)}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-2);transition:transform 180ms var(--spring),background-color 150ms var(--ease)}
+.tg:checked{background:var(--accent);border-color:var(--accent)}
+.tg:checked::after{transform:translateX(14px);background:#fff}
+.seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+/* inbox */
+.nb-main{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.nb-top{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.nb-h{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.nb-unc{font:500 11px/1 'JetBrains Mono',monospace;color:var(--accent-t);background:var(--accent-s);height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center}
+.nb-allread{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);padding:0 8px;animation:fadein 220ms var(--ease)}
+.nb-tabs{position:relative;flex:none;display:flex;padding:0 12px;border-bottom:1px solid var(--line)}
+.nb-tab{height:38px;flex:none;border:0;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:6px 6px 0 0;transition:color 120ms var(--ease)}
+.nb-tab:hover{color:var(--text)}
+.nb-tab[aria-selected=true]{color:var(--text)}
+.nb-tab .mono{font-size:11px;color:var(--text-3)}
+.nb-ind{position:absolute;left:12px;bottom:-1px;height:2px;border-radius:2px;background:var(--accent);transition:transform 220ms var(--spring)}
+.nb-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 8px 24px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.nb-gh{display:flex;align-items:center;gap:8px;margin:0;padding:14px 12px 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.nb-row{position:relative;display:grid;grid-template-columns:12px 36px minmax(0,1fr) auto;align-items:center;column-gap:10px;min-height:60px;padding:8px 14px 8px 10px;border-radius:8px;transition:background-color 150ms var(--ease)}
+.nb-row:hover{background:var(--hover)}
+.nb-row.sel{background:var(--accent-s)}
+.nb-hit{position:absolute;inset:0;width:100%;border:0;border-radius:8px;background:transparent;cursor:pointer;padding:0;z-index:0}
+.nb-row>*:not(.nb-hit){pointer-events:none;position:relative;z-index:1}
+.nb-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-t);justify-self:center;transition:transform 220ms var(--ease),opacity 180ms var(--ease)}
+.nb-row.read .nb-dot{transform:scale(0);opacity:0}
+.nb-who{position:relative;width:30px;height:30px}
+.nb-badge{position:absolute;right:-5px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:var(--surface);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center}
+.nb-sys{width:30px;height:30px;border-radius:8px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center}
+.nb-txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.nb-l1{display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;line-height:17px;color:var(--text-2);white-space:nowrap;overflow:hidden}
+.nb-l1 b{font-weight:600;color:var(--text);transition:color 200ms var(--ease)}
+.nb-st{display:inline-flex;align-items:center;gap:5px;color:var(--text)}
+.nb-st .tp-g{width:12px;height:12px}
+.nb-l2{display:flex;align-items:center;gap:8px;min-width:0;font-size:12.5px;line-height:16px}
+.nb-key{font-size:11.5px;color:var(--text-3);flex:none}
+.nb-title{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color 200ms var(--ease)}
+.nb-row.read .nb-l1 b{color:var(--text-2);font-weight:500}
+.nb-row.read .nb-title{color:var(--text-2)}
+.nb-time{font-size:11px;color:var(--text-3);transition:opacity 120ms var(--ease)}
+.nb-act{position:absolute!important;right:10px;top:50%;margin-top:-15px;display:flex;gap:2px;padding:0;border-radius:8px;background:var(--hover);opacity:0;transform:translateX(4px);transition:opacity 120ms var(--ease),transform 160ms var(--ease);pointer-events:none!important;z-index:2!important}
+.nb-row:hover .nb-act,.nb-row:focus-within .nb-act{opacity:1;transform:none;pointer-events:auto!important}
+.nb-row.sel .nb-act{background:transparent}
+.nb-row:hover .nb-time,.nb-row:focus-within .nb-time{opacity:0}
+.nb-ib{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-2);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.nb-ib:hover{background:var(--raised);color:var(--text)}
+.touch .nb-act{display:none}
+.touch .nb-row{min-height:68px}
+.touch .nb-tab{height:44px}
+.nb-toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;height:40px;padding:0 6px 0 14px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);font-size:13px;white-space:nowrap;z-index:6;animation:toastin 220ms var(--ease)}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.nb-center{height:100%;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px}
+.nb-center h3{margin:6px 0 0;font-size:15px;font-weight:600}
+.nb-center p{margin:0 0 6px;font-size:13px;color:var(--text-3)}
+.nb-emic{position:relative;width:52px;height:52px;border-radius:50%;border:1.5px solid var(--line-2);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--ok);animation:tppop 320ms var(--spring)}
+.nb-emic::before{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--spark);box-shadow:0 -34px 0 var(--spark),30px -16px 0 var(--spark),30px 17px 0 var(--spark),0 34px 0 var(--spark),-30px 17px 0 var(--spark),-30px -16px 0 var(--spark);animation:tpspark 640ms var(--ease) 120ms both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.nb-erric{width:52px;height:52px;border-radius:50%;border:1.5px solid var(--line-2);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--danger)}
+.nb-skr{display:grid;grid-template-columns:12px 36px minmax(0,1fr) 28px;align-items:center;column-gap:10px;height:60px;padding:8px 14px 8px 10px}
+/* preview panel */
+.nb-pv{position:relative;flex:none;width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--line);transition:width 250ms var(--ease)}
+.nb-pv.open{width:380px}
+.nb-pvi{width:380px;height:100%;display:flex;flex-direction:column}
+.nb-pv:not(.open) .nb-pvi{visibility:hidden;transition:visibility 0s 250ms}
+.nb-pv.sheet{position:absolute;left:0;right:0;bottom:0;width:auto;max-height:84%;border-left:0;border-top:1px solid var(--line-2);border-radius:18px 18px 0 0;box-shadow:0 -16px 48px rgba(0,0,0,.4);transform:translateY(105%);transition:transform 280ms var(--ease);z-index:8}
+.nb-pv.sheet.open{transform:none}
+.nb-pv.sheet .nb-pvi{width:auto;height:auto}
+.nb-pv.sheet .tp-grab{display:block}
+.nb-scrim{position:absolute;inset:0;background:rgba(2,5,14,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:7;animation:fadein 200ms var(--ease)}
+.nb-pvh{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px 0 18px;border-bottom:1px solid var(--line)}
+.nb-pvb{flex:1;min-height:0;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.nb-pvb h3{margin:0;font-size:17px;line-height:24px;font-weight:600;letter-spacing:-.01em}
+.nb-ev{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:10px}
+.nb-evh{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
+.nb-evh b{color:var(--text);font-weight:600}
+.nb-q{margin:0;font-size:13px;line-height:20px;color:var(--text)}
+.nb-move{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.nb-pvf{flex:none;display:flex;align-items:center;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+/* settings shell (prefs) */
+.st-nav{width:220px;flex:none;border-right:1px solid var(--line);background:var(--surface);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.st-back{display:flex;align-items:center;gap:8px;height:30px;padding:0 8px;margin-bottom:10px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500}
+.st-back:hover{background:var(--hover);color:var(--text)}
+.st-sec{padding:12px 8px 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.st-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.st-it:hover{background:var(--hover);color:var(--text)}
+.st-it[aria-current=page]{background:var(--accent-s);color:var(--text)}
+.st-it[aria-current=page] svg{color:var(--accent-t)}
+.st-it.dng svg{color:var(--danger)}
+.st-main{flex:1;min-width:0;overflow-y:auto}
+.st-wrap{max-width:900px;padding:28px 40px 40px;display:flex;flex-direction:column;gap:20px}
+.st-head{display:flex;align-items:center;gap:12px}
+.st-head h2{margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.015em}
+.st-saved{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);animation:fadein 160ms var(--ease)}
+.pm{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.pm-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(5,108px);align-items:stretch;border-top:1px solid var(--line)}
+.pm-row:first-child{border-top:0}
+.pm-hd{background:var(--bg)}
+.pm-hc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:52px;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text)}
+.pm-hc.first{align-items:flex-start;padding-left:16px;color:var(--text-3);font-weight:500}
+.pm-soon{font:500 9.5px/1 'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);border:1px dashed var(--line-2);border-radius:5px;padding:3px 5px;white-space:nowrap}
+.pm-ev{display:flex;align-items:center;gap:10px;min-height:50px;padding:0 16px;font-weight:500}
+.pm-ic{width:26px;height:26px;border-radius:7px;background:var(--raised);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.pm-cell{display:flex;align-items:center;justify-content:center}
+.pm-row>.soon{background:repeating-linear-gradient(135deg,transparent 0 7px,var(--raised) 7px 8px)}
+.pm-hc.soon{color:var(--text-3)}
+.tg-soon{width:32px;height:18px;border-radius:9px;border:1px dashed var(--line-2);position:relative;opacity:.7;cursor:not-allowed}
+.tg-soon::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--line-2)}
+.pm-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.nb-tab:focus-visible,.nb-hit:focus-visible,.nb-ib:focus-visible,.btn:focus-visible,.tg:focus-visible,.seg button:focus-visible,.st-it:focus-visible,.st-back:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){
+  .sb-host,.st-nav{display:none!important}
+  .nb-pv.open{position:absolute;left:0;right:0;bottom:0;width:auto;max-height:84%;border-radius:18px 18px 0 0;z-index:8}
+  .nb-pv .nb-pvi{width:auto}
+  .nb-hide-sm{display:none}
+  .nb-row{min-height:68px}
+  .nb-act{display:none!important}
+  .st-wrap{padding:16px}
+  .pm{overflow-x:auto}
+}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;transition-duration:.001ms!important;transition-delay:0ms!important}.sk{animation:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2700px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="mono" style="font-size:12px;color:var(--text-3);letter-spacing:.04em">SCREENS · NOTIFICATIONS</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Inbox</h1>
+    </div>
+    <div class="mono" style="display:flex;gap:16px;font-size:12px;color:var(--text-3)"><span>5 event types</span><span>E read / unread</span><span>⇧E mark all</span><span>In-app + Email live</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="grid-column:{{fx.col}};grid-row:{{fx.row}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="width:{{fx.w}}px;height:{{fx.h}}px;border-radius:{{fx.r}}px">
+
+          <sc-if value="{{fx.hasSb}}" hint-placeholder-val="{{false}}">
+            <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="1">
+              <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it {{fr.inboxOn}}" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><sc-if value="{{fr.hasInbox}}" hint-placeholder-val="{{true}}"><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></sc-if></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+              </div>
+            </sc-for>
+          </sc-if>
+
+          <sc-if value="{{fx.isInbox}}" hint-placeholder-val="{{true}}">
+            <section class="nb-main {{fx.touchCls}}" aria-label="Inbox" sc-camel-on-key-down="{{fx.mainKey}}">
+              <div class="nb-top">
+                <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}">
+                  <span class="sb-xt" aria-hidden="true" style="margin-right:2px"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                </sc-if>
+                <h2 class="nb-h">Inbox</h2>
+                <sc-if value="{{fx.hasUnread}}" hint-placeholder-val="{{true}}"><span class="nb-unc" aria-label="{{fx.unread}} unread">{{fx.unread}}</span></sc-if>
+                <span style="flex:1"></span>
+                <sc-if value="{{fx.showMarkAll}}" hint-placeholder-val="{{true}}">
+                  <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{fx.markAll}}" aria-label="Mark all read">
+                    <svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8.5l3 3 6.5-7M7.5 11.5l1 0 6-7"></path></svg><span class="nb-hide-sm">Mark all read</span><sc-if value="{{fx.notPhone}}" hint-placeholder-val="{{true}}"><span class="kbd">⇧E</span></sc-if>
+                  </button>
+                </sc-if>
+                <sc-if value="{{fx.allRead}}" hint-placeholder-val="{{false}}">
+                  <span class="nb-allread"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>All read</span>
+                </sc-if>
+                <a class="btn btn-ghost sm icon" href="#prefs" aria-label="Notification settings" title="Notification settings"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a>
+              </div>
+
+              <div class="nb-tabs" role="tablist" aria-label="Filter">
+                <span class="nb-ind" style="width:{{fx.tabW}}px;transform:translateX({{fx.indX}}px)" aria-hidden="true"></span>
+                <sc-for list="{{fx.tabs}}" as="t" hint-placeholder-count="3">
+                  <button class="nb-tab" type="button" role="tab" aria-selected="{{t.sel}}" sc-camel-on-click="{{t.pick}}" style="width:{{t.w}}px">{{t.name}}<span class="mono">{{t.n}}</span></button>
+                </sc-for>
+              </div>
+
+              <div class="nb-body" role="tabpanel">
+                <sc-if value="{{fx.isReady}}" hint-placeholder-val="{{true}}">
+                  <sc-for list="{{fx.groups}}" as="g" hint-placeholder-count="2">
+                    <section aria-label="{{g.name}}">
+                      <h3 class="nb-gh">{{g.name}}<span style="letter-spacing:0">{{g.count}}</span></h3>
+                      <sc-for list="{{g.rows}}" as="n" hint-placeholder-count="4">
+                        <div class="nb-row {{n.cls}}">
+                          <button class="nb-hit" type="button" aria-label="{{n.aria}}" aria-current="{{n.cur}}" sc-camel-on-click="{{n.open}}" sc-camel-on-key-down="{{n.onKey}}"></button>
+                          <span class="nb-dot" style="transition-delay:{{n.dly}}ms" aria-hidden="true"></span>
+                          <span class="nb-who" aria-hidden="true">
+                            <sc-if value="{{n.hasActor}}" hint-placeholder-val="{{true}}">
+                              <span class="av s30" style="background:oklch(var(--av-l) var(--av-c) {{n.hue}})">{{n.ini}}</span>
+                              <span class="nb-badge" style="color:{{n.color}}"><svg width="10" height="10" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg></span>
+                            </sc-if>
+                            <sc-if value="{{n.system}}" hint-placeholder-val="{{false}}">
+                              <span class="nb-sys" style="color:{{n.color}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg></span>
+                            </sc-if>
+                          </span>
+                          <span class="nb-txt">
+                            <span class="nb-l1"><b>{{n.actor}}</b><span>{{n.verb}}</span><sc-if value="{{n.hasSt}}" hint-placeholder-val="{{false}}"><span class="nb-st"><span class="tp-g {{n.stGlyph}}" style="color:{{n.stColor}}"></span>{{n.stName}}</span></sc-if></span>
+                            <span class="nb-l2"><span class="mono nb-key">{{n.key}}</span><span class="nb-title">{{n.title}}</span></span>
+                          </span>
+                          <span class="nb-time mono">{{n.time}}</span>
+                          <span class="nb-act">
+                            <button class="nb-ib" type="button" aria-label="{{n.readLabel}}" title="{{n.readLabel}} (E)" sc-camel-on-click="{{n.toggleRead}}">
+                              <sc-if value="{{n.unread}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                              <sc-if value="{{n.isRead}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="3.2"></circle></svg></sc-if>
+                            </button>
+                            <button class="nb-ib" type="button" aria-label="Open {{n.key}}" title="Open task (↵)" sc-camel-on-click="{{n.open}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h6.5V10M12.5 3.5l-9 9"></path></svg></button>
+                          </span>
+                        </div>
+                      </sc-for>
+                    </section>
+                  </sc-for>
+                </sc-if>
+
+                <sc-if value="{{fx.isEmpty}}" hint-placeholder-val="{{false}}">
+                  <div class="nb-center">
+                    <span class="nb-emic" aria-hidden="true"><svg width="22" height="22" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"></path></svg></span>
+                    <h3>All caught up</h3>
+                    <p>New activity on your tasks lands here.</p>
+                    <a class="btn btn-sec sm" href="#prefs">Notification settings</a>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isLoading}}" hint-placeholder-val="{{false}}">
+                  <div aria-busy="true" aria-label="Loading inbox">
+                    <div style="padding:14px 12px 8px"><span class="sk" style="width:52px;height:10px"></span></div>
+                    <sc-for list="{{fx.skRows}}" as="k" hint-placeholder-count="6">
+                      <div class="nb-skr">
+                        <span class="sk" style="width:8px;height:8px;border-radius:50%;justify-self:center;opacity:{{k.dot}}"></span>
+                        <span class="sk" style="width:30px;height:30px;border-radius:{{k.r}}"></span>
+                        <span style="display:flex;flex-direction:column;gap:7px;min-width:0"><span class="sk" style="width:{{k.w1}}%;height:11px"></span><span class="sk" style="width:{{k.w2}}%;height:10px"></span></span>
+                        <span class="sk" style="width:24px;height:9px"></span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+                  <div class="nb-center" role="alert">
+                    <span class="nb-erric" aria-hidden="true"><svg width="22" height="22" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3.5M8 10.8v.1"></path></svg></span>
+                    <h3>Couldn’t load inbox</h3>
+                    <p class="mono" style="font-size:11px">503 · notifications service</p>
+                    <button class="btn btn-sec sm" type="button" sc-camel-on-click="{{fx.retry}}">Retry</button>
+                  </div>
+                </sc-if>
+              </div>
+
+              <sc-if value="{{fx.toast}}" hint-placeholder-val="{{false}}">
+                <div class="nb-toast" role="status"><span>{{fx.toastText}}</span><button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{fx.undo}}" style="color:var(--accent-t)">Undo</button></div>
+              </sc-if>
+            </section>
+
+            <sc-if value="{{fx.sheetOpen}}" hint-placeholder-val="{{false}}"><div class="nb-scrim" sc-camel-on-click="{{fx.closePv}}"></div></sc-if>
+            <aside class="nb-pv {{fx.pvCls}}" aria-label="Task preview" aria-hidden="{{fx.pvHidden}}" sc-camel-on-key-down="{{fx.pvKey}}">
+              <div class="nb-pvi">
+                <span class="tp-grab" aria-hidden="true"></span>
+                <div class="nb-pvh">
+                  <span class="mono" style="font-size:12px;color:var(--text-2)">{{fx.pv.key}}</span>
+                  <span style="font-size:12px;color:var(--text-3)">Platform Rebuild</span>
+                  <span style="flex:1"></span>
+                  <button class="nb-ib" type="button" aria-label="{{fx.pv.readLabel}}" title="{{fx.pv.readLabel}} (E)" sc-camel-on-click="{{fx.pvToggleRead}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="3.2"></circle></svg></button>
+                  <button class="nb-ib" type="button" aria-label="Close preview" title="Close (Esc)" sc-camel-on-click="{{fx.closePv}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+                </div>
+                <div class="nb-pvb">
+                  <h3>{{fx.pv.title}}</h3>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    <span class="tp-chip"><span class="tp-g {{fx.pv.stGlyph}}" style="color:{{fx.pv.stColor}}"></span>{{fx.pv.stName}}</span>
+                    <span class="tp-chip"><span class="tp-bars {{fx.pv.pri}}" style="color:{{fx.pv.priColor}}"><i></i><i></i><i></i><i></i></span>{{fx.pv.priName}}</span>
+                    <span class="tp-chip"><span class="av s20" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>Alex Kim</span>
+                    <span class="tp-chip mono" style="color:{{fx.pv.dueColor}}">{{fx.pv.due}}</span>
+                  </div>
+                  <div class="nb-ev">
+                    <div class="nb-evh">
+                      <sc-if value="{{fx.pv.hasActor}}" hint-placeholder-val="{{true}}"><span class="av s24" style="background:oklch(var(--av-l) var(--av-c) {{fx.pv.hue}})">{{fx.pv.ini}}</span></sc-if>
+                      <sc-if value="{{fx.pv.system}}" hint-placeholder-val="{{false}}"><span class="nb-sys" style="width:24px;height:24px;border-radius:6px;color:{{fx.pv.color}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{fx.pv.icon}}"></path></svg></span></sc-if>
+                      <span><b>{{fx.pv.actor}}</b> {{fx.pv.verb}}</span>
+                      <span style="flex:1"></span>
+                      <span class="mono" style="font-size:11px;color:var(--text-3)">{{fx.pv.time}}</span>
+                    </div>
+                    <sc-if value="{{fx.pv.hasQuote}}" hint-placeholder-val="{{true}}">
+                      <p class="nb-q"><sc-if value="{{fx.pv.isMention}}" hint-placeholder-val="{{true}}"><span class="tp-mention">@Alex Kim</span> </sc-if>{{fx.pv.quote}}</p>
+                    </sc-if>
+                    <sc-if value="{{fx.pv.hasMove}}" hint-placeholder-val="{{false}}">
+                      <div class="nb-move"><span class="tp-chip"><span class="tp-g {{fx.pv.fromGlyph}}" style="color:{{fx.pv.fromColor}}"></span>{{fx.pv.fromName}}</span><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"></path></svg><span class="tp-chip"><span class="tp-g {{fx.pv.stGlyph}}" style="color:{{fx.pv.stColor}}"></span>{{fx.pv.stName}}</span></div>
+                    </sc-if>
+                  </div>
+                </div>
+                <div class="nb-pvf">
+                  <a class="btn btn-primary" href="Task-Detail.dc.html">Open task<sc-if value="{{fx.notPhone}}" hint-placeholder-val="{{true}}"><span class="kbd">↵</span></sc-if></a>
+                  <button class="btn btn-ghost" type="button" sc-camel-on-click="{{fx.pvToggleRead}}">{{fx.pv.readLabel}}</button>
+                </div>
+              </div>
+            </aside>
+          </sc-if>
+
+          <sc-if value="{{fx.isPrefs}}" hint-placeholder-val="{{false}}">
+            <nav class="st-nav" aria-label="Settings">
+              <a class="st-back" href="#app"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"></path></svg>Settings</a>
+              <span class="st-sec">Account</span>
+              <a class="st-it" href="Settings.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7.5a2.6 2.6 0 100-5.2 2.6 2.6 0 000 5.2zM3 13.5c.6-2.5 2.6-4 5-4s4.4 1.5 5 4"></path></svg>Profile</a>
+              <a class="st-it" href="#prefs" aria-current="page"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11V7a4 4 0 018 0v4l1 1.5H3zM6.5 14h3"></path></svg>Notifications</a>
+              <span class="st-sec">Workspace</span>
+              <a class="st-it" href="Settings.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5V4l5-1.5v11M7.5 5.5h6v8M4.5 6.5h1M4.5 9h1M9.5 8h2M9.5 10.5h2M1.5 13.5h13"></path></svg>Workspace</a>
+              <a class="st-it" href="#members"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg>Members</a>
+              <a class="st-it dng" href="Settings.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5l6 10.5H2zM8 6.5v3M8 11.3v.1"></path></svg>Danger zone</a>
+            </nav>
+            <div class="st-main">
+              <div class="st-wrap">
+                <div class="st-head">
+                  <h2>Notifications</h2>
+                  <span style="flex:1"></span>
+                  <sc-if value="{{fx.saving}}" hint-placeholder-val="{{false}}"><span class="st-saved" role="status"><span class="spin"></span>Saving</span></sc-if>
+                  <sc-if value="{{fx.saved}}" hint-placeholder-val="{{false}}"><span class="st-saved" role="status"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Saved</span></sc-if>
+                </div>
+                <div class="pm" role="table" aria-label="Notification preferences">
+                  <div class="pm-row pm-hd" role="row">
+                    <span class="pm-hc first" role="columnheader">Event</span>
+                    <sc-for list="{{fx.cols}}" as="c" hint-placeholder-count="5">
+                      <span class="pm-hc {{c.cls}}" role="columnheader">{{c.name}}<sc-if value="{{c.soon}}" hint-placeholder-val="{{false}}"><span class="pm-soon">Coming soon</span></sc-if></span>
+                    </sc-for>
+                  </div>
+                  <sc-for list="{{fx.prefRows}}" as="r" hint-placeholder-count="6">
+                    <div class="pm-row" role="row">
+                      <span class="pm-ev" role="rowheader"><span class="pm-ic" style="color:{{r.color}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"></path></svg></span>{{r.name}}</span>
+                      <sc-for list="{{r.cells}}" as="cc" hint-placeholder-count="5">
+                        <span class="pm-cell {{cc.cls}}" role="cell">
+                          <sc-if value="{{cc.live}}" hint-placeholder-val="{{true}}"><input class="tg" type="checkbox" role="switch" checked="{{cc.on}}" sc-camel-on-change="{{cc.toggle}}" aria-label="{{cc.aria}}"></sc-if>
+                          <sc-if value="{{cc.soon}}" hint-placeholder-val="{{false}}"><span class="tg-soon" role="img" aria-label="{{cc.aria}}: coming soon" title="Coming soon"></span></sc-if>
+                        </span>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+                <div class="pm-foot">
+                  <span style="font-weight:500">Email delivery</span>
+                  <div class="seg" role="group" aria-label="Email delivery">
+                    <sc-for list="{{fx.digest}}" as="d" hint-placeholder-count="3">
+                      <button type="button" aria-pressed="{{d.on}}" sc-camel-on-click="{{d.pick}}">{{d.name}}</button>
+                    </sc-for>
+                  </div>
+                  <span style="flex:1"></span>
+                  <span class="mono" style="font-size:11px;color:var(--text-3)">alex@team.dev</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2700}}">
+class Component extends DCLogic {
+  state = { sb: {}, ib: {}, pref: null, prefSave: '', digest: 'instant' };
+  componentWillUnmount() { this.dead = true; (this.timers || []).forEach(clearTimeout); }
+  later(fn, ms) { const t = setTimeout(() => { if (!this.dead) fn(); }, ms); (this.timers = this.timers || []).push(t); return t; }
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  ibGet(id) { return (this.state.ib && this.state.ib[id]) || {}; }
+  ibSet(id, patch) { const all = { ...(this.state.ib || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ ib: all }); }
+  data() {
+    const ST = { backlog: ['Backlog', 'var(--text-3)'], todo: ['Todo', 'var(--todo)'], progress: ['In progress', 'var(--warn)'], review: ['In review', 'var(--info)'], done: ['Done', 'var(--ok)'] };
+    const PRI = { n4: ['Urgent', 'var(--danger)'], n3: ['High', 'var(--orange)'], n2: ['Medium', 'var(--warn)'], n1: ['Low', 'var(--low)'] };
+    const PEOPLE = { AK: ['Alex Kim', 285], JL: ['Jordan Lee', 200], SP: ['Sam Patel', 20], RC: ['Riley Chen', 150], MD: ['Morgan Diaz', 60], TN: ['Taylor Ng', 330] };
+    const EV = {
+      assigned: { icon: 'M6.5 7.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM2 13.5c.5-2.4 2.2-3.8 4.5-3.8 1 0 1.9.3 2.6.8M10.5 11.5h4M12.8 9.7l1.8 1.8-1.8 1.8', color: 'var(--accent-t)', verb: 'assigned you', name: 'Assigned to me' },
+      mention: { icon: 'M10.6 8a2.6 2.6 0 11-5.2 0 2.6 2.6 0 015.2 0zM10.6 8v1.1a1.7 1.7 0 003.4 0V8A6 6 0 108 14c1.1 0 2.1-.3 3-.8', color: 'var(--info)', verb: 'mentioned you', name: 'Mentioned' },
+      status: { icon: 'M2.5 5.5h9M9.5 3.5l2 2-2 2M13.5 10.5h-9M6.5 8.5l-2 2 2 2', color: 'var(--text-2)', verb: 'moved to', name: 'Status change on my tasks' },
+      comment: { icon: 'M2.5 3.5h11v7.5H7.5L4.5 13.5V11h-2z', color: 'var(--text-2)', verb: 'commented', name: 'New comment' },
+      due: { icon: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3.2l2.2 1.4', color: 'var(--warn)', verb: '', name: 'Due soon' },
+      sprint: { icon: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8', color: 'var(--accent-t)', verb: '', name: 'Sprint started' }
+    };
+    const N = [
+      { id: 1, type: 'mention', who: 'SP', t: '12m', grp: 'today', unread: true, key: 'PRJ-48', title: 'Token refresh race on cold start', st: 'progress', pri: 'n3', due: 'Oct 9', quote: 'can you check the retry path before the beta cut?' },
+      { id: 2, type: 'assigned', who: 'JL', t: '38m', grp: 'today', unread: true, key: 'PRJ-52', title: 'Rate-limit login attempts', st: 'todo', pri: 'n2', due: 'Oct 14' },
+      { id: 3, type: 'status', who: 'RC', t: '1h', grp: 'today', unread: true, key: 'PRJ-41', title: 'Virtualize board columns', st: 'review', from: 'progress', pri: 'n3', due: 'Oct 10' },
+      { id: 4, type: 'comment', who: 'MD', t: '2h', grp: 'today', unread: true, key: 'PRJ-37', title: 'Sprint burndown off by one day', st: 'progress', pri: 'n2', due: 'Oct 13', quote: 'Repro’d on Safari only. Timezone offset?' },
+      { id: 5, type: 'due', who: null, t: '3h', grp: 'today', unread: true, key: 'PRJ-44', title: 'Migrate sessions to Redis', st: 'progress', pri: 'n4', due: 'Oct 8', dueSoon: true },
+      { id: 6, type: 'status', who: 'TN', t: '1d', grp: 'earlier', unread: false, key: 'PRJ-29', title: 'Board drag preview', st: 'done', from: 'review', pri: 'n2', due: 'Oct 6' },
+      { id: 7, type: 'assigned', who: 'SP', t: '1d', grp: 'earlier', unread: true, key: 'PRJ-55', title: 'Invoice PDF export', st: 'todo', pri: 'n2', due: 'Oct 20' },
+      { id: 8, type: 'mention', who: 'RC', t: '2d', grp: 'earlier', unread: false, key: 'PRJ-31', title: 'Cut p95 on board load', st: 'progress', pri: 'n4', due: 'Oct 12', quote: 'numbers after virtualization: 240ms p95.' },
+      { id: 9, type: 'comment', who: 'JL', t: '3d', grp: 'earlier', unread: false, key: 'PRJ-26', title: 'OAuth scopes for API keys', st: 'review', pri: 'n2', due: 'Oct 9', quote: 'Scope list looks right to me.' },
+      { id: 10, type: 'assigned', who: 'MD', t: '6d', grp: 'earlier', unread: false, key: 'PRJ-19', title: 'Audit log retention', st: 'backlog', pri: 'n1', due: 'Oct 28' }
+    ];
+    return { ST, PRI, PEOPLE, EV, N };
+  }
+  ibFrame(id, cfg) {
+    const self = this;
+    const D = this.data();
+    const u = this.ibGet(id);
+    const items = cfg.items || [];
+    const phase = u.phase || cfg.phase || 'ready';
+    const readMap = () => self.ibGet(id).read || {};
+    const isUnread = (n, m) => (m[n.id] === undefined ? n.unread : !m[n.id]);
+    const rm = u.read || {};
+    const tab = u.tab || 'all';
+    const TABS = [['all', 'All'], ['mention', 'Mentions'], ['assigned', 'Assigned']];
+    const match = (n, k) => k === 'all' || n.type === k;
+    const tabW = cfg.tabW || 112;
+    const loaded = phase === 'ready';
+    const tabs = TABS.map(([k, l]) => ({ name: l, n: loaded ? items.filter((n) => match(n, k)).length : '–', sel: tab === k, w: tabW, pick: () => self.ibSet(id, { tab: k }) }));
+    const tIdx = Math.max(0, TABS.findIndex((x) => x[0] === tab));
+    const list = loaded ? items.filter((n) => match(n, tab)) : [];
+    const unread = loaded ? items.filter((n) => isUnread(n, rm)).length : 0;
+    const setRead = (nid, val) => { const m = { ...readMap() }; m[nid] = val; self.ibSet(id, { read: m }); };
+    const openN = (nid) => { const m = { ...readMap() }; m[nid] = true; self.ibSet(id, { read: m, sel: nid, open: true }); };
+    const markAll = () => {
+      const prev = readMap();
+      const m = { ...prev };
+      const was = items.filter((n) => isUnread(n, prev)).length;
+      if (!was) return;
+      items.forEach((n) => { m[n.id] = true; });
+      const tok = Date.now() + Math.random();
+      self.ibSet(id, { read: m, stagger: true, toast: was, toastTok: tok, undo: prev });
+      self.later(() => self.ibSet(id, { stagger: false }), 900);
+      self.later(() => { if (self.ibGet(id).toastTok === tok) self.ibSet(id, { toast: 0 }); }, 4200);
+    };
+    let vis = 0;
+    const mk = (n) => {
+      const ev = D.EV[n.type];
+      const un = isUnread(n, rm);
+      const i = vis++;
+      const p = n.who ? D.PEOPLE[n.who] : null;
+      const st = D.ST[n.st];
+      return {
+        cls: (un ? 'unread' : 'read') + (u.open && u.sel === n.id ? ' sel' : ''),
+        cur: u.open && u.sel === n.id ? 'true' : 'false',
+        dly: u.stagger ? i * 45 : 0,
+        hasActor: !!p, system: !p, ini: n.who || '', hue: p ? p[1] : 0,
+        icon: ev.icon, color: ev.color,
+        actor: p ? p[0] : (n.dueSoon ? 'Due tomorrow' : ''), verb: ev.verb,
+        hasSt: n.type === 'status', stGlyph: n.st, stColor: st[1], stName: st[0],
+        key: n.key, title: n.title, time: n.t,
+        unread: un, isRead: !un, readLabel: un ? 'Mark read' : 'Mark unread',
+        aria: (un ? 'Unread. ' : '') + (p ? p[0] + ' ' : '') + (ev.verb || 'Due tomorrow') + (n.type === 'status' ? ' ' + st[0] : '') + ', ' + n.key + ' ' + n.title + ', ' + n.t + ' ago',
+        open: () => openN(n.id),
+        toggleRead: () => setRead(n.id, un),
+        onKey: (e) => { if ((e.key === 'e' || e.key === 'E') && !e.shiftKey) { e.preventDefault(); setRead(n.id, un); } }
+      };
+    };
+    const groups = [['today', 'Today'], ['earlier', 'Earlier']].map(([g, name]) => {
+      const rows = list.filter((n) => n.grp === g).map(mk);
+      return { name, count: rows.length, rows };
+    }).filter((g) => g.rows.length > 0);
+    const mode = cfg.sheet ? 'sheet' : 'side';
+    const open = !!u.open && loaded;
+    const pn = items.find((n) => n.id === u.sel) || items[0] || D.N[0];
+    const pev = D.EV[pn.type];
+    const pp = pn.who ? D.PEOPLE[pn.who] : null;
+    const pst = D.ST[pn.st];
+    const pfrom = pn.from ? D.ST[pn.from] : pst;
+    const pUn = isUnread(pn, rm);
+    const pv = {
+      key: pn.key, title: pn.title, stGlyph: pn.st, stColor: pst[1], stName: pst[0],
+      pri: pn.pri, priColor: D.PRI[pn.pri][1], priName: D.PRI[pn.pri][0],
+      due: 'Due ' + pn.due, dueColor: pn.dueSoon ? 'var(--warn)' : 'var(--text-2)',
+      hasActor: !!pp, system: !pp, ini: pn.who || '', hue: pp ? pp[1] : 0, icon: pev.icon, color: pev.color,
+      actor: pp ? pp[0] : 'Due tomorrow', verb: pp ? (pn.type === 'status' ? 'changed status' : pev.verb) : 'Oct 8',
+      time: pn.t + ' ago',
+      hasQuote: !!pn.quote, isMention: pn.type === 'mention', quote: pn.quote || '',
+      hasMove: pn.type === 'status', fromGlyph: pn.from || pn.st, fromColor: pfrom[1], fromName: pfrom[0],
+      readLabel: pUn ? 'Mark read' : 'Mark unread'
+    };
+    const closePv = () => self.ibSet(id, { open: false });
+    return {
+      isInbox: true, isPrefs: false,
+      touchCls: cfg.touch ? 'touch' : '', phone: !!cfg.phone, notPhone: !cfg.phone,
+      unread, hasUnread: unread > 0,
+      showMarkAll: unread > 0, allRead: loaded && items.length > 0 && unread === 0,
+      markAll,
+      mainKey: (e) => {
+        if (e.shiftKey && (e.key === 'E' || e.key === 'e')) { e.preventDefault(); markAll(); }
+        else if (e.key === 'Escape' && self.ibGet(id).open) closePv();
+      },
+      tabs, tabW, indX: tIdx * tabW,
+      isReady: loaded && list.length > 0, isEmpty: loaded && list.length === 0,
+      isLoading: phase === 'loading', isError: phase === 'error',
+      groups,
+      skRows: [{ w1: 46, w2: 70, dot: 1, r: '50%' }, { w1: 38, w2: 58, dot: 1, r: '50%' }, { w1: 52, w2: 64, dot: 0, r: '50%' }, { w1: 30, w2: 74, dot: 1, r: '8px' }, { w1: 44, w2: 52, dot: 0, r: '50%' }, { w1: 36, w2: 66, dot: 0, r: '50%' }],
+      retry: () => { self.ibSet(id, { phase: 'loading' }); self.later(() => self.ibSet(id, { phase: 'ready' }), 1100); },
+      toast: !!u.toast, toastText: (u.toast || 0) + ' marked read',
+      undo: () => self.ibSet(id, { read: self.ibGet(id).undo || {}, toast: 0 }),
+      pv, pvCls: (mode === 'sheet' ? 'sheet ' : '') + (open ? 'open' : ''), pvHidden: open ? 'false' : 'true',
+      sheetOpen: mode === 'sheet' && open,
+      closePv,
+      pvKey: (e) => { if (e.key === 'Escape') { e.stopPropagation(); closePv(); } },
+      pvToggleRead: () => setRead(pn.id, pUn)
+    };
+  }
+  prefFrame() {
+    const self = this;
+    const D = this.data();
+    const DEF = { assigned: [1, 1], mention: [1, 1], status: [1, 0], comment: [1, 0], due: [1, 1], sprint: [1, 0] };
+    const pref = this.state.pref || {};
+    const val = (k, c) => (pref[k + '.' + c] === undefined ? !!DEF[k][c] : pref[k + '.' + c]);
+    const COLS = [['In-app', false], ['Email', false], ['Telegram', true], ['SMS', true], ['Push', true]];
+    const save = () => {
+      const tok = Date.now() + Math.random();
+      self.setState({ prefSave: 'saving', prefTok: tok });
+      self.later(() => { if (self.state.prefTok === tok) self.setState({ prefSave: 'saved' }); }, 550);
+      self.later(() => { if (self.state.prefTok === tok) self.setState({ prefSave: '' }); }, 2600);
+    };
+    const prefRows = ['assigned', 'mention', 'status', 'comment', 'due', 'sprint'].map((k) => ({
+      name: D.EV[k].name, icon: D.EV[k].icon, color: D.EV[k].color,
+      cells: COLS.map(([cn, soon], c) => ({
+        live: !soon, soon, cls: soon ? 'soon' : '',
+        on: soon ? false : val(k, c),
+        aria: D.EV[k].name + ', ' + cn,
+        toggle: () => { const p = { ...(self.state.pref || {}) }; p[k + '.' + c] = !val(k, c); self.setState({ pref: p, prefSave: 'saving', prefTok: 0 }); save(); }
+      }))
+    }));
+    const dg = this.state.digest || 'instant';
+    return {
+      isInbox: false, isPrefs: true,
+      cols: COLS.map(([name, soon]) => ({ name, soon, cls: soon ? 'soon' : '' })),
+      prefRows,
+      saving: this.state.prefSave === 'saving', saved: this.state.prefSave === 'saved',
+      digest: [['instant', 'Instant'], ['hourly', 'Hourly'], ['daily', 'Daily']].map(([k, name]) => ({ name, on: dg === k, pick: () => { self.setState({ digest: k }); save(); } }))
+    };
+  }
+  renderVals() {
+    const theme = this.props.theme || 'navy';
+    const D = this.data();
+    const ibA = this.ibFrame('A', { items: D.N, tabW: 112 });
+    const sbA = { ...this.sbFrame('A', { role: 'admin', collapsible: true, active: 'PR', sub: 'none' }), inbox: ibA.unread, hasInbox: ibA.unread > 0, inboxOn: 'on' };
+    const frames = [
+      { ...ibA, label: 'Inbox', meta: 'click a row · hover for actions · ⇧E', col: '1 / 4', row: '1', w: 1280, h: 820, r: 14, hasSb: true, sbFrames: [sbA] },
+      { ...this.prefFrame(), label: 'Notification preferences', meta: 'autosaves · 3 channels coming soon', col: '1 / 4', row: '2', w: 1280, h: 560, r: 14, hasSb: false, sbFrames: [] },
+      { ...this.ibFrame('M', { items: D.N, tabW: 121, touch: true, phone: true, sheet: true }), label: 'Mobile', meta: '390 · tap opens sheet', col: '1', row: '3 / 5', w: 390, h: 844, r: 28, hasSb: false, sbFrames: [] },
+      { ...this.ibFrame('E', { items: [], tabW: 112 }), label: 'Empty inbox', meta: 'all caught up', col: '2 / 4', row: '3', w: 840, h: 360, r: 14, hasSb: false, sbFrames: [] },
+      { ...this.ibFrame('L', { items: D.N, tabW: 112, phase: 'loading', sheet: true }), label: 'Loading', meta: 'skeleton', col: '2', row: '4', w: 400, h: 432, r: 14, hasSb: false, sbFrames: [] },
+      { ...this.ibFrame('R', { items: D.N, tabW: 112, phase: 'error', sheet: true }), label: 'Error', meta: 'Retry works', col: '3', row: '4', w: 400, h: 432, r: 14, hasSb: false, sbFrames: [] }
+    ];
+    const noop = () => {};
+    const BASE = { cols: [], digest: [], prefRows: [], saved: false, saving: false, tabs: [], groups: [], skRows: [], pv: {}, unread: 0, hasUnread: false, showMarkAll: false, allRead: false, markAll: noop, mainKey: noop, closePv: noop, pvKey: noop, pvToggleRead: noop, retry: noop, undo: noop, isReady: false, isEmpty: false, isLoading: false, isError: false, phone: false, notPhone: true, sheetOpen: false, toast: false, toastText: '', touchCls: '', pvCls: '', pvHidden: 'true', tabW: 112, indX: 0 };
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      frames: frames.map((f) => ({ ...BASE, ...f }))
+    };
+  }
+}
+</script>
+
+
+</body></html>

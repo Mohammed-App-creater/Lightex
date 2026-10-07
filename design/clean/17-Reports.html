@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Reports</title>
+<script src="../assets/65c832fb-aaba-46ad-9c82-f65abde19840.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8}
+/* chart palette: orchid (series 1) + olive (series 2), neutral reference. Validated: navy #0C1326, dark #121217, light #FFFFFF */
+.t-navy{--c1:#C564AB;--c2:#A39335;--c1-t:#44243B;--cref:#8794B6}
+.t-dark{--c1:#C564AB;--c2:#A39335;--c1-t:#3E2437;--cref:#8E8E9D}
+.t-light{--c1:#B04496;--c2:#848E2D;--c1-t:#F8DFF0;--cref:#5F5F70}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.cap{font-size:12px;line-height:16px;color:var(--text-3)}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);overflow:hidden;background:var(--bg);color:var(--text)}
+.app{display:flex;height:100%;overflow:hidden}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+@media (max-width:760px){.sb-host{display:none!important}}
+/* page */
+.rp-main{flex:1;min-width:0;height:100%;overflow:auto;container-type:inline-size;container-name:rp;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.rp-pg{max-width:1240px;margin:0 auto;padding:22px 28px 40px;display:flex;flex-direction:column;gap:16px}
+.rp-mtop{display:none;align-items:center;gap:10px;height:52px;margin:-12px -16px 0;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.rp-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.rp-head h1{margin:0;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-.02em}
+.rp-ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.rp-rel{position:relative}
+.rp-sel{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.rp-sel:hover,.rp-sel[aria-expanded=true]{background:var(--hover);border-color:var(--control)}
+.rp-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.rp-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:7px;border:1px solid transparent;font:500 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.rp-btn:active{transform:scale(.97)}
+.rp-btn.pri{background:var(--accent);color:#fff}
+.rp-btn.pri:hover,.rp-btn.pri[aria-expanded=true]{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.rp-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.rp-btn.sec:hover{background:var(--hover)}
+.rp-btn.sm{height:28px;padding:0 10px;font-size:12px}
+.rp-ib{width:16px;height:16px;flex:none}
+.rp-menu{position:absolute;top:38px;right:0;z-index:20;min-width:200px;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:rpmenu 150ms var(--ease)}
+@keyframes rpmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.rp-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;white-space:nowrap}
+.rp-mi:hover{background:var(--hover)}
+.rp-mi .h{margin-left:auto;font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.rp-chk{width:16px;height:16px;flex:none;color:var(--accent-t)}
+.rp-sep{height:1px;background:var(--line);margin:4px -4px}
+.rp-cust{display:flex;flex-direction:column;gap:8px;padding:6px 8px 8px}
+.rp-cust label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--text-2)}
+.rp-date{height:28px;padding:0 8px;border-radius:6px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 12px/1 'JetBrains Mono',monospace;color-scheme:dark}
+.t-light .rp-date{color-scheme:light}
+.rp-date:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.rp-status{font-size:12px;color:var(--text-2);display:inline-flex;align-items:center;gap:6px}
+.rp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.rp-stat{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rp-sl{display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;color:var(--text-2)}
+.rp-val{font-size:28px;line-height:36px;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.rp-val small{font-size:15px;font-weight:500;color:var(--text-2);margin-left:3px;letter-spacing:0}
+.rp-alert{width:14px;height:14px;border-radius:50%;background:var(--danger);display:inline-flex;align-items:center;justify-content:center;font:700 9px/1 'Inter',sans-serif;color:var(--bg);flex:none}
+.rp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.rp-card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 18px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rp-span2{grid-column:span 2}
+.rp-ch{display:flex;align-items:center;gap:8px;min-height:24px}
+.rp-ch h2{margin:0;font-size:13px;line-height:18px;font-weight:600}
+.rp-sp{flex:1}
+.rp-tbtn{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text-3);font:500 12px/1 'Inter',sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.rp-tbtn:hover{background:var(--hover);color:var(--text)}
+.rp-tbtn[aria-pressed=true]{background:var(--hover);color:var(--text);border-color:var(--line-2)}
+.rp-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;line-height:16px;color:var(--text-2)}
+.rp-leg span{display:inline-flex;align-items:center;gap:6px}
+.lk-line{width:14px;height:2px;border-radius:1px;background:var(--c1)}
+.lk-dash{width:14px;height:0;border-top:2px dashed var(--cref)}
+.lk-rect{width:10px;height:10px;border-radius:2px}
+.lk-tick{width:2px;height:12px;border-radius:1px;background:var(--text)}
+.rp-chart{display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto 20px}
+.rp-ylab{position:relative}
+.rp-ylab span{position:absolute;right:8px;transform:translateY(-50%);font:500 10.5px/1 'JetBrains Mono',monospace;color:var(--text-3);font-variant-numeric:tabular-nums}
+.rp-xlab{grid-column:2;position:relative}
+.rp-xlab span{position:absolute;top:7px;transform:translateX(-50%);font:500 10.5px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.rp-xlab span.today{color:var(--text-2)}
+.rp-plot{position:relative;min-width:0}
+.rp-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.rp-gl{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line)}
+.rp-gl.base{border-top-color:var(--line-2)}
+.rp-today{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--line-2)}
+.rp-line{fill:none;stroke:var(--c1);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:0;transition:stroke-dashoffset 700ms var(--ease)}
+.rp-ideal{fill:none;stroke:var(--cref);stroke-width:1.5;stroke-dasharray:4 4;transition:opacity 400ms var(--ease)}
+.rp-area{fill:var(--c1);opacity:.1;transition:opacity 500ms var(--ease) 300ms}
+.rp-hits{position:absolute;inset:0;display:flex}
+.rp-hit{flex:1;min-width:0;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding:0;border:0;border-radius:4px 4px 0 0;background:transparent;color:inherit;font:inherit;cursor:crosshair}
+.rp-hit:hover,.rp-hit.on{background:rgba(128,140,170,.07)}
+.rp-hit.on{z-index:4}
+.rp-bar{display:block;width:clamp(5px,30%,24px);border-radius:4px 4px 0 0;transform-origin:50% 100%;transition:transform 700ms var(--ease),filter 120ms var(--ease)}
+.rp-bar.one{width:clamp(6px,62%,24px);background:var(--c1)}
+.rp-hit:hover .rp-bar,.rp-hit.on .rp-bar{filter:brightness(1.18)}
+.t-light .rp-hit:hover .rp-bar,.t-light .rp-hit.on .rp-bar{filter:brightness(.88)}
+.rp-xh{position:absolute;top:0;bottom:0;left:50%;width:0;border-left:1px solid var(--text-3);pointer-events:none}
+.rp-dot{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--c1);box-shadow:0 0 0 2px var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2}
+.rp-end{transition:opacity 200ms var(--ease) 600ms}
+.rp-elab{position:absolute;transform:translate(9px,-120%);font-size:12px;font-weight:600;color:var(--text);pointer-events:none;white-space:nowrap}
+.rp-tip{position:absolute;top:4px;left:calc(50% + 10px);z-index:6;min-width:128px;padding:8px 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);display:flex;flex-direction:column;gap:6px;text-align:left;white-space:nowrap;pointer-events:none;animation:rptip 120ms var(--ease)}
+.rp-tip.l{left:auto;right:calc(50% + 10px)}
+.rp-tip.p{top:auto;bottom:calc(100% + 2px);left:auto;right:44px}
+@keyframes rptip{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+.rp-tiph{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.rp-tipr{display:flex;align-items:center;gap:8px;font-size:12px;line-height:16px;color:var(--text-2)}
+.rp-tipr b{font-size:13px;font-weight:600;color:var(--text);min-width:26px}
+.rp-k{width:12px;height:2px;border-radius:1px;flex:none}
+.rp-k.dash{height:0;border-top:2px dashed var(--cref);background:none!important}
+.rp-k.tick{width:2px;height:10px}
+.rp-k.rect{width:8px;height:8px;border-radius:2px}
+.rp-pgrp{font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin:4px 0 2px}
+.rp-prow{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 42% 34px;align-items:center;gap:10px;width:calc(100% + 12px);height:28px;margin:0 -6px;padding:0 6px;border:0;border-radius:6px;background:transparent;color:var(--text);font:400 12.5px/1 'Inter',sans-serif;text-align:left;cursor:default}
+.rp-prow:hover,.rp-prow.on{background:var(--hover)}
+.rp-pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-ptrack{position:relative;height:8px;border-radius:4px;background:var(--c1-t)}
+.rp-pfill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--c1);transform-origin:0 50%;transition:transform 700ms var(--ease)}
+.rp-ptgt{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:1px;background:var(--text);box-shadow:0 0 0 1px var(--surface)}
+.rp-pval{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-2);text-align:right;font-variant-numeric:tabular-nums}
+.rp-tw{max-height:236px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.rp-tw table{width:100%;border-collapse:collapse;font-size:12px}
+.rp-tw th{position:sticky;top:0;background:var(--raised);padding:7px 10px;font-weight:500;color:var(--text-2);text-align:right}
+.rp-tw td{padding:6px 10px;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.rp-tw th:first-child,.rp-tw td:first-child{text-align:left}
+.rp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:190px;padding:16px;border:1px dashed var(--line-2);border-radius:10px;text-align:center}
+.rp-empty b{font-size:13px;font-weight:600}
+.rp-need{width:96px;height:4px;border-radius:2px;background:var(--raised);overflow:hidden}
+.rp-need span{display:block;height:100%;border-radius:2px;background:var(--text-3)}
+.rp-err{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:32px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.sk{display:block;border-radius:8px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(128,140,170,.35);border-top-color:currentColor;animation:spin .7s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* reset state for the draw-on-load (applied for one frame, then removed) */
+.rs .rp-bar{transform:scaleY(0);transition:none}
+.rs .rp-line{stroke-dashoffset:1.05;transition:none}
+.rs .rp-ideal,.rs .rp-area,.rs .rp-end{opacity:0;transition:none}
+.rs .rp-pfill{transform:scaleX(0);transition:none}
+.rp-sel:focus-visible,.rp-btn:focus-visible,.rp-mi:focus-visible,.rp-tbtn:focus-visible,.rp-prow:focus-visible,.rp-date:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.rp-hit:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--accent),0 0 0 3px var(--ring)}
+@container rp (max-width:1000px){.rp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container rp (max-width:760px){.rp-mtop{display:flex}.rp-pg{padding:12px 16px 32px;gap:14px}.rp-ctl{margin-left:0;width:100%}.rp-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.rp-grid{grid-template-columns:minmax(0,1fr)}.rp-span2{grid-column:auto}.rp-val{font-size:24px;line-height:30px}.rp-card{padding:12px 14px}.rp-hidem{display:none}.rp-stat{padding:12px 14px}}
+@media (max-width:760px){.rp-mtop{display:flex}.rp-pg{padding:12px 16px 32px;gap:14px}.rp-ctl{margin-left:0;width:100%}.rp-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.rp-grid{grid-template-columns:minmax(0,1fr)}.rp-span2{grid-column:auto}.rp-val{font-size:24px;line-height:30px}.rp-card{padding:12px 14px}.rp-hidem{display:none}.rp-stat{padding:12px 14px}}
+@media (prefers-reduced-motion:reduce){.ds *{animation-duration:.001ms!important;transition-duration:.001ms!important;transition-delay:0ms!important}.rs .rp-bar,.rs .rp-pfill{transform:none}.rs .rp-line{stroke-dashoffset:0}.rs .rp-ideal,.rs .rp-area,.rs .rp-end{opacity:1}.sk{animation:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:4720px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · REPORTS</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Reports</h1>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)">
+      <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--c1)"></i>series 1</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--c2)"></i>series 2</span>
+      <span>5 charts</span><span>700ms draw</span><span>table view</span>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:850px 390px;column-gap:40px;row-gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="grid-column:{{fx.gc}};grid-row:{{fx.gr}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev {{fx.themeCls}}" style="height:{{fx.h}}px;border-radius:{{fx.r}}px">
+          <div class="app">
+            <sc-if value="{{fx.sidebar}}" hint-placeholder-val="{{true}}">
+              <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="1">
+                <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+                </div>
+              </sc-for>
+            </sc-if>
+
+            <main class="rp-main" aria-label="Reports">
+              <div class="rp-pg {{fx.animCls}}" sc-camel-on-key-down="{{fx.onKey}}">
+                <div class="rp-mtop">
+                  <button class="rp-btn" type="button" aria-label="Open menu" style="width:44px;height:44px;padding:0;justify-content:center"><svg class="rp-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"></path></svg></button>
+                  <span role="img" aria-label="Lightex" style="width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible" aria-hidden="true"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                  <span style="font-weight:600">{{fx.proj.name}}</span>
+                </div>
+
+                <header class="rp-head">
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <h1>Reports</h1>
+                    <span class="mono cap">{{fx.sprintMeta}}</span>
+                  </div>
+                  <div class="rp-ctl">
+                    <div class="rp-rel">
+                      <button class="rp-sel" type="button" aria-haspopup="listbox" aria-expanded="{{fx.projOpen}}" aria-label="Project: {{fx.proj.name}}" sc-camel-on-click="{{fx.toggleProj}}">
+                        <span class="rp-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{fx.proj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{fx.proj.hue}})">{{fx.proj.badge}}</span>{{fx.proj.name}}
+                        <svg class="rp-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                      </button>
+                      <sc-if value="{{fx.projOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-menu" role="listbox" aria-label="Project" style="left:0;right:auto">
+                          <sc-for list="{{fx.projOpts}}" as="mi" hint-placeholder-count="3">
+                            <button class="rp-mi" type="button" role="option" aria-selected="{{mi.on}}" sc-camel-on-click="{{mi.pick}}">
+                              <span class="rp-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{mi.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{mi.hue}})">{{mi.badge}}</span>
+                              <span style="flex:1">{{mi.name}}</span>
+                              <sc-if value="{{mi.on}}" hint-placeholder-val="{{false}}"><svg class="rp-chk" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+
+                    <div class="rp-rel">
+                      <button class="rp-sel" type="button" aria-haspopup="listbox" aria-expanded="{{fx.rangeOpen}}" aria-label="Date range: {{fx.rangeLabel}}" sc-camel-on-click="{{fx.toggleRange}}">
+                        <svg class="rp-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3"></path></svg>{{fx.rangeLabel}}
+                        <svg class="rp-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                      </button>
+                      <sc-if value="{{fx.rangeOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-menu" role="listbox" aria-label="Date range" style="left:0;right:auto;min-width:228px">
+                          <sc-for list="{{fx.rangeOpts}}" as="ri" hint-placeholder-count="3">
+                            <button class="rp-mi" type="button" role="option" aria-selected="{{ri.on}}" sc-camel-on-click="{{ri.pick}}">
+                              <span style="flex:1">{{ri.name}}</span>
+                              <sc-if value="{{ri.on}}" hint-placeholder-val="{{false}}"><svg class="rp-chk" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                            </button>
+                          </sc-for>
+                          <div class="rp-sep"></div>
+                          <button class="rp-mi" type="button" aria-expanded="{{fx.customOpen}}" sc-camel-on-click="{{fx.toggleCustom}}"><span style="flex:1">Custom range</span><sc-if value="{{fx.customOn}}" hint-placeholder-val="{{false}}"><svg class="rp-chk" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if></button>
+                          <sc-if value="{{fx.customOpen}}" hint-placeholder-val="{{false}}">
+                            <div class="rp-cust">
+                              <label>From<input class="rp-date" type="date" value="{{fx.cFrom}}" max="2026-10-07" sc-camel-on-change="{{fx.onFrom}}"></label>
+                              <label>To<input class="rp-date" type="date" value="{{fx.cTo}}" max="2026-10-07" sc-camel-on-change="{{fx.onTo}}"></label>
+                              <button class="rp-btn sec sm" type="button" sc-camel-on-click="{{fx.applyCustom}}" style="align-self:flex-end">Apply</button>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+                    </div>
+
+                    <div class="rp-rel">
+                      <button class="rp-btn pri" type="button" aria-haspopup="menu" aria-expanded="{{fx.expOpen}}" sc-camel-on-click="{{fx.toggleExp}}">
+                        <svg class="rp-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5L8 11l3.5-3.5M3 13.5h10"></path></svg>Export
+                      </button>
+                      <sc-if value="{{fx.expOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-menu" role="menu" aria-label="Export" style="min-width:180px">
+                          <sc-for list="{{fx.expOpts}}" as="ei" hint-placeholder-count="3">
+                            <button class="rp-mi" type="button" role="menuitem" sc-camel-on-click="{{ei.pick}}">{{ei.name}}<span class="h">{{ei.hint}}</span></button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{fx.expOn}}" hint-placeholder-val="{{false}}"><span class="rp-status" role="status"><span class="spin"></span>{{fx.expMsg}}</span></sc-if>
+                  </div>
+                </header>
+
+                <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+                  <div class="rp-err" role="alert">
+                    <span class="rp-alert" aria-hidden="true">!</span>
+                    <b style="font-size:15px;font-weight:600">Couldn’t load reports</b>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <button class="rp-btn sec sm" type="button" sc-camel-on-click="{{fx.retry}}">
+                        <sc-if value="{{fx.retrying}}" hint-placeholder-val="{{false}}"><span class="spin"></span></sc-if>
+                        <sc-if value="{{fx.notRetrying}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8a5 5 0 11-1.5-3.5M13 2.5v3h-3"></path></svg></sc-if>
+                        Retry
+                      </button>
+                      <span class="mono cap">503 · ref 7f3a91</span>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isLoading}}" hint-placeholder-val="{{false}}">
+                  <div aria-busy="true" aria-label="Loading reports" style="display:flex;flex-direction:column;gap:16px">
+                    <div class="rp-stats"><span class="sk" style="height:86px"></span><span class="sk" style="height:86px"></span><span class="sk" style="height:86px"></span><span class="sk" style="height:86px"></span></div>
+                    <div class="rp-grid">
+                      <div class="rp-card rp-span2"><span class="sk" style="width:120px;height:14px"></span><span class="sk" style="width:180px;height:10px"></span><span class="sk" style="height:200px"></span></div>
+                      <div class="rp-card"><span class="sk" style="width:90px;height:14px"></span><span class="sk" style="width:150px;height:10px"></span><span class="sk" style="height:200px"></span></div>
+                      <div class="rp-card"><span class="sk" style="width:100px;height:14px"></span><span class="sk" style="height:200px"></span></div>
+                      <div class="rp-card"><span class="sk" style="width:90px;height:14px"></span><span class="sk" style="height:200px"></span></div>
+                      <div class="rp-card"><span class="sk" style="width:140px;height:14px"></span><span class="sk" style="height:200px"></span></div>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isReady}}" hint-placeholder-val="{{true}}">
+                  <div class="rp-stats">
+                    <sc-for list="{{fx.stats}}" as="sc" hint-placeholder-count="4">
+                      <div class="rp-stat" role="group" aria-label="{{sc.aria}}">
+                        <span class="rp-sl"><sc-if value="{{sc.alert}}" hint-placeholder-val="{{false}}"><span class="rp-alert" aria-hidden="true">!</span></sc-if>{{sc.label}}</span>
+                        <span class="rp-val" aria-hidden="true">{{sc.val}}<small>{{sc.unit}}</small></span>
+                        <span class="mono cap">{{sc.meta}}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <div class="rp-grid">
+                    <!-- Burndown -->
+                    <section class="rp-card rp-span2" aria-label="Sprint burndown">
+                      <div class="rp-ch"><h2>Sprint burndown</h2><span class="mono cap">{{fx.b.meta}}</span><span class="rp-sp"></span>
+                        <button class="rp-tbtn" type="button" aria-pressed="{{fx.b.tableOn}}" sc-camel-on-click="{{fx.b.toggleTable}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11v9h-11zM2.5 7h11M2.5 10h11M6.5 3.5v9"></path></svg>View as table</button>
+                      </div>
+                      <div class="rp-leg"><span><i class="lk-line"></i>Remaining</span><span><i class="lk-dash"></i>Ideal</span></div>
+                      <sc-if value="{{fx.b.chartOn}}" hint-placeholder-val="{{true}}">
+                        <div class="rp-chart">
+                          <div class="rp-ylab"><sc-for list="{{fx.b.grid}}" as="yg" hint-placeholder-count="3"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                          <div class="rp-plot" style="aspect-ratio:{{fx.b.ar}}">
+                            <sc-for list="{{fx.b.grid}}" as="yg" hint-placeholder-count="3"><i class="rp-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                            <i class="rp-today" style="left:{{fx.b.endX}}%"></i>
+                            <svg sc-camel-view-box="{{fx.b.vb}}" role="img" aria-label="{{fx.b.aria}}">
+                              <path class="rp-ideal" d="{{fx.b.idealD}}"></path>
+                              <path class="rp-line" d="{{fx.b.lineD}}" sc-camel-path-length="1"></path>
+                            </svg>
+                            <span class="rp-dot rp-end" style="left:{{fx.b.endX}}%;top:{{fx.b.endY}}%"></span>
+                            <span class="rp-elab rp-end" style="left:{{fx.b.endX}}%;top:{{fx.b.endY}}%">{{fx.b.endV}}</span>
+                            <div class="rp-hits">
+                              <sc-for list="{{fx.b.hits}}" as="bh" hint-placeholder-count="14">
+                                <button class="rp-hit {{bh.on}}" type="button" aria-label="{{bh.aria}}" sc-camel-on-mouse-enter="{{bh.show}}" sc-camel-on-focus="{{bh.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                  <sc-if value="{{bh.tipOn}}" hint-placeholder-val="{{false}}">
+                                    <span class="rp-xh"></span>
+                                    <sc-if value="{{bh.hasV}}" hint-placeholder-val="{{true}}"><span class="rp-dot" style="left:50%;top:{{bh.y}}%"></span></sc-if>
+                                    <span class="rp-tip {{bh.side}}" aria-hidden="true"><span class="rp-tiph">{{bh.head}}</span><sc-for list="{{bh.rows}}" as="tr" hint-placeholder-count="2"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span>
+                                  </sc-if>
+                                </button>
+                              </sc-for>
+                            </div>
+                          </div>
+                          <div class="rp-xlab"><sc-for list="{{fx.b.xl}}" as="xl" hint-placeholder-count="3"><span class="{{xl.cls}}" style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{fx.b.tableOn}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-tw"><sc-raw-table><sc-raw-thead><sc-raw-tr><sc-for list="{{fx.b.table.head}}" as="hc" hint-placeholder-count="3"><sc-raw-th scope="col">{{hc.v}}</sc-raw-th></sc-for></sc-raw-tr></sc-raw-thead><sc-raw-tbody><sc-for list="{{fx.b.table.rows}}" as="trw" hint-placeholder-count="14"><sc-raw-tr><sc-for list="{{trw.cells}}" as="td" hint-placeholder-count="3"><sc-raw-td>{{td.v}}</sc-raw-td></sc-for></sc-raw-tr></sc-for></sc-raw-tbody></sc-raw-table></div>
+                      </sc-if>
+                    </section>
+
+                    <!-- Velocity -->
+                    <section class="rp-card" aria-label="Velocity">
+                      <div class="rp-ch"><h2>Velocity</h2><span class="mono cap">{{fx.v.meta}}</span><span class="rp-sp"></span>
+                        <sc-if value="{{fx.v.has}}" hint-placeholder-val="{{true}}"><button class="rp-tbtn" type="button" aria-pressed="{{fx.v.tableOn}}" aria-label="View velocity as table" sc-camel-on-click="{{fx.v.toggleTable}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11v9h-11zM2.5 7h11M2.5 10h11M6.5 3.5v9"></path></svg>Table</button></sc-if>
+                      </div>
+                      <sc-if value="{{fx.v.has}}" hint-placeholder-val="{{true}}">
+                        <div class="rp-leg"><span><i class="lk-rect" style="background:var(--c2)"></i>Committed</span><span><i class="lk-rect" style="background:var(--c1)"></i>Completed</span></div>
+                        <sc-if value="{{fx.v.chartOn}}" hint-placeholder-val="{{true}}">
+                          <div class="rp-chart">
+                            <div class="rp-ylab"><sc-for list="{{fx.v.grid}}" as="yg" hint-placeholder-count="3"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                            <div class="rp-plot" role="group" aria-label="{{fx.v.aria}}" style="aspect-ratio:{{fx.v.ar}}">
+                              <sc-for list="{{fx.v.grid}}" as="yg" hint-placeholder-count="3"><i class="rp-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                              <div class="rp-hits">
+                                <sc-for list="{{fx.v.groups}}" as="vg" hint-placeholder-count="6">
+                                  <button class="rp-hit {{vg.on}}" type="button" aria-label="{{vg.aria}}" sc-camel-on-mouse-enter="{{vg.show}}" sc-camel-on-focus="{{vg.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                    <span class="rp-bar" style="height:{{vg.h1}}%;background:var(--c2);transition-delay:{{vg.dl}}ms"></span><span class="rp-bar" style="height:{{vg.h2}}%;background:var(--c1);transition-delay:{{vg.dl2}}ms"></span>
+                                    <sc-if value="{{vg.tipOn}}" hint-placeholder-val="{{false}}">
+                                      <span class="rp-tip {{vg.side}}" aria-hidden="true"><span class="rp-tiph">{{vg.head}}</span><sc-for list="{{vg.rows}}" as="tr" hint-placeholder-count="2"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span>
+                                    </sc-if>
+                                  </button>
+                                </sc-for>
+                              </div>
+                            </div>
+                            <div class="rp-xlab"><sc-for list="{{fx.v.xl}}" as="xl" hint-placeholder-count="6"><span class="{{xl.cls}}" style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{fx.v.tableOn}}" hint-placeholder-val="{{false}}">
+                          <div class="rp-tw"><sc-raw-table><sc-raw-thead><sc-raw-tr><sc-for list="{{fx.v.table.head}}" as="hc" hint-placeholder-count="3"><sc-raw-th scope="col">{{hc.v}}</sc-raw-th></sc-for></sc-raw-tr></sc-raw-thead><sc-raw-tbody><sc-for list="{{fx.v.table.rows}}" as="trw" hint-placeholder-count="6"><sc-raw-tr><sc-for list="{{trw.cells}}" as="td" hint-placeholder-count="3"><sc-raw-td>{{td.v}}</sc-raw-td></sc-for></sc-raw-tr></sc-for></sc-raw-tbody></sc-raw-table></div>
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{fx.v.none}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-empty"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6"></path></svg><b>Not enough data yet</b><span class="mono cap">{{fx.need}}</span><span class="rp-need"><span style="width:{{fx.needPct}}%"></span></span></div>
+                      </sc-if>
+                    </section>
+
+                    <!-- Cycle time -->
+                    <section class="rp-card" aria-label="Cycle time distribution">
+                      <div class="rp-ch"><h2>Cycle time</h2><span class="mono cap">{{fx.c.meta}}</span></div>
+                      <sc-if value="{{fx.c.has}}" hint-placeholder-val="{{true}}">
+                        <div class="rp-chart">
+                          <div class="rp-ylab"><sc-for list="{{fx.c.grid}}" as="yg" hint-placeholder-count="3"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                          <div class="rp-plot" role="group" aria-label="{{fx.c.aria}}" style="aspect-ratio:{{fx.c.ar}}">
+                            <sc-for list="{{fx.c.grid}}" as="yg" hint-placeholder-count="3"><i class="rp-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                            <div class="rp-hits">
+                              <sc-for list="{{fx.c.bins}}" as="cg" hint-placeholder-count="6">
+                                <button class="rp-hit {{cg.on}}" type="button" aria-label="{{cg.aria}}" sc-camel-on-mouse-enter="{{cg.show}}" sc-camel-on-focus="{{cg.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                  <span class="rp-bar one" style="height:{{cg.h}}%;transition-delay:{{cg.dl}}ms"></span>
+                                  <sc-if value="{{cg.tipOn}}" hint-placeholder-val="{{false}}">
+                                    <span class="rp-tip {{cg.side}}" aria-hidden="true"><span class="rp-tiph">{{cg.head}}</span><sc-for list="{{cg.rows}}" as="tr" hint-placeholder-count="2"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span>
+                                  </sc-if>
+                                </button>
+                              </sc-for>
+                            </div>
+                          </div>
+                          <div class="rp-xlab"><sc-for list="{{fx.c.xl}}" as="xl" hint-placeholder-count="6"><span class="{{xl.cls}}" style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{fx.c.none}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-empty"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6"></path></svg><b>Not enough data yet</b><span class="mono cap">{{fx.need}}</span><span class="rp-need"><span style="width:{{fx.needPct}}%"></span></span></div>
+                      </sc-if>
+                    </section>
+
+                    <!-- Throughput -->
+                    <section class="rp-card" aria-label="Throughput">
+                      <div class="rp-ch"><h2>Throughput</h2><span class="mono cap">{{fx.tp.meta}}</span></div>
+                      <sc-if value="{{fx.tp.has}}" hint-placeholder-val="{{true}}">
+                        <div class="rp-chart">
+                          <div class="rp-ylab"><sc-for list="{{fx.tp.grid}}" as="yg" hint-placeholder-count="3"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                          <div class="rp-plot" style="aspect-ratio:{{fx.tp.ar}}">
+                            <sc-for list="{{fx.tp.grid}}" as="yg" hint-placeholder-count="3"><i class="rp-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                            <svg sc-camel-view-box="{{fx.tp.vb}}" role="img" aria-label="{{fx.tp.aria}}">
+                              <path class="rp-area" d="{{fx.tp.areaD}}"></path>
+                              <path class="rp-line" d="{{fx.tp.lineD}}" sc-camel-path-length="1"></path>
+                            </svg>
+                            <span class="rp-dot rp-end" style="left:{{fx.tp.endX}}%;top:{{fx.tp.endY}}%"></span>
+                            <span class="rp-elab rp-end" style="left:{{fx.tp.endX}}%;top:{{fx.tp.endY}}%;transform:translate(-50%,-150%)">{{fx.tp.endV}}</span>
+                            <div class="rp-hits">
+                              <sc-for list="{{fx.tp.hits}}" as="tg" hint-placeholder-count="12">
+                                <button class="rp-hit {{tg.on}}" type="button" aria-label="{{tg.aria}}" sc-camel-on-mouse-enter="{{tg.show}}" sc-camel-on-focus="{{tg.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                  <sc-if value="{{tg.tipOn}}" hint-placeholder-val="{{false}}">
+                                    <span class="rp-xh"></span><span class="rp-dot" style="left:50%;top:{{tg.y}}%"></span>
+                                    <span class="rp-tip {{tg.side}}" aria-hidden="true"><span class="rp-tiph">{{tg.head}}</span><sc-for list="{{tg.rows}}" as="tr" hint-placeholder-count="1"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span>
+                                  </sc-if>
+                                </button>
+                              </sc-for>
+                            </div>
+                          </div>
+                          <div class="rp-xlab"><sc-for list="{{fx.tp.xl}}" as="xl" hint-placeholder-count="3"><span class="{{xl.cls}}" style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{fx.tp.none}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-empty"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12l3.5-4 3 2.5 4.5-6"></path></svg><b>Not enough data yet</b><span class="mono cap">{{fx.need}}</span><span class="rp-need"><span style="width:{{fx.needPct}}%"></span></span></div>
+                      </sc-if>
+                    </section>
+
+                    <!-- Objective & milestone progress -->
+                    <section class="rp-card" aria-label="Objective and milestone progress">
+                      <div class="rp-ch"><h2>Objectives &amp; milestones</h2></div>
+                      <sc-if value="{{fx.pr.has}}" hint-placeholder-val="{{true}}">
+                        <div class="rp-leg"><span><i class="lk-rect" style="background:var(--c1)"></i>Progress</span><span><i class="lk-tick"></i>Expected today</span></div>
+                        <div role="list" aria-label="Objectives" style="display:flex;flex-direction:column">
+                          <span class="rp-pgrp">Objectives</span>
+                          <sc-for list="{{fx.pr.objs}}" as="ob" hint-placeholder-count="4">
+                            <button class="rp-prow {{ob.on}}" type="button" role="listitem" aria-label="{{ob.aria}}" sc-camel-on-mouse-enter="{{ob.show}}" sc-camel-on-focus="{{ob.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                              <span class="rp-pname">{{ob.name}}</span>
+                              <span class="rp-ptrack"><span class="rp-pfill" style="width:{{ob.pct}}%;transition-delay:{{ob.dl}}ms"></span><span class="rp-ptgt" style="left:{{ob.tgt}}%"></span></span>
+                              <span class="rp-pval">{{ob.pct}}%</span>
+                              <sc-if value="{{ob.tipOn}}" hint-placeholder-val="{{false}}"><span class="rp-tip p" aria-hidden="true"><span class="rp-tiph">{{ob.name}}</span><sc-for list="{{ob.rows}}" as="tr" hint-placeholder-count="2"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span></sc-if>
+                            </button>
+                          </sc-for>
+                        </div>
+                        <sc-if value="{{fx.pr.showMs}}" hint-placeholder-val="{{true}}">
+                          <div role="list" aria-label="Milestones" style="display:flex;flex-direction:column">
+                            <span class="rp-pgrp">Milestones</span>
+                            <sc-for list="{{fx.pr.mss}}" as="ob" hint-placeholder-count="4">
+                              <button class="rp-prow {{ob.on}}" type="button" role="listitem" aria-label="{{ob.aria}}" sc-camel-on-mouse-enter="{{ob.show}}" sc-camel-on-focus="{{ob.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                <span class="rp-pname">{{ob.name}}</span>
+                                <span class="rp-ptrack"><span class="rp-pfill" style="width:{{ob.pct}}%;transition-delay:{{ob.dl}}ms"></span><span class="rp-ptgt" style="left:{{ob.tgt}}%"></span></span>
+                                <span class="rp-pval">{{ob.pct}}%</span>
+                                <sc-if value="{{ob.tipOn}}" hint-placeholder-val="{{false}}"><span class="rp-tip p" aria-hidden="true"><span class="rp-tiph">{{ob.name}}</span><sc-for list="{{ob.rows}}" as="tr" hint-placeholder-count="2"><span class="rp-tipr"><i class="rp-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span></sc-if>
+                              </button>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{fx.pr.none}}" hint-placeholder-val="{{false}}">
+                        <div class="rp-empty"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"></path></svg><b>No objectives linked</b><span class="mono cap">0 of 4</span></div>
+                      </sc-if>
+                    </section>
+                  </div>
+                </sc-if>
+              </div>
+            </main>
+          </div>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:4720}}">
+class Component extends DCLogic {
+  state = { sb: {}, rev: 0, now: 0 };
+  componentDidMount() {
+    const self = this;
+    this.frames().forEach((c) => { if (self.fGet(c.id).view === 'ready') self.run(c.id); });
+  }
+  componentWillUnmount() { this.stopped = true; }
+  reduce() { try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; } }
+  frames() {
+    return [
+      { id: 'main', label: 'Reports', meta: '1280 × 1000 · interactive', h: 1000, r: 14, sidebar: true, gc: '1 / 3', gr: '1', proj: 'PR', range: 'r6', view: 'ready' },
+      { id: 'light', label: 'Light theme', meta: 'same page', h: 1000, r: 14, sidebar: true, gc: '1 / 3', gr: '2', proj: 'PR', range: 'r6', view: 'ready', theme: 'light' },
+      { id: 'loading', label: 'Loading', meta: 'skeleton in final positions', h: 600, r: 14, gc: '1', gr: '3', proj: 'PR', range: 'r6', view: 'loading' },
+      { id: 'empty', label: 'Not enough data yet', meta: 'new project · sprint 1', h: 1110, r: 14, gc: '1', gr: '4', proj: 'DS', range: 'r6', view: 'ready', extra: true },
+      { id: 'error', label: 'Error', meta: 'retry recovers', h: 420, r: 14, gc: '1', gr: '5', proj: 'PR', range: 'r6', view: 'error' },
+      { id: 'mobile', label: 'Mobile', meta: '390 · stacked', h: 1960, r: 28, gc: '2', gr: '3 / 6', proj: 'PR', range: 'r6', view: 'ready', mobile: true }
+    ];
+  }
+  fGet(id) {
+    if (!this.fs) this.fs = {};
+    if (!this.fs[id]) {
+      const c = this.frames().find((x) => x.id === id) || {};
+      this.fs[id] = { proj: c.proj, range: c.range, view: c.view, anim: 'rs', menu: null, tip: null, tabB: false, tabV: false, customOpen: false, cFrom: '2026-08-03', cTo: '2026-10-07', exp: null, retrying: false };
+    }
+    return this.fs[id];
+  }
+  fSet(id, patch) {
+    const cur = this.fGet(id);
+    this.fs[id] = Object.assign({}, cur, patch);
+    this.setState({ rev: (this.state.rev || 0) + 1 });
+  }
+  run(id) {
+    if (!this.starts) this.starts = {};
+    if (this.reduce()) { this.starts[id] = -1e9; this.fSet(id, { anim: 'on' }); return; }
+    this.fSet(id, { anim: 'rs' });
+    this.starts[id] = performance.now() + 40;
+    setTimeout(() => { if (!this.stopped) this.fSet(id, { anim: 'on' }); }, 40);
+    this.tick();
+  }
+  tick() {
+    if (this.ticking) return;
+    this.ticking = true;
+    const step = () => {
+      if (this.stopped) { this.ticking = false; return; }
+      const now = performance.now();
+      this.setState({ now });
+      const st = this.starts || {};
+      const busy = Object.keys(st).some((k) => now - st[k] < 760);
+      if (busy) requestAnimationFrame(step); else this.ticking = false;
+    };
+    requestAnimationFrame(step);
+  }
+  tFor(id) {
+    const s = this.starts && this.starts[id];
+    if (s === undefined) return 0;
+    const now = this.state.now || 0;
+    return Math.max(0, Math.min(1, (now - s) / 700));
+  }
+  data() {
+    if (this._d) return this._d;
+    const OBJ = ['Cut p95 latency to 200ms', 'Ship beta on time', 'Zero P1 incidents in Q4', 'Onboarding under 5 minutes'];
+    const MS = [['Alpha', 'Sep 12'], ['Beta launch', 'Oct 21'], ['Release candidate', 'Nov 18'], ['General availability', 'Dec 9']];
+    this._d = {
+      OBJ, MS,
+      P: {
+        PR: { name: 'Platform Rebuild', badge: 'PR', hue: 255, sprint: 14, burn: [46, 43, 47, 40, 36, 27, 18], st: [23, 31, 3.4, 5, 6], oldest: 'PRJ-18', vc: [38, 42, 40, 44, 42, 46, 48, 46], vd: [30, 36, 41, 38, 42, 39, 45, 47], hist: [6, 11, 9, 8, 4, 2], thr: 11, obj: [[68, 70], [42, 60], [85, 80], [55, 50]], ms: [[100, 100], [64, 78], [20, 25], [0, 5]] },
+        MO: { name: 'Mobile App', badge: 'MO', hue: 175, sprint: 9, burn: [37, 35, 30, 29, 26, 22, 19], st: [14, 20, 2.8, 2, -3], oldest: 'MO-7', vc: [30, 28, 32, 34, 30, 33, 35, 34], vd: [24, 27, 30, 29, 31, 30, 33, 32], hist: [9, 12, 7, 4, 2, 1], thr: 8, obj: [[40, 55], [71, 60], [90, 80], [62, 70]], ms: [[100, 100], [58, 70], [12, 20], [0, 5]] },
+        IN: { name: 'Infra', badge: 'IN', hue: 75, sprint: 21, burn: [38, 38, 36, 40, 37, 33, 31], st: [9, 15, 4.6, 7, 2], oldest: 'IN-44', vc: [36, 34, 38, 40, 36, 38, 40, 40], vd: [28, 31, 26, 33, 30, 29, 34, 31], hist: [2, 5, 7, 9, 8, 6], thr: 6, obj: [[52, 70], [30, 60], [95, 80], [20, 50]], ms: [[100, 100], [48, 70], [8, 20], [0, 5]] },
+        DS: { name: 'Design System', badge: 'DS', hue: 300, sprint: 1, burn: [21, 21, 20, 18, 18, 15, 14], st: [3, 12, 1.8, 0, 0], oldest: '', empty: true }
+      },
+      R: {
+        r2: { name: 'Last 2 sprints', sp: 2, wk: 4, k: 1, off: 0 },
+        r6: { name: 'Last 6 sprints', sp: 6, wk: 12, k: 3, off: 0.3 },
+        r90: { name: 'Last 90 days', sp: 7, wk: 13, k: 3.4, off: 0.4 },
+        custom: { name: 'Custom', sp: 4, wk: 9, k: 2.3, off: 0.2 }
+      },
+      MON: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    };
+    return this._d;
+  }
+  rng(seed) {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+    let a = h >>> 0;
+    return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  fmtIso(s) {
+    const D = this.data();
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    if (!m) return '';
+    return D.MON[Math.max(0, Math.min(11, +m[2] - 1))] + ' ' + (+m[3]);
+  }
+  ticks(max) { return [max, max / 2, 0].map((v) => ({ t: String(Math.round(v)), top: ((1 - v / max) * 100).toFixed(2), cls: v === 0 ? 'base' : '' })); }
+  niceMax(v, step) { return Math.max(step, Math.ceil(v / step) * step); }
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  buildFrame(c, themeCls) {
+    const self = this;
+    const D = this.data();
+    const f = this.fGet(c.id);
+    const id = c.id;
+    const P = D.P[f.proj] || D.P.PR;
+    const R = D.R[f.range] || D.R.r6;
+    const mobile = !!c.mobile;
+    const t = this.tFor(id);
+    const e = 1 - Math.pow(1 - t, 3);
+    const tip = f.tip;
+    const hide = () => { if (self.fGet(id).tip) self.fSet(id, { tip: null }); };
+    const showTip = (key) => () => { if (self.fGet(id).tip !== key) self.fSet(id, { tip: key }); };
+    const side = (frac) => (frac > 0.58 ? 'l' : '');
+    const W = mobile ? 296 : 572, H = mobile ? 170 : 200;
+    const w2 = mobile ? 296 : 247, h2 = mobile ? 170 : 190;
+    const isEmpty = !!P.empty;
+    const sprintLabel = 'Sprint ' + P.sprint;
+    const rangeName = f.range === 'custom' ? (this.fmtIso(f.cFrom) + ' – ' + this.fmtIso(f.cTo)) : R.name;
+
+    // --- stats (count-up)
+    const cyc = isEmpty ? P.st[2] : +(P.st[2] + R.off).toFixed(1);
+    const scope = P.st[4];
+    const sign = scope > 0 ? '+' : (scope < 0 ? '−' : '');
+    const stats = [
+      { label: 'Completed this sprint', val: String(Math.round(P.st[0] * e)), unit: '', meta: 'of ' + P.st[1] + ' planned', aria: 'Completed this sprint: ' + P.st[0] + ' of ' + P.st[1] },
+      { label: 'Avg cycle time', val: (cyc * e).toFixed(1), unit: 'd', meta: 'p85 ' + (cyc * 1.7).toFixed(1) + 'd', aria: 'Average cycle time ' + cyc + ' days' },
+      { label: 'Overdue', val: String(Math.round(P.st[3] * e)), unit: '', meta: P.st[3] ? 'oldest ' + P.oldest : 'none', alert: P.st[3] > 0, aria: 'Overdue: ' + P.st[3] },
+      { label: 'Scope change', val: sign + Math.round(Math.abs(scope) * e), unit: 'pts', meta: 'since Oct 1', aria: 'Scope change ' + (scope > 0 ? 'plus ' : scope < 0 ? 'minus ' : '') + Math.abs(scope) + ' points since sprint start' }
+    ];
+
+    // --- burndown (current sprint, Oct 1-14, today = Oct 7)
+    const N = 14, rem = P.burn, start = rem[0], today = rem.length - 1;
+    const bMax = this.niceMax(Math.max.apply(null, rem), 10);
+    const bx = (i) => (i + 0.5) / N * W;
+    const by = (v) => (1 - v / bMax) * H;
+    const ideal = (i) => Math.round(start * (1 - i / (N - 1)));
+    const bHits = Array.from({ length: N }, (_, i) => {
+      const key = 'b' + i, has = i < rem.length, day = 'Oct ' + (i + 1);
+      const rows = (has ? [{ v: rem[i], n: 'pts remaining', c: 'var(--c1)', k: '' }] : []).concat([{ v: ideal(i), n: 'ideal', c: 'transparent', k: 'dash' }]);
+      return {
+        on: tip === key ? 'on' : '', tipOn: tip === key, hasV: has, y: has ? (by(rem[i]) / H * 100).toFixed(2) : 0,
+        side: side((i + 0.5) / N), head: day + (i === today ? ' · today' : ''), rows,
+        aria: day + ': ' + (has ? rem[i] + ' points remaining, ' : 'not reached, ') + 'ideal ' + ideal(i),
+        show: showTip(key)
+      };
+    });
+    const ahead = rem[today] <= ideal(today);
+    const b = {
+      meta: sprintLabel + ' · Oct 1–14', ar: W + ' / ' + H, vb: '0 0 ' + W + ' ' + H,
+      grid: this.ticks(bMax),
+      lineD: rem.map((v, i) => (i ? 'L' : 'M') + bx(i).toFixed(1) + ' ' + by(v).toFixed(1)).join(' '),
+      idealD: 'M' + bx(0).toFixed(1) + ' ' + by(start).toFixed(1) + ' L' + bx(N - 1).toFixed(1) + ' ' + by(0).toFixed(1),
+      endX: ((today + 0.5) / N * 100).toFixed(2), endY: (by(rem[today]) / H * 100).toFixed(2), endV: rem[today],
+      hits: bHits,
+      xl: [{ t: 'Oct 1', left: (0.5 / N * 100).toFixed(2), cls: '' }, { t: 'Today', left: ((today + 0.5) / N * 100).toFixed(2), cls: 'today' }, { t: 'Oct 14', left: ((N - 0.5) / N * 100).toFixed(2), cls: '' }],
+      aria: sprintLabel + ' burndown: ' + rem[today] + ' of ' + start + ' points remaining on Oct 7, ideal ' + ideal(today) + ', ' + (ahead ? 'ahead of' : 'behind') + ' ideal.',
+      tableOn: !!f.tabB, chartOn: !f.tabB,
+      toggleTable: () => self.fSet(id, { tabB: !self.fGet(id).tabB, tip: null }),
+      table: { head: [{ v: 'Day' }, { v: 'Remaining' }, { v: 'Ideal' }], rows: Array.from({ length: N }, (_, i) => ({ cells: [{ v: 'Oct ' + (i + 1) }, { v: i < rem.length ? String(rem[i]) : '—' }, { v: String(ideal(i)) }] })) }
+    };
+
+    // --- velocity
+    const n = mobile ? Math.min(4, R.sp) : R.sp;
+    const vc = (P.vc || []).slice(-n), vd = (P.vd || []).slice(-n);
+    const vMax = this.niceMax(Math.max.apply(null, vc.concat(vd, [1])), 10);
+    const sp0 = P.sprint - n;
+    const vAvg = vd.length ? Math.round(vd.reduce((a, x) => a + x, 0) / vd.length) : 0;
+    const vAvgC = vc.length ? Math.round(vc.reduce((a, x) => a + x, 0) / vc.length) : 0;
+    const v = {
+      has: !isEmpty, none: isEmpty,
+      meta: isEmpty ? '' : 'avg ' + vAvg + ' pts', ar: w2 + ' / ' + h2, grid: this.ticks(vMax),
+      groups: vc.map((cv, i) => {
+        const key = 'v' + i, s = 'S' + (sp0 + i), pct = Math.round(vd[i] / cv * 100);
+        return {
+          h1: (cv / vMax * 100).toFixed(2), h2: (vd[i] / vMax * 100).toFixed(2), dl: i * 45, dl2: i * 45 + 60,
+          on: tip === key ? 'on' : '', tipOn: tip === key, side: side((i + 0.5) / n), head: 'Sprint ' + (sp0 + i) + ' · ' + pct + '%',
+          rows: [{ v: vd[i], n: 'completed', c: 'var(--c1)', k: 'rect' }, { v: cv, n: 'committed', c: 'var(--c2)', k: 'rect' }],
+          aria: s + ': ' + vd[i] + ' of ' + cv + ' points completed', show: showTip(key)
+        };
+      }),
+      xl: vc.map((_, i) => ({ t: 'S' + (sp0 + i), left: ((i + 0.5) / n * 100).toFixed(2), cls: '' })),
+      aria: 'Velocity, last ' + n + ' sprints: average ' + vAvg + ' points completed of ' + vAvgC + ' committed.',
+      tableOn: !!f.tabV && !isEmpty, chartOn: !f.tabV,
+      toggleTable: () => self.fSet(id, { tabV: !self.fGet(id).tabV, tip: null }),
+      table: { head: [{ v: 'Sprint' }, { v: 'Committed' }, { v: 'Completed' }], rows: vc.map((cv, i) => ({ cells: [{ v: 'S' + (sp0 + i) }, { v: String(cv) }, { v: String(vd[i]) }] })) }
+    };
+
+    // --- cycle time histogram
+    const BINS = ['<1d', '1–2d', '2–3d', '3–5d', '5–8d', '8d+'];
+    const counts = (P.hist || []).map((x) => Math.max(0, Math.round(x * R.k)));
+    const total = counts.reduce((a, x) => a + x, 0);
+    const cMax = this.niceMax(Math.max.apply(null, counts.concat([1])), 5);
+    const peak = counts.indexOf(Math.max.apply(null, counts.concat([0])));
+    const cc = {
+      has: !isEmpty, none: isEmpty, meta: isEmpty ? '' : total + ' tasks · median ' + (cyc * 0.8).toFixed(1) + 'd', ar: w2 + ' / ' + (mobile ? 150 : 170), grid: this.ticks(cMax),
+      bins: counts.map((cnt, i) => {
+        const key = 'c' + i;
+        return {
+          h: (cnt / cMax * 100).toFixed(2), dl: i * 45, on: tip === key ? 'on' : '', tipOn: tip === key, side: side((i + 0.5) / BINS.length),
+          head: BINS[i], rows: [{ v: cnt, n: 'tasks · ' + (total ? Math.round(cnt / total * 100) : 0) + '%', c: 'var(--c1)', k: 'rect' }],
+          aria: BINS[i] + ': ' + cnt + ' tasks', show: showTip(key)
+        };
+      }),
+      xl: BINS.map((bn, i) => ({ t: bn, left: ((i + 0.5) / BINS.length * 100).toFixed(2), cls: '' })),
+      aria: 'Cycle time distribution: ' + total + ' tasks, most in ' + (BINS[peak] || '') + '.'
+    };
+
+    // --- throughput (completed weeks, last = week of Sep 28)
+    const wk = R.wk, rnd = this.rng(f.proj + f.range);
+    const tv = Array.from({ length: wk }, (_, i) => Math.max(1, Math.round((P.thr || 1) * (0.72 + 0.5 * rnd()) * (0.88 + 0.24 * i / Math.max(1, wk - 1)))));
+    const wkDate = (i) => { const d = new Date(2026, 8, 28 - 7 * (wk - 1 - i)); return D.MON[d.getMonth()] + ' ' + d.getDate(); };
+    const tMax = this.niceMax(Math.max.apply(null, tv), 5);
+    const th2 = mobile ? 150 : 170;
+    const tx = (i) => (i + 0.5) / wk * w2;
+    const ty = (val) => (1 - val / tMax) * th2;
+    const tLine = tv.map((val, i) => (i ? 'L' : 'M') + tx(i).toFixed(1) + ' ' + ty(val).toFixed(1)).join(' ');
+    const mid = Math.floor((wk - 1) / 2);
+    const tp = {
+      has: !isEmpty, none: isEmpty, meta: isEmpty ? '' : 'tasks / week', ar: w2 + ' / ' + th2, vb: '0 0 ' + w2 + ' ' + th2, grid: this.ticks(tMax),
+      lineD: tLine, areaD: tLine + ' L' + tx(wk - 1).toFixed(1) + ' ' + th2 + ' L' + tx(0).toFixed(1) + ' ' + th2 + ' Z',
+      endX: ((wk - 0.5) / wk * 100).toFixed(2), endY: (ty(tv[wk - 1]) / th2 * 100).toFixed(2), endV: tv[wk - 1],
+      hits: tv.map((val, i) => {
+        const key = 't' + i;
+        return { on: tip === key ? 'on' : '', tipOn: tip === key, y: (ty(val) / th2 * 100).toFixed(2), side: side((i + 0.5) / wk), head: 'Week of ' + wkDate(i), rows: [{ v: val, n: 'tasks completed', c: 'var(--c1)', k: '' }], aria: 'Week of ' + wkDate(i) + ': ' + val + ' tasks completed', show: showTip(key) };
+      }),
+      xl: [0, mid, wk - 1].map((i) => ({ t: wkDate(i), left: ((i + 0.5) / wk * 100).toFixed(2), cls: '' })),
+      aria: 'Throughput over ' + wk + ' weeks: ' + Math.min.apply(null, tv) + ' to ' + Math.max.apply(null, tv) + ' tasks per week, last week ' + tv[wk - 1] + '.'
+    };
+
+    // --- objectives & milestones
+    const prow = (name, pv, tg, i, pfx, extra) => {
+      const key = pfx + i;
+      const diff = pv - tg;
+      return {
+        name, pct: pv, tgt: tg, dl: i * 50, on: tip === key ? 'on' : '', tipOn: tip === key,
+        rows: [{ v: pv + '%', n: 'complete', c: 'var(--c1)', k: 'rect' }, { v: tg + '%', n: 'expected today' + (extra ? ' · ' + extra : ''), c: 'var(--text)', k: 'tick' }],
+        aria: name + ': ' + pv + ' percent, expected ' + tg + ' percent' + (diff < 0 ? ', behind by ' + (-diff) : ''),
+        show: showTip(key)
+      };
+    };
+    const pr = {
+      has: !isEmpty, none: isEmpty, showMs: !mobile,
+      objs: isEmpty ? [] : P.obj.map((o, i) => prow(D.OBJ[i], o[0], o[1], i, 'o', '')),
+      mss: isEmpty ? [] : P.ms.map((m, i) => prow(D.MS[i][0], m[0], m[1], i + 4, 'm', 'due ' + D.MS[i][1]))
+    };
+
+    // --- menus
+    const curMenu = f.menu;
+    const pickProj = (k) => () => { self.fSet(id, { proj: k, menu: null, tip: null }); self.run(id); };
+    const pickRange = (k) => () => { self.fSet(id, { range: k, menu: null, tip: null, customOpen: false }); self.run(id); };
+    const projKeys = c.extra ? ['DS', 'PR', 'MO', 'IN'] : ['PR', 'MO', 'IN'];
+    const exportPick = (fmt) => () => { self.fSet(id, { menu: null, exp: fmt }); setTimeout(() => { if (!self.stopped) self.fSet(id, { exp: null }); }, 1600); };
+
+    const sbFrames = c.sidebar ? [this.sbFrame('sb-' + id, { role: 'admin', collapsible: true, active: P.badge === 'DS' ? 'DS' : P.badge, sub: 'reports' })] : [];
+
+    return {
+      id, label: c.label, meta: c.meta, gc: c.gc, gr: c.gr, h: c.h, r: c.r,
+      themeCls: c.theme === 'light' ? 't-light' : themeCls,
+      sidebar: !!c.sidebar, sbFrames,
+      animCls: f.anim === 'rs' ? 'rs' : 'on',
+      onKey: (ev) => { if (ev.key === 'Escape') { const cur = self.fGet(id); if (cur.menu || cur.tip) self.fSet(id, { menu: null, tip: null, customOpen: false }); } },
+      proj: { name: P.name, badge: P.badge, hue: P.hue },
+      sprintMeta: sprintLabel + ' · day 7 of 14 · ' + rangeName,
+      projOpen: curMenu === 'proj', toggleProj: () => self.fSet(id, { menu: self.fGet(id).menu === 'proj' ? null : 'proj' }),
+      projOpts: projKeys.map((k) => ({ name: D.P[k].name, badge: D.P[k].badge, hue: D.P[k].hue, on: f.proj === k, pick: pickProj(k) })),
+      rangeLabel: rangeName, rangeOpen: curMenu === 'range',
+      toggleRange: () => self.fSet(id, { menu: self.fGet(id).menu === 'range' ? null : 'range', customOpen: false }),
+      rangeOpts: ['r2', 'r6', 'r90'].map((k) => ({ name: D.R[k].name, on: f.range === k, pick: pickRange(k) })),
+      customOn: f.range === 'custom', customOpen: !!f.customOpen,
+      toggleCustom: () => self.fSet(id, { customOpen: !self.fGet(id).customOpen }),
+      cFrom: f.cFrom, cTo: f.cTo,
+      onFrom: (ev) => self.fSet(id, { cFrom: String(ev.target.value || '').slice(0, 10) }),
+      onTo: (ev) => self.fSet(id, { cTo: String(ev.target.value || '').slice(0, 10) }),
+      applyCustom: () => {
+        const cur = self.fGet(id);
+        let a = cur.cFrom, z = cur.cTo;
+        if (!self.fmtIso(a) || !self.fmtIso(z)) { a = '2026-08-03'; z = '2026-10-07'; }
+        if (a > z) { const x = a; a = z; z = x; }
+        self.fSet(id, { range: 'custom', cFrom: a, cTo: z, menu: null, customOpen: false, tip: null });
+        self.run(id);
+      },
+      expOpen: curMenu === 'exp', toggleExp: () => self.fSet(id, { menu: self.fGet(id).menu === 'exp' ? null : 'exp' }),
+      expOpts: [['CSV', 'data'], ['PNG', 'charts'], ['PDF', 'report']].map((x) => ({ name: x[0], hint: x[1], pick: exportPick(x[0]) })),
+      expOn: !!f.exp, expMsg: f.exp ? 'Preparing ' + f.exp + '…' : '',
+      isReady: f.view === 'ready', isLoading: f.view === 'loading', isError: f.view === 'error',
+      retrying: !!f.retrying, notRetrying: !f.retrying,
+      retry: () => {
+        if (self.fGet(id).retrying) return;
+        self.fSet(id, { retrying: true });
+        setTimeout(() => { if (self.stopped) return; self.fSet(id, { retrying: false, view: 'ready' }); self.run(id); }, 900);
+      },
+      hide,
+      need: '1 of 3 sprints', needPct: 33,
+      stats, b, v, c: cc, tp, pr
+    };
+  }
+  renderVals() {
+    const theme = this.props.theme || 'navy';
+    const themeCls = theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy';
+    const self = this;
+    return {
+      themeCls,
+      frames: this.frames().map((c) => self.buildFrame(c, themeCls))
+    };
+  }
+}
+</script>
+
+
+</body></html>

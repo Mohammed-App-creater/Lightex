@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · List view</title>
+<script src="../assets/9acbeccc-1c52-49bc-a20b-7683d8372916.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);overflow:hidden;background:var(--bg)}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+/* shared glyphs (from Task panel) */
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+.tp-g.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:tpspark 440ms var(--ease) both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+/* list view */
+.app{display:flex;height:100%}
+.lv{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.lv-top{height:52px;flex:none;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px;border-bottom:1px solid var(--line)}
+.lv-crumb{display:flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap;margin-right:8px}
+.lv-seg{display:inline-flex;padding:2px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.lv-seg a{height:26px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;border-radius:6px;color:var(--text-2);text-decoration:none;font:500 12.5px/1 'Inter',sans-serif;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.lv-seg a:hover{color:var(--text)}
+.lv-seg a[aria-current=page]{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+.lv-btn{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;border-radius:7px;font:500 12.5px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.lv-btn:hover,.lv-btn[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.lv-btn:active{transform:scale(.97)}
+.lv-btn.pri{background:var(--accent);color:#fff}
+.lv-btn.pri:hover{background:var(--accent-h)}
+.lv-btn.pri .tp-kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.lv-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.lv-btn.dng{color:var(--danger)}
+.lv-btn svg{flex:none}
+.lv-badge{min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--accent-s);color:var(--accent-t);font:600 10.5px/16px 'JetBrains Mono',monospace;text-align:center}
+.lv-vsep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.lv-scroll{position:relative;flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.lv-tbl{position:relative;padding-bottom:72px}
+.lv-head{position:sticky;top:0;z-index:5;display:grid;height:34px;background:var(--bg);border-bottom:1px solid var(--line);color:var(--text-3)}
+.lv-hc{position:relative;display:flex;align-items:center;min-width:0;padding:0 4px}
+.lv-hb{flex:1;min-width:0;height:26px;display:flex;align-items:center;gap:4px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:inherit;font:500 11.5px/1 'Inter',sans-serif;cursor:pointer;text-align:left;white-space:nowrap;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.lv-hb:hover{background:var(--hover);color:var(--text)}
+.lv-hb .ar{flex:none;opacity:0;transition:opacity 120ms var(--ease),transform 180ms var(--ease)}
+.lv-hb:hover .ar{opacity:.5}
+.lv-hb .ar.on{opacity:1;color:var(--accent-t)}
+.lv-hb .ar.desc{transform:rotate(180deg)}
+.lv-hc[aria-sort=ascending] .lv-hb,.lv-hc[aria-sort=descending] .lv-hb{color:var(--text)}
+.lv-rz{position:absolute;right:-5px;top:5px;bottom:5px;width:10px;padding:0;border:0;background:transparent;cursor:col-resize;z-index:2;touch-action:none;display:flex;justify-content:center;border-radius:3px}
+.lv-rz::after{content:"";width:1px;height:100%;background:var(--line);transition:background-color 120ms var(--ease),width 120ms var(--ease)}
+.lv-hc:hover .lv-rz::after{background:var(--line-2)}
+.lv-rz:hover::after,.lv-rz.on::after,.lv-rz:focus-visible::after{width:2px;background:var(--accent)}
+.lv-gh{position:sticky;top:34px;z-index:3;display:flex;align-items:center;gap:6px;height:36px;padding-right:10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.lv-c0{flex:none;display:flex;align-items:center;justify-content:center;min-width:0}
+.lv-gt{display:flex;align-items:center;gap:8px;height:28px;padding:0 8px 0 4px;margin-left:-4px;border:0;border-radius:6px;background:transparent;color:var(--text);font:600 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease)}
+.lv-gt:hover{background:var(--hover)}
+.lv-gt .chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.lv-gt[aria-expanded=true] .chev{transform:rotate(90deg)}
+.lv-cnt{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.lv-gm{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.lv-ep{width:10px;height:10px;border-radius:3px;flex:none;background:oklch(.66 .13 var(--h))}
+.lv-avn{width:20px;height:20px;border-radius:50%;border:1.5px dashed var(--control);flex:none}
+.lv-ib{width:26px;height:26px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.lv-ib:hover{background:var(--hover);color:var(--text)}
+.lv-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.lv-col.open{grid-template-rows:1fr}
+.lv-col>div{overflow:hidden;min-height:0;visibility:hidden;transition:visibility 0s 220ms}
+.lv-col.open>div{visibility:visible;transition-delay:0s}
+.lv-row{position:relative;display:grid;height:36px;border-bottom:1px solid var(--line);transition:background-color 100ms var(--ease)}
+.lv-row:hover,.lv-row.hov,.lv-row:focus-within,.lv-row.act{background:var(--surface)}
+.lv-row.sel{background:var(--accent-s)}
+.lv-row.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+.lv-c{position:relative;display:flex;align-items:center;min-width:0;padding:0 4px}
+.lv-cv{flex:1;min-width:0;display:flex;align-items:center;gap:7px;height:28px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--text);font:400 13px/1 'Inter',sans-serif;text-align:left;white-space:nowrap;overflow:hidden}
+button.lv-cv{cursor:pointer;transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+button.lv-cv:hover{background:var(--hover);box-shadow:inset 0 0 0 1px var(--line-2)}
+.lv-cv.open{background:var(--accent-s);box-shadow:inset 0 0 0 1px var(--accent)}
+.lv-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lv-t.mono{font:500 12px/1 'JetBrains Mono',monospace}
+.lv-t.key{color:var(--text-3)}
+.lv-t.tt{font-weight:500}
+.lv-t.mut{color:var(--text-3)}
+.lv-t.late{color:var(--danger)}
+.lv-t.soon{color:var(--warn)}
+.lv-lab{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:5px;background:var(--raised);border:1px solid var(--line);font-size:11.5px;font-weight:500;color:var(--text-2);flex:none}
+.lv-more{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);flex:none}
+.lv-tin{flex:1;min-width:0;height:28px;padding:0 6px;border-radius:5px;border:1px solid var(--accent);box-shadow:0 0 0 3px var(--accent-s);background:var(--surface);color:var(--text);font:500 13px/1 'Inter',sans-serif}
+.lv-tin:focus{outline:none}
+.lv-tin::placeholder{color:var(--text-3)}
+.lv-acts{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:1px;padding:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line-2);opacity:0;pointer-events:none;transition:opacity 120ms var(--ease)}
+.lv-acts .lv-ib{width:24px;height:24px;color:var(--text-2)}
+.lv-row:hover .lv-acts,.lv-row.hov .lv-acts,.lv-row:focus-within .lv-acts,.lv-row.act .lv-acts{opacity:1;pointer-events:auto}
+.lv-cbx,.lv-gcb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;padding:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),opacity 120ms var(--ease)}
+.lv-cbx::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.lv-cbx:checked{background:var(--accent);border-color:var(--accent)}
+.lv-cbx:checked::after{transform:rotate(-45deg) scale(1)}
+.lv-gcb[aria-checked=true],.lv-gcb[aria-checked=mixed]{background:var(--accent);border-color:var(--accent)}
+.lv-gcb[aria-checked=true]::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg);margin-top:-2px}
+.lv-gcb[aria-checked=mixed]::after{content:"";width:8px;height:2px;background:#fff;border-radius:1px}
+.lv-row .lv-cbx,.lv-gh .lv-gcb{opacity:0}
+.lv-row:hover .lv-cbx,.lv-row.hov .lv-cbx,.lv-gh:hover .lv-gcb,.lv-cbx:focus-visible,.lv-gcb:focus-visible,.lv-tbl.selecting .lv-cbx,.lv-tbl.selecting .lv-gcb{opacity:1}
+.lv-empty{display:flex;align-items:center;gap:12px;height:40px;border-bottom:1px solid var(--line);color:var(--text-3);font-size:12.5px}
+.lv-link{height:24px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--accent-t);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer}
+.lv-link:hover{background:var(--accent-s)}
+.lv-catch{position:absolute;inset:0;z-index:25}
+.lv-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:lvmenu 150ms var(--ease)}
+@keyframes lvmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.lv-mi{display:flex;align-items:center;gap:9px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;white-space:nowrap}
+.lv-mi:hover{background:var(--hover)}
+.lv-mi.on{background:var(--accent-s)}
+.lv-mi.dng{color:var(--danger)}
+.lv-mi.sep{margin-top:5px;position:relative}
+.lv-mi.sep::before{content:"";position:absolute;left:-4px;right:-4px;top:-3px;height:1px;background:var(--line)}
+.lv-mm{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.lv-ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--control);display:grid;place-content:center;flex:none}
+.lv-ck.on{background:var(--accent);border-color:var(--accent)}
+.lv-ck.on::after{content:"";width:7px;height:3.5px;border:solid #fff;border-width:0 0 1.8px 1.8px;transform:rotate(-45deg);margin-top:-2px}
+.lv-bulk{position:absolute;left:50%;bottom:16px;z-index:20;display:flex;align-items:center;gap:2px;height:44px;padding:0 6px 0 8px;border-radius:12px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);transform:translate(-50%,calc(100% + 28px));opacity:0;visibility:hidden;transition:transform 260ms var(--spring),opacity 160ms var(--ease),visibility 0s 260ms;white-space:nowrap}
+.lv-bulk.on{transform:translate(-50%,0);opacity:1;visibility:visible;transition-delay:0s}
+.lv-bn{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 10px;margin-right:4px;border-radius:7px;background:var(--accent-s);color:var(--accent-t);font:600 12.5px/1 'Inter',sans-serif}
+.lv-bn b{font:600 12.5px/1 'JetBrains Mono',monospace}
+.lv-bn button{width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.lv-bn button:hover{background:var(--accent-s)}
+.lv-toast{position:absolute;left:16px;z-index:22;display:flex;align-items:center;gap:10px;height:38px;padding:0 6px 0 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;animation:lvtoast 220ms var(--ease);transition:bottom 240ms var(--ease)}
+@keyframes lvtoast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.lv-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1;padding:40px;text-align:center}
+.lv-state h3{margin:0;font-size:15px;font-weight:600}
+.sk{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 45%,var(--raised) 90%);background-size:240% 100%;animation:shim 1.4s linear infinite;flex:none}
+.sk.ci{width:14px;height:14px;border-radius:50%}
+.sk.bx{width:14px;height:14px;border-radius:4px}
+@keyframes shim{from{background-position:120% 0}to{background-position:-120% 0}}
+.lv-skc{display:flex;align-items:center;gap:8px;padding:0 10px;min-width:0}
+.lv-btn:focus-visible,.lv-seg a:focus-visible,.lv-hb:focus-visible,.lv-rz:focus-visible,.lv-gt:focus-visible,.lv-ib:focus-visible,.lv-cv:focus-visible,.lv-cbx:focus-visible,.lv-gcb:focus-visible,.lv-link:focus-visible,.lv-mi:focus-visible,.lv-bn button:focus-visible,.ph-ib:focus-visible,.ph-chip:focus-visible,.ph-gt:focus-visible,.ph-card:focus-visible,.ph-fab:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* phone */
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.ph-sb{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font:600 14px/1 'Inter',sans-serif}
+.ph-top{height:52px;flex:none;display:flex;align-items:center;gap:2px;padding:0 4px;border-bottom:1px solid var(--line)}
+.ph-ib{width:44px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer}
+.ph-ib:hover{background:var(--hover);color:var(--text)}
+.ph-chips{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--line);flex:none;scrollbar-width:none}
+.ph-chip{height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 150ms var(--ease),color 150ms var(--ease),border-color 150ms var(--ease)}
+.ph-chip.on{background:var(--accent-s);border-color:transparent;color:var(--accent-t)}
+.ph-scroll{flex:1;min-height:0;overflow-y:auto;padding-bottom:96px;scrollbar-width:none}
+.ph-gh{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line)}
+.ph-gt{width:100%;height:44px;display:flex;align-items:center;gap:9px;padding:0 16px;border:0;background:transparent;color:var(--text);font:600 14px/1 'Inter',sans-serif;cursor:pointer;text-align:left}
+.ph-gt .chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.ph-gt[aria-expanded=true] .chev{transform:rotate(90deg)}
+.ph-list{display:flex;flex-direction:column;gap:8px;padding:10px 12px}
+.ph-card{display:flex;flex-direction:column;gap:7px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);text-decoration:none;transition:border-color 120ms var(--ease),transform 120ms var(--ease)}
+.ph-card:active{transform:scale(.99);border-color:var(--line-2)}
+.ph-r{display:flex;align-items:center;gap:8px;min-width:0}
+.ph-ttl{font:500 14px/20px 'Inter',sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ph-empty{padding:14px 16px;color:var(--text-3);font-size:13px;border-bottom:1px solid var(--line)}
+.ph-fab{position:absolute;right:16px;bottom:30px;width:54px;height:54px;border-radius:16px;border:0;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-pop)}
+.ph-home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--text-3);opacity:.5}
+@media (max-width:760px){.sb-host{display:none!important}.lv-top{flex-wrap:wrap;height:auto;padding:8px 12px;gap:6px}.lv-seg{order:3}}
+@media (prefers-reduced-motion:reduce){.lv *,.ph *,.lv-col,.lv-bulk,.lv-menu,.lv-toast,.sk,.tp-g.fx{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2520px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · PROJECT VIEWS</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">List view</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>9 columns</span><span>4 groupings</span><span>36px rows</span><span>Esc clears</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="grid-column:{{fx.gc}};grid-row:{{fx.gr}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="width:{{fx.w}}px;height:{{fx.h}}px;border-radius:{{fx.r}}px">
+
+          <sc-if value="{{fx.desk}}" hint-placeholder-val="{{true}}">
+            <div class="app">
+              <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="1">
+                <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+                </div>
+              </sc-for>
+
+              <section class="lv" aria-label="Task list" sc-camel-on-key-down="{{fx.onKey}}">
+                <sc-if value="{{fx.showTop}}" hint-placeholder-val="{{false}}">
+                  <div class="lv-top">
+                    <div class="lv-crumb"><span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) 255);color:oklch(var(--pkt-l) var(--pkt-c) 255)">PR</span>Platform Rebuild</div>
+                    <nav class="lv-seg" aria-label="Project views">
+                      <a href="#board"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z"></path></svg>Board</a>
+                      <a href="#list" aria-current="page"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"></path></svg>List</a>
+                      <a href="#timeline"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h6M5 8h8M3.5 12h5"></path></svg>Timeline</a>
+                    </nav>
+                    <span style="flex:1"></span>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.groupOpen}}" sc-camel-on-click="{{fx.openGroup}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11v3h-11zM2.5 9.5h11v3h-11z"></path></svg><span style="color:var(--text-3)">Group</span>{{fx.groupLabel}}</button>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.filterOpen}}" sc-camel-on-click="{{fx.openFilter}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z"></path></svg>Filter<sc-if value="{{fx.hasFilt}}" hint-placeholder-val="{{false}}"><span class="lv-badge">{{fx.nFilt}}</span></sc-if></button>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.colsOpen}}" sc-camel-on-click="{{fx.openCols}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6.2 3v10M9.8 3v10"></path></svg>Columns<span class="lv-mm">{{fx.colCount}}</span></button>
+                    <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}">
+                      <span class="lv-vsep"></span>
+                      <button class="lv-btn pri" type="button" sc-camel-on-click="{{fx.newTask}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>New task<span class="tp-kbd">C</span></button>
+                    </sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+                  <div class="lv-state fade" role="alert">
+                    <svg width="28" height="28" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3zM12 10v4.5M12 17.2v.1"></path></svg>
+                    <h3>Couldn’t load tasks</h3>
+                    <span class="lv-mm">503 · PRJ list</span>
+                    <button class="lv-btn sec" type="button" sc-camel-on-click="{{fx.retry}}">Retry</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.showList}}" hint-placeholder-val="{{true}}">
+                  <div class="lv-scroll">
+                    <div class="lv-tbl {{fx.tblCls}}" role="table" aria-label="Tasks" style="min-width:{{fx.totalW}}px">
+                      <div class="lv-head" role="row" style="grid-template-columns:{{fx.gtc}}">
+                        <span class="lv-c0" role="columnheader" aria-label="Select"></span>
+                        <sc-for list="{{fx.hcols}}" as="hc" hint-placeholder-count="7">
+                          <div class="lv-hc" role="columnheader" aria-sort="{{hc.ariaSort}}">
+                            <button class="lv-hb" type="button" sc-camel-on-click="{{hc.sortBy}}" aria-label="Sort by {{hc.label}}">{{hc.label}}<svg class="ar {{hc.arCls}}" width="11" height="11" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3.5M4.5 7L8 3.5 11.5 7"></path></svg></button>
+                            <button class="lv-rz {{hc.rzCls}}" type="button" role="separator" aria-orientation="vertical" aria-label="Resize {{hc.label}} column" aria-valuenow="{{hc.w}}" aria-valuemin="{{hc.min}}" aria-valuemax="480" sc-camel-on-pointer-down="{{hc.rzDown}}" sc-camel-on-pointer-move="{{hc.rzMove}}" sc-camel-on-pointer-up="{{hc.rzUp}}" sc-camel-on-pointer-cancel="{{hc.rzUp}}" sc-camel-on-key-down="{{hc.rzKey}}"></button>
+                          </div>
+                        </sc-for>
+                      </div>
+
+                      <sc-if value="{{fx.loading}}" hint-placeholder-val="{{false}}">
+                        <div aria-busy="true" aria-label="Loading tasks">
+                          <sc-for list="{{fx.skGroups}}" as="sg" hint-placeholder-count="2">
+                            <div class="lv-gh" style="position:relative;top:auto"><span class="lv-c0" style="width:{{fx.selW}}px"></span><span class="sk ci"></span><span class="sk" style="width:{{sg.w}}px"></span><span class="sk" style="width:14px"></span></div>
+                            <sc-for list="{{sg.rows}}" as="sr" hint-placeholder-count="4">
+                              <div class="lv-row" style="grid-template-columns:{{fx.gtc}}">
+                                <span class="lv-c0"><sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><span class="sk bx" style="opacity:.6"></span></sc-if></span>
+                                <sc-for list="{{sr.cells}}" as="sc" hint-placeholder-count="6">
+                                  <span class="lv-skc"><sc-if value="{{sc.lead}}" hint-placeholder-val="{{false}}"><span class="sk ci"></span></sc-if><span class="sk" style="width:{{sc.w}}%"></span></span>
+                                </sc-for>
+                              </div>
+                            </sc-for>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{fx.noMatch}}" hint-placeholder-val="{{false}}">
+                        <div class="lv-state fade" style="min-height:280px">
+                          <svg width="26" height="26" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z"></path></svg>
+                          <h3>No tasks match</h3>
+                          <button class="lv-btn sec" type="button" sc-camel-on-click="{{fx.clearFilters}}">Clear filters</button>
+                        </div>
+                      </sc-if>
+
+                      <sc-for list="{{fx.groups}}" as="g" hint-placeholder-count="3">
+                        <div role="rowgroup">
+                          <div class="lv-gh" role="row">
+                            <span class="lv-c0" style="width:{{fx.selW}}px" role="cell">
+                              <sc-if value="{{g.canCk}}" hint-placeholder-val="{{true}}"><button class="lv-gcb" type="button" role="checkbox" aria-checked="{{g.ck}}" aria-label="Select all in {{g.name}}" sc-camel-on-click="{{g.toggleAll}}"></button></sc-if>
+                            </span>
+                            <button class="lv-gt" type="button" aria-expanded="{{g.open}}" sc-camel-on-click="{{g.toggle}}">
+                              <svg class="chev" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                              <sc-if value="{{g.isSt}}" hint-placeholder-val="{{true}}"><span class="tp-g {{g.glyph}}" style="color:{{g.color}}"></span></sc-if>
+                              <sc-if value="{{g.isEp}}" hint-placeholder-val="{{false}}"><span class="lv-ep" style="--h:{{g.hue}}"></span></sc-if>
+                              <sc-if value="{{g.isSp}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8"></path></svg></sc-if>
+                              <sc-if value="{{g.isAv}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{g.hue}})">{{g.ini}}</span></sc-if>
+                              <sc-if value="{{g.isNone}}" hint-placeholder-val="{{false}}"><span class="lv-avn"></span></sc-if>
+                              {{g.name}}<span class="lv-cnt">{{g.count}}</span>
+                            </button>
+                            <sc-if value="{{g.hasMeta}}" hint-placeholder-val="{{false}}"><span class="lv-gm">{{g.meta}}</span></sc-if>
+                            <span style="flex:1"></span>
+                            <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><button class="lv-ib" type="button" aria-label="Add task to {{g.name}}" sc-camel-on-click="{{g.add}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button></sc-if>
+                          </div>
+                          <div class="lv-col {{g.openCls}}"><div>
+                            <sc-for list="{{g.rows}}" as="rw" hint-placeholder-count="4">
+                              <div class="lv-row {{rw.cls}}" role="row" aria-selected="{{rw.sel}}" style="grid-template-columns:{{fx.gtc}}">
+                                <span class="lv-c0" role="cell">
+                                  <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><input class="lv-cbx" type="checkbox" checked="{{rw.sel}}" sc-camel-on-change="{{rw.toggle}}" aria-label="Select {{rw.key}}"></sc-if>
+                                </span>
+                                <sc-for list="{{rw.cells}}" as="cl" hint-placeholder-count="7">
+                                  <div class="lv-c" role="cell">
+                                    <sc-if value="{{cl.editing}}" hint-placeholder-val="{{false}}">
+                                      <input class="lv-tin" type="text" aria-label="Task title" placeholder="Task title" value="{{cl.draft}}" sc-camel-on-change="{{cl.onDraft}}" sc-camel-on-key-down="{{cl.onEdKey}}" sc-camel-on-blur="{{cl.save}}" sc-camel-auto-focus="{{true}}">
+                                    </sc-if>
+                                    <sc-if value="{{cl.btn}}" hint-placeholder-val="{{true}}">
+                                      <button class="lv-cv {{cl.openCls}}" type="button" aria-label="{{cl.aria}}" aria-haspopup="{{cl.hp}}" title="{{cl.tip}}" sc-camel-on-click="{{cl.open}}">
+                                        <sc-if value="{{cl.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{cl.glyph}}" style="color:{{cl.color}}"></span></sc-if>
+                                        <sc-if value="{{cl.b}}" hint-placeholder-val="{{false}}"><span class="tp-bars {{cl.bars}}" style="color:{{cl.color}}"><i></i><i></i><i></i><i></i></span></sc-if>
+                                        <sc-if value="{{cl.av}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{cl.hue}})">{{cl.ini}}</span></sc-if>
+                                        <sc-if value="{{cl.hasText}}" hint-placeholder-val="{{true}}"><span class="lv-t {{cl.tcls}}">{{cl.text}}</span></sc-if>
+                                        <sc-for list="{{cl.labs}}" as="lb" hint-placeholder-count="0"><span class="lv-lab"><span class="tp-dot" style="background:{{lb.color}}"></span>{{lb.name}}</span></sc-for>
+                                        <sc-if value="{{cl.hasMore}}" hint-placeholder-val="{{false}}"><span class="lv-more">{{cl.moreTxt}}</span></sc-if>
+                                      </button>
+                                    </sc-if>
+                                    <sc-if value="{{cl.ro}}" hint-placeholder-val="{{false}}">
+                                      <span class="lv-cv" title="{{cl.tip}}">
+                                        <sc-if value="{{cl.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{cl.glyph}}" style="color:{{cl.color}}"></span></sc-if>
+                                        <sc-if value="{{cl.b}}" hint-placeholder-val="{{false}}"><span class="tp-bars {{cl.bars}}" style="color:{{cl.color}}"><i></i><i></i><i></i><i></i></span></sc-if>
+                                        <sc-if value="{{cl.av}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{cl.hue}})">{{cl.ini}}</span></sc-if>
+                                        <sc-if value="{{cl.hasText}}" hint-placeholder-val="{{true}}"><span class="lv-t {{cl.tcls}}">{{cl.text}}</span></sc-if>
+                                        <sc-for list="{{cl.labs}}" as="lb" hint-placeholder-count="0"><span class="lv-lab"><span class="tp-dot" style="background:{{lb.color}}"></span>{{lb.name}}</span></sc-for>
+                                        <sc-if value="{{cl.hasMore}}" hint-placeholder-val="{{false}}"><span class="lv-more">{{cl.moreTxt}}</span></sc-if>
+                                      </span>
+                                    </sc-if>
+                                  </div>
+                                </sc-for>
+                                <div class="lv-acts" role="cell">
+                                  <a class="lv-ib" href="Task-Detail.dc.html" aria-label="Open {{rw.key}}" title="Open"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5"></path></svg></a>
+                                  <button class="lv-ib" type="button" aria-label="Copy key {{rw.key}}" title="Copy key" sc-camel-on-click="{{rw.copy}}"><svg width="13" height="13" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg></button>
+                                  <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><button class="lv-ib" type="button" aria-label="More actions for {{rw.key}}" aria-haspopup="menu" sc-camel-on-click="{{rw.more}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3"></circle><circle cx="8" cy="8" r="1.3"></circle><circle cx="12.5" cy="8" r="1.3"></circle></svg></button></sc-if>
+                                </div>
+                              </div>
+                            </sc-for>
+                            <sc-if value="{{g.empty}}" hint-placeholder-val="{{false}}">
+                              <div class="lv-empty" role="row"><span style="width:{{fx.selW}}px;flex:none"></span><span role="cell" style="padding-left:10px">No tasks</span><sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><button class="lv-link" type="button" sc-camel-on-click="{{g.add}}">+ Add task</button></sc-if></div>
+                            </sc-if>
+                          </div></div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}">
+                  <div class="lv-bulk {{fx.bulkCls}}" role="toolbar" aria-label="{{fx.selCount}} tasks selected" aria-hidden="{{fx.bulkHidden}}" sc-camel-on-key-down="{{fx.bulkKey}}">
+                    <span class="lv-bn"><b>{{fx.selCount}}</b>selected<button type="button" aria-label="Clear selection" sc-camel-on-click="{{fx.clearSel}}"><svg width="10" height="10" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button></span>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.bAsgOpen}}" sc-camel-on-click="{{fx.bulkAsg}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M8 7.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM3 13.5c.6-2.5 2.6-4 5-4s4.4 1.5 5 4"></path></svg>Assign</button>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.bMoveOpen}}" sc-camel-on-click="{{fx.bulkMove}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11M10 4.5L13.5 8 10 11.5"></path></svg>Move</button>
+                    <button class="lv-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.bLabOpen}}" sc-camel-on-click="{{fx.bulkLab}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5h5l6 6-5 5-6-6zM5.3 5.3h.01"></path></svg>Label</button>
+                    <sc-if value="{{fx.canDel}}" hint-placeholder-val="{{true}}">
+                      <span class="lv-vsep" style="margin:0 2px"></span>
+                      <button class="lv-btn dng" type="button" sc-camel-on-click="{{fx.bulkDel}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg>Delete</button>
+                    </sc-if>
+                    <span class="tp-kbd" style="margin:0 4px 0 6px">Esc</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+                  <div class="lv-toast" role="status" style="bottom:{{fx.toastY}}px">{{fx.toastText}}<sc-if value="{{fx.toastUndo}}" hint-placeholder-val="{{false}}"><button class="lv-link" type="button" sc-camel-on-click="{{fx.undo}}">Undo</button></sc-if><span style="width:8px"></span></div>
+                </sc-if>
+
+                <sc-if value="{{fx.popOpen}}" hint-placeholder-val="{{false}}">
+                  <div class="lv-catch" sc-camel-on-click="{{fx.closePop}}"></div>
+                  <div class="lv-menu" role="menu" aria-label="{{fx.popLabel}}" style="top:{{fx.popTop}}px;left:{{fx.popLeft}}px;width:{{fx.popW}}px">
+                    <sc-for list="{{fx.popOpts}}" as="op" hint-placeholder-count="5">
+                      <button class="lv-mi {{op.cls}}" type="button" role="{{op.role}}" aria-checked="{{op.ac}}" sc-camel-auto-focus="{{op.first}}" sc-camel-on-click="{{op.pick}}">
+                        <sc-if value="{{op.cb}}" hint-placeholder-val="{{false}}"><span class="lv-ck {{op.ckCls}}" aria-hidden="true"></span></sc-if>
+                        <sc-if value="{{op.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{op.glyph}}" style="color:{{op.color}}"></span></sc-if>
+                        <sc-if value="{{op.b}}" hint-placeholder-val="{{false}}"><span class="tp-bars {{op.bars}}" style="color:{{op.color}}"><i></i><i></i><i></i><i></i></span></sc-if>
+                        <sc-if value="{{op.av}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{op.hue}})">{{op.ini}}</span></sc-if>
+                        <sc-if value="{{op.avn}}" hint-placeholder-val="{{false}}"><span class="lv-avn"></span></sc-if>
+                        <sc-if value="{{op.dot}}" hint-placeholder-val="{{false}}"><span class="tp-dot" style="background:{{op.dotc}}"></span></sc-if>
+                        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{op.label}}</span>
+                        <sc-if value="{{op.hasMeta}}" hint-placeholder-val="{{false}}"><span class="lv-mm">{{op.meta}}</span></sc-if>
+                        <sc-if value="{{op.tick}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </section>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}">
+            <div class="ph">
+              <div class="ph-sb"><span>9:41</span><svg width="56" height="12" sc-camel-view-box="0 0 56 12" fill="var(--text)" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="5" width="3" height="7" rx="1"></rect><rect x="10" y="2.5" width="3" height="9.5" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect><rect x="31" y="1" width="21" height="10" rx="3" fill="none" stroke="var(--text)" stroke-opacity=".5"></rect><rect x="33" y="3" width="15" height="6" rx="1.5"></rect><rect x="53" y="4" width="2" height="4" rx="1" fill-opacity=".5"></rect></svg></div>
+              <div class="ph-top">
+                <button class="ph-ib" type="button" aria-label="Open navigation"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"></path></svg></button>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font:600 15px/1 'Inter',sans-serif">List</span><span style="font-size:11.5px;line-height:1;color:var(--text-3)">Platform Rebuild · {{fx.total}}</span></div>
+                <button class="ph-ib" type="button" aria-label="Filter"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z"></path></svg></button>
+                <button class="ph-ib" type="button" aria-label="Search"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button>
+              </div>
+              <div class="ph-chips" role="group" aria-label="Group by">
+                <sc-for list="{{fx.gchips}}" as="gc" hint-placeholder-count="4"><button class="ph-chip {{gc.on}}" type="button" aria-pressed="{{gc.pressed}}" sc-camel-on-click="{{gc.pick}}">{{gc.label}}</button></sc-for>
+              </div>
+              <div class="ph-scroll">
+                <sc-for list="{{fx.groups}}" as="g" hint-placeholder-count="3">
+                  <div>
+                    <div class="ph-gh">
+                      <button class="ph-gt" type="button" aria-expanded="{{g.open}}" sc-camel-on-click="{{g.toggle}}">
+                        <svg class="chev" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        <sc-if value="{{g.isSt}}" hint-placeholder-val="{{true}}"><span class="tp-g {{g.glyph}}" style="color:{{g.color}}"></span></sc-if>
+                        <sc-if value="{{g.isEp}}" hint-placeholder-val="{{false}}"><span class="lv-ep" style="--h:{{g.hue}}"></span></sc-if>
+                        <sc-if value="{{g.isSp}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8"></path></svg></sc-if>
+                        <sc-if value="{{g.isAv}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{g.hue}})">{{g.ini}}</span></sc-if>
+                        <sc-if value="{{g.isNone}}" hint-placeholder-val="{{false}}"><span class="lv-avn"></span></sc-if>
+                        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{g.name}}</span><span class="lv-cnt">{{g.count}}</span>
+                      </button>
+                    </div>
+                    <div class="lv-col {{g.openCls}}"><div>
+                      <sc-if value="{{g.empty}}" hint-placeholder-val="{{false}}"><div class="ph-empty">No tasks</div></sc-if>
+                      <sc-if value="{{g.hasCards}}" hint-placeholder-val="{{true}}">
+                        <div class="ph-list">
+                          <sc-for list="{{g.cards}}" as="cd" hint-placeholder-count="3">
+                            <a class="ph-card" href="Task-Detail.dc.html" aria-label="{{cd.key}} {{cd.title}}">
+                              <span class="ph-r"><span class="tp-g {{cd.glyph}}" style="color:{{cd.color}}"></span><span class="mono" style="font-size:12px;color:var(--text-3)">{{cd.key}}</span><span style="flex:1"></span><span class="mono {{cd.dueCls}}" style="font-size:12px">{{cd.due}}</span></span>
+                              <span class="ph-ttl">{{cd.title}}</span>
+                              <span class="ph-r"><span class="tp-bars {{cd.bars}}" style="color:{{cd.pcolor}}"><i></i><i></i><i></i><i></i></span><span style="font-size:12px;color:var(--text-3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{cd.sub}}</span><sc-if value="{{cd.hasAsg}}" hint-placeholder-val="{{true}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{cd.hue}})">{{cd.ini}}</span></sc-if><sc-if value="{{cd.noAsg}}" hint-placeholder-val="{{false}}"><span class="lv-avn"></span></sc-if></span>
+                            </a>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div></div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><button class="ph-fab" type="button" aria-label="New task"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button></sc-if>
+              <span class="ph-home" aria-hidden="true"></span>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;,&quot;error&quot;],&quot;default&quot;:&quot;ready&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2520}}">
+class Component extends DCLogic {
+  state = { sb: {}, fr: {}, tasks: this.seed() };
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  seed() {
+    const R = [
+      [31, 'Rotate refresh tokens on reuse', 'done', 3, 'AK', 'auth', 13, 'beta', '2026-09-30', ['backend']],
+      [33, 'SSO login with Okta', 'progress', 3, 'JL', 'auth', 14, 'beta', '2026-10-14', ['backend', 'frontend']],
+      [34, 'Session timeout modal', 'todo', 2, 'SP', 'auth', 14, 'beta', '2026-10-10', ['frontend', 'design']],
+      [36, 'Audit log for sign-ins', 'backlog', 1, null, 'auth', 0, 'rc', null, ['backend']],
+      [38, 'Passkey enrollment flow', 'todo', 2, 'TN', 'auth', 14, 'rc', '2026-10-16', ['frontend']],
+      [40, 'Virtualize board columns', 'done', 4, 'AK', 'board', 13, 'beta', '2026-10-02', ['frontend', 'perf']],
+      [42, 'Fix flaky board reflow on column resize', 'progress', 3, 'AK', 'board', 14, 'beta', '2026-10-09', ['frontend', 'bug']],
+      [44, 'Debounce reflow on sidebar toggle', 'progress', 2, 'JL', 'board', 14, 'beta', '2026-10-08', ['perf']],
+      [45, 'Drag latency regression test', 'todo', 2, 'RC', 'board', 14, 'beta', '2026-10-13', ['perf']],
+      [47, 'Cache card thumbnails', 'backlog', 1, null, 'board', 0, 'ga', null, ['perf']],
+      [49, 'Sprint rollover job', 'done', 3, 'SP', 'sprint', 12, 'alpha', '2026-09-10', ['backend']],
+      [50, 'Carry-over prompt at sprint close', 'progress', 4, 'MD', 'sprint', 14, 'beta', '2026-10-06', ['frontend']],
+      [52, 'Velocity chart by assignee', 'todo', 1, 'RC', 'sprint', 14, 'rc', '2026-10-20', ['frontend']],
+      [53, 'Burndown off by one day', 'done', 3, 'MD', 'sprint', 13, 'beta', '2026-09-29', ['bug']],
+      [55, 'Capacity planning per sprint', 'backlog', 2, null, 'sprint', 0, 'ga', null, ['design']],
+      [57, 'Proration on plan change', 'progress', 3, 'TN', 'bill', 14, 'rc', '2026-10-15', ['backend']],
+      [58, 'Invoice PDF redesign', 'todo', 2, 'SP', 'bill', 14, 'rc', '2026-10-17', ['design', 'frontend']],
+      [60, 'Stripe webhook retries', 'done', 4, 'JL', 'bill', 12, 'alpha', '2026-09-08', ['backend', 'infra']],
+      [61, 'Tax IDs for EU customers', 'done', 2, 'TN', 'bill', 13, 'beta', '2026-10-01', ['backend']],
+      [63, 'Legacy coupon migration', 'cancel', 1, 'MD', 'bill', 13, null, null, ['infra']]
+    ];
+    return R.map(([n, title, st, pri, asg, ep, sp, ms, due, labels]) => ({ id: 'PRJ-' + n, n, title, st, pri, asg, ep, sp, ms, due, labels, del: false }));
+  }
+  K() {
+    if (this._K) return this._K;
+    const ST = { backlog: ['Backlog', 'backlog', 'var(--text-3)'], todo: ['Todo', 'todo', 'var(--todo)'], progress: ['In progress', 'progress', 'var(--warn)'], review: ['In review', 'review', 'var(--info)'], done: ['Done', 'done', 'var(--ok)'], cancel: ['Canceled', 'cancel', 'var(--text-3)'] };
+    const PEOPLE = [['AK', 'Alex Kim', 285], ['JL', 'Jordan Lee', 200], ['SP', 'Sam Patel', 20], ['RC', 'Riley Chen', 150], ['MD', 'Morgan Diaz', 60], ['TN', 'Taylor Ng', 330]].map(([ini, name, hue]) => ({ ini, name, hue, first: name.split(' ')[0] }));
+    const PBY = {}; PEOPLE.forEach((p) => { PBY[p.ini] = p; });
+    this._K = {
+      ST, PEOPLE, PBY,
+      ST_ORDER: ['progress', 'review', 'todo', 'backlog', 'done', 'cancel'],
+      ST_FLOW: ['backlog', 'todo', 'progress', 'review', 'done', 'cancel'],
+      PRI: { 4: ['Urgent', 'n4', 'var(--danger)'], 3: ['High', 'n3', 'var(--orange)'], 2: ['Medium', 'n2', 'var(--warn)'], 1: ['Low', 'n1', 'var(--low)'], 0: ['No priority', '', 'var(--text-3)'] },
+      EPICS: [['auth', 'Auth overhaul', 255], ['board', 'Board performance', 200], ['sprint', 'Sprint engine', 150], ['bill', 'Billing v2', 60]],
+      SPRINTS: [[14, 'Sprint 14', 'Oct 1–14'], [13, 'Sprint 13', 'Sep 17–30'], [12, 'Sprint 12', 'Sep 3–16'], [0, 'No sprint', '']],
+      MS: [['alpha', 'Alpha', 'Sep 12'], ['beta', 'Beta launch', 'Oct 21'], ['rc', 'Release candidate', 'Nov 18'], ['ga', 'General availability', 'Dec 9']],
+      LAB: { frontend: 'var(--low)', backend: 'var(--accent-t)', bug: 'var(--danger)', perf: 'var(--info)', infra: 'var(--orange)', design: 'var(--warn)' },
+      COLS: { key: { label: 'Key', w: 70, min: 56 }, title: { label: 'Title', w: 216, min: 140 }, status: { label: 'Status', w: 112, min: 48 }, pri: { label: 'Priority', w: 88, min: 44 }, asg: { label: 'Assignee', w: 104, min: 44 }, sprint: { label: 'Sprint', w: 84, min: 64 }, ms: { label: 'Milestone', w: 112, min: 72 }, due: { label: 'Due', w: 68, min: 56 }, labels: { label: 'Labels', w: 120, min: 72 } },
+      ALL: ['key', 'title', 'status', 'pri', 'asg', 'sprint', 'ms', 'due', 'labels'],
+      GROUPS: [['status', 'Status'], ['epic', 'Epic'], ['sprint', 'Sprint'], ['asg', 'Assignee']],
+      DUES: [['2026-10-07', 'Today', 'Oct 7'], ['2026-10-08', 'Tomorrow', 'Oct 8'], ['2026-10-14', 'Sprint end', 'Oct 14'], ['2026-10-21', 'Beta launch', 'Oct 21'], ['2026-11-18', 'Release candidate', 'Nov 18'], [null, 'No due date', '']],
+      MON: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    };
+    return this._K;
+  }
+  fGet(id) { return (this.state.fr && this.state.fr[id]) || {}; }
+  fSet(id, patch) { const all = { ...(this.state.fr || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ fr: all }); }
+  commit(id, tasks, patch) { const all = { ...(this.state.fr || {}) }; all[id] = { ...(all[id] || {}), ...(patch || {}) }; const s = { fr: all }; if (tasks) s.tasks = tasks; this.setState(s); }
+  dueInfo(d, st) {
+    const K = this.K();
+    if (!d) return { txt: '—', cls: 'mut' };
+    const p = d.split('-').map(Number);
+    const diff = Math.round((Date.UTC(p[0], p[1] - 1, p[2]) - Date.UTC(2026, 9, 7)) / 864e5);
+    const closed = st === 'done' || st === 'cancel';
+    return { txt: K.MON[p[1] - 1] + ' ' + p[2], cls: closed ? 'mut' : diff < 0 ? 'late' : diff <= 2 ? 'soon' : '' };
+  }
+  groupOpts(by) {
+    const K = this.K();
+    const base = { isSt: false, isEp: false, isSp: false, isAv: false, isNone: false, glyph: '', color: '', hue: 0, ini: '', meta: '', hasMeta: false };
+    if (by === 'epic') return K.EPICS.map(([id, name, hue]) => ({ ...base, id, name, isEp: true, hue }));
+    if (by === 'sprint') return K.SPRINTS.map(([n, name, range]) => ({ ...base, id: String(n), name, isSp: true, meta: n === 14 ? 'Active · ' + range : range, hasMeta: !!range }));
+    if (by === 'asg') return K.PEOPLE.map((p) => ({ ...base, id: p.ini, name: p.name, isAv: true, hue: p.hue, ini: p.ini })).concat({ ...base, id: 'none', name: 'Unassigned', isNone: true });
+    return K.ST_ORDER.map((k) => ({ ...base, id: k, name: K.ST[k][0], isSt: true, glyph: K.ST[k][1], color: K.ST[k][2] }));
+  }
+  groupOf(by, t) { return by === 'epic' ? t.ep : by === 'sprint' ? String(t.sp || 0) : by === 'asg' ? (t.asg || 'none') : t.st; }
+  patchFor(by, gid) { return by === 'epic' ? { ep: gid } : by === 'sprint' ? { sp: +gid } : by === 'asg' ? { asg: gid === 'none' ? null : gid } : { st: gid }; }
+  opt(o) { return { cls: '', role: 'menuitem', ac: undefined, first: false, cb: false, ckCls: '', g: false, glyph: '', color: '', b: false, bars: '', av: false, avn: false, ini: '', hue: 0, dot: false, dotc: '', label: '', meta: '', hasMeta: !!o.meta, tick: false, pick: () => {}, ...o }; }
+  radio(on, o) { return this.opt({ role: 'menuitemradio', ac: on ? 'true' : 'false', tick: on, cls: on ? 'on' : '', ...o }); }
+  check(on, o) { return this.opt({ role: 'menuitemcheckbox', ac: on ? 'true' : 'false', cb: true, ckCls: on ? 'on' : '', ...o }); }
+  openPop(fid, spec, e, n, w, up) {
+    const cur = this.fGet(fid).pop;
+    if (cur && cur.kind === spec.kind && cur.tid === spec.tid && cur.col === spec.col) { this.fSet(fid, { pop: null }); return; }
+    let top = 60, left = 60;
+    const estH = n * 30 + 10;
+    try {
+      const el = e && e.currentTarget;
+      const host = el && el.closest ? el.closest('.lv') : null;
+      if (host) {
+        const hr = host.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        const k = (hr.width / (host.offsetWidth || hr.width)) || 1;
+        const H = host.offsetHeight, W = host.offsetWidth;
+        const below = (r.bottom - hr.top) / k + 4;
+        const above = (r.top - hr.top) / k - 6 - estH;
+        top = up || (below + estH > H - 8 && above > 8) ? above : below;
+        left = spec.alignRight ? (r.right - hr.left) / k - w : (r.left - hr.left) / k;
+        left = Math.max(8, Math.min(left, W - w - 8));
+      }
+    } catch (err) {}
+    this.fSet(fid, { pop: { ...spec, top: Math.round(top), left: Math.round(left), w } });
+  }
+  build(fid, cfg) {
+    const self = this, K = this.K();
+    const u = { ...(cfg.init || {}), ...this.fGet(fid) };
+    const set = (p) => self.fSet(fid, p);
+    const role = cfg.role, canEdit = role !== 'viewer', canDel = role === 'admin';
+    const by = u.group || 'status';
+    const hidden = u.hidden || {};
+    const widths = u.widths || {};
+    const cols = cfg.cols.filter((id) => !hidden[id]).map((id) => ({ id, ...K.COLS[id], w: widths[id] || K.COLS[id].w }));
+    const selW = canEdit ? 36 : 14;
+    const gtc = selW + 'px ' + cols.map((c) => c.w + 'px').join(' ') + ' minmax(0,1fr)';
+    const totalW = selW + cols.reduce((a, c) => a + c.w, 0);
+    const sort = u.sort || null;
+    const filt = u.filt || {};
+    const nFilt = Object.keys(filt).filter((k) => filt[k]).length;
+    const all = (this.state.tasks || []).filter((t) => !t.del);
+    const visible = all.filter((t) => (!filt.mine || t.asg === 'AK') && (!filt.week || (t.due && t.due <= '2026-10-11' && t.st !== 'done' && t.st !== 'cancel')) && (!filt.high || t.pri >= 3));
+    const pop = u.pop || null;
+    const sel = canEdit ? (u.sel || {}) : {};
+    const selIds = all.filter((t) => sel[t.id]).map((t) => t.id);
+    const colState = u.col || {};
+    const edit = canEdit ? (u.edit || null) : null;
+    const st = cfg.state || 'ready';
+    const loading = st === 'loading' && u.retried !== st;
+    const isError = st === 'error' && u.retried !== st;
+    const toast = (text, undo) => {
+      self._tt = self._tt || {};
+      clearTimeout(self._tt[fid]);
+      self._tt[fid] = setTimeout(() => self.fSet(fid, { toast: null }), undo ? 5000 : 2400);
+      return { toast: { text, undo: undo || null } };
+    };
+    const SV = {
+      key: (t) => t.n, title: (t) => t.title.toLowerCase(), status: (t) => K.ST_FLOW.indexOf(t.st), pri: (t) => t.pri,
+      asg: (t) => (t.asg ? K.PBY[t.asg].name : '~'), sprint: (t) => t.sp || 99, ms: (t) => { const i = K.MS.findIndex((m) => m[0] === t.ms); return i < 0 ? 99 : i; },
+      due: (t) => t.due || '9999', labels: (t) => t.labels[0] || '~'
+    };
+    const cmp = (a, b) => {
+      if (!sort || !SV[sort.col]) return a.n - b.n;
+      const x = SV[sort.col](a), y = SV[sort.col](b);
+      const r = x < y ? -1 : x > y ? 1 : a.n - b.n;
+      return sort.dir === 'desc' ? -r : r;
+    };
+    const updTask = (id, patch, framePatch) => self.commit(fid, self.state.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)), framePatch);
+    const addIn = (gid) => {
+      const tasks = self.state.tasks;
+      const n = Math.max.apply(null, tasks.map((t) => t.n)) + 1;
+      const t = { id: 'PRJ-' + n, n, title: '', st: 'todo', pri: 0, asg: null, ep: 'auth', sp: 14, ms: null, due: null, labels: [], del: false, ...self.patchFor(by, gid) };
+      self.commit(fid, tasks.concat(t), { edit: { tid: t.id, draft: '' }, col: { ...colState, [by + ':' + gid]: false }, pop: null, filt: {} });
+    };
+    const endEdit = (save) => {
+      const e2 = self.fGet(fid).edit;
+      if (!e2) return;
+      const v = (e2.draft || '').trim().slice(0, 200);
+      const t = self.state.tasks.find((x) => x.id === e2.tid);
+      if (!t) { set({ edit: null }); return; }
+      if (save && v) { updTask(t.id, { title: v }, { edit: null }); return; }
+      if (!t.title) { self.commit(fid, self.state.tasks.filter((x) => x.id !== t.id), { edit: null }); return; }
+      set({ edit: null });
+    };
+    const OPTN = { status: 6, pri: 5, asg: 7, sprint: 4, ms: 5, due: 6, labels: 6 };
+    const cellOf = (c, t) => {
+      const ed = canEdit && c.id !== 'key';
+      const isOpen = !!pop && pop.kind === 'cell' && pop.tid === t.id && pop.col === c.id;
+      const x = { id: c.id, editing: false, btn: ed, ro: !ed, g: false, b: false, av: false, hasText: true, text: '', tcls: '', glyph: '', color: '', bars: '', ini: '', hue: 0, labs: [], hasMore: false, moreTxt: '', openCls: isOpen ? 'open' : '', hp: ed && c.id !== 'title' ? 'menu' : undefined, tip: '', aria: '', open: undefined, draft: '', onDraft: undefined, onEdKey: undefined, save: undefined };
+      if (c.id === 'key') { x.text = t.id; x.tcls = 'mono key'; }
+      else if (c.id === 'title') {
+        x.text = t.title || 'Untitled'; x.tcls = 'tt' + (t.title ? '' : ' mut'); x.tip = t.title;
+        if (edit && edit.tid === t.id) {
+          x.editing = true; x.btn = false; x.ro = false; x.draft = edit.draft || '';
+          x.onDraft = (e) => set({ edit: { tid: t.id, draft: e.target.value } });
+          x.onEdKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); endEdit(true); } else if (e.key === 'Escape') { e.stopPropagation(); endEdit(false); } };
+          x.save = () => endEdit(true);
+        }
+      } else if (c.id === 'status') { const s = K.ST[t.st]; x.g = true; x.glyph = s[1] + (u.fxId === t.id && t.st === 'done' ? ' fx' : ''); x.color = s[2]; x.text = s[0]; }
+      else if (c.id === 'pri') { const p = K.PRI[t.pri]; x.b = true; x.bars = p[1]; x.color = p[2]; x.text = t.pri ? p[0] : '—'; x.tcls = t.pri ? '' : 'mut'; }
+      else if (c.id === 'asg') { const p = t.asg ? K.PBY[t.asg] : null; if (p) { x.av = true; x.ini = p.ini; x.hue = p.hue; x.text = p.first; x.tip = p.name; } else { x.text = 'Unassigned'; x.tcls = 'mut'; } }
+      else if (c.id === 'sprint') { x.text = t.sp ? 'Sprint ' + t.sp : '—'; x.tcls = t.sp ? '' : 'mut'; }
+      else if (c.id === 'ms') { const m = K.MS.find((mm) => mm[0] === t.ms); x.text = m ? m[1] : '—'; x.tcls = m ? '' : 'mut'; x.tip = m ? m[1] + ' · ' + m[2] : ''; }
+      else if (c.id === 'due') { const d = self.dueInfo(t.due, t.st); x.text = d.txt; x.tcls = 'mono ' + d.cls; }
+      else if (c.id === 'labels') {
+        const fit = c.w >= 200 ? 3 : c.w >= 150 ? 2 : 1;
+        x.labs = t.labels.slice(0, fit).map((l) => ({ name: l, color: K.LAB[l] || 'var(--text-3)' }));
+        x.hasMore = t.labels.length > fit; x.moreTxt = '+' + (t.labels.length - fit);
+        x.hasText = t.labels.length === 0; x.text = '—'; x.tcls = 'mut'; x.tip = t.labels.join(', ');
+      }
+      x.aria = c.label + ': ' + (c.id === 'labels' ? (t.labels.join(', ') || 'none') : x.text);
+      if (ed && c.id === 'title') x.open = () => set({ edit: { tid: t.id, draft: t.title }, pop: null });
+      else if (ed) x.open = (e) => self.openPop(fid, { kind: 'cell', tid: t.id, col: c.id }, e, OPTN[c.id], Math.max(196, Math.min(c.w, 240)));
+      return x;
+    };
+    const rowOf = (t) => {
+      const isSel = !!sel[t.id];
+      return {
+        id: t.id, key: t.id, sel: isSel,
+        cls: [isSel ? 'sel' : '', cfg.hover === t.id ? 'hov' : '', pop && pop.tid === t.id ? 'act' : ''].join(' '),
+        toggle: () => { const nx = { ...sel }; if (nx[t.id]) delete nx[t.id]; else nx[t.id] = true; set({ sel: nx }); },
+        cells: cols.map((c) => cellOf(c, t)),
+        copy: () => { try { if (navigator.clipboard) navigator.clipboard.writeText(t.id); } catch (err) {} set({ ...toast('Copied ' + t.id) }); },
+        more: (e) => self.openPop(fid, { kind: 'more', tid: t.id, alignRight: true }, e, canDel ? 3 : 2, 190)
+      };
+    };
+    const gopts = this.groupOpts(by);
+    const noMatch = !loading && visible.length === 0 && nFilt > 0;
+    const groups = loading || noMatch ? [] : gopts.map((g) => {
+      const list = visible.filter((t) => self.groupOf(by, t) === g.id).sort(cmp);
+      const ck = by + ':' + g.id;
+      const open = !colState[ck];
+      const ids = list.map((t) => t.id);
+      const nSel = ids.filter((id) => sel[id]).length;
+      const ckv = nSel === 0 ? 'false' : nSel === ids.length ? 'true' : 'mixed';
+      return {
+        ...g, count: list.length, open, openCls: open ? 'open' : '', empty: list.length === 0, ck: ckv, canCk: canEdit && list.length > 0,
+        toggle: () => set({ col: { ...colState, [ck]: open } }),
+        toggleAll: () => { const nx = { ...sel }; if (ckv === 'true') ids.forEach((id) => { delete nx[id]; }); else ids.forEach((id) => { nx[id] = true; }); set({ sel: nx }); },
+        add: () => addIn(g.id),
+        rows: list.map(rowOf)
+      };
+    });
+    const bulkApply = (fn, msg) => { const S = {}; selIds.forEach((id) => { S[id] = true; }); self.commit(fid, self.state.tasks.map((t) => (S[t.id] ? { ...t, ...fn(t) } : t)), { pop: null, ...toast(msg) }); };
+    const nSelTxt = selIds.length + (selIds.length === 1 ? ' task' : ' tasks');
+    let popOpts = [], popLabel = '';
+    if (pop) {
+      const t = pop.tid ? all.find((x) => x.id === pop.tid) : null;
+      const apply = (patch, close) => updTask(t.id, patch, close ? { pop: null, fxId: patch.st === 'done' ? t.id : null } : {});
+      if (pop.kind === 'cell' && t && canEdit) {
+        popLabel = (K.COLS[pop.col] || {}).label || '';
+        if (pop.col === 'status') popOpts = K.ST_FLOW.map((k, i) => self.radio(t.st === k, { label: K.ST[k][0], g: true, glyph: K.ST[k][1], color: K.ST[k][2], meta: String(i + 1), pick: () => apply({ st: k }, true) }));
+        else if (pop.col === 'pri') popOpts = [4, 3, 2, 1, 0].map((n) => self.radio(t.pri === n, { label: K.PRI[n][0], b: true, bars: K.PRI[n][1], color: K.PRI[n][2], pick: () => apply({ pri: n }, true) }));
+        else if (pop.col === 'asg') popOpts = K.PEOPLE.map((p) => self.radio(t.asg === p.ini, { label: p.name, av: true, ini: p.ini, hue: p.hue, pick: () => apply({ asg: p.ini }, true) })).concat(self.radio(!t.asg, { label: 'Unassigned', avn: true, pick: () => apply({ asg: null }, true) }));
+        else if (pop.col === 'sprint') popOpts = K.SPRINTS.map(([n, name, range]) => self.radio((t.sp || 0) === n, { label: name, meta: range, pick: () => apply({ sp: n }, true) }));
+        else if (pop.col === 'ms') popOpts = K.MS.map(([id, name, date]) => self.radio(t.ms === id, { label: name, meta: date, pick: () => apply({ ms: id }, true) })).concat(self.radio(!t.ms, { label: 'No milestone', pick: () => apply({ ms: null }, true) }));
+        else if (pop.col === 'due') popOpts = K.DUES.map(([d, name, short]) => self.radio(t.due === d, { label: name, meta: short, pick: () => apply({ due: d }, true) }));
+        else if (pop.col === 'labels') popOpts = Object.keys(K.LAB).map((l) => { const has = t.labels.indexOf(l) >= 0; return self.check(has, { label: l, dot: true, dotc: K.LAB[l], pick: () => apply({ labels: has ? t.labels.filter((y) => y !== l) : t.labels.concat(l) }, false) }); });
+      } else if (pop.kind === 'more' && t) {
+        popLabel = 'Task actions';
+        popOpts = [
+          self.opt({ label: 'Copy link', meta: '⌘L', pick: () => set({ pop: null, ...toast('Link to ' + t.id + ' copied') }) }),
+          self.opt({ label: 'Duplicate', meta: '⌘D', pick: () => { const tasks = self.state.tasks; const n = Math.max.apply(null, tasks.map((y) => y.n)) + 1; self.commit(fid, tasks.concat({ ...t, id: 'PRJ-' + n, n, title: t.title + ' (copy)' }), { pop: null, ...toast('Duplicated as PRJ-' + n) }); } })
+        ];
+        if (canDel) popOpts.push(self.opt({ label: 'Delete', meta: '⌫', cls: 'dng sep', pick: () => self.commit(fid, self.state.tasks.map((y) => (y.id === t.id ? { ...y, del: true } : y)), { pop: null, sel: { ...sel, [t.id]: false }, ...toast('Deleted ' + t.id, [t.id]) }) }));
+      } else if (pop.kind === 'group') {
+        popLabel = 'Group by';
+        popOpts = K.GROUPS.map(([k, name]) => self.radio(by === k, { label: name, pick: () => set({ group: k, pop: null }) }));
+      } else if (pop.kind === 'filter') {
+        popLabel = 'Filter';
+        popOpts = [['mine', 'Assigned to me'], ['week', 'Due this week'], ['high', 'Urgent & high']].map(([k, name]) => self.check(!!filt[k], { label: name, pick: () => set({ filt: { ...filt, [k]: !filt[k] } }) }));
+        if (nFilt) popOpts.push(self.opt({ label: 'Clear filters', cls: 'sep', pick: () => set({ filt: {}, pop: null }) }));
+      } else if (pop.kind === 'cols') {
+        popLabel = 'Columns';
+        popOpts = cfg.cols.filter((id) => id !== 'title').map((id) => self.check(!hidden[id], { label: K.COLS[id].label, pick: () => set({ hidden: { ...hidden, [id]: !hidden[id] } }) }));
+        popOpts.push(self.opt({ label: 'Reset widths', cls: 'sep', pick: () => set({ widths: {}, pop: null }) }));
+      } else if (pop.kind === 'b-asg' && canEdit) {
+        popLabel = 'Assign';
+        popOpts = K.PEOPLE.map((p) => self.opt({ label: p.name, av: true, ini: p.ini, hue: p.hue, pick: () => bulkApply(() => ({ asg: p.ini }), 'Assigned ' + nSelTxt + ' to ' + p.first) }));
+      } else if (pop.kind === 'b-move' && canEdit) {
+        popLabel = 'Move to';
+        popOpts = K.ST_FLOW.map((k) => self.opt({ label: K.ST[k][0], g: true, glyph: K.ST[k][1], color: K.ST[k][2], pick: () => bulkApply(() => ({ st: k }), 'Moved ' + nSelTxt + ' to ' + K.ST[k][0]) }));
+      } else if (pop.kind === 'b-lab' && canEdit) {
+        popLabel = 'Add label';
+        popOpts = Object.keys(K.LAB).map((l) => self.opt({ label: l, dot: true, dotc: K.LAB[l], pick: () => bulkApply((t2) => ({ labels: t2.labels.indexOf(l) >= 0 ? t2.labels : t2.labels.concat(l) }), 'Labeled ' + nSelTxt + ' ' + l) }));
+      }
+      popOpts = popOpts.map((o, i) => ({ ...o, first: i === 0 }));
+    }
+    const popOpen = popOpts.length > 0;
+    const pk = popOpen ? pop.kind : '';
+    const SKW = { key: [72, 60, 78, 66], title: [82, 60, 92, 54, 74], status: [64, 52, 72], pri: [56, 70], asg: [60, 48, 66], sprint: [70, 58], ms: [74, 60], due: [62, 74], labels: [54, 70, 42] };
+    const skGroups = loading ? [{ w: 84, n: 4 }, { w: 56, n: 3 }, { w: 70, n: 3 }].map((g, gi) => ({ w: g.w, rows: Array.from({ length: g.n }, (_, i) => ({ cells: cols.map((c) => ({ w: SKW[c.id][(i + gi) % SKW[c.id].length], lead: c.id === 'status' || c.id === 'asg' })) })) })) : [];
+    const toastOn = !!u.toast;
+    const bulkOn = canEdit && selIds.length > 0 && !loading;
+    const sbFrames = cfg.sb ? [this.sbFrame(fid, { role, collapsible: true, active: 'PR', sub: 'none' })] : [];
+    return {
+      desk: true, phone: false, sbFrames, showTop: !!cfg.top, canEdit, canDel,
+      isError, showList: !isError, loading, noMatch, skGroups,
+      retry: () => set({ retried: st }),
+      groupLabel: (K.GROUPS.find((g) => g[0] === by) || ['', ''])[1],
+      groupOpen: pk === 'group', filterOpen: pk === 'filter', colsOpen: pk === 'cols',
+      openGroup: (e) => self.openPop(fid, { kind: 'group' }, e, 4, 180),
+      openFilter: (e) => self.openPop(fid, { kind: 'filter' }, e, nFilt ? 4 : 3, 200),
+      openCols: (e) => self.openPop(fid, { kind: 'cols', alignRight: true }, e, cfg.cols.length, 196),
+      hasFilt: nFilt > 0, nFilt, colCount: cols.length + '/' + cfg.cols.length,
+      clearFilters: () => set({ filt: {} }),
+      newTask: () => addIn(by === 'status' ? 'todo' : gopts[0].id),
+      tblCls: selIds.length ? 'selecting' : '',
+      selW, gtc, totalW,
+      hcols: cols.map((c) => {
+        const on = !!sort && sort.col === c.id;
+        return {
+          id: c.id, label: c.label, w: c.w, min: c.min,
+          ariaSort: on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none',
+          arCls: on ? (sort.dir === 'asc' ? 'on' : 'on desc') : '',
+          sortBy: () => set({ sort: on ? { col: c.id, dir: sort.dir === 'asc' ? 'desc' : 'asc' } : { col: c.id, dir: 'asc' } }),
+          rzCls: u.rz === c.id ? 'on' : '',
+          rzDown: (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            let k = 1;
+            try { e.currentTarget.setPointerCapture(e.pointerId); const p = e.currentTarget.parentElement; const r = p.getBoundingClientRect(); k = (r.width / (p.offsetWidth || r.width)) || 1; } catch (err) {}
+            self._drag = { fid, col: c.id, x: e.clientX, w: c.w, k };
+            set({ rz: c.id });
+          },
+          rzMove: (e) => {
+            const d = self._drag;
+            if (!d || d.fid !== fid || d.col !== c.id) return;
+            const w = Math.max(c.min, Math.min(480, Math.round(d.w + (e.clientX - d.x) / d.k)));
+            const cw = self.fGet(fid).widths || {};
+            if (cw[c.id] !== w) self.fSet(fid, { widths: { ...cw, [c.id]: w } });
+          },
+          rzUp: (e) => {
+            if (!self._drag || self._drag.fid !== fid) return;
+            try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+            self._drag = null;
+            set({ rz: null });
+          },
+          rzKey: (e) => {
+            const step = e.shiftKey ? 32 : 8;
+            let w = c.w;
+            if (e.key === 'ArrowLeft') w -= step; else if (e.key === 'ArrowRight') w += step; else if (e.key === 'Home') w = K.COLS[c.id].w; else return;
+            e.preventDefault();
+            set({ widths: { ...widths, [c.id]: Math.max(c.min, Math.min(480, w)) } });
+          }
+        };
+      }),
+      groups,
+      onKey: (e) => {
+        if (e.key !== 'Escape') return;
+        if (pop) { set({ pop: null }); return; }
+        if (selIds.length) set({ sel: {} });
+      },
+      bulkCls: bulkOn ? 'on' : '', bulkHidden: bulkOn ? 'false' : 'true', selCount: selIds.length,
+      bulkKey: (e) => { if (e.key === 'Escape') { e.stopPropagation(); set({ sel: {}, pop: null }); } },
+      clearSel: () => set({ sel: {}, pop: null }),
+      bAsgOpen: pk === 'b-asg', bMoveOpen: pk === 'b-move', bLabOpen: pk === 'b-lab',
+      bulkAsg: (e) => self.openPop(fid, { kind: 'b-asg' }, e, 6, 200, true),
+      bulkMove: (e) => self.openPop(fid, { kind: 'b-move' }, e, 6, 200, true),
+      bulkLab: (e) => self.openPop(fid, { kind: 'b-lab' }, e, 6, 190, true),
+      bulkDel: () => { const ids = selIds.slice(); const S = {}; ids.forEach((id) => { S[id] = true; }); self.commit(fid, self.state.tasks.map((t) => (S[t.id] ? { ...t, del: true } : t)), { sel: {}, pop: null, ...toast('Deleted ' + nSelTxt, ids) }); },
+      toastOn, toastText: toastOn ? u.toast.text : '', toastUndo: toastOn && !!u.toast.undo, toastY: bulkOn ? 72 : 16,
+      undo: () => { const ids = (u.toast && u.toast.undo) || []; self.commit(fid, self.state.tasks.map((t) => (ids.indexOf(t.id) >= 0 ? { ...t, del: false } : t)), { toast: null }); },
+      popOpen, popOpts, popLabel, popTop: popOpen ? pop.top : 0, popLeft: popOpen ? pop.left : 0, popW: popOpen ? pop.w : 200,
+      closePop: () => set({ pop: null })
+    };
+  }
+  buildPhone(fid, cfg) {
+    const self = this, K = this.K();
+    const u = { ...(cfg.init || {}), ...this.fGet(fid) };
+    const by = u.group || 'status';
+    const colState = u.col || {};
+    const all = (this.state.tasks || []).filter((t) => !t.del);
+    const groups = this.groupOpts(by).map((g) => {
+      const list = all.filter((t) => self.groupOf(by, t) === g.id).sort((a, b) => a.n - b.n);
+      const ck = by + ':' + g.id;
+      const open = !colState[ck];
+      return {
+        ...g, count: list.length, open, openCls: open ? 'open' : '', empty: list.length === 0, hasCards: list.length > 0,
+        toggle: () => self.fSet(fid, { col: { ...colState, [ck]: open } }),
+        cards: list.map((t) => {
+          const s = K.ST[t.st], p = K.PRI[t.pri], a = t.asg ? K.PBY[t.asg] : null, d = self.dueInfo(t.due, t.st);
+          const ep = K.EPICS.find((e) => e[0] === t.ep);
+          return { key: t.id, title: t.title || 'Untitled', glyph: s[1], color: s[2], bars: p[1], pcolor: p[2], due: t.due ? d.txt : '', dueCls: 'lv-t ' + d.cls, hasAsg: !!a, noAsg: !a, ini: a ? a.ini : '', hue: a ? a.hue : 0, sub: by === 'epic' ? (t.sp ? 'Sprint ' + t.sp : 'No sprint') : (ep ? ep[1] : '') };
+        })
+      };
+    });
+    return {
+      desk: false, phone: true, canEdit: cfg.role !== 'viewer', groups, total: all.length + ' tasks',
+      gchips: K.GROUPS.map(([k, name]) => ({ label: name, on: by === k ? 'on' : '', pressed: by === k ? 'true' : 'false', pick: () => self.fSet(fid, { group: k }) }))
+    };
+  }
+  renderVals() {
+    const K = this.K();
+    const role = this.props.role || 'admin';
+    const theme = this.props.theme || 'navy';
+    const state = this.props.state || 'ready';
+    const L7 = ['key', 'title', 'status', 'pri', 'asg', 'due', 'labels'];
+    const L5 = ['key', 'title', 'status', 'asg', 'due'];
+    const C = (keys) => { const o = {}; keys.forEach((k) => { o[k] = true; }); return o; };
+    const frames = [
+      { ...this.build('main', { role, cols: K.ALL, sb: true, top: true, state, init: { col: C(['status:cancel']) } }),
+        label: 'List view', meta: 'click a cell to edit · drag a header edge · check rows', gc: '1 / span 6', gr: '1', w: 1280, h: 860, r: 14 },
+      { ...this.build('sel', { role, cols: L7, init: { col: C(['status:review', 'status:backlog', 'status:done', 'status:cancel']), sel: { 'PRJ-42': true, 'PRJ-44': true, 'PRJ-50': true } } }),
+        label: 'Selected rows', meta: '3 selected · Esc clears', gc: '1 / span 4', gr: '2', w: 840, h: 440, r: 12 },
+      { ...this.buildPhone('mob', { role, init: { col: C(['status:backlog', 'status:done', 'status:cancel']) } }),
+        label: 'Mobile', meta: '390 · rows become cards', gc: '5 / span 2', gr: '2 / span 2', w: 390, h: 844, r: 36 },
+      { ...this.build('hov', { role, cols: L7, hover: 'PRJ-42', init: { group: 'epic', col: C(['epic:auth', 'epic:sprint', 'epic:bill']) } }),
+        label: 'Hover row actions', meta: 'open · copy key · more', gc: '1 / span 4', gr: '3', w: 840, h: 374, r: 12 },
+      { ...this.build('emp', { role, cols: L5, init: { col: C(['status:progress', 'status:todo', 'status:backlog', 'status:done', 'status:cancel']) } }),
+        label: 'Empty group', meta: 'In review · 0', gc: '1 / span 3', gr: '4', w: 620, h: 320, r: 12 },
+      { ...this.build('load', { role, cols: L5, state: 'loading' }),
+        label: 'Loading', meta: 'skeleton in final columns', gc: '4 / span 3', gr: '4', w: 620, h: 320, r: 12 }
+    ];
+    return { themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy', frames };
+  }
+}
+</script>
+
+
+</body></html>

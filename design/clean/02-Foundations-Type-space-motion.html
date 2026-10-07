@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Foundations: Type, space, motion</title>
+<script src="../assets/3746cc66-ceda-48e2-ba89-a3d94615d3c8.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-p:#1F52D6;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-p:#1E40AF;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--edge:inset 0 1px 0 rgba(255,255,255,.9)}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-p:#2358DB;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10;--scrim:rgba(2,5,14,.6);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.ds{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:12px}
+.e0{background:var(--surface);border:1px solid var(--line)}
+.e1{background:var(--raised);border:1px solid var(--line);box-shadow:var(--edge)}
+.e2{background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop)}
+.e3{background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-modal)}
+.ef{background:var(--surface);border:1px solid var(--accent);box-shadow:0 0 0 4px var(--ring)}
+.tile{height:92px;border-radius:10px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box;font-size:12px;color:var(--text-2)}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--accent);position:absolute;left:4px;top:50%;margin-top:-8px}
+.dot.on{transform:translateX(236px)}
+.btn{font:500 13px/1 'Inter',system-ui,sans-serif;height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--control);background:transparent;color:var(--text);cursor:pointer;transition:background 120ms cubic-bezier(.16,1,.3,1),box-shadow 120ms cubic-bezier(.16,1,.3,1)}
+.btn:hover{background:var(--hover)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (prefers-reduced-motion:reduce){.dot{transition-duration:.001ms!important}}
+</style>
+</helmet>
+<div class="ds t-navy" style="width:1440px;height:2400px;box-sizing:border-box;padding:72px 80px;display:flex;flex-direction:column;gap:56px;overflow:hidden">
+
+  <header style="display:flex;flex-direction:column;gap:20px">
+    <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">DESIGN SYSTEM · 02</span>
+    <h1 style="margin:0;font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em">Type, space, motion</h1>
+    
+  </header>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:64px">
+    <section style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Type scale</h2>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{types}}" as="t" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:132px minmax(0,1fr);gap:20px;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span class="mono" style="font-size:12px;color:var(--text)">{{t.token}}</span>
+              <span class="mono" style="font-size:11px;color:var(--text-3)">{{t.spec}}</span>
+            </div>
+            <span style="font-family:{{t.fam}};font-size:{{t.size}}px;line-height:{{t.lh}}px;font-weight:{{t.w}};letter-spacing:{{t.ls}};text-transform:{{t.tt}};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{t.sample}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:0;font-size:12px;line-height:18px;color:var(--text-3)">400 · 500 · 600 · tabular figures</p>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:48px">
+      <section style="display:flex;flex-direction:column;gap:20px">
+        <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Spacing</h2>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{spaces}}" as="s" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:84px 44px minmax(0,1fr);gap:12px;align-items:center;height:32px">
+              <span class="mono" style="font-size:12px;color:var(--text)">{{s.token}}</span>
+              <span class="mono" style="font-size:12px;color:var(--text-2)">{{s.px}}px</span>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="height:12px;width:{{s.px}}px;background:var(--accent-s);border:1px solid var(--accent);border-radius:2px;flex:none"></span>
+                <span style="font-size:12px;color:var(--text-3)">{{s.use}}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:20px">
+        <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Radii</h2>
+        <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px">
+          <sc-for list="{{radii}}" as="r" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+              <span style="width:100%;aspect-ratio:1;max-width:64px;background:var(--raised);border:1px solid var(--line-2);border-radius:{{r.px}}px"></span>
+              <span class="mono" style="font-size:11px;color:var(--text)">{{r.token}}</span>
+              <span style="font-size:11px;line-height:14px;color:var(--text-3)">{{r.use}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:20px">
+        <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Control height</h2>
+        <div style="display:flex;align-items:flex-end;gap:16px">
+          <sc-for list="{{heights}}" as="h" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+              <span style="height:{{h.px}}px;width:56px;border:1px solid var(--control);border-radius:6px;background:var(--raised)"></span>
+              <span class="mono" style="font-size:11px;color:var(--text)">{{h.token}} {{h.px}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:0;font-size:12px;line-height:18px;color:var(--text-3)">Touch (44) below 1024px</p>
+      </section>
+    </div>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Elevation</h2>
+    
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px">
+      <sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+        <div class="{{th.cls}}" style="background:var(--bg);border:1px solid var(--line-2);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px">
+          <span class="eyebrow">{{th.name}}</span>
+          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px">
+            <div class="tile e0"><span class="mono">e0 flat</span></div>
+            <div class="tile e1"><span class="mono">e1 raised</span></div>
+            <div class="tile e2"><span class="mono">e2 popover</span></div>
+            <div class="tile e3"><span class="mono">e3 modal</span></div>
+            <div class="tile ef"><span class="mono">focus</span></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Motion</h2>
+      <button class="btn" type="button" sc-camel-on-click="{{replay}}">Replay easings</button>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px">
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{durations}}" as="d" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:120px 64px minmax(0,1fr);gap:12px;align-items:center;min-height:34px;border-top:1px solid var(--line)">
+              <span class="mono" style="font-size:12px;color:var(--text)">{{d.token}}</span>
+              <span class="mono" style="font-size:12px;color:var(--text-2)">{{d.ms}}</span>
+              <span style="font-size:12px;color:var(--text-3)">{{d.use}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{eases}}" as="e" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;gap:12px">
+                <span class="mono" style="font-size:12px;color:var(--text)">{{e.token}}</span>
+                <span class="mono" style="font-size:11px;color:var(--text-3)">{{e.curve}}</span>
+              </div>
+              <div style="position:relative;height:24px;width:264px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px">
+                <span class="dot {{goCls}}" style="transition:transform {{e.ms}}ms {{e.fn}}"></span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card" style="padding:4px 20px">
+          <sc-for list="{{patterns}}" as="p" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid var(--line)">
+              <span style="font-size:13px;font-weight:500;color:var(--text)">{{p.name}}</span>
+              <span style="font-size:12px;line-height:18px;color:var(--text-2)">{{p.spec}}<span class="mono" style="color:var(--text-3)"> · {{p.impl}}</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="border:1px solid var(--accent);background:var(--accent-s);border-radius:12px;padding:16px 20px;font-size:13px;line-height:20px;color:var(--text)">
+          <span style="font-weight:600">Reduced motion</span> · no tilt, scale or shimmer · 100ms fades · final values
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2400}}">
+class Component extends DCLogic {
+  state = { go: false };
+  renderVals() {
+    const types = [
+      { token: 'display', spec: '48 / 52 · 600 · −3%', size: 48, lh: 52, w: 600, ls: '-0.03em', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Plan less. Ship more.' },
+      { token: 'h1', spec: '32 / 40 · 600 · −2%', size: 32, lh: 40, w: 600, ls: '-0.02em', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Sprint 14 overview' },
+      { token: 'h2', spec: '24 / 32 · 600 · −2%', size: 24, lh: 32, w: 600, ls: '-0.02em', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Objectives and key results' },
+      { token: 'h3', spec: '20 / 28 · 600 · −1%', size: 20, lh: 28, w: 600, ls: '-0.01em', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Auth service migration' },
+      { token: 'title', spec: '16 / 24 · 600', size: 16, lh: 24, w: 600, ls: '0', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Task titles and panel headings' },
+      { token: 'body', spec: '14 / 22 · 400', size: 14, lh: 22, w: 400, ls: '0', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Descriptions and comments are read at this size.' },
+      { token: 'ui (default)', spec: '13 / 20 · 500', size: 13, lh: 20, w: 500, ls: '0', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Rows, buttons, menus, tabs and tooltips' },
+      { token: 'meta', spec: '12 / 16 · 400', size: 12, lh: 16, w: 400, ls: '0', fam: 'Inter, system-ui, sans-serif', tt: 'none', sample: 'Updated 3 minutes ago by a teammate' },
+      { token: 'caption', spec: '11 / 16 · 500 · +6%', size: 11, lh: 16, w: 500, ls: '0.06em', fam: 'Inter, system-ui, sans-serif', tt: 'uppercase', sample: 'Group label' },
+      { token: 'mono-key', spec: '12 / 16 · mono 500', size: 12, lh: 16, w: 500, ls: '0', fam: 'JetBrains Mono, ui-monospace, monospace', tt: 'none', sample: 'PRJ-42   ⌘K   G then B' },
+      { token: 'mono-code', spec: '13 / 20 · mono 400', size: 13, lh: 20, w: 400, ls: '0', fam: 'JetBrains Mono, ui-monospace, monospace', tt: 'none', sample: 'git checkout -b prj-42-fix-board-reflow' }
+    ];
+    const spaces = [
+      { token: 'space-0.5', px: 2, use: 'Icon nudge' },
+      { token: 'space-1', px: 4, use: 'Tight gap' },
+      { token: 'space-1.5', px: 6, use: 'Badge padding' },
+      { token: 'space-2', px: 8, use: 'Default gap' },
+      { token: 'space-3', px: 12, use: 'Row padding' },
+      { token: 'space-4', px: 16, use: 'Card padding' },
+      { token: 'space-5', px: 20, use: 'Panel padding' },
+      { token: 'space-6', px: 24, use: 'Section gap' },
+      { token: 'space-8', px: 32, use: 'Page gutter' },
+      { token: 'space-12', px: 48, use: 'Large section' },
+      { token: 'space-16', px: 64, use: 'Page top' }
+    ];
+    const radii = [
+      { token: 'r-xs', px: 4, use: 'Keys, chips' },
+      { token: 'r-sm', px: 6, use: 'Buttons, inputs' },
+      { token: 'r-md', px: 8, use: 'Cards, menus' },
+      { token: 'r-lg', px: 12, use: 'Modals' },
+      { token: 'r-xl', px: 16, use: 'Panels' },
+      { token: 'r-full', px: 999, use: 'Avatars' }
+    ];
+    const heights = [
+      { token: 'xs', px: 24 }, { token: 'sm', px: 28 }, { token: 'md', px: 32 }, { token: 'lg', px: 40 }, { token: 'touch', px: 44 }
+    ];
+    const durations = [
+      { token: 'dur-fast', ms: '120ms', use: 'Hover, press, focus, check' },
+      { token: 'dur-base', ms: '180ms', use: 'Menus, tooltips, tabs, toasts' },
+      { token: 'dur-slow', ms: '250ms', use: 'Side panels, shared-element expand' },
+      { token: 'dur-data', ms: '600–800ms', use: 'Rings, bars, count-ups (data only)' }
+    ];
+    const eases = [
+      { token: 'ease-out', curve: 'cubic-bezier(.16, 1, .3, 1)', ms: 250, fn: 'cubic-bezier(.16,1,.3,1)' },
+      { token: 'ease-in-out', curve: 'cubic-bezier(.65, 0, .35, 1)', ms: 200, fn: 'cubic-bezier(.65,0,.35,1)' },
+      { token: 'spring-snappy', curve: 'cubic-bezier(.34, 1.56, .64, 1)', ms: 250, fn: 'cubic-bezier(.34,1.56,.64,1)' },
+      { token: 'linear', curve: 'shimmer only', ms: 600, fn: 'linear' }
+    ];
+    const patterns = [
+      { name: 'Drag lift', spec: 'scale 1.03, rotate −1.5°, e2 shadow, 150ms', impl: 'spring 520 / 38' },
+      { name: 'Column reflow', spec: 'siblings slide to new slots, no jump', impl: 'layout prop' },
+      { name: 'Card → detail', spec: 'card frame morphs into the panel, 250ms', impl: 'layoutId' },
+      { name: 'Spark (signature)', spec: 'on completion only: ring pops, check draws, six sparks burst, 420ms', impl: 'CSS' },
+      { name: 'Optimistic update', spec: 'UI changes at 0ms; on failure it rolls back with an error toast', impl: 'state' },
+      { name: 'Progress & stats', spec: 'ring and bar fill, numbers count up, 700ms', impl: 'CSS + rAF' },
+      { name: 'Skeleton shimmer', spec: 'sweep across placeholder, 1400ms loop', impl: 'CSS' },
+      { name: 'Toast / menu / tooltip', spec: 'fade + 6px rise, 180ms ease-out', impl: 'AnimatePresence' },
+      { name: 'Tab / view switch', spec: 'indicator slides, content crossfades 180ms', impl: 'layoutId' }
+    ];
+    const self = this;
+    return {
+      types, spaces, radii, heights, durations, eases, patterns,
+      themes: [{ name: 'Deep navy', cls: 't-navy' }, { name: 'Light', cls: 't-light' }],
+      goCls: this.state.go ? 'on' : '',
+      replay: () => self.setState({ go: !self.state.go })
+    };
+  }
+}
+</script>
+
+
+</body></html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Tooltips, menus, palette, modal, toasts</title>
+<script src="../assets/d4d0c3bd-1fb3-44ca-a198-a209df5b06ff.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-p:#1F52D6;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--scrim:rgba(5,5,8,.55)}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-p:#1E40AF;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--danger-solid:#B92F26;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--scrim:rgba(18,18,23,.25)}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-p:#2358DB;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10;--scrim:rgba(2,5,14,.6);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.cap{font-size:12px;line-height:18px;color:var(--text-3)}
+.lbl{font-size:12px;font-weight:500;color:var(--text-2)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn.icon{width:32px;padding:0;justify-content:center}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn.sm{height:26px;padding:0 8px;font-size:12px}
+.btn:focus-visible,.mi:focus-visible,.pal-row:focus-visible,.seg button:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.btn-primary .kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.g-todo{border:1.5px solid currentColor}
+.g-progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.g-review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.g-done{background:currentColor}
+.g-done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.g-done.fx{animation:checkpop 220ms var(--spring)}
+.g-done.fx::after{animation:draw 180ms var(--ease) 60ms both}
+.g-done.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:spark 420ms var(--ease) both;pointer-events:none}
+.g-err{background:currentColor}
+.g-err::after{content:"!";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 10px/1 'Inter',sans-serif;color:var(--bg)}
+@keyframes checkpop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes draw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes spark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.7);opacity:0}}
+/* tooltip */
+.tw{position:relative;display:inline-flex}
+.tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:3}
+.tw:hover .tip,.tw:focus-within .tip,.tip.show{opacity:1;transform:translate(-50%,0);transition-delay:200ms}
+.tip.show{transition-delay:0ms}
+/* menu */
+.mn{width:240px;padding:4px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border-radius:6px;border:0;background:transparent;color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left}
+.mi:hover{background:var(--hover)}
+.mi.dng{color:var(--danger)}
+.mh{padding:6px 8px 4px;font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.sep{height:1px;background:var(--line);margin:4px -4px}
+/* backdrop + overlays */
+.stage{position:relative;border-radius:12px;border:1px solid var(--line);background:var(--bg);overflow:hidden}
+.fake{display:flex;flex-direction:column;gap:10px;padding:24px;opacity:.9}
+.fake span{display:block;height:14px;border-radius:4px;background:var(--raised)}
+.scrim{position:absolute;inset:0;background:var(--scrim);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;justify-content:center}
+.pal{width:560px;max-width:calc(100% - 32px);align-self:flex-start;margin-top:56px;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);overflow:hidden;animation:palin 180ms var(--ease)}
+@keyframes palin{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+.pal-in{width:100%;height:52px;padding:0 16px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);font:400 15px/1 'Inter',system-ui,sans-serif}
+.pal-in::placeholder{color:var(--text-3)}
+.pal-in:focus{outline:none;box-shadow:inset 0 -2px 0 var(--accent)}
+.pal-row{display:flex;align-items:center;gap:12px;width:100%;height:36px;padding:0 10px;border-radius:8px;border:0;background:transparent;color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left}
+.pal-row.on{background:var(--accent-s);box-shadow:inset 0 0 0 1px var(--accent)}
+.pi{width:20px;height:20px;border-radius:5px;background:var(--raised);display:inline-flex;align-items:center;justify-content:center;color:var(--text-2);font-size:12px;flex:none}
+.modal{align-self:center;width:440px;max-width:calc(100% - 32px);border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);padding:24px;display:flex;flex-direction:column;gap:16px}
+.rd{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:50%;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:border-color 120ms var(--ease)}
+.rd::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);transform:scale(0);transition:transform 150ms var(--spring)}
+.rd:checked{border-color:var(--accent)}
+.rd:checked::after{transform:scale(1)}
+.rd:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* toast */
+.toast{display:flex;align-items:center;gap:12px;width:380px;max-width:100%;padding:12px 10px 12px 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);animation:toastin 180ms var(--ease)}
+@keyframes toastin{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (prefers-reduced-motion:reduce){.ds *{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:1900px;padding:72px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">DESIGN SYSTEM · 05</span>
+      <h1 style="margin:0;font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em">Overlays and feedback</h1>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" aria-pressed="{{isDark}}" sc-camel-on-click="{{setDark}}">Near-black</button>
+      <button type="button" aria-pressed="{{isNavy}}" sc-camel-on-click="{{setNavy}}">Navy</button>
+      <button type="button" aria-pressed="{{isLight}}" sc-camel-on-click="{{setLight}}">Light</button>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:24px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+
+      <section class="card">
+        <span class="eyebrow">Tooltips</span>
+        <div style="display:flex;gap:16px;align-items:center;padding-top:36px">
+          <span class="tw">
+            <button class="btn btn-sec icon" type="button" aria-label="New task"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M7 2v10M2 7h10"></path></svg></button>
+            <span class="tip" role="tooltip">New task <span class="kbd">C</span></span>
+          </span>
+          <span class="tw">
+            <button class="btn btn-sec icon" type="button" aria-label="Filter"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 3.5h10M4 7h6M6 10.5h2"></path></svg></button>
+            <span class="tip" role="tooltip">Filter <span class="kbd">F</span></span>
+          </span>
+          <span class="tw">
+            <button class="btn btn-sec icon" type="button" aria-label="Command palette"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="3.8"></circle><path d="M9 9l3 3"></path></svg></button>
+            <span class="tip" role="tooltip">Search and commands <span class="kbd">⌘</span><span class="kbd">K</span></span>
+          </span>
+          <span class="cap" style="margin-left:8px">200ms delay</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)">
+          <span class="lbl">Disabled + reason</span>
+          <div style="padding-top:34px;display:flex">
+            <span class="tw">
+              <button class="btn btn-sec" type="button" aria-disabled="true" style="color:var(--text-3);border-color:var(--line);cursor:not-allowed">Complete sprint</button>
+              <span class="tip show" role="tooltip">Sprint 14 has 4 open tasks</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Menus: same task, different roles</span>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span class="lbl">Admin</span>
+            <div class="mn" role="menu" aria-label="Task actions, admin">
+              <div class="mh">Task</div>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Rename</span><span class="kbd">R</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Assign to…</span><span class="kbd">A</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Move to sprint</span><span style="color:var(--text-3)">›</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Copy task key</span><span class="kbd">⌘</span></button>
+              <div class="sep"></div>
+              <button class="mi dng" type="button" role="menuitem"><span style="flex:1">Delete task</span><span class="kbd">⌫</span></button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span class="lbl">Member</span>
+            <div class="mn" role="menu" aria-label="Task actions, member">
+              <div class="mh">Task</div>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Rename</span><span class="kbd">R</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Assign to…</span><span class="kbd">A</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Move to sprint</span><span style="color:var(--text-3)">›</span></button>
+              <button class="mi" type="button" role="menuitem"><span style="flex:1">Copy task key</span><span class="kbd">⌘</span></button>
+            </div>
+            <span class="cap" style="max-width:240px">Delete is absent, not greyed out.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Toasts: optimistic by default</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-sec" type="button" sc-camel-on-click="{{pushOk}}">Complete a task</button>
+          <button class="btn btn-sec" type="button" sc-camel-on-click="{{pushErr}}">Simulate failure</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-height:196px;justify-content:flex-end" aria-live="polite">
+          <sc-for list="{{toasts}}" as="t" hint-placeholder-count="1">
+            <div class="toast" role="status">
+              <span class="g {{t.glyph}}" style="color:{{t.color}}"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                <span style="font-weight:500">{{t.title}}</span>
+                <span style="font-size:12px;color:var(--text-2)">{{t.body}}</span>
+              </div>
+              <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{t.dismiss}}">{{t.action}} <span class="kbd">{{t.key}}</span></button>
+            </div>
+          </sc-for>
+        </div>
+        
+      </section>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+
+      <section class="card">
+        <span class="eyebrow">Command palette: type, arrows, Enter</span>
+        <div class="stage" style="height:600px">
+          <div class="fake">
+            <span style="width:30%"></span><span style="width:90%"></span><span style="width:84%"></span><span style="width:92%"></span><span style="width:70%"></span><span style="width:88%"></span><span style="width:60%"></span>
+          </div>
+          <div class="scrim">
+            <div class="pal" role="dialog" aria-label="Command palette">
+              <input class="pal-in" type="text" placeholder="Type a command or search tasks…" aria-label="Command search" value="{{query}}" sc-camel-on-change="{{onQuery}}" sc-camel-on-key-down="{{onKey}}">
+              <div style="padding:8px;display:flex;flex-direction:column;gap:2px;max-height:380px;overflow:hidden">
+                <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+                  <sc-if value="{{r.hdr}}" hint-placeholder-val="{{false}}"><div class="mh" style="padding-top:8px">{{r.label}}</div></sc-if>
+                  <sc-if value="{{r.item}}" hint-placeholder-val="{{true}}">
+                    <button class="pal-row {{r.on}}" type="button" sc-camel-on-click="{{r.pick}}">
+                      <span class="pi {{r.icls}}">{{r.sym}}</span>
+                      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{r.label}}</span>
+                      <span class="mono" style="font-size:11px;color:var(--text-3)">{{r.hint}}</span>
+                    </button>
+                  </sc-if>
+                </sc-for>
+                <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><p style="margin:16px 8px;color:var(--text-2)">No results for "{{query}}".</p></sc-if>
+              </div>
+              <div style="display:flex;gap:16px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3)">
+                <span style="display:flex;gap:4px;align-items:center"><span class="kbd">↑</span><span class="kbd">↓</span> navigate</span>
+                <span style="display:flex;gap:4px;align-items:center"><span class="kbd">↵</span> select</span>
+                <span style="display:flex;gap:4px;align-items:center;margin-left:auto"><span class="kbd">Esc</span> close</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Modal: confirmations only</span>
+        <div class="stage" style="height:360px;display:flex">
+          <div class="fake">
+            <span style="width:40%"></span><span style="width:92%"></span><span style="width:80%"></span><span style="width:88%"></span>
+          </div>
+          <div class="scrim" style="align-items:center">
+            <div class="modal" role="alertdialog" aria-labelledby="m-title" aria-describedby="m-desc">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <h3 id="m-title" style="margin:0;font-size:16px;line-height:24px;font-weight:600">Complete Sprint 14?</h3>
+                <p id="m-desc" style="margin:0;font-size:13px;line-height:20px;color:var(--text-2)">4 tasks are still open. Choose where they go.</p>
+              </div>
+              <div role="radiogroup" aria-label="Move open tasks to" style="display:flex;flex-direction:column;gap:10px">
+                <label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input class="rd" type="radio" name="mv" checked="{{mvNext}}" sc-camel-on-change="{{pickNext}}">Sprint 15</label>
+                <label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input class="rd" type="radio" name="mv" checked="{{mvBack}}" sc-camel-on-change="{{pickBack}}">Backlog</label>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+                <button class="btn btn-ghost" type="button">Cancel <span class="kbd">Esc</span></button>
+                <button class="btn btn-primary" type="button">Complete sprint <span class="kbd">↵</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1900}}">
+class Component extends DCLogic {
+  state = { theme: null, query: '', idx: 0, mv: 'next', toasts: [{ id: 1, kind: 'ok', fx: false }], seq: 2 };
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = st.theme || this.props.theme || 'navy';
+    const all = [
+      { g: 'Navigate', label: 'Go to Board', hint: 'G B', sym: '→', icls: '' },
+      { g: 'Navigate', label: 'Go to Sprints', hint: 'G S', sym: '→', icls: '' },
+      { g: 'Navigate', label: 'Go to Milestones', hint: 'G M', sym: '→', icls: '' },
+      { g: 'Navigate', label: 'Go to Objectives', hint: 'G O', sym: '→', icls: '' },
+      { g: 'Actions', label: 'Create task', hint: 'C', sym: '+', icls: '' },
+      { g: 'Actions', label: 'Assign to me', hint: 'I', sym: '+', icls: '' },
+      { g: 'Actions', label: 'Switch theme', hint: '⌘⇧L', sym: '+', icls: '' },
+      { g: 'Tasks', label: 'PRJ-42  Fix flaky board reflow', hint: 'In progress', sym: '', icls: '' },
+      { g: 'Tasks', label: 'PRJ-47  Persist saved filters', hint: 'Todo', sym: '', icls: '' }
+    ];
+    const q = st.query.trim().toLowerCase();
+    const items = all.filter((a) => !q || a.label.toLowerCase().includes(q));
+    const idx = items.length ? Math.min(st.idx, items.length - 1) : 0;
+    const rows = [];
+    let last = null;
+    items.forEach((a, i) => {
+      if (a.g !== last) { rows.push({ hdr: true, item: false, label: a.g }); last = a.g; }
+      rows.push({ hdr: false, item: true, label: a.label, hint: a.hint, sym: a.sym, icls: a.icls, on: i === idx ? 'on' : '', pick: () => self.setState({ idx: i }) });
+    });
+    const mk = (t) => {
+      const dismiss = () => self.setState({ toasts: self.state.toasts.filter((x) => x.id !== t.id) });
+      if (t.kind === 'ok') return { id: t.id, glyph: 'g-done' + (t.fx ? ' fx' : ''), color: 'var(--ok)', title: 'PRJ-42 moved to Done', body: 'Saved instantly. Undo within 4s.', action: 'Undo', key: 'Z', dismiss };
+      return { id: t.id, glyph: 'g-err', color: 'var(--danger)', title: 'Couldn’t save PRJ-42', body: 'Reverted to In progress. Check your connection.', action: 'Retry', key: 'R', dismiss };
+    };
+    const push = (kind) => {
+      const id = st.seq;
+      self.setState({ toasts: [...self.state.toasts, { id, kind, fx: kind === 'ok' }].slice(-3), seq: id + 1 });
+      setTimeout(() => self.setState({ toasts: self.state.toasts.filter((x) => x.id !== id) }), 4000);
+    };
+    return {
+      themeCls: theme === 'light' ? 't-light' : (theme === 'navy' ? 't-navy' : 't-dark'),
+      isDark: theme === 'dark', isLight: theme === 'light', isNavy: theme === 'navy', setNavy: () => self.setState({ theme: 'navy' }),
+      setDark: () => self.setState({ theme: 'dark' }),
+      setLight: () => self.setState({ theme: 'light' }),
+      query: st.query, rows, noRows: items.length === 0,
+      onQuery: (e) => self.setState({ query: e.target.value, idx: 0 }),
+      onKey: (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); self.setState({ idx: items.length ? (idx + 1) % items.length : 0 }); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); self.setState({ idx: items.length ? (idx - 1 + items.length) % items.length : 0 }); }
+      },
+      mvNext: st.mv === 'next', mvBack: st.mv === 'back',
+      pickNext: () => self.setState({ mv: 'next' }),
+      pickBack: () => self.setState({ mv: 'back' }),
+      toasts: st.toasts.map(mk),
+      pushOk: () => push('ok'),
+      pushErr: () => push('err')
+    };
+  }
+}
+</script>
+
+
+</body></html>

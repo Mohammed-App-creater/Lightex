@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Cards, tabs, side panel</title>
+<script src="../assets/30482c54-6327-4cb2-878c-69060074cfff.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-p:#1F52D6;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10;--scrim:rgba(5,5,8,.5)}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-p:#1E40AF;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--danger-solid:#B92F26;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06;--scrim:rgba(18,18,23,.22)}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-p:#2358DB;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10;--scrim:rgba(2,5,14,.6);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.cap{font-size:12px;line-height:16px;color:var(--text-3)}
+.lbl{font-size:12px;font-weight:500;color:var(--text-2)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn.icon{width:28px;height:28px;padding:0;justify-content:center}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-dng{background:transparent;color:var(--danger)}
+.btn-dng:hover{background:var(--hover)}
+.btn:focus-visible,.tab:focus-visible,.pill:focus-visible,.key:focus-visible,.pv:focus-visible,.trow:focus-visible,.seg button:focus-visible,.gb:focus-visible,.ie:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.g-backlog{border:1.5px dashed currentColor}
+.g-todo{border:1.5px solid currentColor}
+.g-progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.g-review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.g-done{background:currentColor}
+.g-done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.g-done.fx{animation:checkpop 220ms var(--spring)}
+.g-done.fx::after{animation:draw 180ms var(--ease) 60ms both}
+.g-done.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:spark 420ms var(--ease) both;pointer-events:none}
+@keyframes spark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.7);opacity:0}}
+@keyframes checkpop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes draw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.gb{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-4px;border:0;border-radius:6px;background:transparent;cursor:pointer;flex:none}
+.gb:hover{background:var(--hover)}
+.pr{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.pr i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.pr i:nth-child(1){height:4px}.pr i:nth-child(2){height:7px}.pr i:nth-child(3){height:10px}.pr i:nth-child(4){height:12px}
+.pr.n1 i:nth-child(-n+1),.pr.n2 i:nth-child(-n+2),.pr.n3 i:nth-child(-n+3),.pr.n4 i:nth-child(-n+4){background:currentColor}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;box-shadow:0 0 0 2px var(--surface)}
+.av.s20{width:20px;height:20px;font-size:9px}.av.s24{width:24px;height:24px;font-size:10px}
+.ent{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 6px;border-radius:5px;background:var(--raised);font-size:11px;font-weight:500;color:var(--text-2);white-space:nowrap}
+.dotl{width:7px;height:7px;border-radius:50%;flex:none}
+.key{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 5px;margin-left:-5px;border-radius:4px;border:1px solid transparent;background:transparent;color:var(--text-3);font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.key:hover{background:var(--hover);color:var(--text)}
+.none{display:none!important}
+/* task card */
+.tc{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:8px;background:var(--surface);border:1px solid var(--line);cursor:grab;transition:transform 150ms var(--spring),box-shadow 150ms var(--ease),border-color 120ms var(--ease),background-color 120ms var(--ease)}
+.tc:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:var(--shadow-pop)}
+.tc:active{cursor:grabbing;transform:translateY(-4px) rotate(-1.5deg) scale(1.03);box-shadow:var(--shadow-modal);border-color:var(--line-2)}
+.tc.sel{border-color:var(--accent);background:var(--accent-s)}
+.tc.drag{transform:translateY(-4px) rotate(-2deg) scale(1.03);box-shadow:var(--shadow-modal);border-color:var(--line-2)}
+.tc.ph{border:1.5px dashed var(--line-2);background:transparent;box-shadow:none;cursor:default;min-height:92px}
+.tc.ph:hover{transform:none;box-shadow:none}
+.tt{font-size:13px;line-height:20px;font-weight:500;color:var(--text);margin:0}
+.tt.dn{color:var(--text-3);text-decoration:line-through}
+.col{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+/* tabs */
+.tabs{position:relative;display:inline-flex;border-bottom:1px solid var(--line)}
+.tab{width:104px;height:36px;border:0;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px 6px 0 0;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.tab:hover{color:var(--text);background:var(--hover)}
+.tab[aria-selected=true]{color:var(--text)}
+.ind{position:absolute;left:0;bottom:-1px;width:104px;height:2px;background:var(--accent);border-radius:2px;transition:transform 200ms var(--spring)}
+.pills{position:relative;display:inline-flex;padding:3px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.pill{position:relative;z-index:1;width:96px;height:26px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:color 120ms var(--ease)}
+.pill[aria-selected=true]{color:var(--text)}
+.pind{position:absolute;left:3px;top:3px;width:96px;height:26px;border-radius:6px;background:var(--hover);box-shadow:inset 0 0 0 1px var(--line-2);transition:transform 200ms var(--spring)}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* side panel */
+.panel{width:480px;flex:none;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;box-shadow:var(--shadow-modal);animation:slidein 250ms var(--ease);display:flex;flex-direction:column;overflow:hidden}
+@keyframes slidein{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.prow{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;min-height:32px}
+.pv{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 8px;margin-left:-8px;border-radius:6px;border:0;background:transparent;color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;max-width:100%;transition:background-color 120ms var(--ease)}
+.pv:hover{background:var(--hover)}
+.pvr{display:inline-flex;align-items:center;gap:8px;height:28px;color:var(--text);font-weight:500}
+.trow{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:8px;border:1px solid transparent;background:transparent;width:100%;text-align:left;color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease)}
+.trow:hover{background:var(--hover)}
+.trow.sel{background:var(--accent-s);border-color:var(--accent)}
+.cb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.cb::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.cb:checked{background:var(--accent);border-color:var(--accent)}
+.cb:checked::after{transform:rotate(-45deg) scale(1)}
+.cb:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.ie{display:block;width:100%;text-align:left;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text);font:600 20px/28px 'Inter',system-ui,sans-serif;letter-spacing:-.01em;padding:2px 8px;margin-left:-8px;cursor:text;transition:background-color 120ms var(--ease)}
+.ie:hover{background:var(--hover)}
+.seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (prefers-reduced-motion:reduce){.ds *{animation-duration:.001ms!important;transition-duration:.001ms!important}.tc:hover,.tc:active,.tc.drag{transform:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2200px;padding:72px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">DESIGN SYSTEM · 04</span>
+      <h1 style="margin:0;font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em">Cards, tabs, side panel</h1>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" aria-pressed="{{isDark}}" sc-camel-on-click="{{setDark}}">Near-black</button>
+      <button type="button" aria-pressed="{{isNavy}}" sc-camel-on-click="{{setNavy}}">Navy</button>
+      <button type="button" aria-pressed="{{isLight}}" sc-camel-on-click="{{setLight}}">Light</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <span class="eyebrow">Task card states</span>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;align-items:start">
+      <sc-for list="{{states}}" as="c" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span class="lbl">{{c.name}}</span>
+          <div class="tc {{c.cls}}">
+            <sc-if value="{{c.full}}" hint-placeholder-val="{{true}}">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="mono" style="font-size:11px;color:var(--text-3);font-weight:500">PRJ-42</span>
+                <span class="av s20" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+              </div>
+              <p class="tt">Fix flaky board reflow on column resize</p>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="g g-progress" style="color:var(--warn)"></span>
+                <span class="pr n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>
+                <span class="ent"><span class="dotl" style="background:var(--low)"></span>frontend</span>
+                <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text-2)">
+                  <svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="var(--line-2)" stroke-width="2"></circle><circle cx="7" cy="7" r="5" stroke="var(--accent-t)" stroke-width="2" stroke-linecap="round" stroke-dasharray="12.6 31.4" transform="rotate(-90 7 7)"></circle></svg>2/5
+                </span>
+              </div>
+            </sc-if>
+          </div>
+          <span class="cap">{{c.note}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start">
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span class="eyebrow">Board: press and hold a card; click a status ring</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+        <sc-for list="{{columns}}" as="col" hint-placeholder-count="3">
+          <div class="col">
+            <div style="display:flex;align-items:center;gap:8px;padding:2px 2px 4px">
+              <span class="g {{col.glyph}}" style="color:{{col.color}}"></span>
+              <span style="font-weight:600">{{col.name}}</span>
+              <span class="mono" style="font-size:11px;color:var(--text-3);margin-left:auto">{{col.count}}</span>
+            </div>
+            <sc-for list="{{col.cards}}" as="k" hint-placeholder-count="2">
+              <div class="tc">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span class="mono" style="font-size:11px;color:var(--text-3);font-weight:500">{{k.key}}</span>
+                  <span class="av s20" style="background:oklch(var(--av-l) var(--av-c) {{k.hue}})">{{k.ini}}</span>
+                </div>
+                <p class="tt {{k.dn}}">{{k.title}}</p>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <button class="gb" type="button" aria-label="Toggle done for {{k.key}}" sc-camel-on-click="{{k.toggle}}"><span class="g {{k.glyph}}" style="color:{{k.color}}"></span></button>
+                  <span class="pr {{k.pcls}}" style="color:{{k.pcolor}}"><i></i><i></i><i></i><i></i></span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section class="card">
+      <span class="eyebrow">Tabs</span>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span class="lbl">View tabs: indicator slides, content crossfades</span>
+        <div class="tabs" role="tablist" aria-label="Project view">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+            <button class="tab" type="button" role="tab" aria-selected="{{t.sel}}" sc-camel-on-click="{{t.pick}}">{{t.name}}<span class="kbd">{{t.n}}</span></button>
+          </sc-for>
+          <span class="ind" style="transform:translateX({{tabX}}px)"></span>
+        </div>
+        <div class="fade" style="min-height:74px;display:flex;gap:8px;align-items:flex-end;padding:8px 0">
+          <sc-if value="{{tabBoard}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;gap:8px;width:100%;height:64px;align-items:flex-start">
+              <span style="flex:1;height:100%;border-radius:6px;background:var(--raised);border:1px solid var(--line)"></span>
+              <span style="flex:1;height:70%;border-radius:6px;background:var(--raised);border:1px solid var(--line)"></span>
+              <span style="flex:1;height:44%;border-radius:6px;background:var(--raised);border:1px solid var(--line)"></span>
+            </div>
+          </sc-if>
+          <sc-if value="{{tabList}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;flex-direction:column;gap:6px;width:100%">
+              <span style="height:14px;border-radius:4px;background:var(--raised)"></span>
+              <span style="height:14px;border-radius:4px;background:var(--raised)"></span>
+              <span style="height:14px;width:70%;border-radius:4px;background:var(--raised)"></span>
+            </div>
+          </sc-if>
+          <sc-if value="{{tabTime}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+              <span style="height:12px;margin-left:0;width:55%;border-radius:6px;background:var(--accent-s);border:1px solid var(--accent)"></span>
+              <span style="height:12px;margin-left:30%;width:50%;border-radius:6px;background:var(--accent-s);border:1px solid var(--accent)"></span>
+              <span style="height:12px;margin-left:15%;width:40%;border-radius:6px;background:var(--accent-s);border:1px solid var(--accent)"></span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--line)">
+        <span class="lbl">Filter pills</span>
+        <div class="pills" role="tablist" aria-label="Task filter">
+          <span class="pind" style="transform:translateX({{pillX}}px)"></span>
+          <sc-for list="{{pills}}" as="p" hint-placeholder-count="3">
+            <button class="pill" type="button" role="tab" aria-selected="{{p.sel}}" sc-camel-on-click="{{p.pick}}">{{p.name}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="gap:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <span class="eyebrow">Side panel: task detail. Switch role to see permission-driven UI</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="lbl">Role</span>
+        <div class="seg" role="group" aria-label="Role">
+          <button type="button" aria-pressed="{{rAdmin}}" sc-camel-on-click="{{setAdmin}}">Admin</button>
+          <button type="button" aria-pressed="{{rMember}}" sc-camel-on-click="{{setMember}}">Member</button>
+          <button type="button" aria-pressed="{{rViewer}}" sc-camel-on-click="{{setViewer}}">Viewer</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px">
+        <button class="trow {{rowSel}}" type="button" sc-camel-on-click="{{openPanel}}" aria-label="Open PRJ-42">
+          <span class="g g-progress" style="color:var(--warn)"></span>
+          <span class="mono" style="font-size:11px;color:var(--text-3);width:52px">PRJ-42</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Fix flaky board reflow on column resize</span>
+        </button>
+        <button class="trow" type="button" sc-camel-on-click="{{openPanel}}">
+          <span class="g g-todo" style="color:var(--todo)"></span>
+          <span class="mono" style="font-size:11px;color:var(--text-3);width:52px">PRJ-47</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Persist saved filters per project</span>
+        </button>
+        <button class="trow" type="button" sc-camel-on-click="{{openPanel}}">
+          <span class="g g-review" style="color:var(--info)"></span>
+          <span class="mono" style="font-size:11px;color:var(--text-3);width:52px">PRJ-51</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Keyboard shortcut sheet</span>
+        </button>
+        
+        <sc-if value="{{panelClosed}}" hint-placeholder-val="{{false}}">
+          <p class="fade" style="margin:8px;font-size:13px;color:var(--text-2)">Select a task to open its detail.</p>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{panelOpen}}" hint-placeholder-val="{{true}}">
+        <aside class="panel" aria-label="Task PRJ-42">
+          <div style="display:flex;align-items:center;gap:8px;height:48px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)">
+            <span style="font-size:12px;color:var(--text-3)">Platform Rebuild</span>
+            <span style="color:var(--text-3)">/</span>
+            <button class="key" type="button" aria-label="Copy task key PRJ-42" style="margin-left:0">PRJ-42</button>
+            <span style="margin-left:auto;display:flex;gap:2px;align-items:center">
+              <button class="btn btn-ghost icon" type="button" aria-label="Expand to full page"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2h3.5v3.5M5.5 12H2V8.5M12 2L8 6M2 12l4-4"></path></svg></button>
+              <button class="btn btn-ghost icon" type="button" aria-label="Close panel" sc-camel-on-click="{{closePanel}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+              <span class="kbd" style="margin-left:4px">Esc</span>
+            </span>
+          </div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:20px">
+            <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+              <button class="ie" type="button">Fix flaky board reflow on column resize</button>
+            </sc-if>
+            <sc-if value="{{cannotEdit}}" hint-placeholder-val="{{false}}">
+              <h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.01em">Fix flaky board reflow on column resize</h2>
+            </sc-if>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{props}}" as="p" hint-placeholder-count="7">
+                <div class="prow">
+                  <span class="lbl" style="font-weight:400;color:var(--text-3)">{{p.label}}</span>
+                  <div>
+                    <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+                      <button class="pv" type="button">
+                        <span class="g {{p.gcls}}" style="color:{{p.color}}"></span>
+                        <span class="pr {{p.pcls}}" style="color:{{p.color}}"><i></i><i></i><i></i><i></i></span>
+                        <span class="av s20 {{p.acls}}" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+                        <span>{{p.value}}</span>
+                      </button>
+                    </sc-if>
+                    <sc-if value="{{cannotEdit}}" hint-placeholder-val="{{false}}">
+                      <span class="pvr">
+                        <span class="g {{p.gcls}}" style="color:{{p.color}}"></span>
+                        <span class="pr {{p.pcls}}" style="color:{{p.color}}"><i></i><i></i><i></i><i></i></span>
+                        <span class="av s20 {{p.acls}}" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+                        <span>{{p.value}}</span>
+                      </span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)">
+              <span class="lbl">Description</span>
+              <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2);text-wrap:pretty">Columns jump when the sidebar collapses mid-drag. Reproduce by resizing the window while a card is held.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding-top:16px;border-top:1px solid var(--line)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lbl">Sub-tasks</span><span class="mono" style="font-size:11px;color:var(--text-3)">1/3</span></div>
+              <sc-for list="{{subs}}" as="s" hint-placeholder-count="3">
+                <label style="display:flex;align-items:center;gap:10px;height:32px;cursor:pointer">
+                  <input class="cb" type="checkbox" checked="{{s.done}}" sc-camel-on-change="{{s.toggle}}">
+                  <span class="mono" style="font-size:11px;color:var(--text-3);width:52px">{{s.key}}</span>
+                  <span style="font-size:13px;color:var(--text)">{{s.title}}</span>
+                </label>
+              </sc-for>
+              <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+                <button class="btn btn-ghost" type="button" style="align-self:flex-start;margin-left:-8px;color:var(--text-2)">+ Add sub-task <span class="kbd">⇧C</span></button>
+              </sc-if>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line);background:var(--bg)">
+            <sc-if value="{{canDelete}}" hint-placeholder-val="{{true}}">
+              <button class="btn btn-dng" type="button">Delete task</button>
+            </sc-if>
+            <sc-if value="{{cannotDelete}}" hint-placeholder-val="{{false}}"><span class="cap">{{roleNote}}</span></sc-if>
+            <button class="btn btn-sec" type="button">Copy link <span class="kbd">⌘L</span></button>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2200}}">
+class Component extends DCLogic {
+  state = { theme: null, tab: 0, pill: 0, role: 'member', open: true, done: { 'PRJ-33': false, 'PRJ-29': true }, sub: { 'PRJ-43': true, 'PRJ-44': false, 'PRJ-45': false } };
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = st.theme || this.props.theme || 'navy';
+    const states = [
+      { name: 'Default', cls: '', full: true, note: '' },
+      { name: 'Hover', cls: 'sel', full: true, note: '' },
+      { name: 'Dragging', cls: 'drag', full: true, note: 'lift 4 · tilt 2° · e3' },
+      { name: 'Drop target', cls: 'ph', full: false, note: 'neighbors reflow' }
+    ];
+    states[1].name = 'Selected';
+    const cardDefs = [
+      { col: 0, key: 'PRJ-47', title: 'Persist saved filters per project', hue: 200, ini: 'JM', pcls: 'n2', pcolor: 'var(--warn)', base: 'todo' },
+      { col: 0, key: 'PRJ-52', title: 'Empty state for new workspaces', hue: 20, ini: 'TS', pcls: 'n1', pcolor: 'var(--low)', base: 'todo' },
+      { col: 1, key: 'PRJ-42', title: 'Fix flaky board reflow', hue: 285, ini: 'AK', pcls: 'n3', pcolor: 'var(--orange)', base: 'progress' },
+      { col: 1, key: 'PRJ-33', title: 'Sprint burndown chart', hue: 150, ini: 'RN', pcls: 'n2', pcolor: 'var(--warn)', base: 'progress' },
+      { col: 2, key: 'PRJ-29', title: 'Command palette v1', hue: 285, ini: 'AK', pcls: 'n3', pcolor: 'var(--orange)', base: 'done' }
+    ];
+    const glyphOf = { todo: ['g-todo', 'var(--todo)'], progress: ['g-progress', 'var(--warn)'], done: ['g-done', 'var(--ok)'] };
+    const cards = cardDefs.map((d) => {
+      const isDone = d.key in st.done ? st.done[d.key] : false;
+      const g = isDone ? glyphOf.done : glyphOf[d.base];
+      return { ...d, dn: isDone ? 'dn' : '', glyph: g[0] + (isDone && st.last === d.key ? ' fx' : ''), color: g[1], toggle: () => { const n = { ...st.done }; n[d.key] = !isDone; self.setState({ done: n, last: d.key }); } };
+    });
+    const colDefs = [
+      { name: 'Todo', glyph: 'g-todo', color: 'var(--todo)' },
+      { name: 'In progress', glyph: 'g-progress', color: 'var(--warn)' },
+      { name: 'Done', glyph: 'g-done', color: 'var(--ok)' }
+    ];
+    const columns = colDefs.map((c, i) => {
+      const list = cards.filter((k) => k.col === i);
+      return { ...c, cards: list, count: list.length };
+    });
+    const tabNames = ['Board', 'List', 'Timeline'];
+    const tabs = tabNames.map((n, i) => ({ name: n, n: String(i + 1), sel: st.tab === i, pick: () => self.setState({ tab: i }) }));
+    const pillNames = ['All 24', 'Mine 6', 'Unassigned 3'];
+    const pills = pillNames.map((n, i) => ({ name: n, sel: st.pill === i, pick: () => self.setState({ pill: i }) }));
+    const props = [
+      { label: 'Status', value: 'In progress', gcls: 'g-progress', color: 'var(--warn)', pcls: 'none', acls: 'none' },
+      { label: 'Priority', value: 'High', gcls: 'none', color: 'var(--orange)', pcls: 'n3', acls: 'none' },
+      { label: 'Assignee', value: 'Alex Kim', gcls: 'none', color: 'var(--text)', pcls: 'none', acls: '' },
+      { label: 'Epic', value: 'Auth overhaul', gcls: 'none', color: 'var(--text)', pcls: 'none', acls: 'none' },
+      { label: 'Milestone', value: 'Beta launch · Oct 21', gcls: 'none', color: 'var(--text)', pcls: 'none', acls: 'none' },
+      { label: 'Sprint', value: 'Sprint 14', gcls: 'none', color: 'var(--text)', pcls: 'none', acls: 'none' },
+      { label: 'Objectives', value: 'Cut p95 latency', gcls: 'none', color: 'var(--text)', pcls: 'none', acls: 'none' }
+    ];
+    const subDefs = [
+      { key: 'PRJ-43', title: 'Add resize observer' },
+      { key: 'PRJ-44', title: 'Debounce reflow' },
+      { key: 'PRJ-45', title: 'Regression test' }
+    ];
+    const subs = subDefs.map((s) => ({ ...s, done: st.sub[s.key], toggle: () => { if (st.role === 'viewer') return; const n = { ...st.sub }; n[s.key] = !st.sub[s.key]; self.setState({ sub: n }); } }));
+    const canEdit = st.role !== 'viewer';
+    const canDelete = st.role === 'admin';
+    return {
+      themeCls: theme === 'light' ? 't-light' : (theme === 'navy' ? 't-navy' : 't-dark'),
+      isDark: theme === 'dark', isLight: theme === 'light', isNavy: theme === 'navy', setNavy: () => self.setState({ theme: 'navy' }),
+      setDark: () => self.setState({ theme: 'dark' }),
+      setLight: () => self.setState({ theme: 'light' }),
+      states, columns, tabs, pills,
+      tabX: st.tab * 104, pillX: st.pill * 96,
+      tabBoard: st.tab === 0, tabList: st.tab === 1, tabTime: st.tab === 2,
+      props, subs,
+      rAdmin: st.role === 'admin', rMember: st.role === 'member', rViewer: st.role === 'viewer',
+      setAdmin: () => self.setState({ role: 'admin' }),
+      setMember: () => self.setState({ role: 'member' }),
+      setViewer: () => self.setState({ role: 'viewer' }),
+      canEdit, cannotEdit: !canEdit, canDelete, cannotDelete: !canDelete,
+      roleNote: canEdit ? 'Only admins can delete tasks.' : 'You have view access to this project.',
+      panelOpen: st.open, panelClosed: !st.open, rowSel: st.open ? 'sel' : '',
+      openPanel: () => self.setState({ open: true }),
+      closePanel: () => self.setState({ open: false })
+    };
+  }
+}
+</script>
+
+
+</body></html>

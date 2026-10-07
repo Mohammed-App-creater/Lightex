@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Members and roles</title>
+<script src="../assets/5f05034d-93bf-4b0d-8a90-976516510b96.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--scrim:rgba(2,5,14,.55)}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--scrim:rgba(0,0,0,.55)}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--scrim:rgba(18,18,23,.28)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;display:flex;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg)}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+@media (max-width:760px){.sb-host{display:none!important}}
+
+/* ---------- Members & roles screen ---------- */
+.mm{position:relative;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.mm-scroll{flex:1;min-height:0;overflow:auto}
+.mm-wrap{max-width:980px;margin:0 auto;padding:26px 32px 104px;display:flex;flex-direction:column;gap:16px}
+.compact .mm-wrap{padding:20px 20px 96px}
+.mm-mtop{display:none;align-items:center;gap:6px;height:52px;flex:none;padding:0 8px;border-bottom:1px solid var(--line)}
+.mm-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mm-h1{margin:0;flex:1;min-width:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.015em;white-space:nowrap}
+.mm-seg{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:380px;max-width:100%;padding:3px;border-radius:9px;background:var(--raised);border:1px solid var(--line)}
+.mm-seg button{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:28px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:color 150ms var(--ease)}
+.mm-seg button[aria-pressed=true]{color:var(--text)}
+.mm-thumb{position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);border-radius:6px;background:var(--hover);box-shadow:inset 0 0 0 1px var(--line-2);transition:transform 220ms var(--spring)}
+.mm-pk{width:16px;height:16px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font:600 8.5px/1 'JetBrains Mono',monospace;background:oklch(var(--pk-l) var(--pk-c) 255);color:oklch(var(--pkt-l) var(--pkt-c) 255);flex:none}
+.mm-tabs{position:relative;display:flex;width:216px;border-bottom:1px solid var(--line)}
+.mm-tabline{border-bottom:1px solid var(--line);margin-top:-2px}
+.mm-tab{flex:1;height:36px;border:0;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:6px 6px 0 0;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.mm-tab:hover{color:var(--text);background:var(--hover)}
+.mm-tab[aria-selected=true]{color:var(--text)}
+.mm-ind{position:absolute;left:0;bottom:-1px;width:50%;height:2px;background:var(--accent);border-radius:2px;transition:transform 220ms var(--spring)}
+.mm-cnt{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.mm-meta{font-size:12px;line-height:16px;color:var(--text-3)}
+.mm-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.mm-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:30px;padding:0 11px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--text-2);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.mm-btn:hover{background:var(--hover);color:var(--text)}
+.mm-btn:active{transform:scale(.97)}
+.mm-btn.pri{background:var(--accent);color:#fff}
+.mm-btn.pri:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.mm-btn.pri .mm-kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.mm-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.mm-btn.sec:hover{background:var(--hover);border-color:var(--control)}
+.mm-btn.dngf{background:var(--danger);color:var(--bg);font-weight:600}
+.mm-btn.dngt{color:var(--danger)}
+.mm-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.mm-ib{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-2);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.mm-ib:hover,.mm-ib[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.mm-ib.dng:hover{color:var(--danger)}
+.mm-ib.sm{width:24px;height:24px;border-radius:6px}
+.mm-rel{position:relative}
+.mm-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mm-search{position:relative;display:block;width:240px;max-width:100%}
+.mm-search svg{position:absolute;left:10px;top:50%;margin-top:-7px;color:var(--text-3);pointer-events:none}
+.mm-search input{width:100%;height:32px;padding:0 10px 0 31px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:400 13px/1 'Inter',sans-serif;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.mm-search input::placeholder{color:var(--text-3)}
+.mm-search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.mm-chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:border-color 120ms var(--ease),background-color 120ms var(--ease)}
+.mm-chip:hover,.mm-chip[aria-expanded=true]{border-color:var(--control);background:var(--hover)}
+.mm-chip svg{color:var(--text-3)}
+.mm-tag{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line-2);font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.mm-menu{position:absolute;z-index:20;min-width:200px;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:mmmenu 150ms var(--ease)}
+@keyframes mmmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.mm-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;white-space:nowrap}
+.mm-mi:hover{background:var(--hover)}
+.mm-mi.on{background:var(--accent-s)}
+.mm-mi.dng{color:var(--danger)}
+.mm-mi svg{color:var(--accent-t)}
+.mm-sep{height:1px;background:var(--line);margin:4px -4px}
+.mm-catch{position:absolute;inset:0;z-index:15}
+/* table */
+.mm-tbl{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.mm-tr{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.3fr) 150px 92px 92px 32px;grid-template-areas:"who email role status last menu";column-gap:12px;align-items:center;min-height:52px;padding:0 10px 0 14px;border-bottom:1px solid var(--line);transition:background-color 120ms var(--ease)}
+.mm-tr:last-child{border-bottom:0}
+.mm-tr:not(.mm-th):hover{background:var(--hover)}
+.mm-th{min-height:34px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.c-who{grid-area:who;display:flex;align-items:center;gap:10px;min-width:0}
+.c-email{grid-area:email;min-width:0;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-role{grid-area:role;min-width:0}
+.c-status{grid-area:status}
+.c-last{grid-area:last;color:var(--text-3);font-size:12px;white-space:nowrap}
+.c-menu{grid-area:menu;display:flex;justify-content:flex-end}
+.c-em2{display:none;font-size:12px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-nm{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mm-n1{display:flex;align-items:center;gap:6px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-you{font:500 10.5px/1 'JetBrains Mono',monospace;padding:3px 5px;border-radius:4px;background:var(--raised);color:var(--text-3)}
+.mm-av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:10.5px;color:var(--text);flex:none}
+.mm-av.inv{border:1.5px dashed var(--control);color:var(--text-3);font-size:10px}
+.mm-av.xs{width:20px;height:20px;font-size:8.5px;box-shadow:0 0 0 2px var(--surface);margin-left:-5px}
+.mm-av.xs:first-child{margin-left:0}
+.is-inv .mm-n1{color:var(--text-2);font-weight:400}
+.mm-rp{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:28px;padding:0 6px 0 8px;margin-left:-8px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.mm-rp:hover,.mm-rp[aria-expanded=true]{border-color:var(--line-2);background:var(--raised)}
+.mm-rp svg{color:var(--text-3)}
+.mm-rs{color:var(--text-2);white-space:nowrap}
+.mm-st{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:500;white-space:nowrap}
+.mm-st i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.mm-st.act{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.mm-st.inv{color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.mm-ok{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ok);white-space:nowrap;animation:fadein 160ms var(--ease)}
+.mm-sh{display:flex;align-items:center;gap:8px;margin-top:10px}
+.mm-sh h2{margin:0;font-size:14px;font-weight:600}
+.mm-ivr{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 10px 0 14px;border-bottom:1px solid var(--line)}
+.mm-ivr:last-child{border-bottom:0}
+.mm-ive{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:36px 16px;text-align:center;border:1px dashed var(--line-2);border-radius:10px}
+.mm-state b{font-size:14px;font-weight:600}
+.mm-state.sm{padding:22px 16px}
+.mm-ico{width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line-2);color:var(--text-2);margin-bottom:4px}
+.mm-sk{display:block;border-radius:6px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:mmshim 1.4s linear infinite}
+@keyframes mmshim{from{background-position:200% 0}to{background-position:-200% 0}}
+/* roles */
+.mm-roles{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px;align-items:start}
+.compact .mm-roles{grid-template-columns:168px minmax(0,1fr);gap:14px}
+.mm-rlist{display:flex;flex-direction:column;gap:2px}
+.mm-rh{padding:10px 8px 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.mm-rh:first-child{padding-top:2px}
+.mm-ri{display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 8px;border:0;border-radius:7px;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.mm-ri:hover{background:var(--hover);color:var(--text)}
+.mm-ri.on{background:var(--accent-s);color:var(--text)}
+.mm-ri .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-ri .lk{color:var(--text-3);flex:none}
+.mm-ri .dot{width:8px;height:8px;margin:0 2px;border-radius:3px;border:1.5px solid var(--accent-t);flex:none}
+.mm-rchev{display:none;color:var(--text-3)}
+.mm-editor{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:18px 18px 8px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mm-edh{display:flex;align-items:center;gap:8px;min-width:0}
+.mm-ttl{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.mm-ttl h2{margin:0;font-size:17px;line-height:24px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mm-back{display:none}
+.mm-nin,.mm-din{width:100%;min-width:0;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text);padding:3px 8px;margin-left:-9px;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.mm-nin{flex:1;font:600 17px/24px 'Inter',sans-serif;letter-spacing:-.01em}
+.mm-din{font:400 13px/20px 'Inter',sans-serif;color:var(--text-2)}
+.mm-nin:hover,.mm-din:hover{background:var(--hover)}
+.mm-nin:focus,.mm-din:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s);background:var(--bg)}
+.mm-desc{margin:0;color:var(--text-2);line-height:20px}
+.mm-err{font-size:12px;color:var(--danger)}
+.mm-mrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mm-cntb{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 8px 0 4px;margin-left:-4px;border:0;border-radius:7px;background:transparent;color:var(--text-2);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer}
+.mm-cntb:hover{background:var(--hover);color:var(--text)}
+.mm-stack{display:inline-flex}
+.mm-lockbar{display:flex;align-items:center;gap:10px;padding:9px 10px 9px 12px;border-radius:8px;background:var(--raised);border:1px solid var(--line-2);color:var(--text-2);font-size:12.5px}
+.mm-lockbar span{flex:1}
+.mm-grp{border-top:1px solid var(--line);padding-top:10px}
+.mm-gh{display:flex;align-items:center;gap:8px;padding:0 0 4px}
+.mm-gh h3{margin:0;font-size:12.5px;font-weight:600}
+.mm-pr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;min-height:44px;padding:4px 8px;margin:0 -8px;border-radius:8px;cursor:pointer;transition:background-color 120ms var(--ease)}
+.mm-pr:hover{background:var(--hover)}
+.mm-pr.lck{cursor:default}
+.mm-pr.lck:hover{background:transparent}
+.mm-pt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mm-pn{font-weight:500;display:flex;align-items:center;gap:6px}
+.mm-pd{font-size:12px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-pr.chg .mm-pn::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-t)}
+.mm-plk{color:var(--text-3)}
+.tg{appearance:none;-webkit-appearance:none;width:32px;height:18px;margin:0;border-radius:9px;border:1px solid var(--control);background:var(--raised);position:relative;cursor:pointer;flex:none;transition:background-color 150ms var(--ease),border-color 150ms var(--ease)}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-2);transition:transform 180ms var(--spring),background-color 150ms var(--ease)}
+.tg:checked{background:var(--accent);border-color:var(--accent)}
+.tg:checked::after{transform:translateX(14px);background:#fff}
+.tg:disabled{cursor:default;opacity:.5}
+/* unsaved bar + toast */
+.mm-bar{position:absolute;left:50%;bottom:16px;width:500px;max-width:calc(100% - 24px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px 7px 7px 14px;border-radius:12px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);z-index:12;animation:mmbar 260ms var(--spring)}
+.mm-bar.shk1{animation:mmshk1 360ms var(--ease)}
+.mm-bar.shk0{animation:mmshk0 360ms var(--ease)}
+.mm-bdot{width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+@keyframes mmbar{from{opacity:0;transform:translate(-50%,28px)}to{opacity:1;transform:translateX(-50%)}}
+@keyframes mmshk1{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}40%{transform:translateX(calc(-50% + 6px))}60%{transform:translateX(calc(-50% - 4px))}80%{transform:translateX(calc(-50% + 2px))}}
+@keyframes mmshk0{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}40%{transform:translateX(calc(-50% + 6px))}60%{transform:translateX(calc(-50% - 4px))}80%{transform:translateX(calc(-50% + 2px))}}
+.mm-toast{position:absolute;left:50%;bottom:16px;width:400px;max-width:calc(100% - 24px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);z-index:13;animation:mmtoast 200ms var(--ease)}
+.mm-toast.up{bottom:72px}
+.mm-toast svg{color:var(--ok);flex:none}
+@keyframes mmtoast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translateX(-50%)}}
+/* dialogs */
+.mm-scrim{position:absolute;inset:0;z-index:30;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadein 200ms var(--ease)}
+.mm-dlgw{position:absolute;inset:0;z-index:31;display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:none}
+.mm-dlg{width:460px;max-width:100%;pointer-events:auto;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow-modal);padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px;animation:mmdlg 220ms var(--ease)}
+@keyframes mmdlg{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes mmsheet{from{transform:translateY(100%)}to{transform:none}}
+.mm-dh{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.mm-dh h2{margin:0;flex:1;font-size:16px;line-height:22px;font-weight:600;letter-spacing:-.01em}
+.mm-fl{font-size:12px;font-weight:500;color:var(--text-2);margin-top:4px}
+.mm-chipbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:42px;padding:6px;border:1px solid var(--line-2);border-radius:8px;background:var(--bg);cursor:text;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.mm-chipbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.mm-chipbox.bad:not(:focus-within){border-color:var(--danger)}
+.mm-ec{display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 3px 0 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);font-size:12.5px;font-weight:500;max-width:100%;animation:mmmenu 140ms var(--ease)}
+.mm-ec.bad{border-color:var(--danger);color:var(--danger);background:transparent}
+.mm-ec.dup{border-style:dashed;color:var(--text-3);text-decoration:line-through}
+.mm-ec button{width:20px;height:20px;border:0;border-radius:4px;background:transparent;color:inherit;opacity:.75;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.mm-ec button:hover{opacity:1;background:var(--hover)}
+.mm-ein{flex:1;min-width:140px;height:28px;border:0;background:transparent;color:var(--text);font:400 13px/1 'Inter',sans-serif;padding:0 4px}
+.mm-ein:focus{outline:none}
+.mm-ein::placeholder{color:var(--text-3)}
+.mm-msg{font-size:12px;line-height:16px}
+.mm-msg.err{color:var(--danger)}
+.mm-msg.note{color:var(--text-3)}
+.mm-sel{display:flex;align-items:center;gap:10px;width:100%;height:38px;padding:0 10px 0 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;transition:border-color 120ms var(--ease)}
+.mm-sel:hover,.mm-sel[aria-expanded=true]{border-color:var(--control)}
+.mm-sel .ph{color:var(--text-3);font-weight:400}
+.mm-sel svg{margin-left:auto;color:var(--text-3);flex:none}
+.mm-df{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+.mm-warn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:color-mix(in srgb,var(--danger) 10%,transparent);border:1px solid color-mix(in srgb,var(--danger) 35%,transparent);color:var(--text);font-size:12.5px}
+.mm-warn svg{color:var(--danger);flex:none}
+.mm-aff{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
+/* denied */
+.mm-deny{display:flex;flex-direction:column;align-items:center;gap:8px;padding:48px 16px;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.mm-deny h2{margin:4px 0 0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.mm-deny .mm-btn{margin-top:8px}
+/* focus */
+.mm-btn:focus-visible,.mm-ib:focus-visible,.mm-seg button:focus-visible,.mm-tab:focus-visible,.mm-chip:focus-visible,.mm-mi:focus-visible,.mm-rp:focus-visible,.mm-ri:focus-visible,.mm-cntb:focus-visible,.mm-sel:focus-visible,.mm-ec button:focus-visible,.tg:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.mm-pr:focus-within{background:var(--hover)}
+/* compact (≈620 px) */
+.compact .mm-tr{grid-template-columns:minmax(0,1fr) 124px 80px 32px;grid-template-areas:"who role status menu"}
+.compact .c-email,.compact .c-last{display:none}
+.compact .c-em2{display:block}
+.compact .mm-h1{font-size:18px}
+.compact .mm-search{width:180px}
+/* narrow (phone frame) */
+.narrow .mm-mtop{display:flex}
+.narrow .mm-h1{display:none}
+.narrow .mm-wrap{padding:14px 16px 96px;gap:14px}
+.narrow .mm-seg{width:100%}
+.narrow .mm-seg button{height:36px}
+.narrow .hide-n{display:none}
+.narrow .mm-tabs{width:100%}
+.narrow .mm-tab{height:42px}
+.narrow .mm-search{width:auto;flex:1}
+.narrow .mm-search input,.narrow .mm-chip{height:40px}
+.narrow .mm-tools .mm-btn{height:40px}
+.narrow .mm-tools .grow-n{flex-basis:100%}
+.narrow .mm-th{display:none}
+.narrow .mm-tbl{border:0;background:transparent;display:flex;flex-direction:column;gap:8px}
+.narrow .mm-tr{grid-template-columns:auto auto minmax(0,1fr) 40px;grid-template-areas:"who who who menu" "role status last last";row-gap:10px;column-gap:8px;padding:12px 8px 12px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.narrow .mm-tr:last-child{border-bottom:1px solid var(--line)}
+.narrow .c-email{display:none}
+.narrow .c-em2{display:block}
+.narrow .c-last{text-align:right}
+.narrow .c-role{padding-left:46px}
+.narrow .mm-ib{width:40px;height:40px}
+.narrow .mm-rp{height:32px;margin-left:-8px}
+.narrow .mm-ivr{flex-wrap:wrap;padding:10px 12px;row-gap:4px}
+.narrow .mm-ivr .mm-ive{flex-basis:calc(100% - 44px)}
+.narrow .mm-roles{grid-template-columns:minmax(0,1fr)}
+.narrow .mm-roles.ed-open .mm-rlist{display:none}
+.narrow .mm-roles:not(.ed-open) .mm-editor{display:none}
+.narrow .mm-ri{height:48px;border-bottom:1px solid var(--line);border-radius:0}
+.narrow .mm-ri.on{background:transparent}
+.narrow .mm-rchev{display:block}
+.narrow .mm-editor{border:0;background:transparent;padding:0}
+.narrow .mm-back{display:inline-flex;margin-left:-10px}
+.narrow .mm-edh .mm-btn .hide-n{display:none}
+.narrow .mm-pr{min-height:52px}
+.narrow .mm-dlgw{align-items:flex-end;padding:0}
+.narrow .mm-dlg{width:100%;border-radius:18px 18px 0 0;border-bottom:0;padding:10px 16px 20px;animation:mmsheet 280ms var(--ease)}
+.narrow .mm-dlg::before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:0 auto 6px}
+.narrow .mm-df .mm-btn{height:44px;flex:1}
+.narrow .mm-df .mm-meta{display:none}
+.narrow .mm-bar{bottom:12px}
+.narrow .mm-bar .mm-kbd{display:none}
+@media (max-width:760px){
+  .mm-mtop{display:flex}.mm-h1{display:none}.mm-wrap{padding:14px 16px 96px;gap:14px}.mm-seg{width:100%}.hide-n{display:none}.mm-tabs{width:100%}.mm-tab{height:42px}
+  .mm-search{width:auto;flex:1}.mm-th{display:none}.mm-tbl{border:0;background:transparent;display:flex;flex-direction:column;gap:8px}
+  .mm-tr{grid-template-columns:auto auto minmax(0,1fr) 40px;grid-template-areas:"who who who menu" "role status last last";row-gap:10px;column-gap:8px;padding:12px 8px 12px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  .mm-tr:last-child{border-bottom:1px solid var(--line)}.c-email{display:none}.c-em2{display:block}.c-last{text-align:right}.c-role{padding-left:46px}.mm-ib{width:40px;height:40px}
+  .mm-ivr{flex-wrap:wrap}.mm-roles{grid-template-columns:minmax(0,1fr)}.mm-roles.ed-open .mm-rlist{display:none}.mm-roles:not(.ed-open) .mm-editor{display:none}
+  .mm-ri{height:48px}.mm-rchev{display:block}.mm-editor{border:0;background:transparent;padding:0}.mm-back{display:inline-flex}
+  .mm-dlgw{align-items:flex-end;padding:0}.mm-dlg{width:100%;border-radius:18px 18px 0 0;animation:mmsheet 280ms var(--ease)}.mm-bar .mm-kbd{display:none}
+}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}.mm-sk{animation:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:4680px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span role="img" aria-label="Lightex" style="font-size:18px;font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text)">Lighte<svg sc-camel-view-box="0 0 46 39" aria-hidden="true" style="width:.644em;height:.546em;margin-left:.02em;overflow:visible">
+          <mask id="mrxm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+          <clipPath id="mrxc"><rect width="46" height="39"></rect></clipPath>
+          <g clip-path="url(#mrxc)"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#mrxm)"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+        </svg></span>
+        <span class="mono" style="font-size:12px;color:var(--text-3);letter-spacing:.04em">SCREENS · MEMBERS &amp; ROLES</span>
+      </div>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Members &amp; roles</h1>
+    </div>
+    <div class="mono" style="display:flex;gap:16px;font-size:12px;color:var(--text-3)"><span>Workspace ⇄ Project</span><span>System roles locked</span><span>Esc closes</span><span>⌘S save</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:40px">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="grid-column:span {{fx.span}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="width:{{fx.w}};height:{{fx.h}}px;border-radius:{{fx.r}}px">
+          <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="0">
+          <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+          </div>
+          </sc-for>
+          <sc-for list="{{fx.screens}}" as="m" hint-placeholder-count="1">
+<!--MM-START-->
+          <section class="mm {{m.cls}}" aria-label="Members and roles" sc-camel-on-key-down="{{m.onKey}}">
+            <div class="mm-mtop">
+              <button class="mm-ib" type="button" aria-label="Open navigation"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"></path></svg></button>
+              <span style="flex:1;font-weight:600">Members &amp; roles</span>
+            </div>
+            <sc-if value="{{m.menuOpen}}" hint-placeholder-val="{{false}}"><div class="mm-catch" sc-camel-on-click="{{m.closeMenu}}"></div></sc-if>
+            <div class="mm-scroll">
+              <div class="mm-wrap">
+                <div class="mm-head">
+                  <h1 class="mm-h1">Members &amp; roles</h1>
+                  <div class="mm-seg" role="group" aria-label="Scope">
+                    <span class="mm-thumb" style="transform:translateX({{m.segX}}%)"></span>
+                    <button type="button" aria-pressed="{{m.isWs}}" sc-camel-on-click="{{m.toWs}}">Workspace</button>
+                    <button type="button" aria-pressed="{{m.isPrj}}" sc-camel-on-click="{{m.toPrj}}" aria-label="Project: Platform Rebuild"><span class="mm-pk">PR</span><span><span class="hide-n">Project: </span>Platform Rebuild</span></button>
+                  </div>
+                </div>
+                <div class="mm-tabs" role="tablist" aria-label="Members and roles">
+                  <button class="mm-tab" type="button" role="tab" aria-selected="{{m.tabM}}" sc-camel-on-click="{{m.pickM}}">Members <span class="mm-cnt">{{m.memCount}}</span></button>
+                  <button class="mm-tab" type="button" role="tab" aria-selected="{{m.tabR}}" sc-camel-on-click="{{m.pickR}}">
+                    <sc-if value="{{m.notAdmin}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    Roles <span class="mm-cnt">{{m.roleCount}}</span></button>
+                  <span class="mm-ind" style="transform:translateX({{m.tabX}}%)"></span>
+                </div>
+
+                <sc-if value="{{m.isLoading}}" hint-placeholder-val="{{false}}">
+                  <div role="status" aria-label="Loading members" style="display:flex;flex-direction:column;gap:16px">
+                    <div class="mm-tools"><span class="mm-sk" style="width:220px;height:32px"></span><span class="mm-sk" style="width:104px;height:32px"></span><span style="flex:1"></span><span class="mm-sk" style="width:84px;height:30px"></span></div>
+                    <div class="mm-tbl">
+                      <div class="mm-tr mm-th"><span class="c-who">Name</span><span class="c-email">Email</span><span class="c-role">Role</span><span class="c-status">Status</span><span class="c-last">Last active</span><span class="c-menu"></span></div>
+                      <sc-for list="{{m.skRows}}" as="sk" hint-placeholder-count="6">
+                        <div class="mm-tr">
+                          <span class="c-who"><span class="mm-sk" style="width:28px;height:28px;border-radius:50%;flex:none"></span><span class="mm-sk" style="width:{{sk.w}}px;height:12px"></span></span>
+                          <span class="c-email"><span class="mm-sk" style="width:{{sk.w2}}px;height:12px"></span></span>
+                          <span class="c-role"><span class="mm-sk" style="width:76px;height:12px"></span></span>
+                          <span class="c-status"><span class="mm-sk" style="width:58px;height:20px;border-radius:10px"></span></span>
+                          <span class="c-last"><span class="mm-sk" style="width:52px;height:12px"></span></span>
+                          <span class="c-menu"></span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{m.isError}}" hint-placeholder-val="{{false}}">
+                  <div class="mm-state" role="alert">
+                    <span class="mm-ico" style="color:var(--danger)"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.6v.1"></path></svg></span>
+                    <b>Couldn’t load members</b>
+                    <span class="mm-meta mono">503 · retrying won’t lose changes</span>
+                    <button class="mm-btn sec" type="button" sc-camel-on-click="{{m.retry}}" style="margin-top:6px">Retry</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{m.showMembers}}" hint-placeholder-val="{{true}}">
+                  <div class="fade" role="tabpanel" style="display:flex;flex-direction:column;gap:14px">
+                    <div class="mm-tools">
+                      <label class="mm-search"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg><input type="search" placeholder="Search members" aria-label="Search members" value="{{m.q}}" sc-camel-on-change="{{m.onQ}}"></label>
+                      <span class="mm-rel">
+                        <button class="mm-chip" type="button" aria-haspopup="listbox" aria-expanded="{{m.rfOpen}}" sc-camel-on-click="{{m.toggleRf}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z"></path></svg>{{m.rfLabel}}</button>
+                        <sc-if value="{{m.rfOpen}}" hint-placeholder-val="{{false}}">
+                          <div class="mm-menu" role="listbox" aria-label="Filter by role" style="top:38px;left:0">
+                            <sc-for list="{{m.rfOpts}}" as="op" hint-placeholder-count="4"><button class="mm-mi {{op.on}}" type="button" role="option" aria-selected="{{op.sel}}" sc-camel-on-click="{{op.pick}}"><span style="flex:1">{{op.name}}</span><span class="mm-cnt">{{op.n}}</span></button></sc-for>
+                          </div>
+                        </sc-if>
+                      </span>
+                      <span style="flex:1"></span>
+                      <sc-if value="{{m.notAdmin}}" hint-placeholder-val="{{false}}"><span class="mm-tag">Read-only</span></sc-if>
+                      <sc-if value="{{m.admin}}" hint-placeholder-val="{{true}}"><button class="mm-btn pri" type="button" sc-camel-on-click="{{m.openInvite}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>Invite</button></sc-if>
+                    </div>
+
+                    <sc-if value="{{m.hasRows}}" hint-placeholder-val="{{true}}">
+                      <div class="mm-tbl" role="table" aria-label="Members">
+                        <div class="mm-tr mm-th" role="row"><span class="c-who" role="columnheader">Name</span><span class="c-email" role="columnheader">Email</span><span class="c-role" role="columnheader">{{m.roleColLabel}}</span><span class="c-status" role="columnheader">Status</span><span class="c-last" role="columnheader">Last active</span><span class="c-menu"></span></div>
+                        <sc-for list="{{m.rows}}" as="mb" hint-placeholder-count="6">
+                          <div class="mm-tr {{mb.cls}}" role="row">
+                            <span class="c-who" role="cell"><span class="mm-av {{mb.avCls}}" style="background:{{mb.avBg}}">{{mb.ini}}</span><span class="mm-nm"><span class="mm-n1">{{mb.name}}<sc-if value="{{mb.isYou}}" hint-placeholder-val="{{false}}"><span class="mm-you">You</span></sc-if></span><span class="c-em2">{{mb.email}}</span></span></span>
+                            <span class="c-email" role="cell">{{mb.email}}</span>
+                            <span class="c-role mm-rel" role="cell">
+                              <sc-if value="{{mb.canPick}}" hint-placeholder-val="{{true}}"><button class="mm-rp" type="button" aria-haspopup="listbox" aria-expanded="{{mb.pickOpen}}" aria-label="Role for {{mb.name}}: {{mb.roleName}}" sc-camel-on-click="{{mb.togglePick}}">{{mb.roleName}}<svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button></sc-if>
+                              <sc-if value="{{mb.roStatic}}" hint-placeholder-val="{{false}}"><span class="mm-rs">{{mb.roleName}}</span></sc-if>
+                              <sc-if value="{{mb.pickOpen}}" hint-placeholder-val="{{false}}">
+                                <div class="mm-menu" role="listbox" aria-label="Role" style="top:32px;left:-8px">
+                                  <sc-for list="{{mb.opts}}" as="op" hint-placeholder-count="4"><button class="mm-mi {{op.on}}" type="button" role="option" aria-selected="{{op.sel}}" sc-camel-on-click="{{op.pick}}"><span style="flex:1">{{op.name}}</span><sc-if value="{{op.sel}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if></button></sc-for>
+                                </div>
+                              </sc-if>
+                            </span>
+                            <span class="c-status" role="cell"><span class="mm-st {{mb.stCls}}"><i></i>{{mb.stLabel}}</span></span>
+                            <span class="c-last" role="cell">{{mb.last}}</span>
+                            <span class="c-menu mm-rel" role="cell">
+                              <sc-if value="{{mb.hasMenu}}" hint-placeholder-val="{{true}}"><button class="mm-ib" type="button" aria-label="More for {{mb.name}}" aria-haspopup="menu" aria-expanded="{{mb.menuOpen}}" sc-camel-on-click="{{mb.toggleMenu}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3"></circle><circle cx="8" cy="8" r="1.3"></circle><circle cx="12.5" cy="8" r="1.3"></circle></svg></button></sc-if>
+                              <sc-if value="{{mb.menuOpen}}" hint-placeholder-val="{{false}}">
+                                <div class="mm-menu" role="menu" style="top:34px;right:0">
+                                  <sc-if value="{{mb.isAct}}" hint-placeholder-val="{{true}}"><button class="mm-mi" type="button" role="menuitem" sc-camel-on-click="{{mb.openPick}}">Change role</button><div class="mm-sep"></div><button class="mm-mi dng" type="button" role="menuitem" sc-camel-on-click="{{mb.remove}}">{{m.removeLabel}}</button></sc-if>
+                                  <sc-if value="{{mb.isInv}}" hint-placeholder-val="{{false}}"><button class="mm-mi" type="button" role="menuitem" sc-camel-on-click="{{mb.openPick}}">Change role</button><button class="mm-mi" type="button" role="menuitem" sc-camel-on-click="{{mb.resend}}">Resend invite</button><div class="mm-sep"></div><button class="mm-mi dng" type="button" role="menuitem" sc-camel-on-click="{{mb.revoke}}">Revoke invite</button></sc-if>
+                                </div>
+                              </sc-if>
+                            </span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{m.noMatch}}" hint-placeholder-val="{{false}}">
+                      <div class="mm-state sm"><b>No members match</b><button class="mm-btn sec" type="button" sc-camel-on-click="{{m.clearFilters}}">Clear filters</button></div>
+                    </sc-if>
+                    <sc-if value="{{m.justYou}}" hint-placeholder-val="{{false}}">
+                      <div class="mm-state">
+                        <span class="mm-ico"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M11.5 6v4M9.5 8h4"></path></svg></span>
+                        <b>Just you so far</b>
+                        <span class="mm-meta">Invite teammates to {{m.scopeName}}</span>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{m.showPending}}" hint-placeholder-val="{{true}}">
+                      <section aria-label="Pending invitations" style="display:flex;flex-direction:column;gap:10px">
+                        <div class="mm-sh"><h2>Pending invitations</h2><span class="mm-cnt">{{m.invCount}}</span></div>
+                        <div class="mm-tbl">
+                          <sc-for list="{{m.invites}}" as="iv" hint-placeholder-count="2">
+                            <div class="mm-ivr">
+                              <span class="mm-av inv">{{iv.ini}}</span>
+                              <span class="mm-ive">{{iv.email}}</span>
+                              <span class="mm-rs">{{iv.roleName}}</span>
+                              <span class="mm-meta mono" style="width:76px">{{iv.sent}}</span>
+                              <span style="display:flex;align-items:center;gap:2px;margin-left:auto">
+                                <sc-if value="{{iv.sentOk}}" hint-placeholder-val="{{false}}"><span class="mm-ok" role="status" style="padding:0 11px;height:30px"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Sent</span></sc-if>
+                                <sc-if value="{{iv.canResend}}" hint-placeholder-val="{{true}}"><button class="mm-btn" type="button" sc-camel-on-click="{{iv.resend}}">Resend</button></sc-if>
+                                <button class="mm-btn dngt" type="button" sc-camel-on-click="{{iv.revoke}}">Revoke</button>
+                              </span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </section>
+                    </sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{m.showDenied}}" hint-placeholder-val="{{false}}">
+                  <div class="mm-deny fade" role="region" aria-label="Permission denied">
+                    <span class="mm-ico"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></span>
+                    <h2>You can’t manage roles</h2>
+                    <span class="mm-meta">Admins only · you’re a {{m.roleLabel}}</span>
+                    <sc-if value="{{m.notRequested}}" hint-placeholder-val="{{true}}"><button class="mm-btn pri" type="button" sc-camel-on-click="{{m.requestAccess}}">Request access</button></sc-if>
+                    <sc-if value="{{m.requested}}" hint-placeholder-val="{{false}}"><span class="mm-ok" role="status" style="margin-top:14px"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Requested · Jordan Lee notified</span></sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{m.showRoles}}" hint-placeholder-val="{{false}}">
+                  <div class="mm-roles fade {{m.edCls}}" role="tabpanel">
+                    <nav class="mm-rlist" aria-label="Roles">
+                      <div class="mm-rh">System</div>
+                      <sc-for list="{{m.sysRoles}}" as="rl" hint-placeholder-count="4">
+                        <button class="mm-ri {{rl.on}}" type="button" aria-current="{{rl.cur}}" sc-camel-on-click="{{rl.pick}}"><svg class="lk" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Locked"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg><span class="lab">{{rl.name}}</span><span class="mm-cnt">{{rl.count}}</span><svg class="mm-rchev" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg></button>
+                      </sc-for>
+                      <div class="mm-rh">Custom</div>
+                      <sc-for list="{{m.cusRoles}}" as="rl" hint-placeholder-count="2">
+                        <button class="mm-ri {{rl.on}}" type="button" aria-current="{{rl.cur}}" sc-camel-on-click="{{rl.pick}}"><span class="dot" aria-hidden="true"></span><span class="lab">{{rl.name}}</span><span class="mm-cnt">{{rl.count}}</span><svg class="mm-rchev" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg></button>
+                      </sc-for>
+                    </nav>
+
+                    <div class="mm-editor" aria-label="Role editor">
+                      <div class="mm-edh">
+                        <button class="mm-ib mm-back" type="button" aria-label="Back to roles" sc-camel-on-click="{{m.back}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 4.5L6 8l3.5 3.5"></path></svg></button>
+                        <sc-if value="{{m.locked}}" hint-placeholder-val="{{false}}"><div class="mm-ttl"><h2>{{m.curName}}</h2><span class="mm-tag"><svg width="11" height="11" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>System</span></div></sc-if>
+                        <sc-if value="{{m.editable}}" hint-placeholder-val="{{true}}"><input class="mm-nin" type="text" aria-label="Role name" maxlength="40" value="{{m.curName}}" sc-camel-on-change="{{m.onName}}"></sc-if>
+                        <button class="mm-btn sec" type="button" sc-camel-on-click="{{m.duplicate}}" title="Duplicate role"><svg width="13" height="13" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg><span class="hide-n">Duplicate</span></button>
+                        <sc-if value="{{m.editable}}" hint-placeholder-val="{{true}}"><button class="mm-ib dng" type="button" aria-label="Delete role" title="Delete role" sc-camel-on-click="{{m.askDelete}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg></button></sc-if>
+                      </div>
+                      <sc-if value="{{m.hasNameErr}}" hint-placeholder-val="{{false}}"><span class="mm-err" role="alert">{{m.nameErr}}</span></sc-if>
+                      <sc-if value="{{m.locked}}" hint-placeholder-val="{{false}}"><p class="mm-desc">{{m.curDesc}}</p></sc-if>
+                      <sc-if value="{{m.editable}}" hint-placeholder-val="{{true}}"><input class="mm-din" type="text" aria-label="Role description" maxlength="80" placeholder="Short description" value="{{m.curDesc}}" sc-camel-on-change="{{m.onDesc}}"></sc-if>
+                      <div class="mm-mrow">
+                        <button class="mm-cntb" type="button" sc-camel-on-click="{{m.showRoleMembers}}" aria-label="{{m.roleCountLabel}} with this role, view in Members"><span class="mm-stack"><sc-for list="{{m.roleAvs}}" as="op" hint-placeholder-count="3"><span class="mm-av xs {{op.cls}}" style="background:{{op.bg}}">{{op.ini}}</span></sc-for></span>{{m.roleCountLabel}}</button>
+                        <span class="mm-meta mono">· {{m.grantSummary}}</span>
+                      </div>
+                      <sc-if value="{{m.locked}}" hint-placeholder-val="{{false}}">
+                        <div class="mm-lockbar"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg><span>System role · duplicate to customize</span></div>
+                      </sc-if>
+                      <sc-for list="{{m.groups}}" as="gp" hint-placeholder-count="5">
+                        <section class="mm-grp" aria-label="{{gp.name}} permissions">
+                          <div class="mm-gh"><h3>{{gp.name}}</h3><span class="mm-cnt">{{gp.onN}}/{{gp.total}}</span></div>
+                          <sc-for list="{{gp.perms}}" as="pm" hint-placeholder-count="3">
+                            <label class="mm-pr {{pm.cls}}">
+                              <span class="mm-pt"><span class="mm-pn">{{pm.name}}</span><span class="mm-pd">{{pm.desc}}</span></span>
+                              <sc-if value="{{m.locked}}" hint-placeholder-val="{{false}}"><svg class="mm-plk" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                              <sc-if value="{{m.editable}}" hint-placeholder-val="{{true}}"><span></span></sc-if>
+                              <input class="tg" type="checkbox" role="switch" aria-label="{{pm.name}}" checked="{{pm.on}}" disabled="{{m.locked}}" sc-camel-on-change="{{pm.toggle}}">
+                            </label>
+                          </sc-for>
+                        </section>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+
+            <sc-if value="{{m.showBar}}" hint-placeholder-val="{{false}}">
+              <div class="mm-bar {{m.shkCls}}" role="region" aria-label="Unsaved changes">
+                <span class="mm-bdot" aria-hidden="true"></span>
+                <span style="flex:1;font-weight:500">Unsaved changes <span class="mm-cnt">{{m.chgCount}}</span></span>
+                <button class="mm-btn" type="button" sc-camel-on-click="{{m.discard}}">Discard</button>
+                <button class="mm-btn pri" type="button" sc-camel-on-click="{{m.save}}">Save <span class="mm-kbd">⌘S</span></button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{m.hasToast}}" hint-placeholder-val="{{false}}">
+              <div class="mm-toast {{m.toastCls}}" role="status" aria-live="polite">
+                <svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{m.toastText}}</span>
+                <sc-if value="{{m.canUndo}}" hint-placeholder-val="{{false}}"><button class="mm-btn sec" type="button" sc-camel-on-click="{{m.undo}}" style="height:26px">Undo</button></sc-if>
+                <button class="mm-ib sm" type="button" aria-label="Dismiss" sc-camel-on-click="{{m.dismissToast}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{m.inviteOpen}}" hint-placeholder-val="{{false}}">
+              <div class="mm-scrim" sc-camel-on-click="{{m.closeDialog}}"></div>
+              <div class="mm-dlgw">
+                <div class="mm-dlg" role="dialog" aria-modal="true" aria-labelledby="{{m.uid}}-it" sc-camel-on-key-down="{{m.inv.onDlgKey}}">
+                  <div class="mm-dh"><h2 id="{{m.uid}}-it">Invite to {{m.scopeName}}</h2><button class="mm-ib" type="button" aria-label="Close" title="Close (Esc)" sc-camel-on-click="{{m.closeDialog}}"><svg width="13" height="13" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button></div>
+                  <label class="mm-fl" for="{{m.uid}}-em">Emails</label>
+                  <div class="mm-chipbox {{m.inv.boxCls}}">
+                    <sc-for list="{{m.inv.chips}}" as="ch" hint-placeholder-count="2"><span class="mm-ec {{ch.cls}}" title="{{ch.title}}">{{ch.v}}<button type="button" aria-label="Remove {{ch.v}}" sc-camel-on-click="{{ch.remove}}"><svg width="9" height="9" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button></span></sc-for>
+                    <input class="mm-ein" id="{{m.uid}}-em" type="text" autocomplete="off" placeholder="{{m.inv.ph}}" value="{{m.inv.text}}" sc-camel-on-change="{{m.inv.onText}}" sc-camel-on-key-down="{{m.inv.onKey}}" sc-camel-on-blur="{{m.inv.onBlur}}" sc-camel-auto-focus="{{true}}">
+                  </div>
+                  <sc-if value="{{m.inv.hasMsg}}" hint-placeholder-val="{{false}}"><span class="mm-msg {{m.inv.msgCls}}" role="alert">{{m.inv.msg}}</span></sc-if>
+                  <span class="mm-fl">Role</span>
+                  <div class="mm-rel">
+                    <button class="mm-sel" type="button" aria-haspopup="listbox" aria-expanded="{{m.inv.menu}}" sc-camel-on-click="{{m.inv.toggleMenu}}">{{m.inv.roleName}}<span class="mm-meta">{{m.inv.roleDesc}}</span><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button>
+                    <sc-if value="{{m.inv.menu}}" hint-placeholder-val="{{false}}">
+                      <div class="mm-menu" role="listbox" aria-label="Role" style="top:42px;left:0;right:0">
+                        <sc-for list="{{m.inv.opts}}" as="op" hint-placeholder-count="4"><button class="mm-mi {{op.on}}" type="button" role="option" aria-selected="{{op.sel}}" sc-camel-on-click="{{op.pick}}"><span style="flex:1">{{op.name}}</span><span class="mm-meta">{{op.desc}}</span></button></sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div class="mm-df">
+                    <span class="mm-meta" style="flex:1">{{m.inv.hint}}</span>
+                    <button class="mm-btn" type="button" sc-camel-on-click="{{m.closeDialog}}">Cancel</button>
+                    <button class="mm-btn pri" type="button" disabled="{{m.inv.cannotSend}}" sc-camel-on-click="{{m.inv.send}}">{{m.inv.sendLabel}}</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{m.deleteOpen}}" hint-placeholder-val="{{false}}">
+              <div class="mm-scrim" sc-camel-on-click="{{m.closeDialog}}"></div>
+              <div class="mm-dlgw">
+                <div class="mm-dlg" role="alertdialog" aria-modal="true" aria-labelledby="{{m.uid}}-dt" sc-camel-on-key-down="{{m.del.onDlgKey}}">
+                  <div class="mm-dh"><h2 id="{{m.uid}}-dt">Delete “{{m.del.name}}”?</h2><button class="mm-ib" type="button" aria-label="Close" title="Close (Esc)" sc-camel-on-click="{{m.closeDialog}}" sc-camel-auto-focus="{{true}}"><svg width="13" height="13" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button></div>
+                  <div class="mm-warn"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.6v.1"></path></svg><span>{{m.del.reason}}</span></div>
+                  <div class="mm-aff"><span class="mm-stack"><sc-for list="{{m.del.avs}}" as="op" hint-placeholder-count="1"><span class="mm-av xs {{op.cls}}" style="background:{{op.bg}}">{{op.ini}}</span></sc-for></span>{{m.del.names}}</div>
+                  <span class="mm-fl">Reassign to</span>
+                  <div class="mm-rel">
+                    <button class="mm-sel" type="button" aria-haspopup="listbox" aria-expanded="{{m.del.menu}}" sc-camel-on-click="{{m.del.toggleMenu}}"><span class="{{m.del.selCls}}">{{m.del.toName}}</span><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button>
+                    <sc-if value="{{m.del.menu}}" hint-placeholder-val="{{false}}">
+                      <div class="mm-menu" role="listbox" aria-label="Reassign to" style="top:42px;left:0;right:0">
+                        <sc-for list="{{m.del.opts}}" as="op" hint-placeholder-count="4"><button class="mm-mi {{op.on}}" type="button" role="option" aria-selected="{{op.sel}}" sc-camel-on-click="{{op.pick}}"><span style="flex:1">{{op.name}}</span><span class="mm-cnt">{{op.n}}</span></button></sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div class="mm-df">
+                    <span class="mm-meta" style="flex:1">{{m.del.hint}}</span>
+                    <button class="mm-btn" type="button" sc-camel-on-click="{{m.closeDialog}}">Cancel</button>
+                    <button class="mm-btn dngf" type="button" disabled="{{m.del.cannot}}" sc-camel-on-click="{{m.del.confirm}}">Delete role</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </section>
+<!--MM-END-->
+          </sc-for>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:4680}}">
+class Component extends DCLogic {
+  state = { sb: {}, ms: {} };
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  msGet(id) { return (this.state.ms && this.state.ms[id]) || {}; }
+  msSet(id, patch) { const all = { ...(this.state.ms || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ ms: all }); }
+  msPerms() {
+    return [
+      { id: 't.create', area: 'Tasks', name: 'Create tasks', desc: 'Add tasks to any board', sc: 'both' },
+      { id: 't.edit', area: 'Tasks', name: 'Edit any task', desc: 'Change fields on others’ tasks', sc: 'both' },
+      { id: 't.delete', area: 'Tasks', name: 'Delete tasks', desc: 'Remove tasks permanently', sc: 'both' },
+      { id: 't.comment', area: 'Tasks', name: 'Comment', desc: 'Reply and mention teammates', sc: 'both' },
+      { id: 'p.sprints', area: 'Planning', name: 'Manage sprints', desc: 'Start, close and plan sprints', sc: 'both' },
+      { id: 'p.miles', area: 'Planning', name: 'Edit milestones', desc: 'Move dates and epics', sc: 'both' },
+      { id: 'p.obj', area: 'Planning', name: 'Set objectives', desc: 'Create and score objectives', sc: 'both' },
+      { id: 'c.invite', area: 'Collaboration', name: 'Invite members', desc: 'Send invitations by email', sc: 'both' },
+      { id: 'c.share', area: 'Collaboration', name: 'Share links', desc: 'Create public view links', sc: 'both' },
+      { id: 'c.views', area: 'Collaboration', name: 'Manage shared views', desc: 'Edit team saved views', sc: 'both' },
+      { id: 'r.view', area: 'Reports', name: 'View reports', desc: 'Velocity, burndown, cycle time', sc: 'both' },
+      { id: 'r.export', area: 'Reports', name: 'Export data', desc: 'Download CSV exports', sc: 'both' },
+      { id: 'a.roles', area: 'Administration', name: 'Manage roles', desc: 'Create and edit roles', sc: 'both' },
+      { id: 'a.wset', area: 'Administration', name: 'Workspace settings', desc: 'Integrations, security, SSO', sc: 'ws' },
+      { id: 'a.billing', area: 'Administration', name: 'Billing', desc: 'Plans, invoices and seats', sc: 'ws' },
+      { id: 'a.pset', area: 'Administration', name: 'Project settings', desc: 'Workflow, fields, task key', sc: 'prj' },
+      { id: 'a.archive', area: 'Administration', name: 'Archive project', desc: 'Close out finished projects', sc: 'prj' }
+    ];
+  }
+  msSeed(empty) {
+    const P = this.msPerms();
+    const all = (sc) => P.filter((p) => p.sc === 'both' || p.sc === sc).map((p) => p.id);
+    const WS = all('ws');
+    const PJ = all('prj');
+    const ws = {
+      roles: [
+        { id: 'owner', name: 'Owner', desc: 'Full control, including billing', sys: true, perms: WS.slice() },
+        { id: 'admin', name: 'Admin', desc: 'Manage members, roles and settings', sys: true, perms: WS.filter((x) => x !== 'a.billing') },
+        { id: 'member', name: 'Member', desc: 'Create and edit work', sys: true, perms: ['t.create', 't.edit', 't.comment', 'p.sprints', 'p.miles', 'p.obj', 'c.share', 'c.views', 'r.view', 'r.export'] },
+        { id: 'guest', name: 'Guest', desc: 'Invited projects only', sys: true, perms: ['t.comment', 'r.view'] },
+        { id: 'qa', name: 'QA lead', desc: 'Triage and verify bugs', sys: false, perms: ['t.create', 't.edit', 't.comment', 'c.views', 'r.view', 'r.export'] },
+        { id: 'contractor', name: 'Contractor', desc: 'Time-boxed project access', sys: false, perms: ['t.create', 't.comment', 'r.view'] }
+      ],
+      members: [
+        { id: 'm1', name: 'Alex Kim', ini: 'AK', hue: 285, email: 'alex@team.dev', role: 'owner', status: 'active', last: 'Now', you: true },
+        { id: 'm2', name: 'Jordan Lee', ini: 'JL', hue: 200, email: 'jordan@team.dev', role: 'admin', status: 'active', last: '12m ago' },
+        { id: 'm3', name: 'Sam Patel', ini: 'SP', hue: 20, email: 'sam@team.dev', role: 'member', status: 'active', last: '2h ago' },
+        { id: 'm4', name: 'Riley Chen', ini: 'RC', hue: 150, email: 'riley@team.dev', role: 'member', status: 'active', last: 'Yesterday' },
+        { id: 'm5', name: 'Taylor Ng', ini: 'TN', hue: 330, email: 'taylor@team.dev', role: 'qa', status: 'active', last: '5h ago' },
+        { id: 'm6', name: 'Morgan Diaz', ini: 'MD', hue: 60, email: 'morgan@team.dev', role: 'guest', status: 'active', last: '3d ago' },
+        { id: 'm7', name: '', ini: 'CA', hue: 0, email: 'casey@team.dev', role: 'member', status: 'invited', last: '', sent: 'Oct 5' },
+        { id: 'm8', name: '', ini: 'DE', hue: 0, email: 'devon@team.dev', role: 'guest', status: 'invited', last: '', sent: 'Sep 30' }
+      ]
+    };
+    const prj = {
+      roles: [
+        { id: 'padmin', name: 'Project admin', desc: 'Manage the project and its roles', sys: true, perms: PJ.slice() },
+        { id: 'contrib', name: 'Contributor', desc: 'Create and edit tasks', sys: true, perms: ['t.create', 't.edit', 't.comment', 'p.sprints', 'p.miles', 'c.share', 'r.view'] },
+        { id: 'observer', name: 'Observer', desc: 'Read and comment', sys: true, perms: ['t.comment', 'r.view'] },
+        { id: 'captain', name: 'Release captain', desc: 'Owns release checklists', sys: false, perms: ['t.create', 't.edit', 't.comment', 'p.sprints', 'p.miles', 'r.view', 'r.export'] }
+      ],
+      members: [
+        { id: 'p1', name: 'Alex Kim', ini: 'AK', hue: 285, email: 'alex@team.dev', role: 'padmin', status: 'active', last: 'Now', you: true },
+        { id: 'p2', name: 'Jordan Lee', ini: 'JL', hue: 200, email: 'jordan@team.dev', role: 'padmin', status: 'active', last: '12m ago' },
+        { id: 'p3', name: 'Sam Patel', ini: 'SP', hue: 20, email: 'sam@team.dev', role: 'contrib', status: 'active', last: '2h ago' },
+        { id: 'p4', name: 'Riley Chen', ini: 'RC', hue: 150, email: 'riley@team.dev', role: 'contrib', status: 'active', last: 'Yesterday' },
+        { id: 'p5', name: 'Taylor Ng', ini: 'TN', hue: 330, email: 'taylor@team.dev', role: 'captain', status: 'active', last: '5h ago' },
+        { id: 'p6', name: 'Morgan Diaz', ini: 'MD', hue: 60, email: 'morgan@team.dev', role: 'observer', status: 'active', last: '3d ago' },
+        { id: 'p7', name: '', ini: 'CA', hue: 0, email: 'casey@team.dev', role: 'contrib', status: 'invited', last: '', sent: 'Oct 6' }
+      ]
+    };
+    if (empty) { ws.members = ws.members.slice(0, 1); prj.members = prj.members.slice(0, 1); }
+    return { ws, prj };
+  }
+  msBuild(id, cfg) {
+    const self = this;
+    const u = { ...(cfg.init || {}), ...this.msGet(id) };
+    const set = (patch) => self.msSet(id, patch);
+    const role = cfg.role || 'admin';
+    const admin = role === 'admin';
+    const narrow = !!cfg.narrow;
+    const scope = u.scope || 'ws';
+    const tab = u.tab || 'members';
+    const view = u.view || cfg.state || 'ready';
+    const ready = view === 'ready';
+    const data = u.data || this.msSeed(!!cfg.empty);
+    const D = data[scope];
+    const roles = D.roles;
+    const members = D.members;
+    const PERMS = this.msPerms().filter((p) => p.sc === 'both' || p.sc === scope);
+    const roleById = (rid) => roles.find((r) => r.id === rid) || { id: rid, name: '—', desc: '', perms: [] };
+    const countOf = (rid) => members.filter((x) => x.role === rid).length;
+    const label = (x) => x.status === 'invited' ? x.email : x.name;
+    const avOf = (x) => ({ ini: x.ini, bg: x.status === 'invited' ? 'transparent' : 'oklch(var(--av-l) var(--av-c) ' + x.hue + ')', cls: x.status === 'invited' ? 'inv' : '' });
+    const menu = u.menu || null;
+    const toggle = (key) => set({ menu: menu === key ? null : key });
+    const commit = (nd, extra) => set({ data: { ...data, [scope]: nd }, ...(extra || {}) });
+    const toastPatch = (text, undoData) => {
+      const tid = Date.now() + Math.random();
+      setTimeout(() => { const cu = self.msGet(id); if (cu.toast && cu.toast.id === tid) self.msSet(id, { toast: null }); }, 5000);
+      return { toast: { id: tid, text, undo: undoData || null } };
+    };
+    const toast = u.toast || null;
+    const scopeName = scope === 'ws' ? 'Platform team' : 'Platform Rebuild';
+    const assignable = roles.filter((r) => r.id !== 'owner');
+
+    // ---- role editor model ----
+    const selMap = u.sel || {};
+    const R = roles.find((r) => r.id === selMap[scope]) || roles[0];
+    const draft = u.draft && u.draft.rid === R.id && u.draft.scope === scope ? u.draft : null;
+    const cur = draft || { name: R.name, desc: R.desc, perms: R.perms };
+    const has = (list, pid) => list.indexOf(pid) >= 0;
+    const permChanged = (pid) => has(cur.perms, pid) !== has(R.perms, pid);
+    const chgCount = PERMS.filter((p) => permChanged(p.id)).length + (cur.name !== R.name ? 1 : 0) + (cur.desc !== R.desc ? 1 : 0);
+    const dirty = !!draft && chgCount > 0;
+    const locked = !!R.sys;
+    const shake = () => set({ shakeN: (u.shakeN || 0) + 1 });
+    const guard = (fn) => () => { if (dirty) { shake(); return; } fn(); };
+    const editDraft = (patch) => set({ draft: { rid: R.id, scope, name: cur.name, desc: cur.desc, perms: cur.perms.slice(), ...patch }, nameErr: '' });
+    const save = () => {
+      const nm = String(cur.name || '').trim().slice(0, 40);
+      if (!nm) { set({ nameErr: 'Name is required' }); return; }
+      if (roles.some((r) => r.id !== R.id && r.name.toLowerCase() === nm.toLowerCase())) { set({ nameErr: 'A role with this name exists' }); return; }
+      const nd = { ...D, roles: roles.map((r) => r.id === R.id ? { ...r, name: nm, desc: String(cur.desc || '').trim().slice(0, 80), perms: cur.perms.slice() } : r) };
+      commit(nd, { draft: null, nameErr: '', ...toastPatch('Saved ' + nm, data) });
+    };
+    const discard = () => set({ draft: null, nameErr: '' });
+    const duplicate = () => {
+      if (dirty) { shake(); return; }
+      let nm = 'Copy of ' + R.name; let k = 2;
+      while (roles.some((r) => r.name === nm)) { nm = 'Copy of ' + R.name + ' ' + k; k += 1; }
+      const nid = 'r' + Date.now();
+      const nd = { ...D, roles: roles.concat({ id: nid, name: nm, desc: R.desc, sys: false, perms: R.perms.slice() }) };
+      commit(nd, { sel: { ...selMap, [scope]: nid }, edOpen: true, draft: null, ...toastPatch('Created ' + nm, data) });
+    };
+    const affected = members.filter((x) => x.role === R.id);
+    const askDelete = () => {
+      if (locked) return;
+      if (affected.length) { set({ dialog: 'delete', reass: '', dmenu: false, menu: null }); return; }
+      const rest = roles.filter((r) => r.id !== R.id);
+      commit({ ...D, roles: rest }, { draft: null, sel: { ...selMap, [scope]: rest[0].id }, ...toastPatch('Deleted ' + R.name, data) });
+    };
+    const groups = ['Tasks', 'Planning', 'Collaboration', 'Reports', 'Administration'].map((area) => {
+      const ps = PERMS.filter((p) => p.area === area);
+      return {
+        name: area, total: ps.length, onN: ps.filter((p) => has(cur.perms, p.id)).length,
+        perms: ps.map((p) => ({
+          name: p.name, desc: p.desc, on: has(cur.perms, p.id),
+          cls: (locked ? 'lck' : '') + (permChanged(p.id) ? ' chg' : ''),
+          toggle: () => { if (locked || !admin) return; editDraft({ perms: has(cur.perms, p.id) ? cur.perms.filter((x) => x !== p.id) : cur.perms.concat(p.id) }); }
+        }))
+      };
+    });
+    const roleItem = (r) => ({ name: r.name, count: countOf(r.id), on: r.id === R.id ? 'on' : '', cur: r.id === R.id ? 'true' : 'false', pick: () => { if (r.id === R.id) { set({ edOpen: true }); return; } if (dirty) { shake(); return; } set({ sel: { ...selMap, [scope]: r.id }, edOpen: true, draft: null, nameErr: '' }); } });
+
+    // ---- members ----
+    const q = String(u.q || '').trim().toLowerCase();
+    const rf = u.rf && roles.some((r) => r.id === u.rf) ? u.rf : '';
+    const shown = members.filter((x) => (!rf || x.role === rf) && (!q || (x.name || '').toLowerCase().indexOf(q) >= 0 || x.email.indexOf(q) >= 0));
+    const resend = (xid) => {
+      set({ menu: null, resent: xid });
+      setTimeout(() => { if (self.msGet(id).resent === xid) self.msSet(id, { resent: null }); }, 2200);
+    };
+    const revoke = (x) => commit({ ...D, members: members.filter((y) => y.id !== x.id) }, { menu: null, ...toastPatch('Invite to ' + x.email + ' revoked', data) });
+    const rows = shown.map((x) => {
+      const inv = x.status === 'invited';
+      const rr = roleById(x.role);
+      const isYou = !!x.you;
+      const canPick = admin && !isYou && x.role !== 'owner';
+      const av = avOf(x);
+      return {
+        name: label(x), email: inv ? 'Invited ' + x.sent : x.email, ini: av.ini, avBg: av.bg, avCls: av.cls, isYou,
+        roleName: rr.name, canPick, roStatic: !canPick, cls: inv ? 'is-inv' : '',
+        stCls: inv ? 'inv' : 'act', stLabel: inv ? 'Invited' : 'Active', last: inv ? '—' : x.last,
+        hasMenu: canPick, menuOpen: menu === 'row:' + x.id, pickOpen: menu === 'pick:' + x.id,
+        toggleMenu: () => toggle('row:' + x.id), togglePick: () => toggle('pick:' + x.id), openPick: () => set({ menu: 'pick:' + x.id }),
+        isAct: !inv, isInv: inv,
+        opts: assignable.map((r) => ({
+          name: r.name, sel: r.id === x.role, on: r.id === x.role ? 'on' : '',
+          pick: () => { if (r.id === x.role) { set({ menu: null }); return; } commit({ ...D, members: members.map((y) => y.id === x.id ? { ...y, role: r.id } : y) }, { menu: null, ...toastPatch(label(x) + ' is now ' + r.name, data) }); }
+        })),
+        remove: () => commit({ ...D, members: members.filter((y) => y.id !== x.id) }, { menu: null, ...toastPatch('Removed ' + x.name, data) }),
+        resend: () => resend(x.id), revoke: () => revoke(x)
+      };
+    });
+    const invites = members.filter((x) => x.status === 'invited').map((x) => {
+      const ok = u.resent === x.id;
+      return { ini: x.ini, email: x.email, roleName: roleById(x.role).name, sent: x.sent, sentOk: ok, canResend: !ok, resend: () => resend(x.id), revoke: () => revoke(x) };
+    });
+
+    // ---- invite dialog ----
+    const I = u.inv || { chips: [], text: '', role: scope === 'ws' ? 'member' : 'contrib', menu: false };
+    const setInv = (patch) => set({ inv: { ...I, ...patch } });
+    const iRole = assignable.find((r) => r.id === I.role) || assignable[0];
+    const emails = members.map((x) => x.email);
+    const RE = /^[^\s@,;]+@[^\s@,;]+\.[a-z]{2,}$/i;
+    const addChips = (list, rest) => {
+      const next = I.chips.slice();
+      list.map((s) => String(s).trim().toLowerCase().slice(0, 120)).filter(Boolean).forEach((s) => { if (next.indexOf(s) < 0) next.push(s); });
+      setInv({ chips: next.slice(0, 20), text: String(rest || '').slice(0, 120) });
+    };
+    const chips = I.chips.map((v, i) => {
+      const ok = RE.test(v);
+      const dup = ok && emails.indexOf(v) >= 0;
+      return { v, ok, dup, cls: !ok ? 'bad' : (dup ? 'dup' : ''), title: !ok ? 'Invalid email' : (dup ? 'Already a member' : v), remove: () => setInv({ chips: I.chips.filter((_, j) => j !== i) }) };
+    });
+    const valid = chips.filter((c) => c.ok && !c.dup);
+    const bad = chips.filter((c) => !c.ok);
+    const dups = chips.filter((c) => c.dup);
+    const cannotSend = valid.length === 0 || bad.length > 0;
+    const closeDialog = () => set({ dialog: null, inv: null, reass: '', dmenu: false });
+    const sendInv = () => {
+      if (cannotSend) return;
+      const ts = Date.now();
+      const add = valid.map((c, i) => ({ id: 'i' + ts + i, name: '', ini: c.v.slice(0, 2).toUpperCase(), hue: 0, email: c.v, role: iRole.id, status: 'invited', last: '', sent: 'Oct 7' }));
+      commit({ ...D, members: members.concat(add) }, { dialog: null, inv: null, ...toastPatch(add.length === 1 ? 'Invite sent to ' + add[0].email : add.length + ' invitations sent', data) });
+    };
+    const inv = {
+      chips, text: I.text || '', ph: I.chips.length ? '' : 'name@team.dev, …', boxCls: bad.length ? 'bad' : '',
+      hasMsg: bad.length > 0 || dups.length > 0,
+      msg: bad.length ? (bad.length === 1 ? '“' + bad[0].v + '” isn’t a valid email' : bad.length + ' invalid emails') : (dups.length ? dups.map((c) => c.v).join(', ') + ' already in ' + scopeName + ' · skipped' : ''),
+      msgCls: bad.length ? 'err' : 'note',
+      hint: bad.length ? 'Fix invalid emails to send' : (valid.length ? '' : 'Enter or comma adds an email'),
+      cannotSend, sendLabel: valid.length > 1 ? 'Send ' + valid.length + ' invites' : 'Send invite', send: sendInv,
+      roleName: iRole.name, roleDesc: iRole.desc, menu: !!I.menu, toggleMenu: () => setInv({ menu: !I.menu }),
+      opts: assignable.map((r) => ({ name: r.name, desc: r.desc, sel: r.id === iRole.id, on: r.id === iRole.id ? 'on' : '', pick: () => setInv({ role: r.id, menu: false }) })),
+      onText: (e) => {
+        const v = String(e.target.value || '');
+        if (/[\s,;]/.test(v)) { const segs = v.split(/[\s,;]+/); const rest = /[\s,;]$/.test(v) ? '' : segs.pop(); addChips(segs, rest); }
+        else setInv({ text: v.slice(0, 120) });
+      },
+      onKey: (e) => {
+        const v = String(e.target.value || '');
+        if ((e.key === 'Enter' || e.key === 'Tab') && v.trim()) { e.preventDefault(); addChips([v], ''); }
+        else if (e.key === 'Enter' && !v.trim()) { e.preventDefault(); sendInv(); }
+        else if (e.key === 'Backspace' && !v && I.chips.length) { setInv({ chips: I.chips.slice(0, -1) }); }
+      },
+      onBlur: (e) => { const v = String(e.target.value || ''); if (v.trim()) addChips([v], ''); },
+      onDlgKey: (e) => { if (e.key !== 'Escape') return; e.stopPropagation(); if (I.menu) setInv({ menu: false }); else closeDialog(); }
+    };
+
+    // ---- delete dialog ----
+    const toR = roles.find((r) => r.id === u.reass && r.id !== R.id);
+    const n = affected.length;
+    const del = {
+      name: R.name,
+      reason: 'In use by ' + n + (n === 1 ? ' member' : ' members') + '. Reassign before deleting.',
+      avs: affected.slice(0, 5).map(avOf), names: affected.slice(0, 3).map(label).join(', ') + (n > 3 ? ' +' + (n - 3) : ''),
+      toName: toR ? toR.name : 'Choose a role', selCls: toR ? '' : 'ph', menu: !!u.dmenu,
+      toggleMenu: () => set({ dmenu: !u.dmenu }),
+      opts: roles.filter((r) => r.id !== R.id && r.id !== 'owner').map((r) => ({ name: r.name, n: countOf(r.id), sel: !!toR && toR.id === r.id, on: toR && toR.id === r.id ? 'on' : '', pick: () => set({ reass: r.id, dmenu: false }) })),
+      cannot: !toR, hint: toR ? n + ' → ' + toR.name : 'Pick a role to enable Delete',
+      confirm: () => {
+        if (!toR) return;
+        const nd = { ...D, roles: roles.filter((r) => r.id !== R.id), members: members.map((x) => x.role === R.id ? { ...x, role: toR.id } : x) };
+        commit(nd, { dialog: null, reass: '', dmenu: false, draft: null, sel: { ...selMap, [scope]: toR.id }, ...toastPatch(R.name + ' deleted · ' + n + ' moved to ' + toR.name, data) });
+      },
+      onDlgKey: (e) => { if (e.key !== 'Escape') return; e.stopPropagation(); if (u.dmenu) set({ dmenu: false }); else closeDialog(); }
+    };
+
+    const dialog = u.dialog || null;
+    const showRoles = ready && tab === 'roles' && admin;
+    const nRoleMembers = countOf(R.id);
+    const grantN = PERMS.filter((p) => has(cur.perms, p.id)).length;
+    const rfOpts = [{ name: 'All roles', n: members.length, sel: !rf, on: !rf ? 'on' : '', pick: () => set({ rf: '', menu: null }) }]
+      .concat(roles.map((r) => ({ name: r.name, n: countOf(r.id), sel: rf === r.id, on: rf === r.id ? 'on' : '', pick: () => set({ rf: r.id, menu: null }) })));
+    const toScope = (s) => () => { if (s === scope) return; if (dirty) { shake(); return; } set({ scope: s, menu: null, rf: '', q: '', edOpen: false, nameErr: '' }); };
+    return {
+      uid: 'mm-' + id,
+      cls: (narrow ? 'narrow' : '') + (cfg.compact ? ' compact' : ''),
+      admin, notAdmin: !admin, roleLabel: role,
+      isWs: scope === 'ws', isPrj: scope === 'prj', segX: scope === 'ws' ? 0 : 100,
+      toWs: toScope('ws'), toPrj: toScope('prj'), scopeName,
+      tabM: tab === 'members', tabR: tab === 'roles', tabX: tab === 'members' ? 0 : 100,
+      pickM: guard(() => set({ tab: 'members', menu: null })), pickR: () => set({ tab: 'roles', menu: null }),
+      memCount: members.length, roleCount: roles.length,
+      isLoading: view === 'loading', isError: view === 'error',
+      skRows: [[120, 150], [96, 170], [132, 140], [104, 160], [118, 130], [90, 150]].map((w) => ({ w: w[0], w2: w[1] })),
+      retry: () => { set({ view: 'loading' }); setTimeout(() => self.msSet(id, { view: 'ready' }), 900); },
+      showMembers: ready && tab === 'members',
+      q: u.q || '', onQ: (e) => set({ q: String(e.target.value || '').slice(0, 80) }),
+      rfOpen: menu === 'rf', toggleRf: () => toggle('rf'), rfLabel: rf ? roleById(rf).name : 'All roles', rfOpts,
+      roleColLabel: scope === 'ws' ? 'Role' : 'Project role',
+      removeLabel: scope === 'ws' ? 'Remove from workspace' : 'Remove from project',
+      rows, hasRows: rows.length > 0, noMatch: rows.length === 0 && members.length > 0,
+      justYou: members.length === 1 && rows.length === 1,
+      clearFilters: () => set({ q: '', rf: '' }),
+      openInvite: () => set({ dialog: 'invite', inv: null, menu: null }),
+      showPending: admin && invites.length > 0, invites, invCount: invites.length,
+      showDenied: ready && tab === 'roles' && !admin,
+      requested: !!u.requested, notRequested: !u.requested, requestAccess: () => set({ requested: true }),
+      showRoles, edCls: u.edOpen ? 'ed-open' : '',
+      sysRoles: roles.filter((r) => r.sys).map(roleItem), cusRoles: roles.filter((r) => !r.sys).map(roleItem),
+      back: guard(() => set({ edOpen: false })),
+      locked, editable: !locked, curName: cur.name, curDesc: cur.desc,
+      onName: (e) => editDraft({ name: String(e.target.value || '').slice(0, 40) }),
+      onDesc: (e) => editDraft({ desc: String(e.target.value || '').slice(0, 80) }),
+      hasNameErr: !!u.nameErr, nameErr: u.nameErr || '',
+      duplicate, askDelete,
+      roleAvs: affected.slice(0, 4).map(avOf),
+      roleCountLabel: nRoleMembers === 1 ? '1 member' : nRoleMembers + ' members',
+      grantSummary: grantN + ' of ' + PERMS.length + ' permissions',
+      showRoleMembers: guard(() => set({ tab: 'members', rf: R.id, q: '' })),
+      groups,
+      showBar: showRoles && dirty, chgCount, shkCls: u.shakeN ? 'shk' + (u.shakeN % 2) : '', save, discard,
+      hasToast: !!toast, toastText: toast ? toast.text : '', canUndo: !!(toast && toast.undo),
+      toastCls: showRoles && dirty ? 'up' : '',
+      undo: () => { if (toast && toast.undo) set({ data: toast.undo, toast: null, draft: null }); },
+      dismissToast: () => set({ toast: null }),
+      inviteOpen: dialog === 'invite' && admin, inv,
+      deleteOpen: dialog === 'delete' && admin && showRoles, del,
+      closeDialog,
+      menuOpen: !!menu, closeMenu: () => set({ menu: null }),
+      onKey: (e) => {
+        if (e.key === 'Escape' && menu) { set({ menu: null }); return; }
+        if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S') && showRoles && dirty) { e.preventDefault(); save(); }
+      }
+    };
+  }
+  renderVals() {
+    const theme = this.props.theme ?? 'navy';
+    const role = this.props.role ?? 'admin';
+    const seed = this.msSeed(false);
+    const qa = seed.ws.roles.find((r) => r.id === 'qa');
+    const S = (id, cfg) => [this.msBuild(id, cfg)];
+    const frames = [
+      { label: 'Members & roles', meta: 'interactive · switch scope, tabs, roles · role tweak', span: 6, w: '100%', h: 860, r: 14,
+        sbFrames: [this.sbFrame('main', { role, collapsible: true, active: 'PR', sub: 'none' })],
+        screens: S('main', { role, init: { sel: { ws: 'qa', prj: 'captain' } } }) },
+      { label: 'Invite dialog', meta: 'chips · validation · Esc closes', span: 3, w: '100%', h: 580, r: 14, sbFrames: [],
+        screens: S('inv', { compact: true, init: { dialog: 'invite', inv: { chips: ['priya@team.dev', 'sam@team.dev', 'jamie@team'], text: '', role: 'member', menu: false } } }) },
+      { label: 'Delete role in use', meta: 'reassign first · Delete enables after', span: 3, w: '100%', h: 580, r: 14, sbFrames: [],
+        screens: S('del', { compact: true, init: { tab: 'roles', sel: { ws: 'qa' }, dialog: 'delete' } }) },
+      { label: 'Locked system role', meta: 'read-only toggles · duplicate', span: 3, w: '100%', h: 720, r: 14, sbFrames: [],
+        screens: S('lock', { compact: true, init: { tab: 'roles', sel: { ws: 'admin' } } }) },
+      { label: 'Unsaved changes', meta: 'sticky bar · ⌘S · switching role shakes', span: 3, w: '100%', h: 720, r: 14, sbFrames: [],
+        screens: S('dirty', { compact: true, init: { tab: 'roles', sel: { ws: 'qa' }, draft: { rid: 'qa', scope: 'ws', name: qa.name, desc: qa.desc, perms: qa.perms.filter((x) => x !== 'r.export').concat(['p.sprints']) } } }) },
+      { label: 'Permission denied', meta: 'member opens Roles', span: 3, w: '100%', h: 480, r: 14, sbFrames: [],
+        screens: S('deny', { compact: true, role: 'member', init: { tab: 'roles' } }) },
+      { label: 'Error', meta: 'retry', span: 3, w: '100%', h: 480, r: 14, sbFrames: [],
+        screens: S('err', { compact: true, state: 'error' }) },
+      { label: 'Loading', meta: 'skeleton in final positions', span: 3, w: '100%', h: 480, r: 14, sbFrames: [],
+        screens: S('load', { compact: true, state: 'loading' }) },
+      { label: 'Empty', meta: 'new workspace', span: 3, w: '100%', h: 480, r: 14, sbFrames: [],
+        screens: S('empty', { compact: true, empty: true }) },
+      { label: 'Mobile · members', meta: '390 · cards', span: 2, w: '390px', h: 800, r: 28, sbFrames: [],
+        screens: S('mob1', { narrow: true, role }) },
+      { label: 'Mobile · role editor', meta: 'full-screen page', span: 2, w: '390px', h: 800, r: 28, sbFrames: [],
+        screens: S('mob2', { narrow: true, init: { tab: 'roles', sel: { ws: 'qa' }, edOpen: true } }) },
+      { label: 'Mobile · invite', meta: 'bottom sheet', span: 2, w: '390px', h: 800, r: 28, sbFrames: [],
+        screens: S('mob3', { narrow: true, init: { dialog: 'invite', inv: { chips: ['priya@team.dev'], text: '', role: 'member', menu: false } } }) }
+    ];
+    return { themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy', frames };
+  }
+}
+</script>
+
+
+</body></html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Task panel v2</title>
+<script src="../assets/1955e7e5-34c1-43fa-b7e3-11a820cb4475.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg)}
+.mockbg{position:absolute;inset:0;padding:60px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.mockbg i{display:block;height:84px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.scrim{position:absolute;inset:0;background:rgba(2,5,14,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+/*TP-CSS-START*/
+.tp{position:absolute;top:0;right:0;bottom:0;width:520px;max-width:100%;display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--line-2);box-shadow:var(--shadow-modal);z-index:5;transition:width 250ms var(--ease)}
+.tp.full{width:100%;border-left:0;box-shadow:none}
+.tp.static{position:absolute;inset:0;width:auto;box-shadow:none;border-left:0}
+.tp.leaving{animation:tpout 160ms var(--ease) forwards}
+.tp.sheet{top:auto;left:0;right:0;bottom:0;width:auto;height:88%;border-left:0;border-top:1px solid var(--line-2);border-radius:18px 18px 0 0;box-shadow:0 -16px 48px rgba(0,0,0,.45);animation:tpsheet 280ms var(--ease)}
+@keyframes tpout{to{opacity:0;transform:translateX(24px)}}
+@keyframes tpsheet{from{transform:translateY(100%)}to{transform:none}}
+.tp-fade{animation:tpfade 160ms var(--ease)}
+@keyframes tpfade{from{opacity:0}to{opacity:1}}
+.tp-grab{display:none;width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:8px auto 0;flex:none}
+.sheet .tp-grab{display:block}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.tp-head{height:48px;flex:none;display:flex;align-items:center;gap:4px;padding:0 8px 0 14px;border-bottom:1px solid var(--line)}
+.tp-crumb{font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.tp-key{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.tp-key:hover{background:var(--hover);color:var(--text)}
+.tp-ib{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-2);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.tp-ib:hover{background:var(--hover);color:var(--text)}
+.tp-done{display:inline-flex;align-items:center;gap:7px;height:28px;margin-right:4px;padding:0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 12px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),color 120ms var(--ease),transform 120ms var(--ease)}
+.tp-done:hover{border-color:var(--ok)}
+.tp-done:active{transform:scale(.97)}
+.tp-done.is{border-color:transparent;background:rgba(74,222,128,.14);color:var(--ok)}
+.tp-ring{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text-3);position:relative;flex:none;display:inline-block}
+.is .tp-ring{background:var(--ok);border-color:var(--ok)}
+.is .tp-ring::after{content:"";position:absolute;left:3.5px;top:1px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-ring.fx{animation:tppop 240ms var(--spring)}
+.tp-ring.fx::after{animation:tpdraw 180ms var(--ease) 60ms both}
+.tp-ring.fx::before,.tp-g.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:tpspark 440ms var(--ease) both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpdraw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.tp-scroll{flex:1;min-height:0;overflow:auto}
+.tp-body{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "props" "main";row-gap:16px;padding:18px 20px 40px;max-width:1200px;margin:0 auto}
+.full .tp-body{grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"title rail" "main rail";column-gap:48px;row-gap:20px;padding:28px 40px 60px}
+.tp-title{grid-area:title;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tp-props{grid-area:props;display:flex;flex-direction:column;gap:12px;min-width:0}
+.full .tp-props{grid-area:rail;border-left:1px solid var(--line);padding-left:24px;align-self:start}
+.tp-main{grid-area:main;display:flex;flex-direction:column;gap:24px;min-width:0}
+.tp-ti{display:block;width:100%;text-align:left;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text);font:600 22px/30px 'Inter',sans-serif;letter-spacing:-.015em;padding:2px 8px;margin-left:-9px;cursor:text;transition:background-color 120ms var(--ease)}
+.tp-ti:hover{background:var(--hover)}
+.tp-tin{width:100%;border:1px solid var(--accent);box-shadow:0 0 0 3px var(--accent-s);border-radius:7px;background:var(--surface);color:var(--text);font:600 22px/30px 'Inter',sans-serif;letter-spacing:-.015em;padding:1px 7px;margin-left:-9px}
+.tp-tin:focus{outline:none}
+.tp-note{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--raised);font-size:12px;color:var(--text-2)}
+.tp-rel{position:relative}
+.tp-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tp-chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:border-color 120ms var(--ease),background-color 120ms var(--ease)}
+.tp-chip:hover,.tp-chip[aria-expanded=true]{border-color:var(--control);background:var(--hover)}
+.tp-chip.ghost{border-style:dashed;background:transparent;color:var(--text-3)}
+.tp-chip.ghost:hover{color:var(--text)}
+.tp-chip.ro{cursor:default}
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-av.l{width:28px;height:28px;font-size:11px}
+.tp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.tp-f{display:flex;flex-direction:column;gap:3px;padding:6px 8px;margin:0 -8px;border-radius:7px;border:0;background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;transition:background-color 120ms var(--ease)}
+.tp-f:hover{background:var(--hover)}
+.tp-f.ro{cursor:default}
+.tp-f.ro:hover{background:transparent}
+.tp-fl{font-size:11px;line-height:14px;color:var(--text-3);font-weight:500}
+.tp-fv{font-size:13px;line-height:18px;color:var(--text);font-weight:500;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-sub{color:var(--text-3);font-weight:400}
+.tp-sub.soon{color:var(--warn)}
+.tp-num{width:72px;height:26px;padding:0 8px;border-radius:6px;border:1px solid var(--accent);box-shadow:0 0 0 3px var(--accent-s);background:var(--surface);color:var(--text);font:500 13px/1 'JetBrains Mono',monospace}
+.tp-num:focus{outline:none}
+.tp-plan{border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.tp-planh{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--text);font:600 12.5px/1 'Inter',sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.tp-planh:hover{background:var(--hover)}
+.tp-planh svg{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.tp-planh[aria-expanded=true] svg{transform:rotate(90deg)}
+.tp-sum{flex:1;min-width:0;font-weight:400;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity 150ms var(--ease)}
+.tp-planh[aria-expanded=true] .tp-sum{opacity:0}
+.tp-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.tp-col.open{grid-template-rows:1fr}
+.tp-col>div{overflow:hidden;min-height:0}
+.tp-pr{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;min-height:30px;padding:0 10px}
+.tp-pv{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 6px;margin-left:-6px;border-radius:6px;border:0;background:transparent;color:var(--text);font:500 13px/1.3 'Inter',sans-serif;cursor:pointer;text-align:left;max-width:100%}
+.tp-pv:hover{background:var(--hover)}
+.tp-pv.ro{cursor:default}.tp-pv.ro:hover{background:transparent}
+.tp-oc{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 4px 0 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line);font-size:12px;font-weight:500;white-space:nowrap}
+.tp-oc.ro{padding-right:8px}
+.tp-oc button{width:18px;height:18px;border:0;border-radius:4px;background:transparent;color:var(--text-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tp-oc button:hover{background:var(--hover);color:var(--text)}
+.tp-labels{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tp-lab{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line);font-size:12px;font-weight:500;color:var(--text)}
+.tp-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.tp-mini{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:22px;min-width:22px;padding:0 6px;border-radius:6px;border:1px dashed var(--line-2);background:transparent;color:var(--text-3);font:500 12px/1 'Inter',sans-serif;cursor:pointer}
+.tp-mini:hover{color:var(--text);border-color:var(--control)}
+.tp-addp{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 8px;margin-left:-8px;border-radius:6px;border:0;background:transparent;color:var(--text-3);font:500 12px/1 'Inter',sans-serif;cursor:pointer}
+.tp-addp:hover,.tp-addp[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.tp-menu{position:absolute;z-index:20;min-width:220px;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:tpmenu 150ms var(--ease)}
+@keyframes tpmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.tp-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left}
+.tp-mi:hover{background:var(--hover)}
+.tp-mi.on{background:var(--accent-s)}
+.tp-mi.dng{color:var(--danger)}
+.tp-sep{height:1px;background:var(--line);margin:4px -4px}
+.tp-mh{padding:6px 8px 4px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.tp-sec{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tp-sec h3{margin:0;font-size:13px;font-weight:600}
+.tp-cnt{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.tp-rt{font-size:14px;line-height:22px;color:var(--text)}
+.tp-rt p{margin:0 0 10px}
+.tp-rt h4{margin:12px 0 6px;font-size:13px;font-weight:600}
+.tp-rt ol{margin:0 0 10px;padding-left:20px}
+.tp-rt code{font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:1px 5px;border-radius:4px;background:var(--raised);border:1px solid var(--line)}
+.tp-code{border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden;margin:4px 0 10px}
+.tp-codeh{display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 4px 0 12px;border-bottom:1px solid var(--line);font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.tp-code pre{margin:0;padding:12px 14px;font:400 12.5px/20px 'JetBrains Mono',monospace;color:var(--text);overflow-x:auto}
+.tk{color:var(--info)}.tf{color:var(--accent-t)}.tc{color:var(--text-3)}
+.tp-descb{display:block;width:100%;text-align:left;border:0;border-radius:8px;background:transparent;padding:6px 8px;margin:-6px -8px;cursor:text;color:inherit;font:inherit;transition:background-color 120ms var(--ease)}
+.tp-descb:hover{background:var(--hover)}
+.tp-editor{border:1px solid var(--accent);box-shadow:0 0 0 3px var(--accent-s);border-radius:8px;background:var(--surface)}
+.tp-tbar{display:flex;align-items:center;gap:2px;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tp-tbar button{height:26px;min-width:26px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--text-2);font:600 12px/1 'Inter',sans-serif;cursor:pointer}
+.tp-tbar button:hover{background:var(--hover);color:var(--text)}
+.tp-btn{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px;border-radius:6px;font:500 12px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.tp-btn:hover{background:var(--hover);color:var(--text)}
+.tp-btn.pri{background:var(--accent);color:#fff}
+.tp-btn.pri:hover{background:var(--accent-h)}
+.tp-btn.pri .tp-kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.tp-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.tp-bar{height:6px;border-radius:3px;background:var(--raised);border:1px solid var(--line);overflow:hidden;flex:1}
+.tp-bar span{display:block;height:100%;background:var(--ok);border-radius:3px;transition:width 300ms var(--ease)}
+.tp-srow{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:6px}
+.tp-srow:hover{background:var(--hover)}
+.tp-cb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.tp-cb::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.tp-cb:checked{background:var(--accent);border-color:var(--accent)}
+.tp-cb:checked::after{transform:rotate(-45deg) scale(1)}
+.tp-done-t{color:var(--text-3);text-decoration:line-through}
+.tp-att{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.tp-tile{border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden;min-width:0}
+.tp-thumb{height:70px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:repeating-linear-gradient(135deg,var(--raised) 0 8px,var(--surface) 8px 16px);font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.tp-cprev{height:70px;padding:8px 10px;border-bottom:1px solid var(--line);font:400 10.5px/15px 'JetBrains Mono',monospace;color:var(--text-2);overflow:hidden;white-space:pre}
+.tp-tm{padding:7px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tp-tn{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-ts{font-size:11px;color:var(--text-3)}
+.tp-dz{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:70px;padding:10px;border:1.5px dashed var(--line-2);border-radius:8px;text-align:center;color:var(--text-2);transition:border-color 120ms var(--ease),background-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.tp-dz.over{border-color:var(--accent);background:var(--accent-s);box-shadow:0 0 0 4px var(--accent-s)}
+.tp-dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.tp-up{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.tp-up .tp-bar span{background:var(--accent);transition:width 120ms linear}
+.tp-up.err{border-color:var(--danger)}
+.tp-ext{width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font:600 8.5px/1 'JetBrains Mono',monospace;background:var(--raised);border:1px solid var(--line-2);flex:none}
+.tp-tabs{position:relative;display:inline-flex;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tp-tab{width:112px;height:34px;border:0;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.tp-tab[aria-selected=true]{color:var(--text)}
+.tp-ind{position:absolute;left:0;bottom:-1px;width:112px;height:2px;background:var(--accent);border-radius:2px;transition:transform 200ms var(--spring)}
+.tp-cmt{display:flex;gap:12px;padding:8px 0}
+.tp-mention{color:var(--accent-t);background:var(--accent-s);padding:0 3px;border-radius:4px;font-weight:500}
+.tp-icode{font-family:'JetBrains Mono',monospace;font-size:12px;padding:1px 4px;border-radius:4px;background:var(--raised);border:1px solid var(--line)}
+.tp-comp{position:relative;display:flex;gap:10px;align-items:flex-start;padding-top:8px}
+.tp-cin{flex:1;min-height:40px;padding:10px 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:400 13px/20px 'Inter',sans-serif;resize:none}
+.tp-cin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.tp-tl{position:relative;padding-left:22px;display:flex;flex-direction:column;gap:12px}
+.tp-tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:1px;background:var(--line-2)}
+.tp-tli{position:relative;font-size:13px;line-height:20px;color:var(--text-2)}
+.tp-tli::before{content:"";position:absolute;left:-20px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:1.5px solid var(--control)}
+.tp-tli b{color:var(--text);font-weight:500}
+.tp-banner{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised)}
+.tp-dim{opacity:.55;pointer-events:none;filter:saturate(.6)}
+.tp-key:focus-visible,.tp-ib:focus-visible,.tp-done:focus-visible,.tp-ti:focus-visible,.tp-chip:focus-visible,.tp-f:focus-visible,.tp-planh:focus-visible,.tp-pv:focus-visible,.tp-mini:focus-visible,.tp-addp:focus-visible,.tp-mi:focus-visible,.tp-descb:focus-visible,.tp-btn:focus-visible,.tp-tab:focus-visible,.tp-oc button:focus-visible,.tp-dz:focus-within,.tp-cb:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){
+  .tp:not(.static){position:fixed;top:auto;left:0;right:0;bottom:0;width:auto!important;height:92vh;border-left:0;border-top:1px solid var(--line-2);border-radius:18px 18px 0 0;animation:tpsheet 280ms var(--ease)}
+  .tp:not(.static) .tp-grab{display:block}
+}
+.sheet .tp-body,.narrow .tp-body{padding:12px 16px 32px}
+.sheet .tp-chips{flex-wrap:nowrap;overflow-x:auto}
+.sheet .tp-chip{height:36px}
+.sheet .tp-crumb{display:none}
+@media (max-width:760px){.tp-body,.full .tp-body{grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "props" "main";padding:12px 16px 32px}.full .tp-props{border-left:0;padding-left:0}.tp-chips{flex-wrap:nowrap;overflow-x:auto}.tp-chip{height:36px}}
+@media (prefers-reduced-motion:reduce){.tp,.tp *{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+/*TP-CSS-END*/
+</style>
+</helmet>
+<div class="ds t-navy" style="width:1440px;height:3020px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · TASK DETAIL v2</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Task panel</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>3 chips</span><span>4 fields</span><span>Planning folded</span><span>empty = hidden</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px">
+    <sc-for list="{{frames}}" as="fr" hint-placeholder-count="7">
+      <figure class="frame" style="grid-column:span {{fr.span}}">
+        <figcaption>{{fr.label}}<span>{{fr.meta}}</span></figcaption>
+        <div class="dev" style="height:{{fr.h}}px;border-radius:{{fr.r}}px;width:{{fr.w}}">
+          <sc-if value="{{fr.phone}}" hint-placeholder-val="{{false}}"><div class="mockbg"><i></i><i></i><i></i><i></i></div><div class="scrim"></div></sc-if>
+          <sc-for list="{{fr.panels}}" as="p" hint-placeholder-count="1">
+<!--TP-START-->
+            <aside class="tp {{p.cls}}" aria-label="Task {{p.key}}" sc-camel-on-key-down="{{p.onKey}}">
+              <span class="tp-grab" aria-hidden="true"></span>
+              <div class="tp-head">
+                <span class="tp-crumb">{{p.crumb}}</span><span style="color:var(--text-3);margin:0 2px">/</span>
+                <button class="tp-key" type="button" sc-camel-on-click="{{p.copyKey}}" aria-label="Copy task key {{p.key}}">{{p.key}}<svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg></button>
+                <sc-if value="{{p.copied}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size:12px;color:var(--ok)">Copied</span></sc-if>
+                <span style="flex:1"></span>
+                <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}">
+                  <button class="tp-done {{p.doneCls}}" type="button" aria-pressed="{{p.isDone}}" sc-camel-on-click="{{p.markDone}}" title="{{p.doneTitle}}"><span class="tp-ring {{p.ringFx}}"></span>{{p.doneLabel}}</button>
+                </sc-if>
+                <sc-if value="{{p.showExpand}}" hint-placeholder-val="{{true}}">
+                  <button class="tp-ib" type="button" sc-camel-on-click="{{p.toggleFull}}" aria-label="{{p.fullLabel}}" title="{{p.fullLabel}} (⌘⇧F)">
+                    <sc-if value="{{p.isFull}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L8.5 5.5M8.5 2.5v3h3M2 12l3.5-3.5M5.5 11.5v-3h-3"></path></svg></sc-if>
+                    <sc-if value="{{p.notFull}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2h3.5v3.5M5.5 12H2V8.5M12 2L8 6M2 12l4-4"></path></svg></sc-if>
+                  </button>
+                </sc-if>
+                <span class="tp-rel">
+                  <button class="tp-ib" type="button" aria-label="More actions" aria-haspopup="menu" aria-expanded="{{p.moreOpen}}" sc-camel-on-click="{{p.toggleMore}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3"></circle><circle cx="8" cy="8" r="1.3"></circle><circle cx="12.5" cy="8" r="1.3"></circle></svg></button>
+                  <sc-if value="{{p.moreOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="tp-menu" role="menu" style="top:36px;right:0">
+                      <button class="tp-mi" type="button" role="menuitem" sc-camel-on-click="{{p.copyLink}}"><span style="flex:1">Copy link</span><span class="tp-kbd">⌘L</span></button>
+                      <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-mi" type="button" role="menuitem"><span style="flex:1">Duplicate</span><span class="tp-kbd">⌘D</span></button></sc-if>
+                      <sc-if value="{{p.canDelete}}" hint-placeholder-val="{{true}}"><div class="tp-sep"></div><button class="tp-mi dng" type="button" role="menuitem" sc-camel-on-click="{{p.deleteTask}}"><span style="flex:1">Delete task</span><span class="tp-kbd">⌫</span></button></sc-if>
+                    </div>
+                  </sc-if>
+                </span>
+                <sc-if value="{{p.showClose}}" hint-placeholder-val="{{true}}">
+                  <button class="tp-ib" type="button" sc-camel-on-click="{{p.closePanel}}" aria-label="Close" title="Close (Esc)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+                </sc-if>
+              </div>
+
+              <div class="tp-scroll tp-fade">
+                <sc-if value="{{p.isDeleted}}" hint-placeholder-val="{{false}}">
+                  <div style="padding:14px 20px 0"><div class="tp-banner" role="status">
+                    <svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg>
+                    <span style="flex:1;font-weight:600">Deleted <span style="font-weight:400;color:var(--text-3)">· restorable for 30 days</span></span>
+                    <button class="tp-btn sec" type="button" sc-camel-on-click="{{p.restore}}">Restore</button>
+                  </div></div>
+                </sc-if>
+                <div class="tp-body {{p.bodyCls}}">
+
+                  <div class="tp-title">
+                    <sc-if value="{{p.titleEditing}}" hint-placeholder-val="{{false}}">
+                      <input class="tp-tin" type="text" aria-label="Task title" value="{{p.draftTitle}}" sc-camel-on-change="{{p.onDraftTitle}}" sc-camel-on-key-down="{{p.onTitleKey}}" sc-camel-on-blur="{{p.saveTitle}}" sc-camel-auto-focus="{{true}}">
+                    </sc-if>
+                    <sc-if value="{{p.titleStatic}}" hint-placeholder-val="{{true}}">
+                      <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-ti" type="button" sc-camel-on-click="{{p.startTitle}}">{{p.title}}</button></sc-if>
+                      <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><h2 style="margin:0;font:600 22px/30px 'Inter',sans-serif;letter-spacing:-.015em">{{p.title}}</h2></sc-if>
+                    </sc-if>
+                    <sc-if value="{{p.isViewer}}" hint-placeholder-val="{{false}}">
+                      <div class="tp-note"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 7S3.5 3 7 3s5.5 4 5.5 4-2 4-5.5 4-5.5-4-5.5-4z"></path><circle cx="7" cy="7" r="1.6"></circle></svg>View only</div>
+                    </sc-if>
+                  </div>
+
+                  <div class="tp-props">
+                    <div class="tp-chips">
+                      <span class="tp-rel">
+                        <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-chip" type="button" aria-haspopup="listbox" aria-expanded="{{p.statusOpen}}" sc-camel-on-click="{{p.toggleStatus}}" aria-label="Status: {{p.st.name}}"><span class="tp-g {{p.st.glyph}}" style="color:{{p.st.color}}"></span>{{p.st.name}}</button></sc-if>
+                        <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><span class="tp-chip ro"><span class="tp-g {{p.st.glyph}}" style="color:{{p.st.color}}"></span>{{p.st.name}}</span></sc-if>
+                        <sc-if value="{{p.statusOpen}}" hint-placeholder-val="{{false}}">
+                          <div class="tp-menu" role="listbox" aria-label="Status" style="top:34px;left:0">
+                            <sc-for list="{{p.statusOpts}}" as="o" hint-placeholder-count="6"><button class="tp-mi {{o.on}}" type="button" role="option" aria-selected="{{o.sel}}" sc-camel-on-click="{{o.pick}}"><span class="tp-g {{o.glyph}}" style="color:{{o.color}}"></span><span style="flex:1">{{o.name}}</span><span class="tp-kbd">{{o.n}}</span></button></sc-for>
+                          </div>
+                        </sc-if>
+                      </span>
+                      <span class="tp-rel">
+                        <sc-if value="{{p.priSet}}" hint-placeholder-val="{{true}}">
+                          <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-chip" type="button" aria-haspopup="listbox" aria-expanded="{{p.priOpen}}" sc-camel-on-click="{{p.togglePri}}" aria-label="Priority: {{p.pri.name}}"><span class="tp-bars {{p.pri.cls}}" style="color:{{p.pri.color}}"><i></i><i></i><i></i><i></i></span>{{p.pri.name}}</button></sc-if>
+                          <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><span class="tp-chip ro"><span class="tp-bars {{p.pri.cls}}" style="color:{{p.pri.color}}"><i></i><i></i><i></i><i></i></span>{{p.pri.name}}</span></sc-if>
+                        </sc-if>
+                        <sc-if value="{{p.priGhost}}" hint-placeholder-val="{{false}}"><button class="tp-chip ghost" type="button" aria-haspopup="listbox" aria-expanded="{{p.priOpen}}" sc-camel-on-click="{{p.togglePri}}">+ Priority</button></sc-if>
+                        <sc-if value="{{p.priOpen}}" hint-placeholder-val="{{false}}">
+                          <div class="tp-menu" role="listbox" aria-label="Priority" style="top:34px;left:0">
+                            <sc-for list="{{p.priOpts}}" as="o" hint-placeholder-count="5"><button class="tp-mi {{o.on}}" type="button" role="option" aria-selected="{{o.sel}}" sc-camel-on-click="{{o.pick}}"><span class="tp-bars {{o.cls}}" style="color:{{o.color}}"><i></i><i></i><i></i><i></i></span><span style="flex:1">{{o.name}}</span><span class="tp-kbd">{{o.n}}</span></button></sc-for>
+                          </div>
+                        </sc-if>
+                      </span>
+                      <span class="tp-rel">
+                        <sc-if value="{{p.asgSet}}" hint-placeholder-val="{{true}}">
+                          <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-chip" type="button" aria-haspopup="listbox" aria-expanded="{{p.asgOpen}}" sc-camel-on-click="{{p.toggleAsg}}" aria-label="Assignee: {{p.asg.name}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{p.asg.hue}})">{{p.asg.ini}}</span>{{p.asg.name}}</button></sc-if>
+                          <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><span class="tp-chip ro"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{p.asg.hue}})">{{p.asg.ini}}</span>{{p.asg.name}}</span></sc-if>
+                        </sc-if>
+                        <sc-if value="{{p.asgGhost}}" hint-placeholder-val="{{false}}"><button class="tp-chip ghost" type="button" aria-haspopup="listbox" aria-expanded="{{p.asgOpen}}" sc-camel-on-click="{{p.toggleAsg}}">+ Assign</button></sc-if>
+                        <sc-if value="{{p.asgOpen}}" hint-placeholder-val="{{false}}">
+                          <div class="tp-menu" role="listbox" aria-label="Assignee" style="top:34px;left:0">
+                            <sc-for list="{{p.people}}" as="o" hint-placeholder-count="4"><button class="tp-mi {{o.on}}" type="button" role="option" aria-selected="{{o.sel}}" sc-camel-on-click="{{o.pick}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{o.hue}})">{{o.ini}}</span><span style="flex:1">{{o.name}}</span></button></sc-for>
+                            <sc-if value="{{p.asgSet}}" hint-placeholder-val="{{true}}"><div class="tp-sep"></div><button class="tp-mi" type="button" sc-camel-on-click="{{p.unassign}}">Unassign</button></sc-if>
+                          </div>
+                        </sc-if>
+                      </span>
+                    </div>
+
+                    <sc-if value="{{p.hasFields}}" hint-placeholder-val="{{true}}">
+                      <div class="tp-grid">
+                        <sc-for list="{{p.fields}}" as="f" hint-placeholder-count="4">
+                          <sc-if value="{{f.input}}" hint-placeholder-val="{{false}}">
+                            <div class="tp-f" style="cursor:default"><span class="tp-fl">{{f.label}}</span><span style="display:flex;align-items:center;gap:6px"><input class="tp-num" type="number" min="0" max="99" aria-label="Estimate in points" value="{{p.draftEst}}" sc-camel-on-change="{{p.onDraftEst}}" sc-camel-on-key-down="{{p.onEstKey}}" sc-camel-on-blur="{{p.saveEst}}" sc-camel-auto-focus="{{true}}"><span class="tp-sub">pts</span></span></div>
+                          </sc-if>
+                          <sc-if value="{{f.btn}}" hint-placeholder-val="{{true}}">
+                            <button class="tp-f" type="button" sc-camel-on-click="{{f.act}}"><span class="tp-fl">{{f.label}}</span><span class="tp-fv"><sc-if value="{{f.hasAv}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{f.hue}})">{{f.ini}}</span></sc-if>{{f.value}}<span class="tp-sub {{f.subCls}}">{{f.sub}}</span></span></button>
+                          </sc-if>
+                          <sc-if value="{{f.ro}}" hint-placeholder-val="{{false}}">
+                            <div class="tp-f ro"><span class="tp-fl">{{f.label}}</span><span class="tp-fv"><sc-if value="{{f.hasAv}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{f.hue}})">{{f.ini}}</span></sc-if>{{f.value}}<span class="tp-sub {{f.subCls}}">{{f.sub}}</span></span></div>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{p.hasPlanning}}" hint-placeholder-val="{{true}}">
+                      <div class="tp-plan">
+                        <button class="tp-planh" type="button" aria-expanded="{{p.planOpen}}" sc-camel-on-click="{{p.togglePlan}}">
+                          <svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                          Planning<span class="tp-sum">{{p.planSummary}}</span>
+                        </button>
+                        <div class="tp-col {{p.planCls}}"><div>
+                          <div style="padding:0 0 8px">
+                            <sc-for list="{{p.planRows}}" as="r" hint-placeholder-count="3">
+                              <div class="tp-pr"><span class="tp-fl" style="font-size:12px">{{r.label}}</span><span><button class="tp-pv {{r.cls}}" type="button">{{r.value}}</button></span></div>
+                            </sc-for>
+                            <sc-if value="{{p.hasObjRow}}" hint-placeholder-val="{{true}}">
+                              <div class="tp-pr" style="align-items:start;padding-top:4px;padding-bottom:4px"><span class="tp-fl" style="font-size:12px;padding-top:5px">Objectives</span>
+                                <div class="tp-rel" style="display:flex;flex-wrap:wrap;gap:6px">
+                                  <sc-for list="{{p.objChips}}" as="o" hint-placeholder-count="2">
+                                    <span class="tp-oc {{o.cls}}"><svg width="11" height="11" sc-camel-view-box="0 0 14 14" fill="none" stroke="var(--accent-t)" stroke-width="1.5" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle><circle cx="7" cy="7" r="1.8"></circle></svg>{{o.name}}<sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="Unlink {{o.name}}" sc-camel-on-click="{{o.remove}}"><svg width="9" height="9" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button></sc-if></span>
+                                  </sc-for>
+                                  <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-mini" type="button" aria-haspopup="listbox" aria-expanded="{{p.objOpen}}" sc-camel-on-click="{{p.toggleObj}}" aria-label="Link objective">+</button></sc-if>
+                                  <sc-if value="{{p.objOpen}}" hint-placeholder-val="{{false}}">
+                                    <div class="tp-menu" role="listbox" aria-multiselectable="true" style="top:30px;left:0;width:250px">
+                                      <sc-for list="{{p.objOpts}}" as="o" hint-placeholder-count="5"><label class="tp-mi" style="cursor:pointer"><input class="tp-cb" type="checkbox" checked="{{o.on}}" sc-camel-on-change="{{o.toggle}}"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{o.name}}</span></label></sc-for>
+                                    </div>
+                                  </sc-if>
+                                </div>
+                              </div>
+                            </sc-if>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{p.hasLabels}}" hint-placeholder-val="{{true}}">
+                      <div class="tp-labels" aria-label="Labels">
+                        <sc-for list="{{p.labels}}" as="l" hint-placeholder-count="2"><span class="tp-lab"><span class="tp-dot" style="background:{{l.color}}"></span>{{l.name}}</span></sc-for>
+                        <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-mini" type="button" aria-label="Add label">+</button></sc-if>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{p.canAdd}}" hint-placeholder-val="{{true}}">
+                      <div class="tp-rel">
+                        <button class="tp-addp" type="button" aria-haspopup="menu" aria-expanded="{{p.addOpen}}" sc-camel-on-click="{{p.toggleAdd}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>Add property</button>
+                        <sc-if value="{{p.addOpen}}" hint-placeholder-val="{{false}}">
+                          <div class="tp-menu" role="menu" style="top:30px;left:-8px">
+                            <sc-for list="{{p.missing}}" as="m" hint-placeholder-count="4"><button class="tp-mi" type="button" role="menuitem" sc-camel-on-click="{{m.pick}}"><span style="flex:1">{{m.name}}</span></button></sc-for>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
+
+                  <div class="tp-main">
+                    <section aria-label="Description">
+                      <sc-if value="{{p.descEditing}}" hint-placeholder-val="{{false}}">
+                        <div class="tp-editor">
+                          <div class="tp-tbar" role="toolbar" aria-label="Formatting"><button type="button" aria-label="Bold">B</button><button type="button" aria-label="Italic" style="font-style:italic">I</button><button type="button" aria-label="Code" style="font-family:'JetBrains Mono',monospace">&lt;/&gt;</button><button type="button" aria-label="Code block" style="font-family:'JetBrains Mono',monospace">{ }</button><button type="button" aria-label="List">1.</button></div>
+                          <div class="tp-rt" style="padding:10px 12px"><p>Columns jump when the sidebar collapses mid-drag.</p><div class="tp-code"><div class="tp-codeh">typescript</div><pre><span class="tk">const</span> ro = <span class="tk">new</span> <span class="tf">ResizeObserver</span>(() =&gt; <span class="tf">reflow</span>(columns));</pre></div></div>
+                          <div style="display:flex;justify-content:flex-end;gap:6px;padding:6px;border-top:1px solid var(--line)"><button class="tp-btn" type="button" sc-camel-on-click="{{p.stopDesc}}">Cancel <span class="tp-kbd">Esc</span></button><button class="tp-btn pri" type="button" sc-camel-on-click="{{p.stopDesc}}">Save <span class="tp-kbd">⌘↵</span></button></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{p.descStatic}}" hint-placeholder-val="{{true}}">
+                        <sc-if value="{{p.hasRich}}" hint-placeholder-val="{{true}}">
+                          <div class="tp-rt">
+                            <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-descb" type="button" sc-camel-on-click="{{p.startDesc}}" aria-label="Edit description">Columns jump when the sidebar collapses mid-drag. Reproduce by resizing the window while a card is held.</button></sc-if>
+                            <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><p>Columns jump when the sidebar collapses mid-drag. Reproduce by resizing the window while a card is held.</p></sc-if>
+                            <div class="tp-code"><div class="tp-codeh">typescript<button class="tp-btn" type="button" sc-camel-on-click="{{p.copyCode}}" style="height:22px">{{p.codeCopyLabel}}</button></div><pre><span class="tc">// keep columns in sync</span>
+<span class="tk">const</span> ro = <span class="tk">new</span> <span class="tf">ResizeObserver</span>(() =&gt; {
+  <span class="tf">requestAnimationFrame</span>(() =&gt; <span class="tf">reflow</span>(columns));
+});</pre></div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{p.noRich}}" hint-placeholder-val="{{false}}">
+                          <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-descb" type="button" sc-camel-on-click="{{p.startDesc}}" style="color:var(--text-3);font-size:14px">Add a description…</button></sc-if>
+                        </sc-if>
+                      </sc-if>
+                    </section>
+
+                    <sc-if value="{{p.showSubs}}" hint-placeholder-val="{{true}}">
+                      <section aria-label="Sub-tasks">
+                        <div class="tp-sec"><h3>Sub-tasks</h3><sc-if value="{{p.hasSubs}}" hint-placeholder-val="{{true}}"><span class="tp-cnt">{{p.subDone}}/{{p.subTotal}}</span><div class="tp-bar" role="progressbar" aria-label="Sub-task progress" aria-valuenow="{{p.subPct}}" aria-valuemin="0" aria-valuemax="100" style="max-width:140px"><span style="width:{{p.subPct}}%"></span></div></sc-if></div>
+                        <sc-for list="{{p.subs}}" as="s" hint-placeholder-count="3">
+                          <div class="tp-srow">
+                            <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><input class="tp-cb" type="checkbox" aria-label="Complete {{s.key}}" checked="{{s.done}}" sc-camel-on-change="{{s.toggle}}"></sc-if>
+                            <sc-if value="{{p.cannotEdit}}" hint-placeholder-val="{{false}}"><span class="tp-g {{s.glyph}}" style="color:{{s.color}}"></span></sc-if>
+                            <span style="font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);width:50px;flex:none">{{s.key}}</span>
+                            <span class="{{s.tcls}}" style="flex:1;min-width:0">{{s.title}}</span>
+                            <span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{s.hue}})">{{s.ini}}</span>
+                          </div>
+                        </sc-for>
+                        <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}"><button class="tp-btn" type="button" style="margin-left:-10px">+ Add sub-task <span class="tp-kbd">⇧C</span></button></sc-if>
+                      </section>
+                    </sc-if>
+
+                    <sc-if value="{{p.showAtt}}" hint-placeholder-val="{{true}}">
+                      <section aria-label="Attachments">
+                        <div class="tp-sec"><h3>Attachments</h3><span class="tp-cnt">{{p.attCount}}</span></div>
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                          <sc-for list="{{p.uploads}}" as="u" hint-placeholder-count="1">
+                            <div class="tp-up {{u.cls}}" role="status">
+                              <span class="tp-ext">{{u.ext}}</span>
+                              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:8px"><span class="tp-tn">{{u.name}}</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:{{u.mcolor}};white-space:nowrap">{{u.meta}}</span></div><sc-if value="{{u.going}}" hint-placeholder-val="{{true}}"><div class="tp-bar" role="progressbar" aria-label="Uploading {{u.name}}" aria-valuenow="{{u.pct}}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{u.pct}}%"></span></div></sc-if></div>
+                              <button class="tp-ib" type="button" sc-camel-on-click="{{u.cancel}}" aria-label="{{u.cancelLabel}}"><svg width="11" height="11" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button>
+                            </div>
+                          </sc-for>
+                          <div class="tp-att">
+                            <sc-for list="{{p.files}}" as="f" hint-placeholder-count="2">
+                              <div class="tp-tile"><sc-if value="{{f.isImg}}" hint-placeholder-val="{{true}}"><div class="tp-thumb">{{f.ext}}</div></sc-if><sc-if value="{{f.isCode}}" hint-placeholder-val="{{false}}"><div class="tp-cprev">{{f.preview}}</div></sc-if><div class="tp-tm"><span class="tp-tn">{{f.name}}</span><span class="tp-ts">{{f.size}}</span></div></div>
+                            </sc-for>
+                            <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}">
+                              <div class="tp-dz {{p.dzCls}}" sc-camel-on-drag-over="{{p.onDragOver}}" sc-camel-on-drag-leave="{{p.onDragLeave}}" sc-camel-on-drop="{{p.onDrop}}">
+                                <svg width="16" height="16" sc-camel-view-box="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12V3M5.5 6.5L9 3l3.5 3.5M3 12.5V15h12v-2.5"></path></svg>
+                                <span style="font-size:12px;font-weight:500;color:var(--text)">{{p.dzText}}</span><span class="tp-ts">≤ 10 MB</span>
+                                <input type="file" multiple="{{true}}" accept="image/*,.ts,.tsx,.js,.jsx,.py,.go,.rs,.java,.rb,.json,.yml,.yaml,.md,.sql,.sh,.css,.html,.txt,.diff" aria-label="Upload attachments" sc-camel-on-change="{{p.onPick}}">
+                              </div>
+                            </sc-if>
+                          </div>
+                        </div>
+                      </section>
+                    </sc-if>
+
+                    <section aria-label="Comments and activity">
+                      <div class="tp-tabs" role="tablist">
+                        <button class="tp-tab" type="button" role="tab" aria-selected="{{p.tabC}}" sc-camel-on-click="{{p.pickC}}">Comments <span class="tp-cnt">{{p.commentCount}}</span></button>
+                        <button class="tp-tab" type="button" role="tab" aria-selected="{{p.tabA}}" sc-camel-on-click="{{p.pickA}}">Activity</button>
+                        <span class="tp-ind" style="transform:translateX({{p.tabX}}px)"></span>
+                      </div>
+                      <sc-if value="{{p.tabC}}" hint-placeholder-val="{{true}}">
+                        <div class="tp-fade" role="tabpanel">
+                          <sc-for list="{{p.comments}}" as="c" hint-placeholder-count="2">
+                            <div class="tp-cmt"><span class="tp-av l" style="background:oklch(var(--av-l) var(--av-c) {{c.hue}})">{{c.ini}}</span><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><div style="display:flex;gap:8px;align-items:baseline"><span style="font-weight:600">{{c.name}}</span><span class="tp-ts">{{c.when}}</span></div><p style="margin:0;font-size:14px;line-height:22px"><sc-for list="{{c.parts}}" as="x" hint-placeholder-count="3"><span class="{{x.cls}}">{{x.t}}</span></sc-for></p></div></div>
+                          </sc-for>
+                          <sc-if value="{{p.noComments}}" hint-placeholder-val="{{false}}"><p class="tp-ts" style="margin:0 0 6px;font-size:12px">No comments yet.</p></sc-if>
+                          <sc-if value="{{p.canEdit}}" hint-placeholder-val="{{true}}">
+                            <div class="tp-comp">
+                              <span class="tp-av l" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+                              <textarea class="tp-cin" rows="1" placeholder="Comment… @ to mention" aria-label="Write a comment" value="{{p.draft}}" sc-camel-on-change="{{p.onDraft}}" sc-camel-on-key-down="{{p.onDraftKey}}"></textarea>
+                              <button class="tp-btn pri" type="button" sc-camel-on-click="{{p.send}}" style="margin-top:6px">Send</button>
+                              <sc-if value="{{p.mentionOpen}}" hint-placeholder-val="{{false}}">
+                                <div class="tp-menu" role="listbox" aria-label="Mention" style="left:38px;bottom:52px">
+                                  <sc-for list="{{p.mentionOpts}}" as="m" hint-placeholder-count="3"><button class="tp-mi" type="button" role="option" sc-camel-on-click="{{m.pick}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{m.hue}})">{{m.ini}}</span>{{m.name}}</button></sc-for>
+                                </div>
+                              </sc-if>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{p.tabA}}" hint-placeholder-val="{{false}}">
+                        <div class="tp-tl tp-fade" role="tabpanel">
+                          <sc-for list="{{p.activity}}" as="a" hint-placeholder-count="4"><div class="tp-tli"><b>{{a.who}}</b> {{a.what}} <b>{{a.obj}}</b> <span class="tp-ts">· {{a.when}}</span></div></sc-for>
+                        </div>
+                      </sc-if>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </aside>
+<!--TP-END-->
+          </sc-for>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:3020}}">
+class Component extends DCLogic {
+  state = { tp: {}, tasks: {} };
+//TP-JS-START
+  tpGet(id) { return (this.state.tp && this.state.tp[id]) || {}; }
+  tpSet(id, patch) { const all = { ...(this.state.tp || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ tp: all }); }
+  tpTick(id) {
+    const u = this.tpGet(id);
+    const ups = u.uploads || [];
+    if (!ups.some((x) => !x.err && x.pct < 100)) return;
+    const done = [];
+    const next = ups.map((x) => {
+      if (x.err || x.pct >= 100) return x;
+      const pct = Math.min(100, x.pct + 4 + Math.round(Math.random() * 7));
+      if (pct >= 100) done.push(x);
+      return { ...x, pct };
+    });
+    this.tpSet(id, { uploads: next.filter((x) => x.err || x.pct < 100), extra: (u.extra || []).concat(done.map((x) => ({ name: x.name, size: x.size.toFixed(1) + ' MB', kind: x.kind, ext: x.ext }))) });
+  }
+  tpAddFiles(id, list) {
+    const IMG = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+    const CODE = ['ts', 'tsx', 'js', 'jsx', 'py', 'go', 'rs', 'java', 'rb', 'json', 'yml', 'yaml', 'md', 'sql', 'sh', 'css', 'html', 'txt', 'diff'];
+    const add = Array.prototype.slice.call(list || [], 0, 10).map((f, i) => {
+      const name = String(f.name || 'file').slice(0, 120);
+      const ext = (name.split('.').pop() || '').toLowerCase();
+      const mb = (f.size || 0) / (1024 * 1024);
+      const kind = IMG.indexOf(ext) >= 0 ? 'img' : (CODE.indexOf(ext) >= 0 ? 'code' : '');
+      let err = '';
+      if (!kind) err = 'Images or code files only';
+      else if (mb > 10) err = 'Too large · ' + mb.toFixed(1) + ' MB (max 10)';
+      return { id: 'u' + Date.now() + i, name, size: mb, pct: 0, kind, ext: ext.toUpperCase().slice(0, 4), err };
+    });
+    const u = this.tpGet(id);
+    this.tpSet(id, { uploads: (u.uploads || []).concat(add), dragOver: false });
+  }
+  tpBuild(id, cfg) {
+    const self = this;
+    const u0 = this.tpGet(id);
+    const u = { ...(cfg.init || {}), ...u0 };
+    const T = cfg.task;
+    const set = (patch) => self.tpSet(id, patch);
+    const change = cfg.onChange || (() => {});
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const deleted = !!cfg.deleted;
+    const canEdit = !viewer && !deleted;
+    const menu = u.menu || null;
+    const openMenu = (m) => set({ menu: menu === m ? null : m });
+    const S = {
+      backlog: ['Backlog', 'backlog', 'var(--text-3)'], todo: ['Todo', 'todo', 'var(--todo)'], progress: ['In progress', 'progress', 'var(--warn)'],
+      review: ['In review', 'review', 'var(--info)'], done: ['Done', 'done', 'var(--ok)'], cancel: ['Canceled', 'cancel', 'var(--text-3)']
+    };
+    const PR = { 4: ['Urgent', 'n4', 'var(--danger)'], 3: ['High', 'n3', 'var(--orange)'], 2: ['Medium', 'n2', 'var(--warn)'], 1: ['Low', 'n1', 'var(--low)'] };
+    const PEOPLE = [{ name: 'Alex Kim', ini: 'AK', hue: 285 }, { name: 'Jordan Lee', ini: 'JL', hue: 200 }, { name: 'Sam Patel', ini: 'SP', hue: 20 }, { name: 'Riley Chen', ini: 'RC', hue: 150 }];
+    const OBJ = [{ id: 'o1', name: 'Cut p95 latency to 200ms' }, { id: 'o2', name: 'Ship beta on time' }, { id: 'o3', name: 'Zero P1 incidents in Q4' }, { id: 'o4', name: 'Onboarding under 5 minutes' }];
+    const isDone = T.status === 'done';
+    const fx = u.fx === T.key && isDone;
+    const st = S[T.status] || S.todo;
+    const fields = [];
+    const fieldBase = (label, value, extra) => ({ label, value, sub: '', subCls: '', hasAv: false, ini: '', hue: 0, input: false, btn: canEdit, ro: !canEdit, act: () => {}, ...extra });
+    if (T.reporter) fields.push(fieldBase('Reporter', T.reporter.name, { hasAv: true, ini: T.reporter.ini, hue: T.reporter.hue }));
+    if (T.type) fields.push(fieldBase('Type', T.type));
+    if (T.est != null) {
+      const editing = !!u.estEditing && canEdit;
+      fields.push(fieldBase('Estimate', T.est + ' pts', { input: editing, btn: canEdit && !editing, act: () => set({ estEditing: true, draftEst: String(T.est) }) }));
+    }
+    if (T.due) fields.push(fieldBase('Due date', T.due.date, { sub: '· ' + T.due.rel, subCls: T.due.soon ? 'soon' : '' }));
+    const planRows = [];
+    if (T.sprint) planRows.push({ label: 'Sprint', value: T.sprint, cls: canEdit ? '' : 'ro' });
+    if (T.milestone) planRows.push({ label: 'Milestone', value: T.milestone, cls: canEdit ? '' : 'ro' });
+    if (T.epic) planRows.push({ label: 'Epic', value: T.epic, cls: canEdit ? '' : 'ro' });
+    const objs = T.objectives || [];
+    const objChips = OBJ.filter((o) => objs.indexOf(o.id) >= 0).map((o) => ({ name: o.name, cls: canEdit ? '' : 'ro', remove: () => change({ objectives: objs.filter((x) => x !== o.id) }) }));
+    const sumParts = [T.sprint, T.milestone, objs.length ? objs.length + (objs.length === 1 ? ' objective' : ' objectives') : null].filter(Boolean);
+    const hasPlanning = planRows.length > 0 || objs.length > 0;
+    const planOpen = !!u.planOpen;
+    const LABEL_C = { frontend: 'var(--low)', board: 'var(--orange)', perf: 'var(--info)' };
+    const labels = (T.labels || []).map((n) => ({ name: n, color: LABEL_C[n] || 'var(--text-3)' }));
+    const missing = [];
+    const addPick = (name, patch) => missing.push({ name, pick: () => { change(patch); set({ menu: null, planOpen: ['Sprint', 'Milestone', 'Epic', 'Objective'].indexOf(name) >= 0 ? true : planOpen }); } });
+    if (!T.type) addPick('Type', { type: 'Feature' });
+    if (T.est == null) addPick('Estimate', { est: 2 });
+    if (!T.due) addPick('Due date', { due: { date: 'Oct 24', rel: 'in 17 days', soon: false } });
+    if (!T.sprint) addPick('Sprint', { sprint: 'Sprint 14' });
+    if (!T.milestone) addPick('Milestone', { milestone: 'Beta launch' });
+    if (!T.epic) addPick('Epic', { epic: 'Auth overhaul' });
+    if (!objs.length) addPick('Objective', { objectives: ['o2'] });
+    if (!labels.length) addPick('Labels', { labels: ['frontend'] });
+    const q = (u.objQuery || '').toLowerCase();
+    const rich = !!T.rich;
+    const SUBS = [
+      { key: 'PRJ-43', title: 'Add ResizeObserver to the board', ini: 'AK', hue: 285 },
+      { key: 'PRJ-44', title: 'Debounce reflow on sidebar toggle', ini: 'JL', hue: 200 },
+      { key: 'PRJ-45', title: 'Regression test: drag while resizing', ini: 'SP', hue: 20 }
+    ];
+    const subState = u.subs || { 'PRJ-43': true };
+    const subs = rich ? SUBS.map((s) => { const d = !!subState[s.key]; return { ...s, done: d, tcls: d ? 'tp-done-t' : '', glyph: d ? 'done' : 'todo', color: d ? 'var(--ok)' : 'var(--todo)', toggle: () => set({ subs: { ...subState, [s.key]: !d } }) }; }) : [];
+    const subDone = subs.filter((s) => s.done).length;
+    const baseFiles = rich ? [{ name: 'drag-glitch.png', size: '1.2 MB', kind: 'img', ext: 'PNG' }, { name: 'reflow.ts', size: '4 KB', kind: 'code', ext: 'TS', preview: 'export function reflow(\n  cols: Column[],\n) {\n  cols.forEach(m);' }] : [];
+    const files = baseFiles.concat(u.extra || []).map((f) => ({ ...f, isImg: f.kind === 'img', isCode: f.kind === 'code', preview: f.preview || '// ' + f.name }));
+    const uploads = (u.uploads || []).map((x) => ({
+      ...x, cls: x.err ? 'err' : '', going: !x.err, meta: x.err ? x.err : (x.pct + '% · ' + x.size.toFixed(1) + ' MB'), mcolor: x.err ? 'var(--danger)' : 'var(--text-3)',
+      cancelLabel: x.err ? 'Dismiss' : 'Cancel upload', cancel: () => self.tpSet(id, { uploads: (self.tpGet(id).uploads || []).filter((y) => y.id !== x.id) })
+    }));
+    const parse = (text) => {
+      const out = []; const re = /(@(?:Alex Kim|Jordan Lee|Sam Patel|Riley Chen))|(`[^`]+`)/g; let last = 0; let m;
+      while ((m = re.exec(text))) { if (m.index > last) out.push({ t: text.slice(last, m.index), cls: '' }); out.push(m[1] ? { t: m[1], cls: 'tp-mention' } : { t: m[2].slice(1, -1), cls: 'tp-icode' }); last = m.index + m[0].length; }
+      if (last < text.length) out.push({ t: text.slice(last), cls: '' });
+      return out;
+    };
+    const baseComments = rich ? [
+      { name: 'Jordan Lee', ini: 'JL', hue: 200, when: '2h', text: 'Repro’d on Safari too. @Alex Kim is `will-change` the culprit?' },
+      { name: 'Alex Kim', ini: 'AK', hue: 285, when: '1h', text: 'Yes. Fix is behind the `board-reflow` flag.' }
+    ] : [];
+    const comments = baseComments.concat(u.comments || []).map((c) => ({ ...c, parts: parse(c.text) }));
+    const draft = u.draft || '';
+    const at = /@([A-Za-z ]*)$/.exec(draft);
+    const mentionOpts = at && at[1].length < 12 ? PEOPLE.filter((pp) => pp.name.toLowerCase().indexOf(at[1].toLowerCase()) === 0).map((pp) => ({ ...pp, pick: () => set({ draft: draft.replace(/@([A-Za-z ]*)$/, '@' + pp.name + ' ') }) })) : [];
+    const send = () => { const t = draft.trim(); if (!t) return; set({ comments: (u.comments || []).concat({ name: 'Alex Kim', ini: 'AK', hue: 285, when: 'just now', text: t.slice(0, 2000) }), draft: '' }); };
+    const activity = rich ? [
+      { who: 'Alex Kim', what: 'moved this to', obj: 'In progress', when: '1h' },
+      { who: 'Jordan Lee', what: 'linked', obj: 'Cut p95 latency', when: '3h' },
+      { who: 'Jordan Lee', what: 'created the task', obj: '', when: 'Oct 2' }
+    ] : [{ who: 'Jordan Lee', what: 'created the task', obj: '', when: 'today' }];
+    const tab = u.tab || 'c';
+    const saveTitle = (val) => { const t = (val || '').trim(); set({ titleEditing: false }); if (t) change({ title: t.slice(0, 200) }); };
+    const saveEst = () => { const n = parseInt(u.draftEst, 10); set({ estEditing: false }); if (!isNaN(n)) change({ est: Math.max(0, Math.min(99, n)) }); };
+    const cls = [cfg.full ? 'full' : '', cfg.static ? 'static' : '', cfg.sheet ? 'sheet' : '', cfg.leaving ? 'leaving' : ''].join(' ');
+    return {
+      key: T.key, title: T.title, crumb: cfg.crumb || 'Platform Rebuild', cls,
+      bodyCls: (deleted ? 'tp-dim' : ''),
+      canEdit, cannotEdit: !canEdit, isViewer: viewer, isDeleted: deleted, canDelete: role === 'admin' && !deleted,
+      showExpand: cfg.showExpand !== false && !cfg.sheet, showClose: cfg.showClose !== false,
+      isFull: !!cfg.full, notFull: !cfg.full, fullLabel: cfg.full ? 'Collapse to panel' : 'Expand to full page',
+      toggleFull: cfg.onToggleFull || (() => {}), closePanel: cfg.onClose || (() => {}),
+      copied: !!u.copied,
+      copyKey: () => { try { navigator.clipboard && navigator.clipboard.writeText(T.key); } catch (e) {} set({ copied: true }); setTimeout(() => self.tpSet(id, { copied: false }), 1400); },
+      isDone, doneCls: isDone ? 'is' : '', ringFx: fx ? 'fx' : '', doneLabel: isDone ? 'Done' : 'Mark done', doneTitle: isDone ? 'Reopen' : 'Mark done (⌘⇧D)',
+      markDone: () => { change({ status: isDone ? 'todo' : 'done' }); set({ fx: isDone ? null : T.key, menu: null }); },
+      moreOpen: menu === 'more', toggleMore: () => openMenu('more'),
+      copyLink: () => { set({ menu: null }); if (cfg.flash) cfg.flash('Link to ' + T.key + ' copied', false); },
+      deleteTask: () => { set({ menu: null }); if (cfg.onDelete) cfg.onDelete(); },
+      restore: cfg.onRestore || (() => {}),
+      onKey: (e) => { if (e.key !== 'Escape') return; if (menu) { set({ menu: null }); return; } if (u.titleEditing || u.descEditing || u.estEditing) return; if (cfg.onClose) cfg.onClose(); },
+      titleEditing: !!u.titleEditing && canEdit, titleStatic: !(u.titleEditing && canEdit), draftTitle: u.draftTitle || '',
+      startTitle: () => set({ titleEditing: true, draftTitle: T.title }),
+      onDraftTitle: (e) => set({ draftTitle: e.target.value }),
+      saveTitle: () => saveTitle(self.tpGet(id).draftTitle),
+      onTitleKey: (e) => { if (e.key === 'Enter') saveTitle(e.target.value); if (e.key === 'Escape') set({ titleEditing: false }); },
+      st: { name: st[0], glyph: st[1] + (fx ? ' fx' : ''), color: st[2] },
+      statusOpen: menu === 'status' && canEdit, toggleStatus: () => openMenu('status'),
+      statusOpts: Object.keys(S).map((k, i) => ({ name: S[k][0], glyph: S[k][1], color: S[k][2], n: String(i + 1), sel: T.status === k, on: T.status === k ? 'on' : '', pick: () => { change({ status: k }); set({ menu: null, fx: k === 'done' ? T.key : null }); } })),
+      priSet: !!T.pri, priGhost: !T.pri && canEdit, pri: T.pri ? { name: PR[T.pri][0], cls: PR[T.pri][1], color: PR[T.pri][2] } : { name: '', cls: '', color: '' },
+      priOpen: menu === 'pri' && canEdit, togglePri: () => openMenu('pri'),
+      priOpts: [4, 3, 2, 1, 0].map((n, i) => ({ name: n ? PR[n][0] : 'No priority', cls: n ? PR[n][1] : '', color: n ? PR[n][2] : 'var(--text-3)', n: String(i), sel: T.pri === n, on: (T.pri || 0) === n ? 'on' : '', pick: () => { change({ pri: n }); set({ menu: null }); } })),
+      asgSet: !!T.asg, asgGhost: !T.asg && canEdit, asg: T.asg || { name: '', ini: '', hue: 0 },
+      asgOpen: menu === 'asg' && canEdit, toggleAsg: () => openMenu('asg'),
+      people: PEOPLE.map((pp) => ({ ...pp, sel: !!T.asg && T.asg.ini === pp.ini, on: T.asg && T.asg.ini === pp.ini ? 'on' : '', pick: () => { change({ asg: pp }); set({ menu: null }); } })),
+      unassign: () => { change({ asg: null }); set({ menu: null }); },
+      hasFields: fields.length > 0, fields,
+      draftEst: u.draftEst || '', onDraftEst: (e) => set({ draftEst: e.target.value }), saveEst,
+      onEstKey: (e) => { if (e.key === 'Enter') saveEst(); if (e.key === 'Escape') set({ estEditing: false }); },
+      hasPlanning, planOpen, planCls: planOpen ? 'open' : '', togglePlan: () => set({ planOpen: !planOpen }),
+      planSummary: sumParts.join(' · '), planRows, hasObjRow: objs.length > 0 || canEdit, objChips,
+      objOpen: menu === 'obj' && canEdit, toggleObj: () => openMenu('obj'),
+      objOpts: OBJ.filter((o) => !q || o.name.toLowerCase().indexOf(q) >= 0).map((o) => ({ name: o.name, on: objs.indexOf(o.id) >= 0, toggle: () => change({ objectives: objs.indexOf(o.id) >= 0 ? objs.filter((x) => x !== o.id) : objs.concat(o.id) }) })),
+      hasLabels: labels.length > 0, labels,
+      canAdd: canEdit && missing.length > 0, addOpen: menu === 'add', toggleAdd: () => openMenu('add'), missing,
+      descEditing: !!u.descEditing && canEdit, descStatic: !(u.descEditing && canEdit),
+      startDesc: () => set({ descEditing: true }), stopDesc: () => set({ descEditing: false }),
+      hasRich: rich, noRich: !rich, codeCopyLabel: u.codeCopied ? 'Copied' : 'Copy',
+      copyCode: () => { set({ codeCopied: true }); setTimeout(() => self.tpSet(id, { codeCopied: false }), 1400); },
+      showSubs: subs.length > 0 || canEdit, hasSubs: subs.length > 0, subs, subDone, subTotal: subs.length, subPct: subs.length ? Math.round(subDone / subs.length * 100) : 0,
+      showAtt: files.length > 0 || uploads.length > 0 || canEdit, files, uploads, attCount: files.length,
+      dzCls: u.dragOver ? 'over' : '', dzText: u.dragOver ? 'Drop to upload' : 'Drop files or browse',
+      onDragOver: (e) => { e.preventDefault(); if (!self.tpGet(id).dragOver) set({ dragOver: true }); },
+      onDragLeave: () => set({ dragOver: false }),
+      onDrop: (e) => { e.preventDefault(); self.tpAddFiles(id, e.dataTransfer && e.dataTransfer.files); },
+      onPick: (e) => { self.tpAddFiles(id, e.target.files); e.target.value = ''; },
+      tabC: tab === 'c', tabA: tab === 'a', tabX: tab === 'c' ? 0 : 112, pickC: () => set({ tab: 'c' }), pickA: () => set({ tab: 'a' }),
+      comments, commentCount: comments.length, noComments: comments.length === 0,
+      draft, onDraft: (e) => set({ draft: e.target.value }), onDraftKey: (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); } },
+      send, mentionOpen: mentionOpts.length > 0, mentionOpts, activity
+    };
+  }
+//TP-JS-END
+  renderVals() {
+    const self = this;
+    const FULL = {
+      key: 'PRJ-42', title: 'Fix flaky board reflow on column resize', status: 'progress', pri: 3,
+      asg: { name: 'Alex Kim', ini: 'AK', hue: 285 }, reporter: { name: 'Jordan Lee', ini: 'JL', hue: 200 },
+      type: 'Bug', est: 3, due: { date: 'Oct 21', rel: 'in 14 days', soon: false },
+      sprint: 'Sprint 14', milestone: 'Beta launch', epic: 'Auth overhaul', objectives: ['o1', 'o2'], labels: ['frontend', 'board'], rich: true
+    };
+    const EMPTY = {
+      key: 'PRJ-58', title: 'Write release notes for 2.4', status: 'todo', pri: 0, asg: null,
+      reporter: { name: 'Jordan Lee', ini: 'JL', hue: 200 }, type: null, est: null, due: null,
+      sprint: null, milestone: null, epic: null, objectives: [], labels: [], rich: false
+    };
+    const task = (fid, base) => ({ ...base, ...((self.state.tasks || {})[fid] || {}) });
+    const onChange = (fid) => (patch) => { const all = { ...(self.state.tasks || {}) }; all[fid] = { ...(all[fid] || {}), ...patch }; self.setState({ tasks: all }); };
+    const P = (fid, base, cfg) => [this.tpBuild(fid, { task: task(fid, base), onChange: onChange(fid), static: true, showClose: false, ...cfg })];
+    const DONE = { ...FULL, status: 'done' };
+    const frames = [
+      { label: 'Side panel', meta: 'planning folded', span: 1, w: '100%', h: 920, r: 14, phone: false, panels: P('a', FULL, {}) },
+      { label: 'Editing', meta: 'planning open · + Add property', span: 1, w: '100%', h: 920, r: 14, phone: false, panels: P('b', { ...FULL, labels: [], due: null }, { init: { planOpen: true, menu: 'add' } }) },
+      { label: 'Viewer', meta: 'read-only', span: 1, w: '100%', h: 920, r: 14, phone: false, panels: P('c', FULL, { role: 'viewer', init: { planOpen: true } }) },
+      { label: 'Empty fields', meta: 'only what has a value', span: 1, w: '100%', h: 880, r: 14, phone: false, panels: P('d', EMPTY, {}) },
+      { label: 'Mark done', meta: 'click to replay the spark', span: 1, w: '100%', h: 880, r: 14, phone: false, panels: P('e', DONE, { init: { fx: 'PRJ-42' } }) },
+      { label: 'Mobile bottom sheet', meta: '< 760px', span: 1, w: '390px', h: 880, r: 28, phone: true, panels: P('f', FULL, { sheet: true }) },
+      { label: 'Full page', meta: 'two columns · properties rail', span: 3, w: '100%', h: 780, r: 14, phone: false, panels: P('g', FULL, { full: true, init: { planOpen: true } }) }
+    ];
+    frames[5].panels[0].cls = 'sheet';
+    return { frames };
+  }
+}
+</script>
+
+
+</body></html>

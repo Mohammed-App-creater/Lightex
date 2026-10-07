@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Auth flow</title>
+<script src="../assets/b8599a98-b501-4a16-abd2-be83c6abc1b8.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy,.t-dark{--logo:#3B7BFF;--grid:rgba(138,176,255,.07);--glow:rgba(43,103,245,.16);--dng-s:rgba(255,122,112,.10)}
+.t-light{--logo:#1D4ED8;--grid:rgba(18,18,23,.055);--glow:rgba(29,78,216,.08);--dng-s:rgba(185,47,38,.07)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;flex:none}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+
+/* frame shell + backdrop */
+.au{position:relative;overflow:hidden;border:1px solid var(--line-2);border-radius:14px;background:var(--bg);color:var(--text);isolation:isolate}
+.au.ph{border-radius:28px}
+.bd{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bd-glow{position:absolute;left:50%;top:-30%;width:120%;height:80%;transform:translateX(-50%);background:radial-gradient(closest-side,var(--glow),transparent)}
+.bd-grid{position:absolute;inset:-40px;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 20%,transparent 80%);mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 20%,transparent 80%);animation:audrift 28s linear infinite}
+.bd-bolt{position:absolute;width:180px;height:152px;opacity:.07;animation:aufloat 16s ease-in-out infinite alternate}
+.bd-bolt.b2{width:110px;height:93px;opacity:.05;animation-duration:21s;animation-delay:-6s}
+.bd-bolt.b3{width:70px;height:59px;opacity:.06;animation-duration:13s;animation-delay:-3s}
+@keyframes audrift{from{transform:translate(0,0)}to{transform:translate(40px,40px)}}
+@keyframes aufloat{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(-18px,26px) rotate(-4deg)}}
+.au-scroll{position:relative;z-index:1;height:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:40px 24px}
+.ph .au-scroll{justify-content:flex-start;padding:48px 0 28px}
+
+/* logo */
+.wm{font-size:24px;font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text);white-space:nowrap}
+.wx{width:.644em;height:.546em;margin-left:.02em;overflow:visible;flex:none}
+
+/* card */
+.au-card{width:400px;max-width:100%;margin-top:28px;padding:32px;border:1px solid var(--line);border-radius:14px;background:var(--surface);display:flex;flex-direction:column;gap:20px}
+.ph .au-card{width:100%;margin-top:24px;padding:0 20px;border:0;background:transparent;gap:16px}
+.au-h{margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.015em}
+.au-sub{margin:4px 0 0;font-size:13px;line-height:20px;color:var(--text-2)}
+.au-form{display:flex;flex-direction:column;gap:16px;margin:0}
+.au-f{display:flex;flex-direction:column;gap:6px}
+.au-lr{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.au-l{font-size:12.5px;font-weight:500;color:var(--text-2)}
+.au-iw{position:relative;display:flex;align-items:center}
+.au-in{width:100%;height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 14px/1 'Inter',sans-serif;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.ph .au-in{height:44px;font-size:16px}
+.au-in::placeholder{color:var(--text-3)}
+.au-in:hover{border-color:var(--control)}
+.au-in:focus,.au-in.fk{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.au-in[aria-invalid=true]{border-color:var(--danger)}
+.au-in[aria-invalid=true]:focus{box-shadow:0 0 0 3px var(--dng-s)}
+.au-in.pr{padding-right:44px}
+.au-in[readonly]{color:var(--text-2);background:var(--raised);border-style:dashed;cursor:default}
+.au-in[readonly]:focus{border-color:var(--line-2);box-shadow:0 0 0 3px var(--accent-s)}
+.au-ia{position:absolute;right:4px;width:34px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer}
+.au-ia:hover{background:var(--hover);color:var(--text)}
+.au-ia.lk{cursor:default}.au-ia.lk:hover{background:transparent;color:var(--text-3)}
+.au-err{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;line-height:16px;color:var(--danger);animation:auin 160ms var(--ease)}
+.au-hint{margin:0;font-size:12px;line-height:16px;color:var(--text-3)}
+@keyframes auin{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+
+/* strength */
+.au-meter{display:flex;align-items:center;gap:10px}
+.au-segs{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.au-segs i{display:block;height:4px;border-radius:2px;background:var(--line-2);transition:background-color 200ms var(--ease)}
+.au-segs i.s1{background:var(--danger)}.au-segs i.s2{background:var(--orange)}.au-segs i.s3{background:var(--warn)}.au-segs i.s4{background:var(--ok)}
+.au-ml{font:500 11px/1 'JetBrains Mono',monospace;min-width:44px;text-align:right;color:var(--text-3)}
+.au-ml.s1{color:var(--danger)}.au-ml.s2{color:var(--orange)}.au-ml.s3{color:var(--warn)}.au-ml.s4{color:var(--ok)}
+.au-rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;margin:0;padding:0;list-style:none}
+.au-rule{display:flex;align-items:center;gap:6px;font-size:12px;line-height:18px;color:var(--text-3);transition:color 150ms var(--ease)}
+.au-rule.ok{color:var(--text-2)}
+.au-rule svg{flex:none}
+.au-rule .ck{color:var(--ok)}
+
+/* buttons */
+.au-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;padding:0 14px;border-radius:8px;border:1px solid transparent;font:500 14px/1 'Inter',sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.ph .au-btn{height:46px;font-size:15px}
+.au-btn:active{transform:scale(.985)}
+.au-btn.pri{background:var(--accent);color:#fff}
+.au-btn.pri:hover{background:var(--accent-h)}
+.au-btn.pri[aria-busy=true]{cursor:progress;background:var(--accent)}
+.au-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.au-btn.sec:hover{border-color:var(--control);background:var(--hover)}
+.au-btn.sec[aria-disabled=true]{color:var(--text-3);cursor:default}
+.au-btn.sec[aria-disabled=true]:hover{background:var(--raised);border-color:var(--line-2)}
+.au-btn:focus-visible,.au-ia:focus-visible,.au-lk:focus-visible,.au-cb:focus-visible,.au-ghost:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:auspin 700ms linear infinite;flex:none}
+@keyframes auspin{to{transform:rotate(360deg)}}
+.au-or{display:flex;align-items:center;gap:12px;font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em}
+.au-or::before,.au-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.au-lk{color:var(--accent-t);text-decoration:none;font-weight:500;border-radius:4px}
+.au-lk:hover{text-decoration:underline;text-underline-offset:3px}
+.au-lk.sm{font-size:12px}
+.au-foot{margin-top:20px;font-size:13px;color:var(--text-3)}
+.ph .au-foot{margin-top:24px}
+.au-cbr{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);cursor:pointer}
+.au-cb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.au-cb::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.au-cb:checked{background:var(--accent);border-color:var(--accent)}
+.au-cb:checked::after{transform:rotate(-45deg) scale(1)}
+.au-cb[aria-invalid=true]{border-color:var(--danger)}
+
+/* banner */
+.au-banner{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--danger);background:var(--dng-s);font-size:13px;line-height:18px;color:var(--text);animation:auin 180ms var(--ease)}
+.au-banner svg{flex:none;margin-top:1px;color:var(--danger)}
+.au-banner b{font-weight:600;display:block}
+.au-banner span{color:var(--text-2);font-size:12px}
+
+/* invite */
+.au-inv{display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:20px;border-bottom:1px solid var(--line);text-align:center}
+.au-ws{width:48px;height:48px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font:600 16px/1 'Inter',sans-serif;letter-spacing:-.02em;color:var(--text);background:oklch(var(--av-l) var(--av-c) 255);border:1px solid var(--line-2)}
+.au-by{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2)}
+.au-by b{color:var(--text);font-weight:500}
+.au-av{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:var(--text);flex:none}
+.au-role{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;border:1px solid var(--line-2);background:var(--raised);font-size:12px;font-weight:500;color:var(--text)}
+.au-role i{width:6px;height:6px;border-radius:50%;background:var(--accent-t)}
+
+/* done states */
+.au-done{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;animation:auin 220ms var(--ease)}
+.au-ico{width:52px;height:52px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line-2);color:var(--accent-t)}
+.au-ico.ok{color:var(--ok);position:relative}
+.au-ico.ok::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--spark);box-shadow:0 -30px 0 var(--spark),26px -15px 0 var(--spark),26px 15px 0 var(--spark),0 30px 0 var(--spark),-26px 15px 0 var(--spark),-26px -15px 0 var(--spark);animation:auspark 520ms var(--ease) 80ms both;pointer-events:none}
+@keyframes auspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.au-mail{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text)}
+.au-done .au-btn{margin-top:4px}
+.au-cd{font-family:'JetBrains Mono',monospace;font-size:12.5px}
+
+/* post-login transition */
+.au-tr{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:var(--bg);animation:aufade 200ms var(--ease)}
+.au-tr .wm{font-size:56px}
+.ph .au-tr .wm{font-size:44px}
+.au-tr .sv{transform-box:fill-box;transform-origin:center}
+.au-tr .a-bar{animation:barIn 260ms var(--ease) both}
+.au-tr .a-bolt{animation:strike 320ms var(--spring) 140ms both}
+.au-tr .a-flash{animation:flash 460ms var(--ease) 300ms both}
+.au-tr .a-x{animation:settle 260ms var(--ease) 460ms both}
+.au-tr .a-word{animation:wordIn 300ms var(--ease) 520ms both}
+.au-tr .a-ws{animation:wordIn 300ms var(--ease) 760ms both;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+@keyframes barIn{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes strike{from{opacity:0;transform:translate(14px,-18px) scale(1.15)}to{opacity:1;transform:none}}
+@keyframes flash{0%{opacity:0;transform:scale(.4)}30%{opacity:.7}100%{opacity:0;transform:scale(1.8)}}
+@keyframes settle{0%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes wordIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+@keyframes aufade{from{opacity:0}to{opacity:1}}
+.au-ghost{position:absolute;right:14px;top:14px;z-index:6;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--line-2);background:var(--raised);color:var(--text-2);font:500 12px/1 'Inter',sans-serif;cursor:pointer}
+.au-ghost:hover{color:var(--text);background:var(--hover)}
+
+/* app placeholder */
+.app{position:absolute;inset:0;z-index:4;display:flex;background:var(--bg);animation:aufade 360ms var(--ease)}
+.app-rail{width:184px;flex:none;border-right:1px solid var(--line);background:var(--surface);padding:14px 12px;display:flex;flex-direction:column;gap:10px}
+.app-wsr{display:flex;align-items:center;gap:8px;height:32px;padding:0 6px;border-radius:7px;font-size:13px;font-weight:600}
+.app-wsr .au-ws{width:22px;height:22px;border-radius:6px;font-size:10px}
+.app-main{flex:1;min-width:0;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:10px;height:28px;padding-right:96px}
+.app-top h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:aushim 1.4s linear infinite}
+@keyframes aushim{from{background-position:100% 0}to{background-position:-100% 0}}
+.app-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.app-card{height:96px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.ph .app-rail{display:none}
+.ph .app-main{padding:56px 16px 16px}
+.ph .app-cards{grid-template-columns:minmax(0,1fr)}
+
+/* replay control on the transition frame */
+.au-replay{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:7}
+
+@media (max-width:760px){
+  .au{border-radius:0;border:0}
+  .au-scroll{justify-content:flex-start;padding:56px 0 32px}
+  .au-card{width:100%;padding:0 20px;border:0;background:transparent}
+  .au-in{height:44px;font-size:16px}
+  .au-btn{height:46px;font-size:15px}
+  .app-rail{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .au,.au *{animation:none!important;transition:none!important}
+  .au .spin{animation:auspin 1.6s linear infinite!important}
+}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:5700px;padding:64px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · AUTH</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Auth flow</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>5 screens</span><span>validate on blur</span><span>navy + light</span><span>390 mobile</span><span>logo = transition</span></div>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;column-gap:40px;row-gap:40px;width:1280px">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="15">
+      <figure class="frame" id="{{fx.anchor}}" style="width:{{fx.w}}px">
+        <figcaption>{{fx.caption}}<span>{{fx.meta}}</span></figcaption>
+        <div class="au {{fx.themeCls}} {{fx.phCls}}" style="height:{{fx.h}}px">
+          <div class="bd" aria-hidden="true">
+            <div class="bd-glow"></div>
+            <div class="bd-grid"></div>
+            <svg class="bd-bolt" sc-camel-view-box="0 0 46 39" style="right:-30px;top:60px" overflow="visible"><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="var(--logo)" stroke-width="2" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg>
+            <svg class="bd-bolt b2" sc-camel-view-box="0 0 46 39" style="left:-20px;bottom:90px" overflow="visible"><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="var(--logo)" stroke-width="2.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg>
+            <svg class="bd-bolt b3" sc-camel-view-box="0 0 46 39" style="left:18%;top:36px" overflow="visible"><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="var(--text-3)" stroke-width="3" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg>
+          </div>
+
+          <sc-if value="{{fx.showMain}}" hint-placeholder-val="{{true}}">
+          <div class="au-scroll">
+            <span role="img" aria-label="Lightex" class="wm">Lighte<svg sc-camel-view-box="0 0 46 39" aria-hidden="true" class="wx">
+              <mask id="lm-{{fx.id}}" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+              <clipPath id="lc-{{fx.id}}"><rect width="46" height="39"></rect></clipPath>
+              <g clip-path="url(#lc-{{fx.id}})"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#lm-{{fx.id}})"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+            </svg></span>
+
+            <div class="au-card">
+              <sc-if value="{{fx.showForm}}" hint-placeholder-val="{{true}}">
+                <sc-if value="{{fx.isAccept}}" hint-placeholder-val="{{false}}">
+                  <div class="au-inv">
+                    <span class="au-ws" aria-hidden="true">PT</span>
+                    <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+                      <h1 class="au-h" id="{{fx.id}}-h">Join Platform team</h1>
+                      <span class="au-by"><span class="au-av" style="background:oklch(var(--av-l) var(--av-c) 200)" aria-hidden="true">JL</span><span><b>Jordan Lee</b> invited you</span></span>
+                    </div>
+                    <span class="au-role" title="Create and edit tasks"><i></i>Role: Member</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{fx.showTitle}}" hint-placeholder-val="{{true}}">
+                  <div>
+                    <h1 class="au-h" id="{{fx.id}}-h">{{fx.title}}</h1>
+                    <sc-if value="{{fx.subShow}}" hint-placeholder-val="{{false}}"><p class="au-sub">{{fx.sub}}</p></sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.showSSO}}" hint-placeholder-val="{{true}}">
+                  <button class="au-btn sec" type="button" sc-camel-on-click="{{fx.sso}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.6 7.1H8.2v2.2h3.1A3.5 3.5 0 1 1 10.4 5.2"></path><circle cx="8" cy="8" r="6.2" opacity=".35"></circle></svg>Continue with Google</button>
+                  <div class="au-or" aria-hidden="true">or</div>
+                </sc-if>
+
+                <sc-if value="{{fx.banner}}" hint-placeholder-val="{{false}}">
+                  <div class="au-banner" role="alert" id="{{fx.id}}-banner">
+                    <svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"></circle><path d="M8 4.8v3.6M8 11h.01"></path></svg>
+                    <div><b>Incorrect email or password</b><span>Try again or reset your password.</span></div>
+                  </div>
+                </sc-if>
+
+                <form class="au-form" sc-camel-no-validate="{{true}}" aria-labelledby="{{fx.id}}-h" sc-camel-on-submit="{{fx.submit}}">
+                  <sc-for list="{{fx.fields}}" as="fd" hint-placeholder-count="2">
+                    <div class="au-f">
+                      <div class="au-lr">
+                        <label class="au-l" for="{{fd.fid}}">{{fd.label}}</label>
+                        <sc-if value="{{fd.forgot}}" hint-placeholder-val="{{false}}"><a class="au-lk sm" href="#forgot">Forgot password?</a></sc-if>
+                      </div>
+                      <div class="au-iw">
+                        <input class="au-in {{fd.icls}}" id="{{fd.fid}}" name="{{fd.key}}" type="{{fd.type}}" value="{{fd.value}}" placeholder="{{fd.ph}}" autocomplete="{{fd.ac}}" sc-camel-read-only="{{fd.locked}}" aria-invalid="{{fd.invalid}}" aria-describedby="{{fd.desc}}" sc-camel-on-change="{{fd.onChange}}" sc-camel-on-blur="{{fd.onBlur}}" sc-camel-spell-check="false">
+                        <sc-if value="{{fd.toggleShow}}" hint-placeholder-val="{{false}}">
+                          <button class="au-ia" type="button" aria-label="Show password" aria-pressed="{{fd.shown}}" aria-controls="{{fd.fid}}" sc-camel-on-click="{{fd.toggle}}">
+                            <sc-if value="{{fd.notShown}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"></path><circle cx="8" cy="8" r="2"></circle></svg></sc-if>
+                            <sc-if value="{{fd.shown}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2l12 12M6.6 4.7A6 6 0 0 1 8 3.5c4 0 6.5 4.5 6.5 4.5a11 11 0 0 1-1.9 2.4M4.2 5.5A11 11 0 0 0 1.5 8S4 12.5 8 12.5a6 6 0 0 0 2.4-.5"></path></svg></sc-if>
+                          </button>
+                        </sc-if>
+                        <sc-if value="{{fd.locked}}" hint-placeholder-val="{{false}}">
+                          <span class="au-ia lk" aria-hidden="true"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5"></rect><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"></path></svg></span>
+                        </sc-if>
+                      </div>
+                      <sc-if value="{{fd.hintShow}}" hint-placeholder-val="{{false}}"><p class="au-hint" id="{{fd.fid}}-hint">{{fd.hint}}</p></sc-if>
+                      <sc-if value="{{fd.meterShow}}" hint-placeholder-val="{{false}}">
+                        <div class="au-meter">
+                          <div class="au-segs" role="meter" aria-label="Password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="{{fd.score}}" aria-valuetext="{{fd.scoreLabel}}">
+                            <sc-for list="{{fd.segs}}" as="sg" hint-placeholder-count="4"><i class="{{sg.cls}}"></i></sc-for>
+                          </div>
+                          <span class="au-ml {{fd.scoreCls}}" aria-live="polite">{{fd.scoreLabel}}</span>
+                        </div>
+                        <ul class="au-rules" id="{{fd.fid}}-rules" aria-label="Password rules">
+                          <sc-for list="{{fd.rules}}" as="ru" hint-placeholder-count="4">
+                            <li class="au-rule {{ru.cls}}">
+                              <sc-if value="{{ru.ok}}" hint-placeholder-val="{{false}}"><svg class="ck" width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5"></path></svg></sc-if>
+                              <sc-if value="{{ru.no}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.6" fill="currentColor"></circle></svg></sc-if>
+                              <span>{{ru.label}}</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ru.sr}}</span>
+                            </li>
+                          </sc-for>
+                        </ul>
+                      </sc-if>
+                      <sc-if value="{{fd.errShow}}" hint-placeholder-val="{{false}}">
+                        <p class="au-err" id="{{fd.fid}}-err"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4.75"></circle><path d="M6 3.8v2.6M6 8.3h.01"></path></svg>{{fd.err}}</p>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+
+                  <sc-if value="{{fx.showTerms}}" hint-placeholder-val="{{false}}">
+                    <div class="au-f">
+                      <label class="au-cbr" for="{{fx.id}}-terms"><input class="au-cb" id="{{fx.id}}-terms" type="checkbox" checked="{{fx.terms}}" aria-invalid="{{fx.termsInvalid}}" aria-describedby="{{fx.termsDesc}}" sc-camel-on-change="{{fx.toggleTerms}}">I agree to the <a class="au-lk" href="#register">Terms</a></label>
+                      <sc-if value="{{fx.termsErr}}" hint-placeholder-val="{{false}}"><p class="au-err" id="{{fx.id}}-terms-err"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4.75"></circle><path d="M6 3.8v2.6M6 8.3h.01"></path></svg>Accept the terms to continue</p></sc-if>
+                    </div>
+                  </sc-if>
+
+                  <button class="au-btn pri" type="submit" aria-busy="{{fx.busy}}">
+                    <sc-if value="{{fx.busy}}" hint-placeholder-val="{{false}}"><span class="spin" aria-hidden="true"></span></sc-if>
+                    <span>{{fx.btnLabel}}</span>
+                  </button>
+                </form>
+              </sc-if>
+
+              <sc-if value="{{fx.showSent}}" hint-placeholder-val="{{false}}">
+                <div class="au-done" role="status">
+                  <span class="au-ico"><svg width="22" height="22" sc-camel-view-box="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="16" height="12" rx="2"></rect><path d="M3.5 6l7.5 6 7.5-6"></path></svg></span>
+                  <div>
+                    <h1 class="au-h">Check your inbox</h1>
+                    <p class="au-sub">Link sent to <span class="au-mail">{{fx.email}}</span></p>
+                  </div>
+                  <button class="au-btn sec" type="button" aria-disabled="{{fx.cdActive}}" sc-camel-on-click="{{fx.resend}}">
+                    <sc-if value="{{fx.cdActive}}" hint-placeholder-val="{{true}}"><span>Resend in <span class="au-cd">{{fx.cdText}}</span></span></sc-if>
+                    <sc-if value="{{fx.cdDone}}" hint-placeholder-val="{{false}}"><span>Resend email</span></sc-if>
+                  </button>
+                  <sc-if value="{{fx.resent}}" hint-placeholder-val="{{false}}"><span class="au-hint">Sent again</span></sc-if>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{fx.showUpdated}}" hint-placeholder-val="{{false}}">
+                <div class="au-done" role="status">
+                  <span class="au-ico ok"><svg width="22" height="22" sc-camel-view-box="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11.5l4 4 8-9"></path></svg></span>
+                  <div>
+                    <h1 class="au-h">Password updated</h1>
+                    <p class="au-sub">Other sessions were signed out.</p>
+                  </div>
+                  <a class="au-btn pri" href="#login">Sign in</a>
+                </div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{fx.footShow}}" hint-placeholder-val="{{true}}">
+              <p class="au-foot">{{fx.footText}} <a class="au-lk" href="{{fx.footHref}}">{{fx.footLink}}</a></p>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{fx.showTrans}}" hint-placeholder-val="{{false}}">
+            <div class="au-tr" role="status" aria-label="Signing you in">
+              <span class="wm">
+                <span class="a-word" style="display:inline-block">Lighte</span><svg class="wx a-x sv" sc-camel-view-box="0 0 46 39" overflow="visible" aria-hidden="true">
+                  <mask id="tm-{{fx.id}}" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+                  <clipPath id="tc-{{fx.id}}"><rect width="46" height="39"></rect></clipPath>
+                  <circle class="sv a-flash" cx="23" cy="19.5" r="24" fill="none" stroke="var(--spark)" stroke-width="1.5" opacity="0"></circle>
+                  <g clip-path="url(#tc-{{fx.id}})"><path class="a-bar" d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#tm-{{fx.id}})"></path><path class="sv a-bolt" d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+                </svg>
+              </span>
+              <span class="a-ws">Platform team</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{fx.showReplay}}" hint-placeholder-val="{{false}}">
+            <button class="au-ghost au-replay" type="button" sc-camel-on-click="{{fx.replay}}" style="position:absolute;top:auto;right:auto"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6a4 4 0 1 0 1.2-2.85M2 1.5v2.2h2.2"></path></svg>Replay</button>
+          </sc-if>
+
+          <sc-if value="{{fx.showApp}}" hint-placeholder-val="{{false}}">
+            <div class="app" aria-label="Platform team">
+              <aside class="app-rail" aria-hidden="true">
+                <div class="app-wsr"><span class="au-ws">PT</span>Platform team</div>
+                <i class="sk" style="height:12px;width:70%;margin:8px 6px 0"></i>
+                <i class="sk" style="height:12px;width:56%;margin:0 6px"></i>
+                <i class="sk" style="height:12px;width:64%;margin:0 6px"></i>
+                <i class="sk" style="height:12px;width:48%;margin:12px 6px 0"></i>
+                <i class="sk" style="height:12px;width:60%;margin:0 6px"></i>
+              </aside>
+              <div class="app-main">
+                <div class="app-top"><h2>Platform team</h2></div>
+                <div class="app-cards">
+                  <div class="app-card"><i class="sk" style="height:10px;width:40%"></i><i class="sk" style="height:22px;width:30%"></i><i class="sk" style="height:8px;width:80%;margin-top:auto"></i></div>
+                  <div class="app-card"><i class="sk" style="height:10px;width:50%"></i><i class="sk" style="height:22px;width:24%"></i><i class="sk" style="height:8px;width:66%;margin-top:auto"></i></div>
+                </div>
+                <i class="sk" style="height:34px;width:100%"></i>
+                <i class="sk" style="height:34px;width:100%"></i>
+                <i class="sk" style="height:34px;width:100%"></i>
+              </div>
+              <button class="au-ghost" type="button" sc-camel-on-click="{{fx.signOut}}">Sign out</button>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:5700}}">
+class Component extends DCLogic {
+  state = { f: {} };
+
+  componentDidMount() {
+    this.tk = setInterval(() => {
+      const defs = this.defs || {};
+      const all = { ...(this.state.f || {}) };
+      let ch = false;
+      Object.keys(defs).forEach((id) => {
+        const cur = this.fs(id);
+        if (cur.phase === 'done' && cur.cd > 0) { all[id] = { ...(all[id] || {}), cd: cur.cd - 1 }; ch = true; }
+      });
+      if (ch) this.setState({ f: all });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.tk); (this.tm || []).forEach((t) => clearTimeout(t)); }
+  later(fn, ms) { this.tm = this.tm || []; this.tm.push(setTimeout(fn, ms)); }
+
+  fs(id) {
+    const d = (this.defs || {})[id] || { init: {} };
+    const base = { phase: 'form', vals: {}, touched: {}, show: {}, sub: false, banner: false, terms: false, cd: 0, resent: false, ...d.init };
+    return { ...base, ...((this.state.f || {})[id] || {}) };
+  }
+  patch(id, p) {
+    const all = { ...(this.state.f || {}) };
+    all[id] = { ...(all[id] || {}), ...p };
+    this.setState({ f: all });
+  }
+  reset(id) {
+    const all = { ...(this.state.f || {}) };
+    delete all[id];
+    this.setState({ f: all });
+  }
+
+  rules(pw) {
+    return [
+      { label: '8+ characters', ok: pw.length >= 8 },
+      { label: 'A number', ok: /\d/.test(pw) },
+      { label: 'Upper + lower', ok: /[a-z]/.test(pw) && /[A-Z]/.test(pw) },
+      { label: 'A symbol', ok: /[^A-Za-z0-9]/.test(pw) }
+    ];
+  }
+  score(pw) {
+    if (!pw) return 0;
+    const r = this.rules(pw);
+    let s = r.filter((x) => x.ok).length;
+    if (!r[0].ok) s = Math.min(s, 1);
+    return Math.max(s, 1);
+  }
+  errFor(key, v, vals) {
+    const t = (v || '').trim();
+    if (key === 'name') return t ? '' : 'Enter your name';
+    if (key === 'email') { if (!t) return 'Enter your email'; return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) ? '' : 'Enter a valid email'; }
+    if (key === 'password') return v ? '' : 'Enter your password';
+    if (key === 'newpw') { if (!v) return 'Create a password'; return this.score(v) >= 3 ? '' : 'Use a stronger password'; }
+    if (key === 'confirm') { if (!v) return 'Confirm your password'; return v === (vals.newpw || '') ? '' : 'Passwords don’t match'; }
+    return '';
+  }
+
+  buildFrame(def) {
+    const self = this;
+    const id = def.id;
+    const cur = this.fs(id);
+    const kind = def.kind;
+    const SPEC = {
+      login: [['email', 'Email', 'email', 'email'], ['password', 'Password', 'password', 'current-password']],
+      register: [['name', 'Full name', 'text', 'name'], ['email', 'Work email', 'email', 'email'], ['newpw', 'Password', 'password', 'new-password']],
+      forgot: [['email', 'Email', 'email', 'email']],
+      reset: [['newpw', 'New password', 'password', 'new-password'], ['confirm', 'Confirm password', 'password', 'new-password']],
+      accept: [['email', 'Email', 'email', 'email'], ['name', 'Full name', 'text', 'name'], ['newpw', 'Set a password', 'password', 'new-password']]
+    }[kind];
+    const PH = { email: 'you@team.dev', name: 'First Last', password: '', newpw: '', confirm: '' };
+    const fields = SPEC.map(([key, label, type, ac]) => {
+      const fid = id + '-' + key;
+      const v = cur.vals[key] || '';
+      const locked = kind === 'accept' && key === 'email';
+      const err = locked ? '' : this.errFor(key, v, cur.vals);
+      const errShow = !!err && !!(cur.sub || cur.touched[key]);
+      const isPw = key === 'password' || key === 'newpw' || key === 'confirm';
+      const shown = !!cur.show[key];
+      const meterShow = key === 'newpw';
+      const sc = meterShow ? this.score(v) : 0;
+      const descParts = [];
+      const bannerHit = cur.banner && (key === 'email' || key === 'password');
+      if (bannerHit) descParts.push(id + '-banner');
+      if (errShow) descParts.push(fid + '-err');
+      if (meterShow) descParts.push(fid + '-rules');
+      if (locked) descParts.push(fid + '-hint');
+      const rl = meterShow ? this.rules(v) : [];
+      return {
+        key, fid, label, ac, locked,
+        type: isPw ? (shown ? 'text' : 'password') : type,
+        value: v,
+        ph: PH[key] || '',
+        icls: (isPw ? 'pr' : '') + (locked ? ' pr' : '') + (def.focusKey === key ? ' fk' : ''),
+        invalid: errShow || bannerHit,
+        desc: descParts.length ? descParts.join(' ') : undefined,
+        err, errShow,
+        forgot: key === 'password' && kind === 'login',
+        toggleShow: isPw,
+        shown, notShown: !shown,
+        toggle: () => self.patch(id, { show: { ...cur.show, [key]: !shown } }),
+        hintShow: locked, hint: 'From your invite',
+        meterShow,
+        score: sc,
+        scoreLabel: v ? ['', 'Weak', 'Fair', 'Good', 'Strong'][sc] : '',
+        scoreCls: 's' + sc,
+        segs: [0, 1, 2, 3].map((i) => ({ cls: i < sc ? 's' + sc : '' })),
+        rules: rl.map((r) => ({ label: r.label, ok: r.ok, no: !r.ok, cls: r.ok ? 'ok' : '', sr: r.ok ? ', met' : ', not met' })),
+        onChange: (e) => {
+          if (cur.phase !== 'form' || locked) return;
+          const val = e && e.target ? e.target.value : '';
+          self.patch(id, { vals: { ...cur.vals, [key]: val }, banner: false });
+        },
+        onBlur: () => { if (v && !cur.touched[key]) self.patch(id, { touched: { ...cur.touched, [key]: true } }); }
+      };
+    });
+    const termsBad = kind === 'register' && !cur.terms;
+    const termsErr = termsBad && cur.sub;
+    const LABELS = {
+      login: ['Sign in', 'Signing in…'], register: ['Create account', 'Creating account…'], forgot: ['Send reset link', 'Sending…'],
+      reset: ['Update password', 'Updating…'], accept: ['Join workspace', 'Joining…']
+    }[kind];
+    const TITLES = { login: ['Welcome back', ''], register: ['Create your account', ''], forgot: ['Reset your password', 'We’ll email you a link.'], reset: ['Set a new password', ''], accept: ['', ''] }[kind];
+    const FOOT = { login: ['New to Lightex?', 'Create account', '#register'], register: ['Have an account?', 'Sign in', '#login'], forgot: ['', 'Back to sign in', '#login'], reset: null, accept: ['Not Taylor?', 'Sign in', '#login'] }[kind];
+    const busy = cur.phase === 'busy';
+    const submit = (e) => {
+      if (e && e.preventDefault) e.preventDefault();
+      if (cur.frozen || cur.phase !== 'form') return;
+      const firstBad = fields.find((f) => f.err);
+      if (firstBad || termsBad) {
+        self.patch(id, { sub: true });
+        const target = firstBad ? firstBad.fid : id + '-terms';
+        setTimeout(() => { try { const el = typeof document !== 'undefined' && document.getElementById(target); if (el) el.focus(); } catch (x) {} }, 0);
+        return;
+      }
+      self.patch(id, { phase: 'busy', sub: true });
+      self.later(() => {
+        if (kind === 'forgot') self.patch(id, { phase: 'done', cd: 30, resent: false });
+        else if (kind === 'reset') self.patch(id, { phase: 'done' });
+        else {
+          self.patch(id, { phase: 'trans' });
+          self.later(() => self.patch(id, { phase: 'app' }), 1300);
+        }
+      }, 900);
+    };
+    const showForm = cur.phase === 'form' || busy;
+    const showSent = kind === 'forgot' && cur.phase === 'done';
+    const showUpdated = kind === 'reset' && cur.phase === 'done';
+    const footShow = !!FOOT && (showForm || showSent);
+    return {
+      id, anchor: def.anchor, caption: def.caption, meta: def.meta, w: def.phone ? 390 : 620, h: def.h,
+      themeCls: def.light ? 't-light' : '', phCls: def.phone ? 'ph' : '',
+      showMain: cur.phase !== 'trans' && cur.phase !== 'x',
+      showForm, showSent, showUpdated,
+      isAccept: kind === 'accept', showTitle: kind !== 'accept',
+      title: TITLES[0], sub: TITLES[1], subShow: !!TITLES[1],
+      showSSO: kind === 'login' || kind === 'register',
+      sso: () => {},
+      banner: !!cur.banner,
+      fields,
+      showTerms: kind === 'register', terms: !!cur.terms, termsInvalid: termsErr, termsErr,
+      termsDesc: termsErr ? id + '-terms-err' : undefined,
+      toggleTerms: () => { if (cur.phase === 'form') self.patch(id, { terms: !cur.terms }); },
+      busy, btnLabel: busy ? LABELS[1] : LABELS[0],
+      submit,
+      email: cur.vals.email || '',
+      cdActive: cur.cd > 0, cdDone: !(cur.cd > 0), cdText: '0:' + String(Math.max(0, cur.cd)).padStart(2, '0'),
+      resent: !!cur.resent && cur.cd > 0,
+      resend: () => { if (cur.cd > 0) return; self.patch(id, { cd: 30, resent: true }); },
+      footShow, footText: FOOT ? FOOT[0] : '', footLink: FOOT ? FOOT[1] : '', footHref: FOOT ? FOOT[2] : '#login',
+      showTrans: cur.phase === 'trans',
+      showApp: cur.phase === 'app',
+      showReplay: !!cur.replay,
+      replay: () => { self.patch(id, { phase: 'x' }); setTimeout(() => self.patch(id, { phase: 'trans' }), 60); },
+      signOut: () => self.reset(id)
+    };
+  }
+
+  renderVals() {
+    const theme = this.props.theme ?? 'navy';
+    const D = [
+      { id: 'li', anchor: 'login', kind: 'login', caption: 'Login', meta: 'interactive · blur + submit', h: 680, init: { vals: { email: 'alex@team.dev' } } },
+      { id: 'le', kind: 'login', caption: 'Login · error', meta: 'wrong credentials', h: 680, init: { vals: { email: 'alex@team.dev', password: 'sprint-14' }, banner: true } },
+      { id: 'll', kind: 'login', caption: 'Login · loading', meta: 'button spinner', h: 680, init: { vals: { email: 'alex@team.dev', password: 'sprint-14' }, phase: 'busy', frozen: true } },
+      { id: 'lt', kind: 'login', caption: 'Post-login', meta: 'logo animation · ~1.1s', h: 680, init: { phase: 'trans', frozen: true, replay: true } },
+      { id: 'rg', anchor: 'register', kind: 'register', caption: 'Register', meta: 'live strength · 4 rules', h: 820, init: { vals: { name: 'Sam Patel', email: 'sam@team.dev', newpw: 'Sprint14' } } },
+      { id: 'ac', kind: 'accept', caption: 'Accept invitation', meta: 'email locked', h: 820, init: { vals: { email: 'taylor@team.dev', name: 'Taylor Ng' } } },
+      { id: 'fp', anchor: 'forgot', kind: 'forgot', caption: 'Forgot password', meta: 'interactive', h: 520, init: { vals: { email: '' } } },
+      { id: 'fs', kind: 'forgot', caption: 'Forgot · sent', meta: 'resend countdown', h: 520, init: { vals: { email: 'alex@team.dev' }, phase: 'done', cd: 24 } },
+      { id: 'rp', kind: 'reset', caption: 'Reset password', meta: 'mismatch', h: 600, init: { vals: { newpw: 'Beta-launch21', confirm: 'Beta-launch2' }, touched: { newpw: true, confirm: true } } },
+      { id: 'rs', kind: 'reset', caption: 'Reset · success', meta: 'done', h: 600, init: { phase: 'done' } },
+      { id: 'lgl', kind: 'login', caption: 'Login', meta: 'light · focus', h: 820, light: true, focusKey: 'email', init: { vals: { email: 'alex@team.dev' } } },
+      { id: 'acl', kind: 'accept', caption: 'Accept invitation', meta: 'light · weak password', h: 820, light: true, init: { vals: { email: 'taylor@team.dev', name: 'Taylor Ng', newpw: 'orbit' } } },
+      { id: 'mli', kind: 'login', caption: 'Mobile · Login', meta: '390', h: 844, phone: true, init: {} },
+      { id: 'mrg', kind: 'register', caption: 'Mobile · Register', meta: '390 · errors', h: 844, phone: true, init: { vals: { name: 'Sam Patel', email: 'sam@team', newpw: 'beta' }, touched: { email: true, newpw: true } } },
+      { id: 'mac', kind: 'accept', caption: 'Mobile · Invitation', meta: '390', h: 844, phone: true, init: { vals: { email: 'taylor@team.dev', name: '' } } }
+    ];
+    this.defs = {};
+    D.forEach((d) => { this.defs[d.id] = d; });
+    const frames = D.map((d) => this.buildFrame(d));
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      frames
+    };
+  }
+}
+</script>
+
+
+</body></html>

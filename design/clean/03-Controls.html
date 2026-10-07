@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Controls</title>
+<script src="../assets/f33f2789-c541-425f-a149-94ff607646cb.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-p:#1F52D6;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-p:#1E40AF;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--danger-solid:#B92F26;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--av-l:.90;--av-c:.06}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-p:#2358DB;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10;--scrim:rgba(2,5,14,.6);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.cap{font-size:12px;line-height:16px;color:var(--text-3)}
+.lbl{font-size:12px;font-weight:500;color:var(--text-2)}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible,.sel:focus-visible,.key:focus-visible,.ie:focus-visible,.seg button:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.btn-primary:active{background:var(--accent-p)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn-danger{background:var(--danger-solid);color:#fff}
+.btn-danger:hover{box-shadow:0 0 0 4px rgba(255,122,112,.18)}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn.lg{height:40px;padding:0 16px;font-size:14px}
+.btn.icon{width:32px;padding:0;justify-content:center}
+.btn.sm.icon{width:28px}
+.btn.off{background:var(--raised);color:var(--text-3);border-color:var(--line);cursor:not-allowed}
+.btn.off:active{transform:none}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.btn-primary .kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+/* inputs */
+.inp{height:32px;width:100%;padding:0 10px;border-radius:6px;border:1px solid var(--control);background:var(--surface);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.inp::placeholder{color:var(--text-3)}
+.inp:hover{border-color:var(--text-3)}
+.inp:focus,.inp.focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+.inp.err{border-color:var(--danger)}
+.inp:disabled{background:var(--raised);color:var(--text-3);border-color:var(--line);cursor:not-allowed}
+.field{display:flex;flex-direction:column;gap:6px}
+.sel{display:inline-flex;align-items:center;gap:8px;height:32px;width:100%;padding:0 10px;border-radius:6px;border:1px solid var(--control);background:var(--surface);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:border-color 120ms var(--ease)}
+.sel:hover{border-color:var(--text-3)}
+.menu{position:absolute;top:38px;left:0;width:240px;padding:4px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:pop 180ms var(--ease);z-index:2}
+@keyframes pop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border-radius:6px;border:0;background:transparent;color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left}
+.mi:hover,.mi:focus-visible{background:var(--hover);outline:none}
+.mi.on{background:var(--accent-s)}
+/* inline edit */
+.ie{display:block;width:100%;text-align:left;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text);font:600 16px/24px 'Inter',system-ui,sans-serif;padding:4px 8px;cursor:text;transition:background-color 120ms var(--ease)}
+.ie:hover{background:var(--hover)}
+.ie-in{width:100%;border:1px solid var(--accent);box-shadow:0 0 0 3px var(--ring);border-radius:6px;background:var(--surface);color:var(--text);font:600 16px/24px 'Inter',system-ui,sans-serif;padding:3px 7px}
+.ie-in:focus{outline:none}
+/* glyphs */
+.g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.g-backlog{border:1.5px dashed currentColor}
+.g-todo{border:1.5px solid currentColor}
+.g-progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.g-review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.g-done{background:currentColor}
+.g-done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.g-cancel{border:1.5px solid currentColor}
+.g-cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.pr{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.pr i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.pr i:nth-child(1){height:4px}.pr i:nth-child(2){height:7px}.pr i:nth-child(3){height:10px}.pr i:nth-child(4){height:12px}
+.pr.n1 i:nth-child(-n+1),.pr.n2 i:nth-child(-n+2),.pr.n3 i:nth-child(-n+3),.pr.n4 i:nth-child(-n+4){background:currentColor}
+.pr-urgent{width:14px;height:14px;border-radius:4px;background:currentColor;position:relative;flex:none}
+.pr-urgent::after{content:"!";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 10px/1 'Inter',sans-serif;color:var(--bg)}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line-2);background:transparent;font-size:12px;font-weight:500;color:var(--text-2);white-space:nowrap}
+.badge .g,.badge .pr{color:inherit}
+.ent{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px 0 6px;border-radius:6px;background:var(--raised);font-size:12px;font-weight:500;color:var(--text-2);white-space:nowrap}
+.dotl{width:8px;height:8px;border-radius:50%;flex:none}
+.key{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 6px;border-radius:4px;border:1px solid transparent;background:transparent;color:var(--text-2);font:500 12px/1 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.key:hover{background:var(--hover);color:var(--text)}
+.copied{font-size:12px;color:var(--ok);animation:pop 180ms var(--ease)}
+/* avatars */
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;position:relative;box-shadow:0 0 0 2px var(--surface)}
+.av.s20{width:20px;height:20px;font-size:9px}.av.s24{width:24px;height:24px;font-size:10px}.av.s32{width:32px;height:32px;font-size:12px}.av.s40{width:40px;height:40px;font-size:14px}
+.av.un{background:transparent!important;border:1.5px dashed var(--control);color:var(--text-3)}
+.pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+/* checkbox, switch, radio */
+.cb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.cb::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.cb:checked{background:var(--accent);border-color:var(--accent)}
+.cb:checked::after{transform:rotate(-45deg) scale(1)}
+.cb:focus-visible,.tg:focus-visible,.rd:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.tg{appearance:none;-webkit-appearance:none;width:32px;height:18px;margin:0;border-radius:9px;border:1px solid var(--control);background:var(--raised);position:relative;cursor:pointer;transition:background-color 150ms var(--ease),border-color 150ms var(--ease)}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-2);transition:transform 180ms var(--spring),background-color 150ms var(--ease)}
+.tg:checked{background:var(--accent);border-color:var(--accent)}
+.tg:checked::after{transform:translateX(14px);background:#fff}
+.rd{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:50%;background:transparent;display:grid;place-content:center;cursor:pointer;transition:border-color 120ms var(--ease)}
+.rd::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);transform:scale(0);transition:transform 150ms var(--spring)}
+.rd:checked{border-color:var(--accent)}
+.rd:checked::after{transform:scale(1)}
+.seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (prefers-reduced-motion:reduce){.ds *{animation-duration:.001ms!important;transition-duration:.001ms!important}.spin{animation:none;border-top-color:rgba(255,255,255,.35)}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2000px;padding:72px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">DESIGN SYSTEM · 03</span>
+      <h1 style="margin:0;font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em">Controls</h1>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" aria-pressed="{{isDark}}" sc-camel-on-click="{{setDark}}">Near-black</button>
+      <button type="button" aria-pressed="{{isNavy}}" sc-camel-on-click="{{setNavy}}">Navy</button>
+      <button type="button" aria-pressed="{{isLight}}" sc-camel-on-click="{{setLight}}">Light</button>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+
+      <section class="card">
+        <span class="eyebrow">Buttons</span>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <button class="btn btn-primary" type="button">New task <span class="kbd">C</span></button>
+          <button class="btn btn-sec" type="button">Add filter</button>
+          <button class="btn btn-ghost" type="button">Cancel</button>
+          <button class="btn btn-danger" type="button">Delete sprint</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <button class="btn btn-primary sm" type="button">Small</button>
+          <button class="btn btn-primary" type="button">Medium</button>
+          <button class="btn btn-primary lg" type="button">Large</button>
+          <button class="btn btn-sec icon" type="button" aria-label="More actions">
+            <svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3"></circle><circle cx="8" cy="8" r="1.3"></circle><circle cx="12.5" cy="8" r="1.3"></circle></svg>
+          </button>
+          <button class="btn btn-primary" type="button" aria-busy="true"><span class="spin"></span>Saving</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)">
+          <span class="lbl">Permission states</span>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+            <button class="btn btn-sec off" type="button" aria-disabled="true">Complete sprint</button>
+            <span class="cap">Disabled = visible reason</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+            <span class="btn btn-sec" style="border-style:dashed;color:var(--text-3);background:transparent;cursor:default">Delete project</span>
+            <span class="cap">No permission = not rendered</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Inputs</span>
+        <div class="field">
+          <label class="lbl" for="in-name">Project name</label>
+          <input class="inp" id="in-name" type="text" placeholder="e.g. Platform Rebuild">
+        </div>
+        <div class="field">
+          <label class="lbl" for="in-key">Task key prefix</label>
+          <input class="inp mono focus" id="in-key" type="text" value="PRJ" style="text-transform:uppercase">
+          
+        </div>
+        <div class="field">
+          <label class="lbl" for="in-date">Milestone date</label>
+          <input class="inp err" id="in-date" type="text" value="2026-13-40" aria-invalid="true" aria-describedby="in-date-err">
+          <span id="in-date-err" style="font-size:12px;color:var(--danger)">Enter a valid date (YYYY-MM-DD).</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid var(--line)">
+          <span class="lbl">Inline edit: click the title, Enter saves, Esc cancels</span>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <input class="ie-in" type="text" aria-label="Task title" value="{{title}}" sc-camel-on-change="{{onTitle}}" sc-camel-on-blur="{{endEdit}}" sc-camel-on-key-down="{{onTitleKey}}" sc-camel-auto-focus="{{true}}">
+          </sc-if>
+          <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+            <button class="ie" type="button" sc-camel-on-click="{{startEdit}}">{{title}}</button>
+          </sc-if>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Select</span>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <div class="field" style="position:relative">
+            <span class="lbl" id="st-lbl">Status</span>
+            <button class="sel" type="button" aria-haspopup="listbox" aria-expanded="{{menuOpen}}" aria-labelledby="st-lbl" sc-camel-on-click="{{toggleMenu}}">
+              <span class="g {{cur.glyph}}" style="color:{{cur.color}}"></span>
+              <span style="flex:1">{{cur.name}}</span>
+              <svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M3.5 5.5L7 9l3.5-3.5"></path></svg>
+            </button>
+            <sc-if value="{{menuOpen}}" hint-placeholder-val="{{true}}">
+              <div class="menu" role="listbox" aria-label="Status" style="top:62px">
+                <sc-for list="{{statuses}}" as="s" hint-placeholder-count="6">
+                  <button class="mi {{s.on}}" type="button" role="option" aria-selected="{{s.sel}}" sc-camel-on-click="{{s.pick}}">
+                    <span class="g {{s.glyph}}" style="color:{{s.color}}"></span>
+                    <span style="flex:1">{{s.name}}</span>
+                    <span class="kbd">{{s.n}}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div class="field">
+            <span class="lbl" id="pr-lbl">Priority</span>
+            <button class="sel" type="button" aria-haspopup="listbox" aria-labelledby="pr-lbl">
+              <span class="pr n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>
+              <span style="flex:1">High</span>
+              <svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M3.5 5.5L7 9l3.5-3.5"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div style="min-height:210px"></div>
+      </section>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+
+      <section class="card">
+        <span class="eyebrow">Badges</span>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span class="lbl">Status</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{statuses}}" as="s" hint-placeholder-count="6">
+              <span class="badge" style="color:{{s.color}}"><span class="g {{s.glyph}}"></span><span style="color:var(--text)">{{s.name}}</span></span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span class="lbl">Priority</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="badge" style="color:var(--danger)"><span class="pr-urgent"></span><span style="color:var(--text)">Urgent</span></span>
+            <span class="badge" style="color:var(--orange)"><span class="pr n3"><i></i><i></i><i></i><i></i></span><span style="color:var(--text)">High</span></span>
+            <span class="badge" style="color:var(--warn)"><span class="pr n2"><i></i><i></i><i></i><i></i></span><span style="color:var(--text)">Medium</span></span>
+            <span class="badge" style="color:var(--low)"><span class="pr n1"><i></i><i></i><i></i><i></i></span><span style="color:var(--text)">Low</span></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span class="lbl">Linked entities</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="ent"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="var(--accent-t)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 1.5L3 7.5h3.5l-1 5 4.5-6H6.5z"></path></svg>Auth overhaul</span>
+            <span class="ent"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="var(--accent-t)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V2h7L9 5l1.5 3h-7"></path></svg>Beta launch</span>
+            <span class="ent"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="var(--accent-t)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 5.5A4.5 4.5 0 003 4.2M2.5 8.5A4.5 4.5 0 0011 9.8M3 1.8v2.5h2.5M11 12.2V9.7H8.5"></path></svg>Sprint 14</span>
+            <span class="ent"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="var(--accent-t)" stroke-width="1.5" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle><circle cx="7" cy="7" r="1.8"></circle></svg>Cut p95 latency</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)">
+          <span class="lbl">Task key: click to copy</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button class="key" type="button" sc-camel-on-click="{{copyKey}}" aria-label="Copy task key PRJ-42">PRJ-42
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg>
+            </button>
+            <sc-if value="{{copied}}" hint-placeholder-val="{{false}}"><span class="copied" role="status">Copied</span></sc-if>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Avatars</span>
+        <div style="display:flex;align-items:center;gap:16px">
+          <sc-for list="{{avatars}}" as="a" hint-placeholder-count="4">
+            <span class="av {{a.size}}" style="background:oklch(var(--av-l) var(--av-c) {{a.hue}})" role="img" aria-label="{{a.label}}">{{a.ini}}</span>
+          </sc-for>
+          <span class="av s32" style="background:oklch(var(--av-l) var(--av-c) 250)" role="img" aria-label="Online">RN<span class="pres"></span></span>
+          <span class="av s32 un" role="img" aria-label="Unassigned">
+            <svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="5" r="2.2"></circle><path d="M2.8 12c.6-2 2.2-3 4.2-3s3.6 1 4.2 3"></path></svg>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;padding-left:6px">
+            <span class="av s24" style="background:oklch(var(--av-l) var(--av-c) 285);margin-left:-6px" role="img" aria-label="AK">AK</span>
+            <span class="av s24" style="background:oklch(var(--av-l) var(--av-c) 200);margin-left:-6px" role="img" aria-label="JM">JM</span>
+            <span class="av s24" style="background:oklch(var(--av-l) var(--av-c) 20);margin-left:-6px" role="img" aria-label="TS">TS</span>
+            <span class="av s24" style="background:var(--hover);margin-left:-6px;color:var(--text-2)" role="img" aria-label="3 more">+3</span>
+          </div>
+          
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Checkbox, switch, radio</span>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input class="cb" type="checkbox" checked="{{cb1}}" sc-camel-on-change="{{toggleCb1}}">Include sub-tasks</label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input class="cb" type="checkbox" checked="{{cb2}}" sc-camel-on-change="{{toggleCb2}}">Show completed</label>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;cursor:pointer"><span>Notify on mention</span><input class="tg" type="checkbox" role="switch" checked="{{tg1}}" sc-camel-on-change="{{toggleTg1}}"></label>
+          <div role="radiogroup" aria-label="Group by" style="display:flex;gap:20px;align-items:center">
+            <span class="lbl">Group by</span>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input class="rd" type="radio" name="grp" checked="{{rdSprint}}" sc-camel-on-change="{{pickSprint}}">Sprint</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input class="rd" type="radio" name="grp" checked="{{rdEpic}}" sc-camel-on-change="{{pickEpic}}">Epic</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Keys</span>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:13px;color:var(--text-2)">
+          <span style="display:flex;gap:4px;align-items:center"><span class="kbd">⌘</span><span class="kbd">K</span></span>
+          <span style="display:flex;gap:4px;align-items:center"><span class="kbd">G</span><span style="font-size:11px">then</span><span class="kbd">B</span></span>
+          <span style="display:flex;gap:4px;align-items:center"><span class="kbd">⇧</span><span class="kbd">⌘</span><span class="kbd">P</span></span>
+          <span style="display:flex;gap:4px;align-items:center"><span class="kbd">Esc</span></span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2000}}">
+class Component extends DCLogic {
+  state = { theme: null, status: 'progress', menuOpen: true, editing: false, title: 'Fix flaky board reflow on column resize', copied: false, cb1: true, cb2: false, tg1: true, group: 'sprint' };
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = st.theme || this.props.theme || 'navy';
+    const defs = [
+      { id: 'backlog', name: 'Backlog', glyph: 'g-backlog', color: 'var(--text-3)' },
+      { id: 'todo', name: 'Todo', glyph: 'g-todo', color: 'var(--todo)' },
+      { id: 'progress', name: 'In progress', glyph: 'g-progress', color: 'var(--warn)' },
+      { id: 'review', name: 'In review', glyph: 'g-review', color: 'var(--info)' },
+      { id: 'done', name: 'Done', glyph: 'g-done', color: 'var(--ok)' },
+      { id: 'cancel', name: 'Canceled', glyph: 'g-cancel', color: 'var(--text-3)' }
+    ];
+    const statuses = defs.map((d, i) => ({ ...d, n: String(i + 1), sel: st.status === d.id, on: st.status === d.id ? 'on' : '', pick: () => self.setState({ status: d.id, menuOpen: false }) }));
+    const cur = statuses.find((s) => s.sel) || statuses[0];
+    const avatars = [
+      { size: 's20', ini: 'AK', hue: 285, label: 'AK, 20px' },
+      { size: 's24', ini: 'JM', hue: 200, label: 'JM, 24px' },
+      { size: 's32', ini: 'TS', hue: 20, label: 'TS, 32px' },
+      { size: 's40', ini: 'RN', hue: 150, label: 'RN, 40px' }
+    ];
+    return {
+      themeCls: theme === 'light' ? 't-light' : (theme === 'navy' ? 't-navy' : 't-dark'),
+      isDark: theme === 'dark', isLight: theme === 'light', isNavy: theme === 'navy', setNavy: () => self.setState({ theme: 'navy' }),
+      setDark: () => self.setState({ theme: 'dark' }),
+      setLight: () => self.setState({ theme: 'light' }),
+      statuses, cur, avatars,
+      menuOpen: st.menuOpen,
+      toggleMenu: () => self.setState({ menuOpen: !st.menuOpen }),
+      editing: st.editing, notEditing: !st.editing, title: st.title,
+      startEdit: () => self.setState({ editing: true }),
+      endEdit: () => self.setState({ editing: false }),
+      onTitle: (e) => self.setState({ title: e.target.value }),
+      onTitleKey: (e) => { if (e.key === 'Enter' || e.key === 'Escape') self.setState({ editing: false }); },
+      copied: st.copied,
+      copyKey: () => {
+        try { navigator.clipboard && navigator.clipboard.writeText('PRJ-42'); } catch (err) {}
+        self.setState({ copied: true });
+        setTimeout(() => self.setState({ copied: false }), 1400);
+      },
+      cb1: st.cb1, cb2: st.cb2, tg1: st.tg1,
+      toggleCb1: () => self.setState({ cb1: !st.cb1 }),
+      toggleCb2: () => self.setState({ cb2: !st.cb2 }),
+      toggleTg1: () => self.setState({ tg1: !st.tg1 }),
+      rdSprint: st.group === 'sprint', rdEpic: st.group === 'epic',
+      pickSprint: () => self.setState({ group: 'sprint' }),
+      pickEpic: () => self.setState({ group: 'epic' })
+    };
+  }
+}
+</script>
+
+
+</body></html>

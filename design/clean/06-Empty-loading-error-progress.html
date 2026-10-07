@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Empty, loading, error, progress</title>
+<script src="../assets/c635f85d-de0d-4f75-bcd1-5117ee9268c8.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-p:#1F52D6;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.45)}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-p:#1E40AF;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--danger-solid:#B92F26;--shadow-pop:0 8px 24px rgba(18,18,23,.10)}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-p:#2358DB;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--danger-solid:#C23A30;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10;--scrim:rgba(2,5,14,.6);--edge:inset 0 1px 0 rgba(255,255,255,.04)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.cap{font-size:12px;line-height:18px;color:var(--text-3)}
+.lbl{font-size:12px;font-weight:500;color:var(--text-2)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn:focus-visible,.gb:focus-visible,.seg button:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.btn-primary .kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.g-todo{border:1.5px solid currentColor}
+.g-done{background:currentColor}
+.g-done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.g-done.fx{animation:checkpop 220ms var(--spring)}
+.g-done.fx::after{animation:draw 180ms var(--ease) 60ms both}
+.g-done.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:spark 420ms var(--ease) both;pointer-events:none}
+.g-err{background:currentColor}
+.g-err::after{content:"!";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 10px/1 'Inter',sans-serif;color:var(--bg)}
+@keyframes checkpop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes draw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes spark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.7);opacity:0}}
+.gb{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:0;border-radius:6px;background:transparent;cursor:pointer;flex:none}
+.gb:hover{background:var(--hover)}
+.bolt{position:absolute;right:16px;top:50%;margin-top:-14px;animation:boltflash 520ms var(--ease) both;pointer-events:none}
+@keyframes boltflash{0%{opacity:0;transform:scale(.4) rotate(-12deg)}35%{opacity:1;transform:scale(1.15) rotate(0)}100%{opacity:0;transform:scale(1) translateY(-6px)}}
+/* empty */
+.empty{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:8px 0}
+.eico{width:44px;height:44px;border-radius:10px;border:1px dashed var(--line-2);background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text-2)}
+/* skeleton */
+.sk{display:block;border-radius:4px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.loader{animation:boltpulse 1.2s ease-in-out infinite}
+@keyframes boltpulse{0%,100%{opacity:.6;transform:scale(.94);filter:drop-shadow(0 0 0 transparent)}50%{opacity:1;transform:scale(1);filter:drop-shadow(0 0 10px var(--ring))}}
+/* progress */
+.rg{transition:stroke-dashoffset 700ms var(--ease)}
+.bar{height:6px;border-radius:3px;background:var(--raised);border:1px solid var(--line);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:3px;background:var(--text-2);transition:width 700ms var(--ease)}
+.stat{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (prefers-reduced-motion:reduce){.ds *{animation-duration:.001ms!important;transition-duration:.001ms!important}.sk{animation:none}.loader{animation:none;opacity:1}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2100px;padding:72px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">DESIGN SYSTEM · 06</span>
+      <h1 style="margin:0;font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em">Empty, loading, error, progress</h1>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" aria-pressed="{{isDark}}" sc-camel-on-click="{{setDark}}">Near-black</button>
+      <button type="button" aria-pressed="{{isNavy}}" sc-camel-on-click="{{setNavy}}">Navy</button>
+      <button type="button" aria-pressed="{{isLight}}" sc-camel-on-click="{{setLight}}">Light</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <span class="eyebrow">Empty states</span>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+      <div class="empty">
+        <div class="eico"><svg width="20" height="20" sc-camel-view-box="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="4.5" width="13" height="11" rx="2.5"></rect><path d="M10 8v4M8 10h4"></path></svg></div>
+        <h3 style="margin:0;font-size:16px;line-height:24px;font-weight:600">No tasks yet</h3>
+        <p style="margin:0;font-size:13px;line-height:20px;color:var(--text-2);max-width:300px">Create the first task for this project, or import a CSV.</p>
+        <div style="display:flex;gap:8px;padding-top:4px">
+          <button class="btn btn-primary" type="button">New task <span class="kbd">C</span></button>
+          <button class="btn btn-ghost" type="button">Import CSV</button>
+        </div>
+        
+      </div>
+      <div class="empty">
+        <div class="eico"><svg width="20" height="20" sc-camel-view-box="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"></circle><path d="M13 13l3.5 3.5"></path></svg></div>
+        <h3 style="margin:0;font-size:16px;line-height:24px;font-weight:600">No matching tasks</h3>
+        <p style="margin:0;font-size:13px;line-height:20px;color:var(--text-2);max-width:300px">Nothing matches Status: Done and Assignee: Me.</p>
+        <div style="display:flex;gap:8px;padding-top:4px">
+          <button class="btn btn-sec" type="button">Clear filters <span class="kbd">⇧F</span></button>
+        </div>
+      </div>
+      <div class="empty">
+        <div class="eico"><svg width="20" height="20" sc-camel-view-box="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="4.5" y="9" width="11" height="7.5" rx="2"></rect><path d="M7 9V6.5a3 3 0 016 0V9"></path></svg></div>
+        <h3 style="margin:0;font-size:16px;line-height:24px;font-weight:600">You don't have access</h3>
+        <p style="margin:0;font-size:13px;line-height:20px;color:var(--text-2);max-width:300px">This project is private. Ask a project admin to add you.</p>
+        <div style="display:flex;gap:8px;padding-top:4px">
+          <button class="btn btn-sec" type="button">Request access</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <section class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <span class="eyebrow">Loading: skeleton to content</span>
+          <div class="seg" role="group" aria-label="Loading state">
+            <button type="button" aria-pressed="{{isLoading}}" sc-camel-on-click="{{setLoading}}">Loading</button>
+            <button type="button" aria-pressed="{{isLoaded}}" sc-camel-on-click="{{setLoaded}}">Loaded</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;min-height:196px">
+          <sc-if value="{{isLoading}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;flex-direction:column;gap:2px" aria-busy="true" aria-label="Loading tasks">
+              <sc-for list="{{skRows}}" as="s" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 12px">
+                  <span class="sk" style="width:14px;height:14px;border-radius:50%"></span>
+                  <span class="sk" style="width:48px;height:10px"></span>
+                  <span class="sk" style="width:{{s.w}}%;height:10px"></span>
+                  <span class="sk" style="width:20px;height:20px;border-radius:50%;margin-left:auto"></span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{isLoaded}}" hint-placeholder-val="{{false}}">
+            <div class="fade" style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border-radius:8px">
+                  <span class="g g-todo" style="color:var(--todo)"></span>
+                  <span class="mono" style="font-size:11px;color:var(--text-3);width:48px">{{r.key}}</span>
+                  <span style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{r.title}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;padding-top:20px;border-top:1px solid var(--line)">
+          <div style="width:96px;height:96px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none">
+            <svg class="loader" width="36" height="36" sc-camel-view-box="0 0 16 16" fill="var(--accent)" aria-hidden="true"><path d="M9.2 1L3 9.2h4.1L6.3 15 13 6.6H8.8z"></path></svg>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-weight:600">App load</span>
+            <span class="cap" style="max-width:280px">Pulse · text only after 2s</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Completion</span>
+        <div style="position:relative;display:flex;align-items:center;gap:12px;height:48px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)">
+          <button class="gb" type="button" aria-label="Mark PRJ-42 done" aria-pressed="{{done}}" sc-camel-on-click="{{toggleDone}}"><span class="g {{doneGlyph}}" style="color:{{doneColor}}"></span></button>
+          <span class="mono" style="font-size:11px;color:var(--text-3);width:48px">PRJ-42</span>
+          <span style="font-weight:500;color:{{doneText}};text-decoration:{{doneDeco}}">Fix flaky board reflow</span>
+          <sc-if value="{{bolt}}" hint-placeholder-val="{{false}}">
+            <svg class="bolt" width="28" height="28" sc-camel-view-box="0 0 16 16" fill="var(--accent-t)" aria-hidden="true"><path d="M9.2 1L3 9.2h4.1L6.3 15 13 6.6H8.8z"></path></svg>
+          </sc-if>
+        </div>
+        <p class="cap" style="margin:0">Click the ring · 420ms</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <span class="eyebrow">Progress and stats (sample data)</span>
+        <button class="btn btn-sec sm" type="button" sc-camel-on-click="{{replay}}">Replay</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+          <div class="stat">
+            <span class="cap">{{s.label}}</span>
+            <span style="font-size:32px;line-height:40px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{s.value}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+        <sc-for list="{{rings}}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)">
+            <div style="position:relative;width:84px;height:84px">
+              <svg width="84" height="84" sc-camel-view-box="0 0 84 84" fill="none" role="img" aria-label="{{r.label}} {{r.pct}} percent">
+                <circle cx="42" cy="42" r="34" stroke="var(--raised)" stroke-width="7"></circle>
+                <circle class="rg" cx="42" cy="42" r="34" stroke="{{r.color}}" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" style="stroke-dashoffset:{{r.off}}" transform="rotate(-90 42 42)"></circle>
+              </svg>
+              <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{r.shown}}%</span>
+            </div>
+            <span style="font-size:12px;color:var(--text-2)">{{r.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <span class="lbl">Epics</span>
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between"><span style="font-weight:500">{{b.label}}</span><span class="mono" style="font-size:11px;color:var(--text-2)">{{b.pct}}%</span></div>
+            <div class="bar" role="progressbar" aria-label="{{b.label}}" aria-valuenow="{{b.pct}}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{b.w}}%"></span></div>
+          </div>
+        </sc-for>
+      </div>
+      
+    </section>
+  </div>
+
+  <section class="card">
+    <span class="eyebrow">Errors</span>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--line);border-radius:10px;background:var(--bg)">
+        <div style="display:flex;align-items:center;gap:10px"><span class="g g-err" style="color:var(--danger)"></span><span style="font-weight:600;font-size:14px">Couldn't load tasks</span></div>
+        <p style="margin:0;font-size:13px;line-height:20px;color:var(--text-2)">The request timed out. Your changes are safe.</p>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-sec" type="button">Retry <span class="kbd">R</span></button>
+          <span class="mono" style="font-size:11px;color:var(--text-3)">ref 7f3a91</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--line);border-radius:10px;background:var(--bg)">
+        <span class="mono" style="font-size:12px;color:var(--text-3)">PRJ-404</span>
+        <span style="font-weight:600;font-size:14px">Task not found</span>
+        <p style="margin:0;font-size:13px;line-height:20px;color:var(--text-2)">It may have been deleted, or you may not have access.</p>
+        <div><button class="btn btn-sec" type="button">Go to board <span class="kbd">G B</span></button></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--warn);border-radius:10px;background:var(--bg)">
+          <span class="g g-err" style="color:var(--warn)"></span>
+          <span style="flex:1;font-size:13px;line-height:20px">You're offline. 3 changes will sync when you reconnect.</span>
+        </div>
+        <span class="cap">Amber: nothing has failed yet</span>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2100}}">
+class Component extends DCLogic {
+  state = { theme: null, loaded: false, done: false, on: false, t: 0 };
+  componentDidMount() { this.start(); }
+  componentWillUnmount() { this.stopped = true; }
+  start() {
+    const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { this.setState({ on: true, t: 1 }); return; }
+    this.setState({ on: false, t: 0 });
+    setTimeout(() => this.setState({ on: true }), 60);
+    const t0 = performance.now();
+    const step = (now) => {
+      if (this.stopped) return;
+      const p = Math.min(1, (now - t0) / 800);
+      this.setState({ t: p });
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = st.theme || this.props.theme || 'navy';
+    const e = 1 - Math.pow(1 - st.t, 3);
+    const stats = [
+      { label: 'Open tasks', value: String(Math.round(24 * e)) },
+      { label: 'Done this sprint', value: String(Math.round(41 * e)) },
+      { label: 'Cycle time (days)', value: (2.4 * e).toFixed(1) }
+    ];
+    const C = 213.6;
+    const ringDefs = [
+      { label: 'Sprint 14', pct: 68, color: 'var(--accent)' },
+      { label: 'Beta launch', pct: 42, color: 'var(--text-2)' },
+      { label: 'Latency goal', pct: 85, color: 'var(--ok)' }
+    ];
+    const rings = ringDefs.map((r) => ({ ...r, off: st.on ? (C * (1 - r.pct / 100)).toFixed(1) : C, shown: Math.round(r.pct * e) }));
+    const barDefs = [{ label: 'Auth overhaul', pct: 72 }, { label: 'Billing v2', pct: 35 }, { label: 'Search', pct: 90 }];
+    const bars = barDefs.map((b) => ({ ...b, w: st.on ? b.pct : 0 }));
+    return {
+      themeCls: theme === 'light' ? 't-light' : (theme === 'navy' ? 't-navy' : 't-dark'),
+      isDark: theme === 'dark', isLight: theme === 'light', isNavy: theme === 'navy', setNavy: () => self.setState({ theme: 'navy' }),
+      setDark: () => self.setState({ theme: 'dark' }),
+      setLight: () => self.setState({ theme: 'light' }),
+      isLoaded: st.loaded, isLoading: !st.loaded,
+      setLoaded: () => self.setState({ loaded: true }),
+      setLoading: () => self.setState({ loaded: false }),
+      skRows: [{ w: 52 }, { w: 64 }, { w: 44 }, { w: 58 }],
+      rows: [
+        { key: 'PRJ-42', title: 'Fix flaky board reflow on column resize' },
+        { key: 'PRJ-47', title: 'Persist saved filters per project' },
+        { key: 'PRJ-51', title: 'Keyboard shortcut sheet' },
+        { key: 'PRJ-52', title: 'Empty state for new workspaces' }
+      ],
+      done: st.done,
+      toggleDone: () => self.setState({ done: !st.done }),
+      doneGlyph: st.done ? 'g-done fx' : 'g-todo',
+      doneColor: st.done ? 'var(--ok)' : 'var(--todo)',
+      doneText: st.done ? 'var(--text-3)' : 'var(--text)',
+      doneDeco: st.done ? 'line-through' : 'none',
+      bolt: st.done,
+      stats, rings, bars,
+      replay: () => self.start()
+    };
+  }
+}
+</script>
+
+
+</body></html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Edge screens and onboarding</title>
+<script src="../assets/fa1f6aa8-fd90-4f97-8fd5-ea24f5b9705c.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--scrim:rgba(2,5,14,.6);--warn-s:rgba(245,183,59,.12);--ok-s:rgba(74,222,128,.12);--danger-s:rgba(255,122,112,.12)}
+.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--scrim:rgba(5,5,8,.55);--warn-s:rgba(245,183,59,.12);--ok-s:rgba(74,222,128,.12);--danger-s:rgba(255,122,112,.12)}
+.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--scrim:rgba(18,18,23,.28);--warn-s:#FFF6E0;--ok-s:#E7F6EC;--danger-s:#FDECEA}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text)}
+.lx{width:.644em;height:.546em;margin-left:.02em;overflow:visible;flex:none}
+.logo{font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text)}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;text-decoration:none;transition:background-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.btn-primary .tp-kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn[aria-busy=true]{cursor:progress}
+.ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-2);cursor:pointer}
+.ib:hover{background:var(--hover);color:var(--text)}
+.btn:focus-visible,.ib:focus-visible,.ob-tpl:focus-within,.ob-seg button:focus-visible,.ob-chip button:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.spin{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:inline-block;flex:none;animation:spin 700ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.badge{border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:22px;height:20px;padding:0 4px;font:600 9px/1 'JetBrains Mono',monospace;background:oklch(var(--pk-l) var(--pk-c) var(--h));color:oklch(var(--pkt-l) var(--pkt-c) var(--h))}
+/* edge pages */
+.ed{position:absolute;inset:0;display:flex;flex-direction:column}
+.ed-bar{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--surface)}
+.ed-c{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+.ed-c h2{margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.015em;max-width:420px}
+.ed-code{font:600 64px/1 'Inter',sans-serif;letter-spacing:-.05em;color:var(--text-3);display:flex;align-items:center}
+.ed-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line-2);color:var(--text-2)}
+.ed-ico.dng{color:var(--danger);background:var(--danger-s);border-color:transparent}
+.ed-ico.wrn{color:var(--warn);background:var(--warn-s);border-color:transparent}
+.ed-meta{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.ed-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.ed-pill{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:15px;font-weight:500;animation:edin 220ms var(--ease)}
+.ed-pill.ok{background:var(--ok-s);color:var(--ok)}
+.ed-pill.dng{background:var(--danger-s);color:var(--danger)}
+.ed-ref{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 4px 0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-2);animation:edin 220ms var(--ease)}
+@keyframes edin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* app mock */
+.mk-body{flex:1;min-height:0;padding:14px 18px;display:flex;flex-direction:column;gap:0;overflow:hidden}
+.mk-row{display:flex;align-items:center;gap:10px;height:40px;padding:0 4px;border-bottom:1px solid var(--line);font-weight:500}
+.mk-key{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);width:50px;flex:none}
+.mk-q{display:inline-flex;align-items:center;gap:5px;font:500 11px/1 'JetBrains Mono',monospace;color:var(--warn);animation:edin 200ms var(--ease)}
+.mk-q.ok{color:var(--ok)}
+.fake{position:absolute;inset:0;display:flex;flex-direction:column}
+.fake .bar{height:48px;border-bottom:1px solid var(--line);background:var(--surface)}
+.fake .body{padding:18px;display:flex;flex-direction:column;gap:10px}
+.fake span{display:block;height:12px;border-radius:4px;background:var(--raised)}
+.fake i{display:block;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.scrim{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--scrim);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade 200ms var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{width:360px;max-width:100%;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);padding:22px;display:flex;flex-direction:column;gap:14px;animation:modin 180ms var(--ease)}
+@keyframes modin{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
+.toast{position:absolute;right:16px;bottom:16px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;animation:toastin 180ms var(--ease)}
+@keyframes toastin{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+/* offline banner */
+.ob-ban{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px 0 16px;flex:none;font-weight:500;border-bottom:1px solid transparent;overflow:hidden;animation:banin 220ms var(--ease);transition:background-color 200ms var(--ease),color 200ms var(--ease)}
+.ob-ban.off{background:var(--warn-s);color:var(--warn);border-bottom-color:rgba(245,183,59,.3)}
+.ob-ban.on{background:var(--ok-s);color:var(--ok);border-bottom-color:rgba(74,222,128,.3)}
+.ob-ban.leaving{animation:banout 220ms var(--ease) forwards}
+@keyframes banin{from{height:0;opacity:0}to{height:40px;opacity:1}}
+@keyframes banout{from{height:40px;opacity:1}to{height:0;opacity:0;border-bottom-width:0}}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:4px;height:4px;border-radius:50%;background:currentColor;animation:dot 1s var(--ease) infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{opacity:.25;transform:none}40%{opacity:1;transform:translateY(-2px)}}
+.wifi{animation:pulse 1.6s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+/* in-field */
+.in{width:100%;height:36px;padding:0 12px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:400 13.5px/1 'Inter',sans-serif;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.in::placeholder{color:var(--text-3)}
+.in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.in.bad{border-color:var(--danger)}
+.in.bad:focus{box-shadow:0 0 0 3px var(--danger-s)}
+.in[readonly]{background:var(--raised);color:var(--text-2)}
+.in.mono{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+.lbl{font-size:12px;font-weight:500;color:var(--text-2)}
+.fld{display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0}
+.ferr{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--danger);animation:edin 160ms var(--ease)}
+/* loading screen */
+.ld{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:var(--bg)}
+.ld-track{width:140px;height:2px;border-radius:2px;background:var(--line);overflow:hidden;position:relative}
+.ld-track i{position:absolute;top:0;bottom:0;width:40%;border-radius:2px;background:var(--accent);animation:ldbar 1.1s var(--ease) infinite}
+@keyframes ldbar{from{left:-40%}to{left:100%}}
+.sv{transform-box:fill-box;transform-origin:center}
+.play .a-bar{animation:barIn 260ms var(--ease) both}
+.play .a-bolt{animation:strike 320ms var(--spring) 140ms both}
+.play .a-flash{animation:flash 460ms var(--ease) 300ms both}
+.play .a-x{animation:settle 260ms var(--ease) 460ms both}
+.play .a-word{animation:wordIn 300ms var(--ease) 520ms both}
+.play .ld-track{animation:wordIn 300ms var(--ease) 700ms both}
+@keyframes barIn{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes strike{from{opacity:0;transform:translate(14px,-18px) scale(1.15)}to{opacity:1;transform:none}}
+@keyframes flash{0%{opacity:0;transform:scale(.4)}30%{opacity:.7}100%{opacity:0;transform:scale(1.8)}}
+@keyframes settle{0%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes wordIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+/* onboarding */
+.ob{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.ob-top{height:56px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px}
+.ob-prog{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:420px;max-width:100%;margin:8px auto 0}
+.ob-ps{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ob-track{height:4px;border-radius:2px;background:var(--line-2);overflow:hidden}
+.ob-track i{display:block;height:100%;border-radius:2px;background:var(--accent);transition:width 320ms var(--ease),background-color 300ms var(--ease)}
+.ob-track.fin i{background:var(--ok)}
+.ob-pl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-3);white-space:nowrap}
+.ob-pl.cur{color:var(--text)}
+.ob-pl.done{color:var(--text-2)}
+.ob-pl b{font:600 11px/1 'JetBrains Mono',monospace}
+.ob-main{flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;padding:36px 24px 24px}
+.ob-card{width:460px;max-width:100%;display:flex;flex-direction:column;gap:20px}
+.ob-step{display:flex;flex-direction:column;gap:18px;animation:obin 240ms var(--ease) both}
+.ob-step.back{animation-name:obback}
+@keyframes obin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes obback{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.ob-h{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em}
+.ob-eb{font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.ob-slug{display:flex;align-items:center;gap:0;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);min-width:0;overflow:hidden;white-space:nowrap}
+.ob-slug b{color:var(--accent-t);font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.ob-2{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:12px}
+.ob-tpls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ob-tpl{position:relative;display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;transition:border-color 120ms var(--ease),background-color 120ms var(--ease)}
+.ob-tpl:hover{border-color:var(--control)}
+.ob-tpl.on{border-color:var(--accent);background:var(--accent-s)}
+.ob-tpl input{position:absolute;opacity:0;pointer-events:none}
+.ob-tpl span.n{font-weight:500;font-size:12.5px}
+.ob-art{height:46px;border-radius:6px;background:var(--bg);border:1px solid var(--line);padding:6px;display:flex;gap:4px}
+.ob-art i{display:block;border-radius:2px;background:var(--line-2)}
+.ob-art.kan i{flex:1;align-self:stretch;background:linear-gradient(var(--line-2) 0 8px,transparent 8px 11px,var(--line-2) 11px 19px,transparent 19px)}
+.ob-art.scr{flex-direction:column;justify-content:center}
+.ob-art.scr i{height:6px}
+.ob-art.bug{flex-direction:column;justify-content:center;gap:5px}
+.ob-art.bug i{height:5px}
+.ob-tpl.on .ob-art i{background-color:var(--accent-t);opacity:.55}
+.ob-tpl.on .ob-art.kan i{background:linear-gradient(var(--accent-t) 0 8px,transparent 8px 11px,var(--accent-t) 11px 19px,transparent 19px)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:40px;padding:5px 6px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface);transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.ob-chips:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.ob-chips.bad{border-color:var(--danger)}
+.ob-chips input{flex:1;min-width:140px;height:26px;border:0;background:transparent;color:var(--text);font:400 13.5px/1 'Inter',sans-serif;padding:0 4px}
+.ob-chips input:focus{outline:none}
+.ob-chips input::placeholder{color:var(--text-3)}
+.ob-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 3px 0 4px;border-radius:13px;background:var(--raised);border:1px solid var(--line-2);font-size:12.5px;font-weight:500;animation:chipin 160ms var(--spring);max-width:100%}
+.ob-chip.bad{background:var(--danger-s);border-color:var(--danger);color:var(--danger)}
+.ob-chip span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob-chip button{width:18px;height:18px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ob-chip button:hover{background:var(--hover)}
+@keyframes chipin{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+.ob-seg{display:inline-flex;padding:3px;gap:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.ob-seg button{height:28px;padding:0 12px;border-radius:6px;border:0;background:transparent;color:var(--text-2);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.ob-seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+.ob-act{flex:none;display:flex;align-items:center;gap:10px;padding:16px 24px 24px;width:508px;max-width:100%;margin:0 auto}
+.ob-sum{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.ob-sum>div{display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-bottom:1px solid var(--line)}
+.ob-sum>div:last-child{border-bottom:0}
+.ob-ring{width:48px;height:48px;border-radius:50%;background:var(--ok);position:relative;flex:none;animation:tppop 300ms var(--spring)}
+.ob-ring::after{content:"";position:absolute;left:18px;top:11px;width:9px;height:18px;border:solid var(--bg);border-width:0 3px 3px 0;transform:rotate(45deg);animation:tpdraw 220ms var(--ease) 120ms both}
+.ob-ring::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:var(--spark);box-shadow:0 -34px 0 var(--spark),30px -17px 0 var(--spark),30px 17px 0 var(--spark),0 34px 0 var(--spark),-30px 17px 0 var(--spark),-30px -17px 0 var(--spark);animation:tpspark 520ms var(--ease) 80ms both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpdraw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.ob.mob .ob-top{padding:0 8px 0 14px;height:52px}
+.ob.mob .ob-prog{width:auto;margin:0 16px}
+.ob.mob .ob-pl span{display:none}
+.ob.mob .ob-main{padding:24px 16px}
+.ob.mob .ob-h{font-size:21px;line-height:28px}
+.ob.mob .ob-2{grid-template-columns:minmax(0,1fr) 84px}
+.ob.mob .ob-tpls{grid-template-columns:minmax(0,1fr)}
+.ob.mob .ob-tpl{flex-direction:row;align-items:center}
+.ob.mob .ob-tpl .ob-art{width:64px;height:40px}
+.ob.mob .ob-act{padding:12px 16px 24px;border-top:1px solid var(--line);background:var(--surface)}
+.ob.mob .ob-act>span{display:none}
+.ob.mob .ob-act .btn{height:44px}
+.ob.mob .ob-act .btn-primary{flex:1}
+.ob.mob .in{height:44px}
+.phone-bar{height:36px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font:600 12px/1 'JetBrains Mono',monospace;color:var(--text)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:760px){
+  .ob-top{padding:0 8px 0 14px}
+  .ob-prog{width:auto;margin:0 16px}
+  .ob-pl span{display:none}
+  .ob-main{padding:24px 16px}
+  .ob-tpls{grid-template-columns:minmax(0,1fr)}
+  .ob-act{padding:12px 16px 24px;border-top:1px solid var(--line)}
+  .ob-act>span{display:none}
+  .ob-act .btn-primary{flex:1;height:44px}
+  .in{height:44px}
+}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2720px;padding:64px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="lxs" sc-camel-view-box="0 0 46 39">
+        <mask id="lxsm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+        <clipPath id="lxsc"><rect width="46" height="39"></rect></clipPath>
+        <g clip-path="url(#lxsc)"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#lxsm)"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · EDGE + FIRST RUN</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Edge screens and onboarding</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>404 · 403 · 500</span><span>offline</span><span>session</span><span>3-step setup</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px">
+
+    <!-- 404 -->
+    <figure class="frame">
+      <figcaption>Not found<span>404</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ed">
+          <div class="ed-bar"><span class="logo" role="img" aria-label="Lightex" style="font-size:16px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span></div>
+          <div class="ed-c">
+            <div class="ed-code" aria-hidden="true">4<svg sc-camel-view-box="0 0 46 39" style="width:54px;height:46px;margin:0 6px;opacity:.9"><use href="#lxs" width="100%" height="100%"></use></svg>4</div>
+            <h2>Page not found</h2>
+            <span class="ed-meta">/platform/tasks/PRJ-999</span>
+            <div class="ed-row" style="margin-top:6px">
+              <button class="btn btn-primary" type="button">Go to My work</button>
+              <button class="btn btn-sec" type="button">Search <span class="tp-kbd">⌘K</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 403 -->
+    <figure class="frame">
+      <figcaption>Permission denied<span>403 · interactive</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ed">
+          <div class="ed-bar"><span class="logo" role="img" aria-label="Lightex" style="font-size:16px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span><span class="ed-meta" style="margin-left:6px">/ Infra</span></div>
+          <div class="ed-c">
+            <span class="ed-ico"><svg width="20" height="20" sc-camel-view-box="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2"></rect><path d="M6.5 9V6.5a3.5 3.5 0 017 0V9"></path></svg></span>
+            <h2>You’re not a member of this project</h2>
+            <div class="ed-row"><span class="badge" style="--h:60">IN</span><span style="font-weight:500">Infra</span><span class="ed-meta">· admin</span><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) 60)">MD</span><span style="color:var(--text-2)">Morgan Diaz</span></div>
+            <div class="ed-row" style="margin-top:6px;min-height:32px" aria-live="polite">
+              <sc-if value="{{reqIdle}}" hint-placeholder-val="{{true}}">
+                <button class="btn btn-primary" type="button" sc-camel-on-click="{{requestAccess}}">Request access</button>
+                <button class="btn btn-ghost" type="button">Back to My work</button>
+              </sc-if>
+              <sc-if value="{{reqBusy}}" hint-placeholder-val="{{false}}">
+                <button class="btn btn-primary" type="button" aria-busy="true"><span class="spin"></span>Sending</button>
+              </sc-if>
+              <sc-if value="{{reqSent}}" hint-placeholder-val="{{false}}">
+                <span class="ed-pill ok" role="status"><span class="tp-g done" style="color:var(--ok)"></span>Request sent</span>
+                <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{withdraw}}">Withdraw</button>
+              </sc-if>
+            </div>
+            <sc-if value="{{reqSent}}" hint-placeholder-val="{{false}}"><span class="ed-meta">Morgan Diaz notified · just now</span></sc-if>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 500 -->
+    <figure class="frame">
+      <figcaption>Server error<span>500 · retry → still failing</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ed">
+          <div class="ed-bar"><span class="logo" role="img" aria-label="Lightex" style="font-size:16px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span><span class="ed-meta" style="margin-left:6px">/ Platform Rebuild / Board</span></div>
+          <div class="ed-c">
+            <span class="ed-ico dng"><svg width="20" height="20" sc-camel-view-box="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3l7.5 13h-15z"></path><path d="M10 8v3.5M10 14v.1"></path></svg></span>
+            <h2>Something went wrong</h2>
+            <span class="ed-meta">GET /boards/prj · 500</span>
+            <div class="ed-row" style="margin-top:6px" aria-live="polite">
+              <sc-if value="{{errBusy}}" hint-placeholder-val="{{false}}"><button class="btn btn-primary" type="button" aria-busy="true"><span class="spin"></span>Retrying</button></sc-if>
+              <sc-if value="{{errReady}}" hint-placeholder-val="{{true}}"><button class="btn btn-primary" type="button" sc-camel-on-click="{{retry}}">{{retryLabel}}</button></sc-if>
+              <button class="btn btn-ghost" type="button">Status page</button>
+            </div>
+            <sc-if value="{{errFail}}" hint-placeholder-val="{{false}}">
+              <div class="ed-row" role="status">
+                <span class="ed-pill dng"><svg width="13" height="13" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"></circle><path d="M7 4v3.5M7 9.8v.1"></path></svg>Still failing · attempt {{errTries}}</span>
+                <span class="ed-ref">Ref 7F3A-91C2<button class="ib" type="button" style="width:24px;height:24px" sc-camel-on-click="{{copyRef}}" aria-label="Copy reference id"><sc-if value="{{refCopied}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="var(--ok)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5"></path></svg></sc-if><sc-if value="{{refNotCopied}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg></sc-if></button></span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- Session expired -->
+    <figure class="frame">
+      <figcaption>Session expired<span>modal · inline validation</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ed">
+          <div class="ed-bar"><span class="logo" role="img" aria-label="Lightex" style="font-size:16px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span><span class="ed-meta" style="margin-left:6px">/ PRJ-42</span><span style="flex:1"></span><sc-if value="{{sessIn}}" hint-placeholder-val="{{false}}"><button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{expire}}">Expire session</button></sc-if></div>
+          <div class="mk-body">
+            <div style="font-size:18px;font-weight:600;letter-spacing:-.01em;padding:6px 4px 12px">Fix flaky board reflow on column resize</div>
+            <div style="display:flex;flex-direction:column;gap:8px;padding:0 4px"><span style="height:10px;width:92%;border-radius:4px;background:var(--raised)"></span><span style="height:10px;width:84%;border-radius:4px;background:var(--raised)"></span><span style="height:10px;width:60%;border-radius:4px;background:var(--raised)"></span></div>
+            <div style="margin-top:18px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;box-shadow:0 0 0 3px var(--accent-s);color:var(--text-2)">Repro’d on Safari too. Looks like will-change…</div>
+          </div>
+        </div>
+        <sc-if value="{{sessOpen}}" hint-placeholder-val="{{true}}">
+          <div class="scrim">
+            <form class="modal" role="dialog" aria-modal="true" aria-labelledby="se-t" sc-camel-on-submit="{{signIn}}" sc-camel-no-validate="{{true}}">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="ed-ico" style="width:36px;height:36px;border-radius:9px"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.5V8l2.3 1.5"></path></svg></span>
+                <div style="display:flex;flex-direction:column;gap:3px;text-align:left"><h3 id="se-t" style="margin:0;font-size:16px;line-height:22px;font-weight:600">Session expired</h3><span style="font-size:12.5px;color:var(--text-2)">Your unsaved edits are kept.</span></div>
+              </div>
+              <div class="fld"><label class="lbl" for="se-e">Email</label><input class="in" id="se-e" type="email" value="alex@team.dev" sc-camel-read-only="{{true}}"></div>
+              <div class="fld"><label class="lbl" for="se-p">Password</label><input class="in {{pwCls}}" id="se-p" type="password" sc-camel-auto-complete="current-password" value="{{pw}}" sc-camel-on-change="{{onPw}}" aria-invalid="{{pwBad}}" aria-describedby="se-err"><sc-if value="{{pwBad}}" hint-placeholder-val="{{false}}"><span class="ferr" id="se-err" role="alert">{{pwErr}}</span></sc-if></div>
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn btn-ghost" type="button">Use SSO</button>
+                <sc-if value="{{sessBusy}}" hint-placeholder-val="{{false}}"><button class="btn btn-primary" type="button" aria-busy="true"><span class="spin"></span>Signing in</button></sc-if>
+                <sc-if value="{{sessIdle}}" hint-placeholder-val="{{true}}"><button class="btn btn-primary" type="submit">Sign in again <span class="tp-kbd">↵</span></button></sc-if>
+              </div>
+            </form>
+          </div>
+        </sc-if>
+        <sc-if value="{{sessIn}}" hint-placeholder-val="{{false}}"><div class="toast" role="status"><span class="tp-g done" style="color:var(--ok)"></span>Signed in · draft restored</div></sc-if>
+      </div>
+    </figure>
+
+    <!-- Offline -->
+    <figure class="frame">
+      <figcaption>Offline banner<span>queue · reconnect</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ed">
+          <div class="ed-bar"><span class="logo" role="img" aria-label="Lightex" style="font-size:16px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span><span class="ed-meta" style="margin-left:6px">/ Platform Rebuild / My work</span><span style="flex:1"></span><sc-if value="{{offIdle}}" hint-placeholder-val="{{false}}"><button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{goOffline}}">Go offline</button></sc-if><span class="tp-av" style="width:24px;height:24px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK</span></div>
+          <sc-if value="{{banShow}}" hint-placeholder-val="{{true}}">
+            <div class="ob-ban {{banCls}}" role="status" aria-live="polite">
+              <sc-if value="{{offOff}}" hint-placeholder-val="{{true}}">
+                <svg class="wifi" width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M1.5 5.5a9.5 9.5 0 0113 0M3.8 8.2a6 6 0 018.4 0M6.1 10.8a2.6 2.6 0 013.8 0M8 13.3v.1M2 2l12 12"></path></svg>
+                <span>Offline</span><span class="mono" style="font-size:11.5px;opacity:.85">· 3 changes queued</span><span style="flex:1"></span>
+                <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{reconnect}}" style="color:inherit">Retry now</button>
+              </sc-if>
+              <sc-if value="{{offTrying}}" hint-placeholder-val="{{false}}">
+                <span class="spin" style="width:14px;height:14px"></span><span>Reconnecting</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span style="flex:1"></span><span class="mono" style="font-size:11.5px;opacity:.85">3 queued</span>
+              </sc-if>
+              <sc-if value="{{offOn}}" hint-placeholder-val="{{false}}">
+                <span class="tp-g done" style="color:var(--ok)"></span><span>Back online</span><span class="mono" style="font-size:11.5px;opacity:.85">· 3 changes synced</span>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div class="mk-body">
+            <sc-for list="{{offRows}}" as="wr" hint-placeholder-count="6">
+              <div class="mk-row"><span class="tp-g {{wr.glyph}}" style="color:{{wr.color}}"></span><span class="mk-key">{{wr.key}}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{wr.title}}</span>
+                <sc-if value="{{wr.queued}}" hint-placeholder-val="{{false}}"><span class="mk-q" title="Queued"><svg width="11" height="11" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4.5"></circle><path d="M6 3.5V6l1.6 1"></path></svg>queued</span></sc-if>
+                <sc-if value="{{wr.synced}}" hint-placeholder-val="{{false}}"><span class="mk-q ok"><svg width="11" height="11" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5"></path></svg>synced</span></sc-if>
+                <span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{wr.hue}})">{{wr.ini}}</span></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- App loading -->
+    <figure class="frame">
+      <figcaption>App loading<span>logo animation · ~1s</span></figcaption>
+      <div class="dev" style="height:460px">
+        <div class="ld {{playCls}}" role="status" aria-label="Loading Lightex">
+          <span class="logo" style="font-size:64px" aria-hidden="true">
+            <span class="a-word" style="display:inline-block">Lighte</span><svg class="lx a-x sv" sc-camel-view-box="0 0 46 39" overflow="visible">
+              <mask id="ldm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+              <clipPath id="ldc"><rect width="46" height="39"></rect></clipPath>
+              <circle class="sv a-flash" cx="23" cy="19.5" r="24" fill="none" stroke="var(--spark)" stroke-width="1.5" opacity="0"></circle>
+              <g clip-path="url(#ldc)"><path class="a-bar" d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#ldm)"></path><path class="sv a-bolt" d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+            </svg>
+          </span>
+          <div class="ld-track" aria-hidden="true"><i></i></div>
+        </div>
+        <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{replay}}" style="position:absolute;right:12px;bottom:12px"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6a4 4 0 106.8-2.8M9 1.5v2.2H6.8"></path></svg>Replay</button>
+      </div>
+    </figure>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:40px;align-items:start">
+    <sc-for list="{{obFrames}}" as="fx" hint-placeholder-count="2">
+      <figure class="frame">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="height:800px;border-radius:{{fx.r}}px;display:flex;flex-direction:column">
+          <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}"><div class="phone-bar" aria-hidden="true"><span>9:41</span><span>5G</span></div></sc-if>
+          <div style="position:relative;flex:1;min-height:0">
+          <sc-for list="{{fx.obs}}" as="o" hint-placeholder-count="1">
+            <div class="ob {{o.cls}}">
+              <div class="ob-top">
+                <span class="logo" role="img" aria-label="Lightex" style="font-size:17px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span>
+                <span style="flex:1"></span>
+                <sc-if value="{{o.canSkip}}" hint-placeholder-val="{{true}}"><button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{o.skip}}">Skip for now</button></sc-if>
+              </div>
+              <div class="ob-prog" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="3" aria-valuenow="{{o.stepNum}}" aria-valuetext="{{o.progText}}">
+                <sc-for list="{{o.segs}}" as="sg" hint-placeholder-count="3">
+                  <div class="ob-ps">
+                    <div class="ob-track {{sg.fin}}"><i style="width:{{sg.w}}%"></i></div>
+                    <div class="ob-pl {{sg.cls}}">
+                      <sc-if value="{{sg.done}}" hint-placeholder-val="{{false}}"><svg width="11" height="11" sc-camel-view-box="0 0 12 12" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5"></path></svg></sc-if>
+                      <sc-if value="{{sg.notDone}}" hint-placeholder-val="{{true}}"><b>{{sg.n}}</b></sc-if>
+                      <span>{{sg.label}}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div class="ob-main">
+                <div class="ob-card">
+
+                  <sc-if value="{{o.s0}}" hint-placeholder-val="{{true}}">
+                    <div class="ob-step {{o.dirCls}}">
+                      <h2 class="ob-h">Create your workspace</h2>
+                      <div class="fld">
+                        <label class="lbl" for="{{o.id}}-ws">Workspace name</label>
+                        <input class="in {{o.wsCls}}" id="{{o.id}}-ws" type="text" sc-camel-max-length="40" placeholder="Platform team" value="{{o.ws}}" sc-camel-on-change="{{o.onWs}}" sc-camel-on-blur="{{o.blurWs}}" sc-camel-on-key-down="{{o.enterNext}}" aria-invalid="{{o.wsBad}}" sc-camel-auto-focus="{{o.af}}">
+                        <sc-if value="{{o.wsBad}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{o.wsErr}}</span></sc-if>
+                        <div class="ob-slug" aria-label="Workspace URL">lightex.app/<b>{{o.slugShow}}</b></div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{o.s1}}" hint-placeholder-val="{{false}}">
+                    <div class="ob-step {{o.dirCls}}">
+                      <h2 class="ob-h">Create your first project</h2>
+                      <div class="ob-2">
+                        <div class="fld">
+                          <label class="lbl" for="{{o.id}}-pn">Project name</label>
+                          <input class="in {{o.projCls}}" id="{{o.id}}-pn" type="text" sc-camel-max-length="60" placeholder="Platform Rebuild" value="{{o.proj}}" sc-camel-on-change="{{o.onProj}}" sc-camel-on-blur="{{o.blurProj}}" sc-camel-on-key-down="{{o.enterNext}}" aria-invalid="{{o.projBad}}" sc-camel-auto-focus="{{o.af}}">
+                        </div>
+                        <div class="fld">
+                          <label class="lbl" for="{{o.id}}-pk">Key</label>
+                          <input class="in mono {{o.keyCls}}" id="{{o.id}}-pk" type="text" sc-camel-max-length="5" placeholder="PRJ" value="{{o.key}}" sc-camel-on-change="{{o.onKey}}" sc-camel-on-key-down="{{o.enterNext}}" aria-invalid="{{o.keyBad}}">
+                        </div>
+                      </div>
+                      <sc-if value="{{o.projBad}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert" style="margin-top:-8px">{{o.projErr}}</span></sc-if>
+                      <sc-if value="{{o.keyBad}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert" style="margin-top:-8px">{{o.keyErr}}</span></sc-if>
+                      <div class="ob-slug" style="margin-top:-6px">Tasks: <b style="margin-left:6px">{{o.keyShow}}-1, {{o.keyShow}}-2…</b></div>
+                      <div class="fld" role="radiogroup" aria-label="Template">
+                        <span class="lbl">Template</span>
+                        <div class="ob-tpls">
+                          <sc-for list="{{o.tpls}}" as="tm" hint-placeholder-count="3">
+                            <label class="ob-tpl {{tm.on}}">
+                              <input type="radio" name="{{o.id}}-tpl" checked="{{tm.sel}}" sc-camel-on-change="{{tm.pick}}">
+                              <sc-if value="{{tm.kan}}" hint-placeholder-val="{{true}}"><span class="ob-art kan" aria-hidden="true"><i></i><i></i><i></i></span></sc-if>
+                              <sc-if value="{{tm.scr}}" hint-placeholder-val="{{false}}"><span class="ob-art scr" aria-hidden="true" style="gap:5px"><i style="width:70%"></i><i style="width:90%;margin-left:10%"></i><i style="width:55%;margin-left:30%"></i></span></sc-if>
+                              <sc-if value="{{tm.bug}}" hint-placeholder-val="{{false}}"><span class="ob-art bug" aria-hidden="true"><i style="width:90%"></i><i style="width:75%"></i><i style="width:85%"></i><i style="width:60%"></i></span></sc-if>
+                              <span class="n">{{tm.name}}</span>
+                            </label>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{o.s2}}" hint-placeholder-val="{{false}}">
+                    <div class="ob-step {{o.dirCls}}">
+                      <h2 class="ob-h">Invite your team</h2>
+                      <div class="fld">
+                        <label class="lbl" for="{{o.id}}-em">Emails</label>
+                        <div class="ob-chips {{o.chipsCls}}">
+                          <sc-for list="{{o.chips}}" as="ch" hint-placeholder-count="2">
+                            <span class="ob-chip {{ch.cls}}"><span class="tp-av" style="width:18px;height:18px;font-size:8px;background:oklch(var(--av-l) var(--av-c) {{ch.hue}})">{{ch.ini}}</span><span class="t">{{ch.email}}</span><button type="button" aria-label="Remove {{ch.email}}" sc-camel-on-click="{{ch.remove}}"><svg width="8" height="8" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button></span>
+                          </sc-for>
+                          <input id="{{o.id}}-em" type="email" placeholder="{{o.emPh}}" value="{{o.draft}}" sc-camel-on-change="{{o.onDraft}}" sc-camel-on-key-down="{{o.onDraftKey}}" sc-camel-on-blur="{{o.commitDraft}}" aria-invalid="{{o.invBad}}" sc-camel-auto-focus="{{o.af}}" sc-camel-auto-complete="off">
+                        </div>
+                        <sc-if value="{{o.invBad}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{o.invErr}}</span></sc-if>
+                      </div>
+                      <div class="fld">
+                        <span class="lbl">Role</span>
+                        <div class="ob-seg" role="group" aria-label="Role for invites">
+                          <sc-for list="{{o.roles}}" as="rl" hint-placeholder-count="3"><button type="button" aria-pressed="{{rl.sel}}" sc-camel-on-click="{{rl.pick}}">{{rl.name}}</button></sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{o.s3}}" hint-placeholder-val="{{false}}">
+                    <div class="ob-step" style="align-items:flex-start">
+                      <span class="ob-ring" aria-hidden="true"></span>
+                      <h2 class="ob-h" role="status">You’re ready</h2>
+                      <sc-if value="{{o.hasSum}}" hint-placeholder-val="{{true}}">
+                        <div class="ob-sum" style="align-self:stretch">
+                          <sc-for list="{{o.sum}}" as="sm" hint-placeholder-count="3">
+                            <div><span class="lbl" style="width:84px;flex:none">{{sm.l}}</span>
+                              <sc-if value="{{sm.badge}}" hint-placeholder-val="{{false}}"><span class="badge" style="--h:255">{{sm.key}}</span></sc-if>
+                              <span class="{{sm.cls}}" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">{{sm.v}}</span></div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+
+                </div>
+              </div>
+              <div class="ob-act">
+                <sc-if value="{{o.canBack}}" hint-placeholder-val="{{false}}"><button class="btn btn-ghost" type="button" sc-camel-on-click="{{o.back}}">Back</button></sc-if>
+                <span style="flex:1"></span>
+                <sc-if value="{{o.isDone}}" hint-placeholder-val="{{false}}"><button class="btn btn-ghost" type="button" sc-camel-on-click="{{o.reset}}">Start over</button></sc-if>
+                <button class="btn btn-primary" type="button" sc-camel-on-click="{{o.next}}">{{o.nextLabel}}<sc-if value="{{o.showEnter}}" hint-placeholder-val="{{true}}"><span class="tp-kbd">↵</span></sc-if></button>
+              </div>
+            </div>
+          </sc-for>
+          </div>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2720}}">
+class Component extends DCLogic {
+  state = { ob: {}, req: 'idle', err: 'idle', errTries: 0, refCopied: false, off: 'off', sess: 'open', pw: '', pwTouched: false, play: true };
+  componentWillUnmount() { (this.timers || []).forEach((t) => clearTimeout(t)); }
+  later(fn, ms) { this.timers = this.timers || []; const t = setTimeout(fn, ms); this.timers.push(t); return t; }
+  obGet(id) { return (this.state.ob && this.state.ob[id]) || {}; }
+  obSet(id, patch) { const all = { ...(this.state.ob || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ ob: all }); }
+  slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32); }
+  deriveKey(s) {
+    const w = String(s || '').replace(/[^A-Za-z\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (!w.length) return '';
+    if (w.length === 1) return w[0].slice(0, 3).toUpperCase();
+    return w.slice(0, 4).map((x) => x.charAt(0)).join('').toUpperCase();
+  }
+  obBuild(id, cfg) {
+    const self = this;
+    const u = { ...(cfg.init || {}), ...this.obGet(id) };
+    const set = (patch) => self.obSet(id, patch);
+    const step = u.step || 0;
+    const ws = u.ws != null ? u.ws : '';
+    const proj = u.proj != null ? u.proj : '';
+    const key = u.keyEdited ? (u.key || '') : self.deriveKey(proj);
+    const tpl = u.tpl || 'kanban';
+    const emails = u.emails || [];
+    const draft = u.draft || '';
+    const role = u.role || 'member';
+    const t = u.touched || {};
+    const RESERVED = ['admin', 'lightex', 'api', 'app'];
+    const EM = /^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/;
+    const slug = self.slugify(ws);
+    const wsErr = ws.trim().length < 2 ? 'Use at least 2 characters' : (RESERVED.indexOf(slug) >= 0 ? 'lightex.app/' + slug + ' is taken' : '');
+    const projErr = proj.trim().length < 2 ? 'Name the project (2+ characters)' : '';
+    const keyErr = !/^[A-Z]{2,5}$/.test(key) ? 'Key: 2–5 letters' : '';
+    const badEmails = emails.filter((e) => !EM.test(e));
+    const invErr = badEmails.length ? (badEmails.length === 1 ? '“' + badEmails[0] + '” isn’t an email' : badEmails.length + ' emails need fixing') : '';
+    const addEmails = (list, rest) => {
+      const cur = (self.obGet(id).emails || (cfg.init && cfg.init.emails) || []).slice();
+      list.map((x) => x.trim()).filter(Boolean).forEach((x) => { if (cur.indexOf(x) < 0 && cur.length < 20) cur.push(x.slice(0, 80)); });
+      set({ emails: cur, draft: rest || '' });
+      return cur;
+    };
+    const go = (n, dir) => set({ step: n, dir: dir || 'fwd', af: !cfg.noFocus });
+    const next = () => {
+      if (step === 0) { if (wsErr) { set({ touched: { ...t, ws: true } }); return; } set({ done0: true }); go(1); }
+      else if (step === 1) { if (projErr || keyErr) { set({ touched: { ...t, proj: true, key: true } }); return; } set({ done1: true }); go(2); }
+      else if (step === 2) {
+        let list = emails;
+        if (draft.trim()) list = addEmails([draft]);
+        if (list.some((e) => !EM.test(e))) { set({ touched: { ...t, inv: true } }); return; }
+        set({ done2: true });
+        go(3);
+      }
+      else if (step === 3) { if (cfg.onOpen) cfg.onOpen(); }
+    };
+    const LABELS = ['Workspace', 'Project', 'Team'];
+    const segs = LABELS.map((l, i) => ({
+      label: l, n: String(i + 1), done: step > i, notDone: step <= i,
+      w: step > i ? 100 : (step === i ? 45 : 0), fin: step === 3 ? 'fin' : '',
+      cls: step === i ? 'cur' : (step > i ? 'done' : '')
+    }));
+    const TPL = [['kanban', 'Kanban'], ['scrum', 'Scrum'], ['bugs', 'Bug tracking']];
+    const hues = [200, 20, 150, 60, 330, 285];
+    const chips = emails.map((e, i) => {
+      const ok = EM.test(e);
+      return { email: e, cls: ok ? '' : 'bad', ini: ok ? e.charAt(0).toUpperCase() : '!', hue: hues[i % hues.length], remove: () => { const cur = (self.obGet(id).emails || emails).filter((x) => x !== e); set({ emails: cur }); } };
+    });
+    const sum = [];
+    if (u.done0 && ws.trim() && !wsErr) sum.push({ l: 'Workspace', v: 'lightex.app/' + slug, cls: 'mono', badge: false, key: '' });
+    if (u.done1 && proj.trim() && !projErr && !keyErr) sum.push({ l: 'Project', v: proj.trim(), cls: '', badge: true, key: key });
+    if (u.done2 && emails.length && !invErr) sum.push({ l: 'Invites', v: emails.length + (emails.length === 1 ? ' person · ' : ' people · ') + role.charAt(0).toUpperCase() + role.slice(1), cls: '', badge: false, key: '' });
+    const nextLabel = step === 3 ? 'Open board' : (step === 2 ? (emails.length ? 'Send ' + emails.length + (emails.length === 1 ? ' invite' : ' invites') : 'Continue') : 'Continue');
+    return {
+      id, cls: cfg.mobile ? 'mob' : '',
+      stepNum: step, progText: step === 3 ? 'Setup complete' : 'Step ' + (step + 1) + ' of 3',
+      segs, s0: step === 0, s1: step === 1, s2: step === 2, s3: step === 3,
+      dirCls: u.dir === 'back' ? 'back' : '', af: !!u.af,
+      canSkip: step < 3, canBack: step > 0 && step < 3, isDone: step === 3, showEnter: !cfg.mobile,
+      skip: () => set({ step: 3, dir: 'fwd', skipped: true }),
+      back: () => go(Math.max(0, step - 1), 'back'),
+      next,
+      enterNext: (e) => { if (e.key === 'Enter') { e.preventDefault(); next(); } },
+      reset: () => { const all = { ...(self.state.ob || {}) }; all[id] = { step: 0, ws: '', proj: '', key: '', keyEdited: false, emails: [], draft: '', touched: {}, dir: 'back', af: !cfg.noFocus, done0: false, done1: false, done2: false, skipped: false }; self.setState({ ob: all }); },
+      nextLabel,
+      ws, wsBad: !!(t.ws && wsErr), wsErr, wsCls: t.ws && wsErr ? 'bad' : '', slugShow: slug || 'your-team',
+      onWs: (e) => set({ ws: String(e.target.value || '').slice(0, 40) }),
+      blurWs: () => { if (ws) set({ touched: { ...t, ws: true } }); },
+      proj, projBad: !!(t.proj && projErr), projErr, projCls: t.proj && projErr ? 'bad' : '',
+      onProj: (e) => set({ proj: String(e.target.value || '').slice(0, 60) }),
+      blurProj: () => { if (proj) set({ touched: { ...t, proj: true } }); },
+      key, keyShow: key || 'KEY', keyBad: !!(t.key && keyErr) && !(t.proj && projErr), keyErr, keyCls: t.key && keyErr ? 'bad' : '',
+      onKey: (e) => set({ key: String(e.target.value || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 5), keyEdited: true, touched: { ...t, key: true } }),
+      tpls: TPL.map((x) => ({ name: x[1], sel: tpl === x[0], on: tpl === x[0] ? 'on' : '', kan: x[0] === 'kanban', scr: x[0] === 'scrum', bug: x[0] === 'bugs', pick: () => set({ tpl: x[0] }) })),
+      chips, chipsCls: t.inv && invErr ? 'bad' : '', invBad: !!(t.inv && invErr), invErr,
+      emPh: emails.length ? '' : 'jordan@team.dev, sam@team.dev',
+      draft,
+      onDraft: (e) => {
+        const v = String(e.target.value || '');
+        if (/[,\s;]/.test(v)) { const parts = v.split(/[,\s;]+/); const rest = /[,\s;]$/.test(v) ? '' : parts.pop(); addEmails(parts, rest); set({ touched: { ...t, inv: true } }); }
+        else set({ draft: v.slice(0, 80) });
+      },
+      onDraftKey: (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); if (draft.trim()) { addEmails([draft]); set({ touched: { ...t, inv: true } }); } else next(); }
+        else if (e.key === 'Backspace' && !draft && emails.length) { set({ emails: emails.slice(0, -1) }); }
+      },
+      commitDraft: () => { if (draft.trim()) { addEmails([draft]); set({ touched: { ...t, inv: true } }); } },
+      roles: [['member', 'Member'], ['admin', 'Admin'], ['viewer', 'Viewer']].map((r) => ({ name: r[1], sel: role === r[0], pick: () => set({ role: r[0] }) })),
+      hasSum: sum.length > 0, sum
+    };
+  }
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = this.props.theme || 'navy';
+    const off = st.off;
+    const ROWS = [
+      { key: 'PRJ-42', title: 'Fix flaky board reflow on column resize', glyph: 'progress', color: 'var(--warn)', ini: 'AK', hue: 285, q: true },
+      { key: 'PRJ-47', title: 'Persist saved filters per project', glyph: 'todo', color: 'var(--todo)', ini: 'JL', hue: 200, q: true },
+      { key: 'PRJ-51', title: 'Rotate refresh tokens on sign-in', glyph: 'review', color: 'var(--info)', ini: 'SP', hue: 20, q: false },
+      { key: 'PRJ-38', title: 'Virtualize board columns over 200 cards', glyph: 'done', color: 'var(--ok)', ini: 'RC', hue: 150, q: true },
+      { key: 'MO-12', title: 'Queue task edits while offline', glyph: 'progress', color: 'var(--warn)', ini: 'MD', hue: 60, q: false },
+      { key: 'IN-7', title: 'Cache board queries at the edge', glyph: 'todo', color: 'var(--todo)', ini: 'TN', hue: 330, q: false }
+    ];
+    const offRows = ROWS.map((r) => ({ ...r, queued: r.q && (off === 'off' || off === 'trying'), synced: r.q && (off === 'on' || off === 'leaving') }));
+    const pwErr = !st.pw ? 'Enter your password' : (st.pw.length < 8 ? 'At least 8 characters' : '');
+    const obFrames = [
+      { label: 'Onboarding', meta: 'interactive · 3 steps + ready · Enter continues', r: 14, phone: false, obs: [this.obBuild('desk', { init: { ws: 'Platform team' } })] },
+      { label: 'Onboarding · mobile', meta: '390 · step 2', r: 28, phone: true, obs: [this.obBuild('mob', { mobile: true, noFocus: true, init: { step: 1, ws: 'Platform team', proj: 'Platform Rebuild', key: 'PRJ', keyEdited: true, tpl: 'scrum', done0: true } })] }
+    ];
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      reqIdle: st.req === 'idle', reqBusy: st.req === 'busy', reqSent: st.req === 'sent',
+      requestAccess: () => { self.setState({ req: 'busy' }); self.later(() => self.setState({ req: 'sent' }), 700); },
+      withdraw: () => self.setState({ req: 'idle' }),
+      errBusy: st.err === 'busy', errReady: st.err !== 'busy', errFail: st.err === 'fail', errTries: String(st.errTries),
+      retryLabel: st.err === 'fail' ? 'Retry again' : 'Retry',
+      retry: () => { self.setState({ err: 'busy', refCopied: false }); self.later(() => self.setState({ err: 'fail', errTries: self.state.errTries + 1 }), 900); },
+      refCopied: !!st.refCopied, refNotCopied: !st.refCopied,
+      copyRef: () => { try { if (navigator.clipboard) navigator.clipboard.writeText('7F3A-91C2'); } catch (e) {} self.setState({ refCopied: true }); self.later(() => self.setState({ refCopied: false }), 1400); },
+      sessOpen: st.sess === 'open' || st.sess === 'busy', sessBusy: st.sess === 'busy', sessIdle: st.sess === 'open', sessIn: st.sess === 'in',
+      pw: st.pw, pwBad: !!(st.pwTouched && pwErr), pwErr, pwCls: st.pwTouched && pwErr ? 'bad' : '',
+      onPw: (e) => self.setState({ pw: String(e.target.value || '').slice(0, 128) }),
+      signIn: (e) => { if (e && e.preventDefault) e.preventDefault(); if (pwErr) { self.setState({ pwTouched: true }); return; } self.setState({ sess: 'busy' }); self.later(() => self.setState({ sess: 'in', pw: '', pwTouched: false }), 800); },
+      expire: () => self.setState({ sess: 'open', pw: '', pwTouched: false }),
+      banShow: off !== 'idle', banCls: off === 'off' || off === 'trying' ? 'off' : (off === 'leaving' ? 'on leaving' : 'on'),
+      offOff: off === 'off', offTrying: off === 'trying', offOn: off === 'on' || off === 'leaving', offIdle: off === 'idle',
+      reconnect: () => { self.setState({ off: 'trying' }); self.later(() => { self.setState({ off: 'on' }); self.later(() => { self.setState({ off: 'leaving' }); self.later(() => self.setState({ off: 'idle' }), 220); }, 1800); }, 1300); },
+      goOffline: () => self.setState({ off: 'off' }),
+      offRows,
+      playCls: st.play ? 'play' : '',
+      replay: () => { self.setState({ play: false }); self.later(() => self.setState({ play: true }), 40); },
+      obFrames
+    };
+  }
+}
+</script>
+
+
+</body></html>

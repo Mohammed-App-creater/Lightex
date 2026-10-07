@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 39" width="46" height="39" role="img" aria-label="Lightex">
+  <!-- Lightex "cut x" mark, single color (mono black / mono white / white-on-blue). Both strokes use currentColor;
+       the masked gap keeps the two strokes separate. Source: clean/08-Logo-the-cut-x-final.html symbol #lx with --a = --b. -->
+  <defs>
+    <clipPath id="lxc"><rect width="46" height="39"/></clipPath>
+    <mask id="lxm" maskUnits="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"/><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"/></mask>
+  </defs>
+  <g clip-path="url(#lxc)"><path d="M-4 -4L50 43" stroke="currentColor" stroke-width="9.5" fill="none" mask="url(#lxm)"/><path d="M50 -5L27 17H38L-4 44" stroke="currentColor" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"/></g>
+</svg>

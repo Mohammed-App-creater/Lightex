@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Command palette</title>
+<script src="../assets/b4a66ba6-fb79-457c-912c-6cfaef685fb9.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--scrim:rgba(2,5,14,.6)}
+.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--scrim:rgba(5,5,8,.55)}
+.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--scrim:rgba(18,18,23,.28)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text)}
+.fake{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;gap:12px}
+.fake span{display:block;height:12px;border-radius:4px;background:var(--raised)}
+.fake i{display:block;height:64px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.phone-bar{position:absolute;top:0;left:0;right:0;height:36px;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font:600 12px/1 'JetBrains Mono',monospace;color:var(--text);background:var(--surface)}
+.lx{width:.644em;height:.546em;margin-left:.02em;overflow:visible;flex:none}
+.logo{font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text)}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:tpspark 440ms var(--ease) both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-av.l{width:36px;height:36px;font-size:13px}
+.badge{border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:20px;font:600 8.5px/1 'JetBrains Mono',monospace;background:oklch(var(--pk-l) var(--pk-c) var(--h));color:oklch(var(--pkt-l) var(--pkt-c) var(--h))}
+.badge.l{width:36px;height:36px;border-radius:8px;font-size:11px}
+/* app mock */
+.am{position:absolute;inset:0;display:flex}
+.am-sb{width:220px;flex:none;border-right:1px solid var(--line);background:var(--surface);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.am-nav{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:6px;color:var(--text-2);font-weight:500}
+.am-nav.on{background:var(--hover);color:var(--text)}
+.am-h{padding:16px 8px 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.am-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.am-top{height:52px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--line)}
+.am-search{display:inline-flex;align-items:center;gap:8px;width:260px;height:32px;padding:0 6px 0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text-3);font:400 13px/1 'Inter',sans-serif;cursor:pointer;transition:border-color 120ms var(--ease),background-color 120ms var(--ease)}
+.am-search:hover{border-color:var(--control);color:var(--text-2)}
+.am-search:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.am-body{flex:1;min-height:0;padding:20px 24px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.am-row{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-bottom:1px solid var(--line)}
+.am-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.am-col{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.am-card{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:8px;background:var(--raised);border:1px solid var(--line-2)}
+.am-key{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+/* palette */
+.pk-scrim{position:absolute;inset:0;z-index:10;display:flex;justify-content:center;align-items:flex-start;padding:72px 24px 24px;background:var(--scrim);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:pkfade 150ms var(--ease) both}
+.pk-scrim.static{padding:28px 16px 16px}
+.pk-scrim.out{animation:pkfadeout 150ms var(--ease) forwards}
+.pk-scrim.mob{padding:36px 0 0;background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+.pk{width:100%;max-height:100%;display:flex;flex-direction:column;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);overflow:hidden;transform-origin:50% 0;animation:pkin 150ms var(--ease) both}
+.pk.wide{width:780px}
+.pk.narrow{max-width:560px}
+.pk.out{animation:pkout 150ms var(--ease) forwards}
+.pk.mob{height:100%;max-height:none;border:0;border-radius:0;box-shadow:none;animation:none}
+@keyframes pkin{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
+@keyframes pkout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.98)}}
+@keyframes pkfade{from{opacity:0}to{opacity:1}}
+@keyframes pkfadeout{from{opacity:1}to{opacity:0}}
+.pk-top{display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-bottom:1px solid var(--line);flex:none;color:var(--text-3);transition:box-shadow 120ms var(--ease)}
+.pk-top:focus-within{box-shadow:inset 0 -1px 0 var(--accent)}
+.mob .pk-top{height:56px;padding:0 8px}
+.pk-in{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:400 15px/1 'Inter',sans-serif;padding:0}
+.pk-in:focus{outline:none}
+.pk-in::placeholder{color:var(--text-3)}
+.pk-chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 3px 0 8px;border-radius:6px;background:var(--accent-s);color:var(--accent-t);font:500 12px/1 'Inter',sans-serif;flex:none;white-space:nowrap;animation:pkchip 180ms var(--spring)}
+.pk-chip b{font:600 12px/1 'JetBrains Mono',monospace}
+.pk-chip button{width:18px;height:18px;border:0;border-radius:4px;background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.pk-chip button:hover{background:var(--accent-s)}
+@keyframes pkchip{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+.pk-ib{width:36px;height:36px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer}
+.pk-ib:hover{background:var(--hover);color:var(--text)}
+.pk-pre{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);flex:none;overflow-x:auto}
+.pk-pb{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap}
+.pk-pb b{font:600 12px/1 'JetBrains Mono',monospace;color:var(--accent-t)}
+.pk-body{display:flex;min-height:0;flex:1}
+.pk-list{position:relative;flex:1;min-width:0;overflow:auto;padding:4px 6px 8px;max-height:460px;scrollbar-width:thin}
+.mob .pk-list{max-height:none}
+.pk-h{display:flex;align-items:center;gap:8px;padding:12px 8px 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.pk-h span{letter-spacing:0;opacity:.8}
+.pk-row{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 8px;border-radius:7px;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;transition:background-color 80ms var(--ease)}
+.pk-row.on{background:var(--accent-s)}
+.mob .pk-row{height:44px}
+.pk-lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-m{color:var(--accent-t);font-weight:600;text-decoration:underline;text-decoration-color:var(--accent-s);text-decoration-thickness:2px;text-underline-offset:3px}
+.pk-key{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);width:50px;flex:none;white-space:nowrap}
+.pk-meta{font-size:12px;color:var(--text-3);white-space:nowrap;flex:none}
+.pk-meta.mono{font-size:11px}
+.pk-keys{display:inline-flex;gap:3px;flex:none}
+.pk-ic{width:22px;height:20px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-2);flex:none;background:var(--raised);border:1px solid var(--line);font:600 11px/1 'JetBrains Mono',monospace}
+.pk-ic.err{color:var(--danger);border-color:transparent;background:transparent}
+.pk-enter{margin-left:2px}
+.pk-pv{width:300px;flex:none;border-left:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0;background:var(--bg);overflow:hidden}
+.pk-pvt{margin:0;font-size:15px;line-height:21px;font-weight:600;letter-spacing:-.01em}
+.pk-pvd{margin:0;font-size:12.5px;line-height:19px;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pk-pvg{display:grid;grid-template-columns:72px minmax(0,1fr);row-gap:10px;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
+.pk-pvg dt{font-size:11.5px;color:var(--text-3);font-weight:500}
+.pk-pvg dd{margin:0;display:flex;align-items:center;gap:7px;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-pvnone{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-3)}
+.pk-foot{display:flex;align-items:center;gap:14px;height:38px;padding:0 14px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3);flex:none;white-space:nowrap;overflow:hidden}
+.pk-foot>span{display:inline-flex;align-items:center;gap:4px}
+.pk-foot b{font:600 12px/1 'JetBrains Mono',monospace;color:var(--accent-t);margin-left:6px}
+.pk-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 16px 10px;text-align:center}
+.pk-empty strong{font-weight:600;font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-eico{width:40px;height:40px;border-radius:10px;border:1px dashed var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--text-3)}
+.sk{display:block;border-radius:4px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:sk 1.2s linear infinite;flex:none}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+.pk-toast{position:absolute;right:20px;bottom:20px;z-index:25;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;animation:pktoast 180ms var(--ease)}
+@keyframes pktoast{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pk-ib:focus-visible,.pk-chip button:focus-visible,.pk-pb:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){
+  .am-sb{display:none}
+  .am-search{width:auto}
+  .pk-scrim{padding:0}
+  .pk,.pk.wide{width:100%;height:100%;max-height:none;border-radius:0;border:0}
+  .pk-pv,.pk-foot{display:none}
+  .pk-list{max-height:none}
+  .pk-row{height:44px}
+}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2480px;padding:64px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="lxs" sc-camel-view-box="0 0 46 39">
+        <mask id="lxsm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+        <clipPath id="lxsc"><rect width="46" height="39"></rect></clipPath>
+        <g clip-path="url(#lxsc)"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#lxsm)"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · COMMAND PALETTE</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Search and commands</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>⌘K</span><span>&gt; # @</span><span>↑↓ ↵ Tab Esc</span><span>150ms scale + fade</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="7">
+      <figure class="frame" style="grid-column:span {{fx.span}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev {{fx.devCls}}" style="height:{{fx.h}}px;border-radius:{{fx.r}}px;width:{{fx.w}}">
+
+          <sc-if value="{{fx.isMain}}" hint-placeholder-val="{{false}}">
+            <div class="am">
+              <aside class="am-sb" aria-label="Sidebar">
+                <div style="padding:4px 8px 18px"><span class="logo" role="img" aria-label="Lightex" style="font-size:18px">Lighte<svg class="lx" sc-camel-view-box="0 0 46 39" aria-hidden="true"><use href="#lxs" width="100%" height="100%"></use></svg></span></div>
+                <span class="am-nav {{fx.navMine}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="7" cy="5" r="2.5"></circle><path d="M2.5 12.5c.6-2.3 2.3-3.5 4.5-3.5s3.9 1.2 4.5 3.5" stroke-linecap="round"></path></svg>My work</span>
+                <span class="am-nav"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8l2-5.5h7l2 5.5v3.5h-11z M1.5 8h3l1 1.5h3l1-1.5h3"></path></svg>Inbox</span>
+                <div class="am-h">Projects</div>
+                <sc-for list="{{fx.projects}}" as="pj" hint-placeholder-count="3">
+                  <span class="am-nav {{pj.on}}"><span class="badge" style="--h:{{pj.hue}}">{{pj.key}}</span>{{pj.name}}</span>
+                </sc-for>
+              </aside>
+              <div class="am-main">
+                <div class="am-top">
+                  <span style="color:var(--text-3)">{{fx.crumbA}}</span><span style="color:var(--text-3)">/</span><span style="font-weight:600">{{fx.crumbB}}</span>
+                  <span style="flex:1"></span>
+                  <button class="am-search" type="button" sc-camel-on-click="{{fx.openPal}}" ref="{{fx.searchRef}}" aria-haspopup="dialog" aria-expanded="{{fx.isOpen}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4"></circle><path d="M9 9l3 3"></path></svg><span style="flex:1;text-align:left">Search</span><span class="tp-kbd">⌘</span><span class="tp-kbd">K</span></button>
+                  <span class="tp-av" style="width:28px;height:28px;font-size:11px;background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+                </div>
+                <div class="am-body">
+                  <sc-if value="{{fx.isBoard}}" hint-placeholder-val="{{false}}">
+                    <div class="am-cols">
+                      <sc-for list="{{fx.cols}}" as="c" hint-placeholder-count="3">
+                        <div class="am-col">
+                          <div style="display:flex;align-items:center;gap:8px;padding:2px 2px 4px;font-weight:600"><span class="tp-g {{c.glyph}}" style="color:{{c.color}}"></span>{{c.name}}<span class="am-key">{{c.n}}</span></div>
+                          <sc-for list="{{c.cards}}" as="cd" hint-placeholder-count="2">
+                            <div class="am-card"><span class="am-key">{{cd.key}}</span><span style="font-weight:500;line-height:18px">{{cd.title}}</span><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{cd.hue}})">{{cd.ini}}</span></div>
+                          </sc-for>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{fx.isList}}" hint-placeholder-val="{{true}}">
+                    <div>
+                      <sc-for list="{{fx.list}}" as="lr" hint-placeholder-count="6">
+                        <div class="am-row"><span class="tp-g {{lr.glyph}}" style="color:{{lr.color}}"></span><span class="am-key" style="width:52px">{{lr.key}}</span><span style="flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{lr.title}}</span><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{lr.hue}})">{{lr.ini}}</span></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{fx.hasToast}}" hint-placeholder-val="{{false}}">
+              <div class="pk-toast" role="status"><span class="tp-g {{fx.toastGlyph}}" style="color:{{fx.toastColor}}"></span>{{fx.toastMsg}}</div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{fx.isStatic}}" hint-placeholder-val="{{true}}">
+            <div class="fake" aria-hidden="true"><span style="width:34%"></span><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </sc-if>
+          <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}"><div class="phone-bar" aria-hidden="true"><span>9:41</span><span>5G</span></div></sc-if>
+
+          <sc-for list="{{fx.pals}}" as="p" hint-placeholder-count="1">
+            <div class="pk-scrim {{p.scrimCls}}" sc-camel-on-click="{{p.onScrim}}">
+              <div class="pk {{p.cls}}" role="dialog" aria-modal="true" aria-label="Search and commands">
+                <div class="pk-top">
+                  <sc-if value="{{p.mobile}}" hint-placeholder-val="{{false}}"><button class="pk-ib" type="button" aria-label="Close search" sc-camel-on-click="{{p.close}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3L5 8l5 5"></path></svg></button></sc-if>
+                  <sc-if value="{{p.desk}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="6" cy="6" r="4"></circle><path d="M9 9l3 3"></path></svg></sc-if>
+                  <sc-if value="{{p.hasChip}}" hint-placeholder-val="{{false}}"><span class="pk-chip"><b>{{p.chipSym}}</b>{{p.chipLabel}}<button type="button" aria-label="Clear {{p.chipLabel}} scope" sc-camel-on-click="{{p.clearScope}}"><svg width="9" height="9" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button></span></sc-if>
+                  <input class="pk-in" type="text" role="combobox" aria-expanded="true" aria-controls="{{p.listId}}" aria-activedescendant="{{p.activeId}}" aria-autocomplete="list" aria-label="Search tasks, projects, people and commands" sc-camel-auto-complete="off" sc-camel-spell-check="false" placeholder="{{p.ph}}" value="{{p.query}}" sc-camel-on-change="{{p.onQuery}}" sc-camel-on-key-down="{{p.onKey}}" sc-camel-auto-focus="{{p.autoFocus}}">
+                  <sc-if value="{{p.desk}}" hint-placeholder-val="{{true}}"><span class="tp-kbd">Esc</span></sc-if>
+                </div>
+                <sc-if value="{{p.showPrefixes}}" hint-placeholder-val="{{false}}">
+                  <div class="pk-pre">
+                    <sc-for list="{{p.prefixes}}" as="pf" hint-placeholder-count="3"><button class="pk-pb" type="button" sc-camel-on-click="{{pf.pick}}"><b>{{pf.sym}}</b>{{pf.label}}</button></sc-for>
+                  </div>
+                </sc-if>
+                <div class="pk-body">
+                  <div class="pk-list" id="{{p.listId}}" role="listbox" aria-label="Results" ref="{{p.listRef}}">
+                    <sc-if value="{{p.isLoading}}" hint-placeholder-val="{{false}}">
+                      <div aria-busy="true"><span class="sr" role="status">Searching</span>
+                        <div class="pk-h"><span class="sk" style="width:46px;height:8px"></span></div>
+                        <div class="pk-row" style="cursor:default"><span class="sk" style="width:14px;height:14px;border-radius:50%"></span><span class="sk" style="width:44px;height:9px"></span><span class="sk" style="width:58%;height:10px"></span></div>
+                        <div class="pk-row" style="cursor:default"><span class="sk" style="width:14px;height:14px;border-radius:50%"></span><span class="sk" style="width:44px;height:9px"></span><span class="sk" style="width:44%;height:10px"></span></div>
+                        <div class="pk-row" style="cursor:default"><span class="sk" style="width:14px;height:14px;border-radius:50%"></span><span class="sk" style="width:44px;height:9px"></span><span class="sk" style="width:66%;height:10px"></span></div>
+                        <div class="pk-h"><span class="sk" style="width:60px;height:8px"></span></div>
+                        <div class="pk-row" style="cursor:default"><span class="sk" style="width:22px;height:20px"></span><span class="sk" style="width:40%;height:10px"></span></div>
+                        <div class="pk-row" style="cursor:default"><span class="sk" style="width:22px;height:20px"></span><span class="sk" style="width:30%;height:10px"></span></div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{p.isEmpty}}" hint-placeholder-val="{{false}}">
+                      <div class="pk-empty" role="status">
+                        <span class="pk-eico"><svg width="18" height="18" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4"></circle><path d="M9 9l3 3M4.5 4.5l3 3"></path></svg></span>
+                        <strong>No results for “{{p.emptyQ}}”</strong>
+                      </div>
+                    </sc-if>
+                    <sc-for list="{{p.rows}}" as="r" hint-placeholder-count="8">
+                      <sc-if value="{{r.hdr}}" hint-placeholder-val="{{false}}"><div class="pk-h" role="presentation">{{r.label}}<span>{{r.count}}</span></div></sc-if>
+                      <sc-if value="{{r.item}}" hint-placeholder-val="{{true}}">
+                        <div class="pk-row {{r.on}}" id="{{r.domId}}" role="option" aria-selected="{{r.sel}}" sc-camel-on-mouse-move="{{r.hover}}" sc-camel-on-click="{{r.pick}}">
+                          <sc-if value="{{r.isTask}}" hint-placeholder-val="{{true}}"><span class="tp-g {{r.glyph}}" style="color:{{r.color}}" aria-label="{{r.meta}}"></span><span class="pk-key"><sc-for list="{{r.keySegs}}" as="s" hint-placeholder-count="1"><span class="{{s.cls}}">{{s.t}}</span></sc-for></span></sc-if>
+                          <sc-if value="{{r.isProj}}" hint-placeholder-val="{{false}}"><span class="badge" style="--h:{{r.hue}}">{{r.key}}</span></sc-if>
+                          <sc-if value="{{r.isPerson}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{r.hue}})">{{r.ini}}</span></sc-if>
+                          <sc-if value="{{r.isAct}}" hint-placeholder-val="{{false}}"><span class="pk-ic">
+                            <sc-if value="{{r.icPlus}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 2v8M2 6h8"></path></svg></sc-if>
+                            <sc-if value="{{r.icArrow}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h8M7 3l3 3-3 3"></path></svg></sc-if>
+                            <sc-if value="{{r.icTheme}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="6" cy="6" r="4.2"></circle><path d="M6 1.8v8.4A4.2 4.2 0 006 1.8z" fill="currentColor"></path></svg></sc-if>
+                            <sc-if value="{{r.icUser}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="4" r="2"></circle><path d="M2 10.5c.5-1.9 2-3 4-3s3.5 1.1 4 3"></path></svg></sc-if>
+                            <sc-if value="{{r.icLink}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 7l2-2M4.2 5.3L3 6.5a2 2 0 002.8 2.8L7 8.1M7.8 6.7L9 5.5A2 2 0 006.2 2.7L5 3.9"></path></svg></sc-if>
+                          </span></sc-if>
+                          <sc-if value="{{r.isSugg}}" hint-placeholder-val="{{false}}"><span class="pk-ic">{{r.sym}}</span></sc-if>
+                          <sc-if value="{{r.isErr}}" hint-placeholder-val="{{false}}"><span class="pk-ic err"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"></circle><path d="M7 4v3.5M7 9.8v.1"></path></svg></span></sc-if>
+                          <span class="pk-lab"><sc-for list="{{r.segs}}" as="s" hint-placeholder-count="1"><span class="{{s.cls}}">{{s.t}}</span></sc-for></span>
+                          <sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{true}}"><span class="pk-meta {{r.metaCls}}">{{r.meta}}</span></sc-if>
+                          <sc-if value="{{r.hasKeys}}" hint-placeholder-val="{{false}}"><span class="pk-keys"><sc-for list="{{r.keys}}" as="kk" hint-placeholder-count="2"><span class="tp-kbd">{{kk.k}}</span></sc-for></span></sc-if>
+                          <sc-if value="{{r.isOn}}" hint-placeholder-val="{{false}}"><span class="tp-kbd pk-enter" aria-hidden="true">↵</span></sc-if>
+                        </div>
+                      </sc-if>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{p.hasPv}}" hint-placeholder-val="{{false}}">
+                    <aside class="pk-pv" aria-label="Preview">
+                      <sc-if value="{{p.pvTask}}" hint-placeholder-val="{{true}}">
+                        <div style="display:flex;align-items:center;gap:8px"><span class="pk-key" style="width:auto">{{p.pv.key}}</span><span class="pk-meta">· {{p.pv.project}}</span></div>
+                        <h3 class="pk-pvt">{{p.pv.title}}</h3>
+                        <p class="pk-pvd">{{p.pv.desc}}</p>
+                        <dl class="pk-pvg" style="margin:0">
+                          <dt>Status</dt><dd><span class="tp-g {{p.pv.glyph}}" style="color:{{p.pv.color}}"></span>{{p.pv.stName}}</dd>
+                          <dt>Priority</dt><dd><span class="tp-bars {{p.pv.priCls}}" style="color:{{p.pv.priColor}}"><i></i><i></i><i></i><i></i></span>{{p.pv.priName}}</dd>
+                          <dt>Assignee</dt><dd><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{p.pv.hue}})">{{p.pv.ini}}</span>{{p.pv.asg}}</dd>
+                          <dt>Sprint</dt><dd>{{p.pv.sprint}}</dd>
+                        </dl>
+                      </sc-if>
+                      <sc-if value="{{p.pvOther}}" hint-placeholder-val="{{false}}">
+                        <sc-if value="{{p.pvo.isProj}}" hint-placeholder-val="{{false}}"><span class="badge l" style="--h:{{p.pvo.hue}}">{{p.pvo.key}}</span></sc-if>
+                        <sc-if value="{{p.pvo.isPerson}}" hint-placeholder-val="{{false}}"><span class="tp-av l" style="background:oklch(var(--av-l) var(--av-c) {{p.pvo.hue}})">{{p.pvo.ini}}</span></sc-if>
+                        <h3 class="pk-pvt">{{p.pvo.title}}</h3>
+                        <sc-if value="{{p.pvo.hasKeys}}" hint-placeholder-val="{{false}}"><div class="pk-keys" style="gap:4px"><sc-for list="{{p.pvo.keys}}" as="kk" hint-placeholder-count="2"><span class="tp-kbd" style="height:24px;min-width:24px;font-size:12px">{{kk.k}}</span></sc-for></div></sc-if>
+                        <dl class="pk-pvg" style="margin:0">
+                          <sc-for list="{{p.pvo.rows}}" as="o" hint-placeholder-count="3"><dt>{{o.l}}</dt><dd>{{o.v}}</dd></sc-for>
+                        </dl>
+                      </sc-if>
+                      <sc-if value="{{p.pvNone}}" hint-placeholder-val="{{false}}">
+                        <div class="pk-pvnone"><svg width="28" height="28" sc-camel-view-box="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="5" y="4" width="18" height="20" rx="3"></rect><path d="M9 10h10M9 14h10M9 18h6" stroke-linecap="round"></path></svg></div>
+                      </sc-if>
+                    </aside>
+                  </sc-if>
+                </div>
+                <sc-if value="{{p.desk}}" hint-placeholder-val="{{true}}">
+                  <div class="pk-foot">
+                    <span><span class="tp-kbd">↑</span><span class="tp-kbd">↓</span> Move</span>
+                    <span><span class="tp-kbd">↵</span> {{p.enterVerb}}</span>
+                    <span><span class="tp-kbd">Tab</span> Section</span>
+                    <span style="margin-left:auto"><b>&gt;</b> commands <b>#</b> projects <b>@</b> people</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2480}}">
+class Component extends DCLogic {
+  state = { pk: {}, open: true, closing: false, af: false, toast: null, seq: 59, view: 'mine', proj: 'Platform Rebuild', ft: null };
+  lists = {};
+  componentDidUpdate() {
+    const L = this.lists || {};
+    Object.keys(L).forEach((k) => {
+      const el = L[k];
+      if (!el || !el.querySelector) return;
+      const a = el.querySelector('.pk-row.on');
+      if (!a) return;
+      const top = a.offsetTop;
+      const bot = top + a.offsetHeight;
+      if (top < el.scrollTop + 4) el.scrollTop = Math.max(0, top - 32);
+      else if (bot > el.scrollTop + el.clientHeight) el.scrollTop = bot - el.clientHeight + 8;
+    });
+  }
+  componentWillUnmount() { clearTimeout(this.ct); clearTimeout(this.tt); clearTimeout(this.rt); }
+  pkGet(id) { return (this.state.pk && this.state.pk[id]) || {}; }
+  pkSet(id, patch) { const all = { ...(this.state.pk || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ pk: all }); }
+  data() {
+    const people = [
+      { id: 'ak', name: 'Alex Kim', ini: 'AK', hue: 285, email: 'alex@team.dev', role: 'Admin', open: 6 },
+      { id: 'jl', name: 'Jordan Lee', ini: 'JL', hue: 200, email: 'jordan@team.dev', role: 'Member', open: 4 },
+      { id: 'sp', name: 'Sam Patel', ini: 'SP', hue: 20, email: 'sam@team.dev', role: 'Member', open: 5 },
+      { id: 'rc', name: 'Riley Chen', ini: 'RC', hue: 150, email: 'riley@team.dev', role: 'Member', open: 3 },
+      { id: 'md', name: 'Morgan Diaz', ini: 'MD', hue: 60, email: 'morgan@team.dev', role: 'Admin', open: 2 },
+      { id: 'tn', name: 'Taylor Ng', ini: 'TN', hue: 330, email: 'taylor@team.dev', role: 'Viewer', open: 0 }
+    ];
+    const tasks = [
+      { key: 'PRJ-42', title: 'Fix flaky board reflow on column resize', st: 'progress', pri: 3, asg: 'ak', sprint: 'Sprint 14', desc: 'Columns jump when the sidebar collapses mid-drag. Repro: resize the window while holding a card.' },
+      { key: 'PRJ-51', title: 'Rotate refresh tokens on sign-in', st: 'review', pri: 4, asg: 'sp', sprint: 'Sprint 14', desc: 'Old tokens stay valid after a password change. Rotate on every sign-in and revoke the previous pair.' },
+      { key: 'PRJ-47', title: 'Persist saved filters per project', st: 'todo', pri: 2, asg: 'jl', sprint: 'Sprint 14', desc: 'Filters reset on reload. Store them per project and restore on open.' },
+      { key: 'PRJ-38', title: 'Virtualize board columns over 200 cards', st: 'done', pri: 3, asg: 'rc', sprint: 'Sprint 13', desc: 'Render only visible cards so scrolling holds 60fps at 1,000 cards.' },
+      { key: 'MO-12', title: 'Queue task edits while offline', st: 'progress', pri: 2, asg: 'md', sprint: 'Sprint 14', desc: 'Edits made offline sync in order once the app reconnects.' },
+      { key: 'IN-7', title: 'Cache board queries at the edge', st: 'backlog', pri: 1, asg: 'tn', sprint: null, desc: 'Serve board reads from the edge cache to cut p95 latency.' }
+    ];
+    const projects = [
+      { key: 'PRJ', name: 'Platform Rebuild', hue: 255, open: 24, lead: 'Alex Kim' },
+      { key: 'MO', name: 'Mobile App', hue: 150, open: 11, lead: 'Morgan Diaz' },
+      { key: 'IN', name: 'Infra', hue: 60, open: 7, lead: 'Riley Chen' }
+    ];
+    const actions = [
+      { id: 'create', name: 'Create task', keys: ['C'], icon: 'plus', edit: true },
+      { id: 'board', name: 'Go to board', keys: ['G', 'B'], icon: 'arrow' },
+      { id: 'theme', name: 'Switch theme', keys: ['⌘', '⇧', 'L'], icon: 'theme' },
+      { id: 'sprints', name: 'Go to sprints', keys: ['G', 'S'], icon: 'arrow' },
+      { id: 'mine', name: 'Assign to me', keys: ['I'], icon: 'user', edit: true },
+      { id: 'milestones', name: 'Go to milestones', keys: ['G', 'M'], icon: 'arrow' },
+      { id: 'link', name: 'Copy link', keys: ['⌘', 'L'], icon: 'link' }
+    ];
+    const recent = [{ t: 'PRJ-42' }, { p: 'MO' }, { t: 'PRJ-51' }];
+    const S = { backlog: ['Backlog', 'backlog', 'var(--text-3)'], todo: ['Todo', 'todo', 'var(--todo)'], progress: ['In progress', 'progress', 'var(--warn)'], review: ['In review', 'review', 'var(--info)'], done: ['Done', 'done', 'var(--ok)'], cancel: ['Canceled', 'cancel', 'var(--text-3)'] };
+    const PR = { 4: ['Urgent', 'n4', 'var(--danger)'], 3: ['High', 'n3', 'var(--orange)'], 2: ['Medium', 'n2', 'var(--warn)'], 1: ['Low', 'n1', 'var(--low)'] };
+    return { people, tasks, projects, actions, recent, S, PR };
+  }
+  hl(text, q) {
+    const s = String(text || '');
+    if (!q) return [{ t: s, cls: '' }];
+    const out = [];
+    const lo = s.toLowerCase();
+    let i = 0;
+    for (;;) {
+      const j = lo.indexOf(q, i);
+      if (j < 0) break;
+      if (j > i) out.push({ t: s.slice(i, j), cls: '' });
+      out.push({ t: s.slice(j, j + q.length), cls: 'pk-m' });
+      i = j + q.length;
+    }
+    if (i < s.length) out.push({ t: s.slice(i), cls: '' });
+    return out.length ? out : [{ t: s, cls: '' }];
+  }
+  palBuild(id, cfg) {
+    const self = this;
+    const D = this.data();
+    const u = { ...(cfg.init || {}), ...this.pkGet(id) };
+    const set = (patch) => self.pkSet(id, patch);
+    const mobile = !!cfg.mobile;
+    const query = u.query || '';
+    const scope = u.scope || null;
+    const q = query.trim().toLowerCase();
+    const canEdit = cfg.role !== 'viewer';
+    const has = (s) => !q || String(s).toLowerCase().indexOf(q) >= 0;
+    const PP = {}; D.people.forEach((x) => { PP[x.id] = x; });
+    const TT = {}; D.tasks.forEach((x) => { TT[x.key] = x; });
+    const PJ = {}; D.projects.forEach((x) => { PJ[x.key] = x; });
+    const taskItem = (t) => ({ kind: 'task', id: 't' + t.key, t, label: t.title, key: t.key, meta: D.S[t.st][0], glyph: D.S[t.st][1], color: D.S[t.st][2] });
+    const projItem = (p) => ({ kind: 'proj', id: 'p' + p.key, p, label: p.name, key: p.key, hue: p.hue, meta: p.open + ' open' });
+    const actItem = (a) => ({ kind: 'act', id: 'a' + a.id, a, label: a.name, keys: a.keys, icon: a.icon });
+    const personItem = (x) => ({ kind: 'person', id: 'u' + x.id, x, label: x.name, ini: x.ini, hue: x.hue, meta: x.email, mono: true });
+    const acts = D.actions.filter((a) => canEdit || !a.edit);
+    const loading = !!cfg.loading || !!u.loading;
+    const errMode = !!cfg.error && !u.recovered;
+    let sections = [];
+    if (!scope) {
+      if (!q) {
+        sections.push(['Recent', D.recent.map((r) => (r.t ? taskItem(TT[r.t]) : projItem(PJ[r.p])))]);
+        sections.push(['Tasks', errMode ? [] : D.tasks.filter((t) => t.key !== 'PRJ-42' && t.key !== 'PRJ-51').slice(0, 3).map(taskItem)]);
+        sections.push(['Projects', D.projects.map(projItem)]);
+        sections.push(['Actions', acts.slice(0, 3).map(actItem)]);
+        sections.push(['People', D.people.slice(0, 3).map(personItem)]);
+      } else {
+        sections.push(['Tasks', errMode ? [] : D.tasks.filter((t) => has(t.key) || has(t.title)).slice(0, 4).map(taskItem)]);
+        sections.push(['Projects', D.projects.filter((p) => has(p.name) || has(p.key)).map(projItem)]);
+        sections.push(['Actions', acts.filter((a) => has(a.name)).slice(0, 4).map(actItem)]);
+        sections.push(['People', D.people.filter((x) => has(x.name)).slice(0, 3).map(personItem)]);
+      }
+      if (errMode) sections.forEach((sec) => { if (sec[0] === 'Tasks') sec[1] = [{ kind: 'err', id: 'err', label: 'Task search unavailable', meta: 'Retry' }]; });
+    } else if (scope === 'cmd') sections.push(['Commands', acts.filter((a) => has(a.name)).map(actItem)]);
+    else if (scope === 'proj') sections.push(['Projects', D.projects.filter((p) => has(p.name) || has(p.key)).map(projItem)]);
+    else if (scope === 'people') sections.push(['People', D.people.filter((x) => has(x.name) || has(x.email)).map(personItem)]);
+    sections = sections.filter((s) => s[1].length);
+    const total = sections.reduce((n, s) => n + s[1].length, 0);
+    const empty = !loading && total === 0;
+    if (empty) {
+      const sug = [];
+      if (canEdit && query.trim()) sug.push({ kind: 'sugg', id: 'screate', label: 'Create task “' + query.trim().slice(0, 40) + '”', sym: '+', act: 'create' });
+      if (scope !== 'cmd') sug.push({ kind: 'sugg', id: 'scmd', label: 'Search commands', sym: '>', scope: 'cmd' });
+      if (scope !== 'proj') sug.push({ kind: 'sugg', id: 'sproj', label: 'Browse projects', sym: '#', scope: 'proj' });
+      if (scope !== 'people') sug.push({ kind: 'sugg', id: 'speople', label: 'Find people', sym: '@', scope: 'people' });
+      sections = [['Try', sug]];
+    }
+    const flat = [];
+    const secStarts = [];
+    const rowsRaw = [];
+    sections.forEach((sec, si) => {
+      rowsRaw.push({ hdr: true, label: sec[0], count: sec[1].length > 1 && sec[0] !== 'Try' ? String(sec[1].length) : '' });
+      secStarts.push(flat.length);
+      sec[1].forEach((it) => { const x = { ...it, domId: id + '-o' + si + '-' + it.id }; rowsRaw.push({ hdr: false, ref: flat.length }); flat.push(x); });
+    });
+    const n = flat.length;
+    const idx = n ? Math.max(0, Math.min(u.idx || 0, n - 1)) : 0;
+    const active = n ? flat[idx] : null;
+    const run = (it) => {
+      if (!it) return;
+      if (it.kind === 'err') {
+        set({ loading: true });
+        clearTimeout(self.rt);
+        self.rt = setTimeout(() => self.pkSet(id, { loading: false, recovered: true }), 700);
+        return;
+      }
+      if (it.kind === 'sugg' && it.scope) { set({ scope: it.scope, query: '', idx: 0 }); return; }
+      if (cfg.onRun) cfg.onRun(it, query.trim());
+    };
+    const PFX = { '>': 'cmd', '#': 'proj', '@': 'people' };
+    const CH = { cmd: ['>', 'Commands'], proj: ['#', 'Projects'], people: ['@', 'People'] };
+    const noop = () => {};
+    const blankRow = { domId: '', on: '', sel: false, isOn: false, segs: [], keySegs: [], isTask: false, isProj: false, isPerson: false, isAct: false, isSugg: false, isErr: false, glyph: '', color: '', hue: 0, ini: '', key: '', sym: '', icPlus: false, icArrow: false, icTheme: false, icUser: false, icLink: false, hasMeta: false, meta: '', metaCls: '', hasKeys: false, keys: [], hover: noop, pick: noop };
+    const rows = loading ? [] : rowsRaw.map((r) => {
+      if (r.hdr) return { ...blankRow, hdr: true, item: false, label: r.label, count: r.count };
+      const it = flat[r.ref];
+      const i = r.ref;
+      const on = i === idx;
+      return {
+        hdr: false, item: true, label: it.label, count: '', domId: it.domId,
+        on: on ? 'on' : '', sel: on, isOn: on && !mobile,
+        segs: it.kind === 'sugg' || it.kind === 'err' ? [{ t: it.label, cls: '' }] : self.hl(it.label, q),
+        keySegs: self.hl(it.key || '', q),
+        isTask: it.kind === 'task', isProj: it.kind === 'proj', isPerson: it.kind === 'person', isAct: it.kind === 'act', isSugg: it.kind === 'sugg', isErr: it.kind === 'err',
+        glyph: it.glyph || '', color: it.color || '', hue: it.hue || 0, ini: it.ini || '', key: it.key || '', sym: it.sym || '',
+        icPlus: it.icon === 'plus', icArrow: it.icon === 'arrow', icTheme: it.icon === 'theme', icUser: it.icon === 'user', icLink: it.icon === 'link',
+        hasMeta: !!it.meta && !(mobile && it.kind === 'person'), meta: it.meta || '', metaCls: it.mono ? 'mono' : '',
+        hasKeys: !!(it.keys && it.keys.length) && !mobile, keys: (it.keys || []).map((k) => ({ k })),
+        hover: () => { if (i !== idx) set({ idx: i }); },
+        pick: () => { set({ idx: i }); run(it); }
+      };
+    });
+    const onQuery = (e) => {
+      let v = String(e.target.value || '');
+      let sc = scope;
+      if (!sc && v.length && PFX[v.charAt(0)]) { sc = PFX[v.charAt(0)]; v = v.slice(1); }
+      set({ query: v.slice(0, 120), scope: sc, idx: 0 });
+    };
+    const onKey = (e) => {
+      const k = e.key;
+      if (k === 'ArrowDown') { e.preventDefault(); if (n) set({ idx: (idx + 1) % n }); }
+      else if (k === 'ArrowUp') { e.preventDefault(); if (n) set({ idx: (idx - 1 + n) % n }); }
+      else if (k === 'Enter') { e.preventDefault(); if (!loading) run(active); }
+      else if (k === 'Tab') {
+        e.preventDefault();
+        if (secStarts.length > 1) {
+          let cs = 0;
+          secStarts.forEach((s0, si) => { if (s0 <= idx) cs = si; });
+          const nx = e.shiftKey ? (cs - 1 + secStarts.length) % secStarts.length : (cs + 1) % secStarts.length;
+          set({ idx: secStarts[nx] });
+        }
+      }
+      else if (k === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (query) set({ query: '', idx: 0 });
+        else if (scope) set({ scope: null, idx: 0 });
+        else if (cfg.onClose) cfg.onClose();
+      }
+      else if (k === 'Backspace' && !query && scope) { e.preventDefault(); set({ scope: null, idx: 0 }); }
+    };
+    const blankPv = { key: '', project: '', title: '', desc: '', glyph: '', color: '', stName: '', priCls: '', priColor: '', priName: '', hue: 0, ini: '', asg: '', sprint: '' };
+    const blankPvo = { isProj: false, isPerson: false, hasKeys: false, keys: [], key: '', hue: 0, ini: '', title: '', rows: [] };
+    let pv = blankPv; let pvo = blankPvo; let pvTask = false; let pvOther = false;
+    if (active && !loading && active.kind === 'task') {
+      const t = active.t; const a = PP[t.asg]; const pr = D.PR[t.pri] || ['No priority', '', 'var(--text-3)'];
+      const pj = PJ[t.key.split('-')[0]];
+      pvTask = true;
+      pv = { key: t.key, project: pj ? pj.name : '', title: t.title, desc: t.desc, glyph: D.S[t.st][1], color: D.S[t.st][2], stName: D.S[t.st][0], priCls: pr[1], priColor: pr[2], priName: pr[0], hue: a.hue, ini: a.ini, asg: a.name, sprint: t.sprint || 'No sprint' };
+    } else if (active && !loading && active.kind === 'proj') {
+      const p = active.p; pvOther = true;
+      pvo = { ...blankPvo, isProj: true, key: p.key, hue: p.hue, title: p.name, rows: [{ l: 'Key', v: p.key }, { l: 'Open', v: String(p.open) }, { l: 'Lead', v: p.lead }] };
+    } else if (active && !loading && active.kind === 'person') {
+      const x = active.x; pvOther = true;
+      pvo = { ...blankPvo, isPerson: true, ini: x.ini, hue: x.hue, title: x.name, rows: [{ l: 'Email', v: x.email }, { l: 'Role', v: x.role }, { l: 'Open', v: x.open + ' tasks' }] };
+    } else if (active && !loading && active.kind === 'act') {
+      const a = active.a; pvOther = true;
+      pvo = { ...blankPvo, hasKeys: true, keys: a.keys.map((k) => ({ k })), title: a.name, rows: [] };
+    }
+    const verb = !active ? 'Open' : (active.kind === 'act' || active.kind === 'sugg' || active.kind === 'err') ? 'Run' : 'Open';
+    const ph = scope === 'cmd' ? 'Run a command…' : scope === 'proj' ? 'Jump to a project…' : scope === 'people' ? 'Find a person…' : 'Search or type > # @';
+    const closing = !!cfg.closing;
+    return {
+      cls: [cfg.preview ? 'wide' : 'narrow', mobile ? 'mob' : '', closing ? 'out' : ''].join(' '),
+      scrimCls: [mobile ? 'mob' : '', cfg.static ? 'static' : '', closing ? 'out' : ''].join(' '),
+      onScrim: (e) => { if (e && e.target === e.currentTarget && cfg.onClose) cfg.onClose(); },
+      close: cfg.onClose || (() => {}),
+      mobile, desk: !mobile,
+      hasChip: !!scope, chipSym: scope ? CH[scope][0] : '', chipLabel: scope ? CH[scope][1] : '',
+      clearScope: () => set({ scope: null, idx: 0 }),
+      listId: id + '-list', activeId: active && !loading ? active.domId : '',
+      ph, query, onQuery, onKey, autoFocus: !!cfg.autoFocus,
+      showPrefixes: mobile && !scope,
+      prefixes: ['cmd', 'proj', 'people'].map((s) => ({ sym: CH[s][0], label: CH[s][1], pick: () => set({ scope: s, idx: 0 }) })),
+      listRef: (el) => { self.lists[id] = el; },
+      isLoading: loading, isEmpty: empty, emptyQ: query.trim() || (scope ? CH[scope][1].toLowerCase() : ''),
+      rows,
+      hasPv: !!cfg.preview, pvTask, pvOther, pvNone: !pvTask && !pvOther, pv, pvo,
+      enterVerb: verb
+    };
+  }
+  renderVals() {
+    const self = this;
+    const st = this.state;
+    const theme = this.props.theme || 'navy';
+    const role = this.props.role || 'admin';
+    const D = this.data();
+    const eff = st.ft || theme;
+    const close = () => {
+      if (!self.state.open || self.state.closing) return;
+      self.setState({ closing: true });
+      clearTimeout(self.ct);
+      self.ct = setTimeout(() => {
+        self.setState({ open: false, closing: false });
+        try { if (self.searchEl) self.searchEl.focus({ preventScroll: true }); } catch (e) {}
+      }, 150);
+    };
+    const openPal = () => {
+      clearTimeout(self.ct);
+      const all = { ...(self.state.pk || {}) }; all.main = { query: '', scope: null, idx: 0 };
+      self.setState({ open: true, closing: false, af: true, pk: all });
+    };
+    const toast = (msg, fx) => {
+      self.setState({ toast: { id: Date.now(), msg, fx: !!fx } });
+      clearTimeout(self.tt);
+      self.tt = setTimeout(() => self.setState({ toast: null }), 2600);
+    };
+    const onRun = (it, q) => {
+      const a = it.kind === 'act' ? it.a.id : (it.kind === 'sugg' ? it.act : null);
+      if (a === 'theme') { const next = eff === 'light' ? 'navy' : 'light'; self.setState({ ft: next }); close(); toast('Theme: ' + (next === 'light' ? 'Light' : 'Navy'), false); return; }
+      if (a === 'create') { const k = 'PRJ-' + self.state.seq; self.setState({ seq: self.state.seq + 1 }); close(); toast(k + ' created' + (q && it.kind === 'sugg' ? ' · ' + q.slice(0, 32) : ''), true); return; }
+      if (a === 'board' || a === 'sprints' || a === 'milestones') { self.setState({ view: a }); close(); return; }
+      if (a === 'mine') { close(); toast('PRJ-42 assigned to you', false); return; }
+      if (a === 'link') { close(); toast('Link copied', false); return; }
+      if (it.kind === 'task') { close(); toast('Opened ' + it.key, false); return; }
+      if (it.kind === 'proj') { self.setState({ proj: it.p.name, view: 'board' }); close(); return; }
+      if (it.kind === 'person') { self.setState({ view: 'mine' }); close(); toast('Showing ' + it.x.name + '’s tasks', false); }
+    };
+    const TT = {}; D.tasks.forEach((t) => { TT[t.key] = t; });
+    const PP = {}; D.people.forEach((x) => { PP[x.id] = x; });
+    const card = (k) => { const t = TT[k]; const a = PP[t.asg]; return { key: t.key, title: t.title, ini: a.ini, hue: a.hue }; };
+    const cols = [
+      { name: 'Todo', glyph: 'todo', color: 'var(--todo)', n: '2', cards: [card('PRJ-47'), card('IN-7')] },
+      { name: 'In progress', glyph: 'progress', color: 'var(--warn)', n: '2', cards: [card('PRJ-42'), card('MO-12')] },
+      { name: 'In review', glyph: 'review', color: 'var(--info)', n: '1', cards: [card('PRJ-51')] }
+    ];
+    const list = D.tasks.map((t) => { const a = PP[t.asg]; return { key: t.key, title: t.title, glyph: D.S[t.st][1], color: D.S[t.st][2], ini: a.ini, hue: a.hue }; });
+    const VIEW = { mine: 'My work', board: 'Board', sprints: 'Sprints', milestones: 'Milestones' };
+    const view = st.view || 'mine';
+    const blankMain = { navMine: '', projects: [], crumbA: '', crumbB: '', openPal: () => {}, searchRef: null, isOpen: false, isBoard: false, isList: false, cols: [], list: [], hasToast: false, toastGlyph: '', toastColor: '', toastMsg: '' };
+    const mk = (fid, cfg) => [this.palBuild(fid, { role, static: true, ...cfg })];
+    const frames = [
+      {
+        ...blankMain, label: 'Search ⌘K', meta: 'interactive · type > # @ · ↑↓ ↵ Tab Esc', span: 3, w: '100%', h: 760, r: 14,
+        isMain: true, isStatic: false, phone: false, devCls: st.ft ? 't-' + st.ft : '',
+        navMine: view === 'mine' ? 'on' : '',
+        projects: D.projects.map((p) => ({ key: p.key, name: p.name, hue: p.hue, on: view !== 'mine' && p.name === st.proj ? 'on' : '' })),
+        crumbA: view === 'mine' ? 'Platform team' : st.proj, crumbB: VIEW[view] || 'My work',
+        openPal, searchRef: (el) => { self.searchEl = el; }, isOpen: !!st.open,
+        isBoard: view === 'board', isList: view !== 'board', cols, list,
+        hasToast: !!st.toast, toastGlyph: st.toast && st.toast.fx ? 'done fx' : 'done', toastColor: st.toast && st.toast.fx ? 'var(--ok)' : 'var(--accent-t)', toastMsg: st.toast ? st.toast.msg : '',
+        pals: st.open ? [this.palBuild('main', { role, preview: true, autoFocus: !!st.af, closing: !!st.closing, onClose: close, onRun })] : []
+      },
+      { ...blankMain, label: 'Prefix >', meta: 'commands only', span: 1, w: '100%', h: 500, r: 14, isMain: false, isStatic: true, phone: false, devCls: '', pals: mk('cmd', { init: { scope: 'cmd', query: 'go' } }) },
+      { ...blankMain, label: 'Prefix @', meta: 'people', span: 1, w: '100%', h: 500, r: 14, isMain: false, isStatic: true, phone: false, devCls: '', pals: mk('ppl', { init: { scope: 'people', query: '', idx: 1 } }) },
+      { ...blankMain, label: 'Search error', meta: 'local results kept · ↵ retries', span: 1, w: '100%', h: 500, r: 14, isMain: false, isStatic: true, phone: false, devCls: '', pals: mk('err', { error: true, init: { query: 're' } }) },
+      { ...blankMain, label: 'No results', meta: 'suggestions', span: 1, w: '100%', h: 500, r: 14, isMain: false, isStatic: true, phone: false, devCls: '', pals: mk('none', { init: { query: 'roadmap' } }) },
+      { ...blankMain, label: 'Loading', meta: 'skeleton', span: 1, w: '100%', h: 500, r: 14, isMain: false, isStatic: true, phone: false, devCls: '', pals: mk('load', { loading: true, init: { query: 'sprint' } }) },
+      { ...blankMain, label: 'Mobile', meta: '390 · full screen', span: 1, w: '390px', h: 800, r: 28, isMain: false, isStatic: false, phone: true, devCls: '', pals: mk('mob', { mobile: true, init: { query: 'board' } }) }
+    ];
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      frames
+    };
+  }
+}
+</script>
+
+
+</body></html>

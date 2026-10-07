@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Foundations: Color</title>
+<script src="../assets/989f55e6-f406-4046-af15-0501e20ec836.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-t:#8AB0FF;--logo:#3B7BFF}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-t:#7FA8FF}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-t:#1D4ED8}
+.ds{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.sw{width:24px;height:24px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(128,128,150,.35);flex:none}
+.row{display:grid;grid-template-columns:24px minmax(0,1fr) 72px 44px;gap:12px;align-items:center;min-height:32px}
+.pill{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);font-size:13px;font-weight:500;color:var(--text)}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--accent-t);display:block}
+</style>
+</helmet>
+<div class="ds t-navy" style="width:1440px;height:1760px;padding:72px 80px;display:flex;flex-direction:column;gap:48px;overflow:hidden">
+
+  <header style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span role="img" aria-label="Lightex" style="font-size:22px;font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text)">Lighte<svg sc-camel-view-box="0 0 46 39" aria-hidden="true" style="width:.644em;height:.546em;margin-left:.02em;overflow:visible">
+        <mask id="hxm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+        <clipPath id="hxc"><rect width="46" height="39"></rect></clipPath>
+        <g clip-path="url(#hxc)"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#hxm)"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--logo)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+      </svg></span>
+      <span class="mono" style="font-size:12px;color:var(--text-3);letter-spacing:.04em">DESIGN SYSTEM · 01</span>
+    </div>
+    <h1 style="margin:0;font-size:64px;line-height:68px;font-weight:600;letter-spacing:-.035em">Color</h1>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="pill"><i></i>Fast</span>
+      <span class="pill"><i></i>Quiet</span>
+      <span class="pill"><i></i>Keyboard-first</span>
+      <span class="pill"><i></i>Honest permissions</span>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px">
+      <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.02em">Tokens</h2>
+      <span class="mono" style="font-size:12px;color:var(--text-3)">ratio vs --surface · AA 4.5 text · 3.0 UI</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+      <sc-for list="{{panels}}" as="panel" hint-placeholder-count="3">
+        <div class="{{panel.cls}}" style="background:var(--bg);border:1px solid var(--line-2);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px;color:var(--text)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="font-size:16px;font-weight:600">{{panel.name}}</span>
+            <span class="mono" style="font-size:11px;color:var(--text-3)">{{panel.tag}}</span>
+          </div>
+          <sc-for list="{{panel.groups}}" as="g" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase;padding-bottom:6px">{{g.name}}</span>
+              <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+                <div class="row">
+                  <span class="sw" style="background:{{r.hex}}"></span>
+                  <span class="mono" style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{r.name}}</span>
+                  <span class="mono" style="font-size:11px;color:var(--text-2)">{{r.label}}</span>
+                  <span class="mono" style="font-size:11px;color:var(--text-3);text-align:right">{{r.ratio}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="border-top:1px solid var(--line);padding-top:20px;display:flex;gap:28px;flex-wrap:wrap">
+    <span class="mono" style="font-size:12px;color:var(--text-2)">Accent · one filled blue per view</span>
+    <span class="mono" style="font-size:12px;color:var(--text-2)">Spark · completion + logo only</span>
+    <span class="mono" style="font-size:12px;color:var(--text-2)">Status · always glyph + color</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1760}}">
+class Component extends DCLogic {
+  renderVals() {
+    const r = (name, hex, ratio, label) => ({ name, hex, label: label || hex, ratio: ratio || '' });
+    const navy = [
+      { name: 'Surfaces', rows: [r('--bg', '#060B18'), r('--surface', '#0C1326'), r('--raised', '#131C34'), r('--hover', '#1B2644')] },
+      { name: 'Borders', rows: [r('--line', '#1C2845'), r('--line-2', '#2B3A5E'), r('--control', '#5F6F96', '3.7')] },
+      { name: 'Text', rows: [r('--text', '#EAF0FF', '16.2'), r('--text-2', '#A5B2D1', '8.7'), r('--text-3', '#8794B6', '6.1')] },
+      { name: 'Accent', rows: [r('--accent', '#2B67F5', '4.8', '#2B67F5'), r('--accent-t', '#8AB0FF', '8.6'), r('--accent-s', 'rgba(43,103,245,0.2)', '', '20%'), r('--spark', '#5BE0FF', '11.9')] },
+      { name: 'Status', rows: [r('Backlog', '#8794B6', '6.1'), r('Todo', '#C4CBE0', '11.4'), r('In progress', '#F5B73B', '10.3'), r('In review', '#B79CFF', '8.1'), r('Done', '#4ADE80', '10.6'), r('Canceled', '#8794B6', '6.1')] },
+      { name: 'Priority', rows: [r('Urgent', '#FF7A70', '7.3'), r('High', '#FF9A4D', '8.8'), r('Medium', '#F5B73B', '10.3'), r('Low', '#2DD4BF', '9.9')] },
+      { name: 'Feedback', rows: [r('Success', '#4ADE80', '10.6'), r('Warning', '#F5B73B', '10.3'), r('Error', '#FF7A70', '7.3'), r('Destructive', '#C23A30', '5.3')] }
+    ];
+    const dark = [
+      { name: 'Surfaces', rows: [r('--bg', '#0B0B0F'), r('--surface', '#121217'), r('--raised', '#1A1A21'), r('--hover', '#22222B')] },
+      { name: 'Borders', rows: [r('--line', '#24242E'), r('--line-2', '#34343F'), r('--control', '#6A6A7C', '3.5')] },
+      { name: 'Text', rows: [r('--text', '#ECECF1', '15.9'), r('--text-2', '#A3A3B1', '7.5'), r('--text-3', '#8E8E9D', '5.8')] },
+      { name: 'Accent', rows: [r('--accent', '#2662EE', '5.2'), r('--accent-t', '#7FA8FF', '8.0'), r('--accent-s', 'rgba(38,98,238,0.18)', '', '18%'), r('--spark', '#5BE0FF', '12.0')] },
+      { name: 'Status', rows: [r('Backlog', '#8E8E9D', '5.8'), r('Todo', '#C4C4D0', '10.8'), r('In progress', '#F5B73B', '10.4'), r('In review', '#B79CFF', '7.6'), r('Done', '#4ADE80', '10.7'), r('Canceled', '#8E8E9D', '5.8')] },
+      { name: 'Priority', rows: [r('Urgent', '#FF7A70', '7.4'), r('High', '#FF9A4D', '8.9'), r('Medium', '#F5B73B', '10.4'), r('Low', '#2DD4BF', '10.0')] },
+      { name: 'Feedback', rows: [r('Success', '#4ADE80', '10.7'), r('Warning', '#F5B73B', '10.4'), r('Error', '#FF7A70', '7.4'), r('Destructive', '#C23A30', '5.3')] }
+    ];
+    const light = [
+      { name: 'Surfaces', rows: [r('--bg', '#FAFAFB'), r('--surface', '#FFFFFF'), r('--raised', '#F3F3F6'), r('--hover', '#EAEAEF')] },
+      { name: 'Borders', rows: [r('--line', '#E4E4EA'), r('--line-2', '#D0D0D9'), r('--control', '#8A8A9B', '3.4')] },
+      { name: 'Text', rows: [r('--text', '#121217', '18.7'), r('--text-2', '#55556A', '7.3'), r('--text-3', '#5F5F70', '6.3')] },
+      { name: 'Accent', rows: [r('--accent', '#1D4ED8', '6.7'), r('--accent-t', '#1D4ED8', '6.7'), r('--accent-s', 'rgba(29,78,216,0.10)', '', '10%'), r('--spark', '#0891B2', '3.7')] },
+      { name: 'Status', rows: [r('Backlog', '#5F5F70', '6.3'), r('Todo', '#3E3E50', '10.4'), r('In progress', '#8A5A00', '5.9'), r('In review', '#6B3FD4', '6.4'), r('Done', '#157A3A', '5.4'), r('Canceled', '#5F5F70', '6.3')] },
+      { name: 'Priority', rows: [r('Urgent', '#B92F26', '6.0'), r('High', '#A84A0A', '5.8'), r('Medium', '#8A5A00', '5.9'), r('Low', '#0F766E', '5.5')] },
+      { name: 'Feedback', rows: [r('Success', '#157A3A', '5.4'), r('Warning', '#8A5A00', '5.9'), r('Error', '#B92F26', '6.0'), r('Destructive', '#B92F26', '6.0')] }
+    ];
+    return { panels: [
+      { name: 'Deep navy', tag: 'default · t-navy', cls: 't-navy', groups: navy },
+      { name: 'Near-black', tag: 'alt · t-dark', cls: 't-dark', groups: dark },
+      { name: 'Light', tag: 't-light', cls: 't-light', groups: light }
+    ] };
+  }
+}
+</script>
+
+
+</body></html>

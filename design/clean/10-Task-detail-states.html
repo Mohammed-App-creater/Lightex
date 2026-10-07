@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Task detail states</title>
+<script src="../assets/b92c9917-f1b8-47ae-8e9e-6a4ac00d424d.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style></style>
+<style>
+body{margin:0}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--av-l:.90;--av-c:.06}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--av-l:.40;--av-c:.10}
+.ds{--ease:cubic-bezier(.16,1,.3,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.cap{font-size:12px;line-height:16px;color:var(--text-3)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 24px}
+.crop{margin:0;display:flex;flex-direction:column;gap:10px}
+.crop figcaption{display:flex;flex-direction:column;gap:2px}
+.crop figcaption b{font-size:14px;font-weight:600}
+.fr{position:relative;height:430px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);overflow:hidden}
+.ph{height:44px;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px;border-bottom:1px solid var(--line)}
+.pb{padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px;border-radius:6px;font:500 12px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn.icon{width:28px;padding:0;justify-content:center}
+.kbd{font:500 11px/1 'JetBrains Mono',monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.btn-primary .kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.inp{height:30px;width:100%;padding:0 10px;border-radius:6px;border:1px solid var(--accent);box-shadow:0 0 0 3px var(--ring);background:var(--surface);color:var(--text);font:400 13px/1 'Inter',sans-serif}
+.ti{font:600 18px/26px 'Inter',sans-serif;letter-spacing:-.015em;padding:2px 7px;margin-left:-8px}
+.g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.g-backlog{border:1.5px dashed currentColor}
+.g-todo{border:1.5px solid currentColor}
+.g-progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.g-review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.g-done{background:currentColor}
+.g-done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.g-cancel{border:1.5px solid currentColor}
+.g-cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.pr{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.pr i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.pr i:nth-child(1){height:4px}.pr i:nth-child(2){height:7px}.pr i:nth-child(3){height:10px}.pr i:nth-child(4){height:12px}
+.pr.n3 i:nth-child(-n+3){background:currentColor}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.av.l{width:26px;height:26px;font-size:10px}
+.prow{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;min-height:32px}
+.pl{font-size:12px;color:var(--text-3)}
+.pv{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 8px;margin-left:-8px;border-radius:6px;font-weight:500}
+.pv.hov{background:var(--hover)}
+.menu{position:absolute;padding:4px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);z-index:2}
+.mi{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:6px;font-weight:500}
+.mi.on{background:var(--accent-s)}
+.mi.hov{background:var(--hover)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line);font-size:12px;font-weight:500;white-space:nowrap}
+.cbx{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--control);flex:none;position:relative}
+.cbx.on{background:var(--accent);border-color:var(--accent)}
+.cbx.on::after{content:"";position:absolute;left:3.5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.editor{border:1px solid var(--accent);box-shadow:0 0 0 3px var(--ring);border-radius:8px;background:var(--surface)}
+.tbar{display:flex;gap:2px;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tbar span{height:24px;min-width:24px;padding:0 6px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 12px/1 'Inter',sans-serif;color:var(--text-2)}
+.tbar span.on{background:var(--accent-s);color:var(--text)}
+.code{border:1px solid var(--line);border-radius:8px;background:var(--bg);font:400 12px/19px 'JetBrains Mono',monospace;padding:10px 12px;white-space:pre;color:var(--text)}
+.tk{color:var(--info)}.tf{color:var(--accent-t)}
+.bar{height:6px;border-radius:3px;background:var(--raised);border:1px solid var(--line);overflow:hidden;flex:1}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
+.up{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.up.err{border-color:var(--danger)}
+.pk{width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font:600 8.5px/1 'JetBrains Mono',monospace;background:var(--raised);border:1px solid var(--line-2);flex:none}
+.dz{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:92px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--accent-s);box-shadow:0 0 0 4px var(--accent-s);color:var(--text)}
+.sk{display:block;border-radius:4px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.mention{color:var(--accent-t);background:var(--accent-s);padding:0 3px;border-radius:4px;font-weight:500}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised)}
+.ro-note{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--raised);font-size:12px;color:var(--text-2)}
+.cal{display:grid;grid-template-columns:repeat(7,28px);gap:2px;font-size:11px;text-align:center}
+.cal span{height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--text)}
+.cal .h{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:10px}
+.cal .today{box-shadow:inset 0 0 0 1px var(--line-2)}
+.cal .sel{background:var(--accent);color:#fff;font-weight:600}
+.cal .mut{color:var(--text-3)}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2300px;padding:72px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <span class="mono" style="font-size:12px;color:var(--text-2);letter-spacing:.04em">LIGHTEX · SCREENS · TASK DETAIL</span>
+    <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Task detail: states</h1>
+    
+  </header>
+
+  <div class="grid">
+
+    <figure class="crop">
+      <figcaption><b>Edit title, pick status</b><span class="cap">Inline input · status keys 1–6</span></figcaption>
+      <div class="fr">
+        <div class="pb">
+          <input class="inp ti" type="text" value="Fix flaky board reflow on column resize" aria-label="Task title" readonly="">
+          <span class="cap" style="margin-bottom:6px">Enter to save · Esc to cancel</span>
+          <div class="prow"><span class="pl">Status</span><span class="pv hov"><span class="g g-progress" style="color:var(--warn)"></span>In progress</span></div>
+          <div class="prow"><span class="pl">Assignee</span><span class="pv"><span class="av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>Alex Kim</span></div>
+          <div class="prow"><span class="pl">Priority</span><span class="pv"><span class="pr n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>High</span></div>
+          <div class="prow"><span class="pl">Type</span><span class="pv">Bug</span></div>
+        </div>
+        <div class="menu" style="top:148px;left:110px;width:230px" role="listbox" aria-label="Status">
+          <div class="mi"><span class="g g-backlog" style="color:var(--text-3)"></span><span style="flex:1">Backlog</span><span class="kbd">1</span></div>
+          <div class="mi"><span class="g g-todo" style="color:var(--todo)"></span><span style="flex:1">Todo</span><span class="kbd">2</span></div>
+          <div class="mi on"><span class="g g-progress" style="color:var(--warn)"></span><span style="flex:1">In progress</span><span class="kbd">3</span></div>
+          <div class="mi hov"><span class="g g-review" style="color:var(--info)"></span><span style="flex:1">In review</span><span class="kbd">4</span></div>
+          <div class="mi"><span class="g g-done" style="color:var(--ok)"></span><span style="flex:1">Done</span><span class="kbd">5</span></div>
+          <div class="mi"><span class="g g-cancel" style="color:var(--text-3)"></span><span style="flex:1">Canceled</span><span class="kbd">6</span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Estimate and due date</b><span class="cap">Inline number · calendar</span></figcaption>
+      <div class="fr">
+        <div class="pb">
+          <div class="prow"><span class="pl">Estimate</span><span style="display:flex;align-items:center;gap:8px"><input class="inp mono" type="text" value="5" aria-label="Estimate in points" readonly="" style="width:72px"><span class="cap">points</span></span></div>
+          <div class="prow"><span class="pl">Due date</span><span class="pv hov">Oct 21 · in 14 days</span></div>
+          <div class="prow"><span class="pl">Sprint</span><span class="pv">Sprint 14</span></div>
+        </div>
+        <div class="menu" style="top:104px;left:108px;padding:10px" aria-label="Pick due date">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600">October 2026</span><span class="cap mono">‹ ›</span></div>
+          <div class="cal">
+            <span class="h">Mo</span><span class="h">Tu</span><span class="h">We</span><span class="h">Th</span><span class="h">Fr</span><span class="h">Sa</span><span class="h">Su</span>
+            <span class="mut">28</span><span class="mut">29</span><span class="mut">30</span><span>1</span><span>2</span><span>3</span><span>4</span>
+            <span>5</span><span>6</span><span class="today">7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+            <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
+            <span>19</span><span>20</span><span class="sel">21</span><span>22</span><span>23</span><span>24</span><span>25</span>
+            <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span class="mut">1</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px"><span class="chip">Tomorrow</span><span class="chip">Next week</span><span class="chip">Sprint end</span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Description editing</b><span class="cap">Toolbar on focus · / commands</span></figcaption>
+      <div class="fr">
+        <div class="pb">
+          <div class="editor">
+            <div class="tbar"><span>B</span><span style="font-style:italic">I</span><span class="on mono">&lt;/&gt;</span><span>Link</span><span>1.</span><span class="mono">{ }</span></div>
+            <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:20px">
+              <span>Columns jump when the sidebar collapses mid-drag.</span>
+              <div class="code"><span class="tk">const</span> ro = <span class="tk">new</span> <span class="tf">ResizeObserver</span>(() =&gt; {
+  <span class="tf">reflow</span>(columns);
+});</div>
+              <span>/cod<span style="display:inline-block;width:1.5px;height:15px;background:var(--accent-t);vertical-align:-2px"></span></span>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:6px;padding:6px;border-top:1px solid var(--line)"><span class="btn btn-ghost">Cancel <span class="kbd">Esc</span></span><span class="btn btn-primary">Save <span class="kbd">⌘↵</span></span></div>
+          </div>
+        </div>
+        <div class="menu" style="top:236px;left:44px;width:220px">
+          <div class="mi hov"><span class="mono" style="width:22px;color:var(--text-3)">{ }</span><span style="flex:1">Code block</span><span class="kbd">↵</span></div>
+          <div class="mi"><span class="mono" style="width:22px;color:var(--text-3)">&lt;/&gt;</span>Inline code</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Link objectives</b><span class="cap">Search · multi-select · × unlinks</span></figcaption>
+      <div class="fr">
+        <div class="pb">
+          <div class="prow" style="align-items:start"><span class="pl" style="padding-top:4px">Objectives</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><span class="chip">Cut p95 latency to 200ms ×</span><span class="chip">Ship beta on time ×</span><span class="btn btn-ghost" style="height:24px;background:var(--hover)">+ Link</span></div>
+          </div>
+        </div>
+        <div class="menu" style="top:88px;left:110px;width:260px" role="listbox" aria-multiselectable="true">
+          <input class="inp" type="text" value="on" aria-label="Search objectives" readonly="" style="margin-bottom:4px;box-shadow:none">
+          <div class="mi hov"><span class="cbx on"></span>Ship beta on time</div>
+          <div class="mi"><span class="cbx"></span>Onboarding under 5 minutes</div>
+          <div class="mi"><span class="cbx"></span>Zero P1 incidents in Q4</div>
+          <span class="cap" style="padding:6px 8px 4px">3 of 5 match</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Upload in progress</b><span class="cap">Per-file progress · reasons on reject</span></figcaption>
+      <div class="fr">
+        <div class="pb" style="gap:8px">
+          <div class="dz"><svg width="18" height="18" sc-camel-view-box="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12V3M5.5 6.5L9 3l3.5 3.5M3 12.5V15h12v-2.5"></path></svg><b style="font-weight:500">Drop to upload</b><span class="cap" style="font-size:11px">Images or code · 10 MB max</span></div>
+          <div class="up"><span class="pk">GIF</span><div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0"><div style="display:flex;justify-content:space-between"><span style="font-weight:500">drag-jump.gif</span><span class="mono cap">62% · 6.8 MB</span></div><div class="bar"><span style="width:62%"></span></div></div><span class="btn btn-ghost icon" aria-label="Cancel">×</span></div>
+          <div class="up"><span class="pk">TS</span><div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0"><div style="display:flex;justify-content:space-between"><span style="font-weight:500">board-layout.ts</span><span class="mono cap">18% · 0.2 MB</span></div><div class="bar"><span style="width:18%"></span></div></div><span class="btn btn-ghost icon" aria-label="Cancel">×</span></div>
+          <div class="up err"><span class="pk">MOV</span><div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500">screen-capture.mov</span><span style="font-size:12px;color:var(--danger)">Unsupported type. Images or code files only.</span></div><span class="btn btn-ghost icon" aria-label="Dismiss">×</span></div>
+          <div class="up err"><span class="pk">PNG</span><div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500">full-trace.png</span><span style="font-size:12px;color:var(--danger)">Too large (24.3 MB). Max 10 MB.</span></div><span class="btn btn-ghost icon" aria-label="Dismiss">×</span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Comment with mention</b><span class="cap">@ opens people · ↑↓ ↵</span></figcaption>
+      <div class="fr">
+        <div class="pb" style="gap:12px">
+          <div style="display:flex;gap:10px"><span class="av l" style="background:oklch(var(--av-l) var(--av-c) 200)">JL</span><div style="display:flex;flex-direction:column;gap:4px"><span><b style="font-weight:600">Jordan Lee</b> <span class="cap">2h</span></span><span style="font-size:13px;line-height:20px">Repro’d on Safari too. <span class="mention">@Alex Kim</span> can you check the drag layer?</span></div></div>
+          <div style="flex:1"></div>
+        </div>
+        <div class="menu" style="left:52px;bottom:76px;width:220px" role="listbox">
+          <div class="mi hov"><span class="av" style="background:oklch(var(--av-l) var(--av-c) 200)">JL</span>Jordan Lee</div>
+          <div class="mi"><span class="av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>Alex Kim</div>
+        </div>
+        <div style="position:absolute;left:18px;right:18px;bottom:16px;display:flex;gap:10px;align-items:center">
+          <span class="av l" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+          <div class="inp" style="height:40px;display:flex;align-items:center">Thanks! cc <span class="mention" style="margin-left:4px">@Jo</span><span style="display:inline-block;width:1.5px;height:15px;background:var(--accent-t);margin-left:1px"></span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Viewer (read-only)</b><span class="cap">Plain values · nothing to add</span></figcaption>
+      <div class="fr">
+        <div class="ph"><span class="mono cap">PRJ-42</span><span style="flex:1"></span><span class="btn btn-ghost icon" aria-label="Expand">⤢</span><span class="btn btn-ghost icon" aria-label="Close">×</span></div>
+        <div class="pb">
+          <h3 style="margin:0;font:600 18px/26px 'Inter',sans-serif;letter-spacing:-.015em">Fix flaky board reflow on column resize</h3>
+          <div class="ro-note" style="margin:6px 0">You have view access to this project. Ask a project admin to edit.</div>
+          <div class="prow"><span class="pl">Status</span><span style="display:flex;gap:8px;align-items:center;font-weight:500"><span class="g g-progress" style="color:var(--warn)"></span>In progress</span></div>
+          <div class="prow"><span class="pl">Assignee</span><span style="display:flex;gap:8px;align-items:center;font-weight:500"><span class="av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>Alex Kim</span></div>
+          <div class="prow"><span class="pl">Priority</span><span style="display:flex;gap:8px;align-items:center;font-weight:500"><span class="pr n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>High</span></div>
+          <div class="prow"><span class="pl">Objectives</span><span style="display:flex;gap:6px"><span class="chip">Cut p95 latency to 200ms</span></span></div>
+          <div class="prow"><span class="pl">Sub-tasks</span><span style="display:flex;gap:8px;align-items:center"><span class="g g-done" style="color:var(--ok)"></span><span class="cap">2 of 4 done</span></span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Deleted</b><span class="cap">Dimmed · Restore · 30 days</span></figcaption>
+      <div class="fr">
+        <div class="ph"><span class="mono cap">PRJ-42</span><span style="flex:1"></span><span class="btn btn-ghost icon" aria-label="Close">×</span></div>
+        <div class="pb" style="gap:12px">
+          <div class="banner"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg><div style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-weight:600">This task was deleted</b><span class="cap">Restorable for 30 days.</span></div><span class="btn btn-sec">Restore</span></div>
+          <div style="opacity:.55;filter:saturate(.6);display:flex;flex-direction:column;gap:6px">
+            <h3 style="margin:0;font:600 18px/26px 'Inter',sans-serif">Fix flaky board reflow on column resize</h3>
+            <div class="prow"><span class="pl">Status</span><span style="display:flex;gap:8px;align-items:center"><span class="g g-progress" style="color:var(--warn)"></span>In progress</span></div>
+            <div class="prow"><span class="pl">Assignee</span><span>Alex Kim</span></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:16px;bottom:16px;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop)"><span style="font-weight:500">PRJ-42 deleted</span><span class="btn btn-ghost">Undo <span class="kbd">⌘Z</span></span></div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Loading</b><span class="cap">Skeleton in final positions</span></figcaption>
+      <div class="fr" aria-busy="true">
+        <div class="ph"><span class="sk" style="width:56px;height:10px"></span><span style="flex:1"></span><span class="sk" style="width:20px;height:20px;border-radius:6px"></span></div>
+        <div class="pb" style="gap:14px">
+          <span class="sk" style="width:86%;height:18px"></span><span class="sk" style="width:52%;height:18px"></span>
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:6px">
+            <div style="display:flex;gap:24px"><span class="sk" style="width:60px;height:10px"></span><span class="sk" style="width:110px;height:10px"></span></div>
+            <div style="display:flex;gap:24px"><span class="sk" style="width:60px;height:10px"></span><span class="sk" style="width:90px;height:10px"></span></div>
+            <div style="display:flex;gap:24px"><span class="sk" style="width:60px;height:10px"></span><span class="sk" style="width:130px;height:10px"></span></div>
+            <div style="display:flex;gap:24px"><span class="sk" style="width:60px;height:10px"></span><span class="sk" style="width:70px;height:10px"></span></div>
+          </div>
+          <span class="sk" style="width:100%;height:10px;margin-top:10px"></span><span class="sk" style="width:94%;height:10px"></span><span class="sk" style="width:60%;height:10px"></span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Error loading</b><span class="cap">Retry in place</span></figcaption>
+      <div class="fr">
+        <div class="ph"><span class="mono cap">PRJ-42</span><span style="flex:1"></span><span class="btn btn-ghost icon" aria-label="Close">×</span></div>
+        <div style="height:340px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;padding:0 28px">
+          <span style="width:16px;height:16px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;font:700 10px/1 'Inter',sans-serif;color:var(--bg)">!</span>
+          <b style="font-size:15px;font-weight:600">Couldn’t load PRJ-42</b>
+          <span style="font-size:13px;line-height:20px;color:var(--text-2)">The request timed out. Nothing you changed was lost.</span>
+          <div style="display:flex;gap:8px;align-items:center"><span class="btn btn-sec">Retry <span class="kbd">R</span></span><span class="mono cap">ref 7f3a91</span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Not found / no access</b><span class="cap">Stale link · way back</span></figcaption>
+      <div class="fr">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;padding:0 28px">
+          <span class="mono cap">PRJ-404</span>
+          <b style="font-size:15px;font-weight:600">This task doesn’t exist anymore</b>
+          <span style="font-size:13px;line-height:20px;color:var(--text-2)">It was permanently deleted, or moved to a project you can’t see.</span>
+          <span class="btn btn-sec">Back to board <span class="kbd">G B</span></span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="crop">
+      <figcaption><b>Phone: full-height sheet</b><span class="cap">Full-height sheet below 760px</span></figcaption>
+      <div class="fr" style="display:flex;justify-content:center;align-items:flex-start;background:var(--bg);padding-top:16px">
+        <div style="width:250px;height:440px;border:1px solid var(--line-2);border-radius:24px 24px 0 0;background:var(--surface);overflow:hidden">
+          <div class="ph" style="height:40px;padding:0 8px 0 12px"><span class="btn btn-ghost icon" aria-label="Back">‹</span><span class="mono cap">PRJ-42</span><span style="flex:1"></span><span class="btn btn-ghost icon" aria-label="More">···</span></div>
+          <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+            <b style="font-size:15px;line-height:21px;font-weight:600">Fix flaky board reflow on column resize</b>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip" style="height:28px"><span class="g g-progress" style="color:var(--warn)"></span>In progress</span><span class="chip" style="height:28px"><span class="pr n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>High</span><span class="chip" style="height:28px">Alex Kim</span></div>
+            <span style="font-size:12px;line-height:18px;color:var(--text-2)">Columns jump when the sidebar collapses mid-drag.</span>
+            <div class="code" style="font-size:10px;line-height:15px;padding:8px"><span class="tk">const</span> ro = <span class="tk">new</span> <span class="tf">ResizeObserver</span>(…)</div>
+            <span class="btn btn-sec" style="height:44px;justify-content:center">Add comment</span>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2300}}">
+class Component extends DCLogic {
+  renderVals() {
+    const t = this.props.theme || 'navy';
+    return { themeCls: t === 'light' ? 't-light' : (t === 'navy' ? 't-navy' : 't-dark') };
+  }
+}
+</script>
+
+
+</body></html>
