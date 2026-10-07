@@ -1724,6 +1724,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
+  /api/v1/search:
+    get:
+      operationId: search_retrieve
+      description: 'GET search?q=&type=task|comment: full-text search across every
+        project the user belongs to.'
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - comment
+          - task
+      tags:
+      - search
+      responses:
+        '200':
+          description: No response body
   /api/v1/sprints/{item_id}:
     get:
       operationId: sprints_retrieve
@@ -2194,6 +2221,28 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/trash/{kind}/{item_id}/restore:
+    post:
+      operationId: trash_restore_create
+      description: 'POST trash/{type}/{id}/restore (brief): restore one item, wherever
+        it lives.'
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: kind
+        schema:
+          type: string
+        required: true
+      tags:
+      - trash
+      responses:
+        '200':
+          description: No response body
   /api/v1/workspaces:
     get:
       operationId: workspaces_list
@@ -2352,6 +2401,66 @@ paths:
         required: true
       tags:
       - activity
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/audit:
+    get:
+      operationId: workspaces_audit_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[action]
+        schema:
+          type: string
+          enum:
+          - assigned
+          - commented
+          - created
+          - deleted
+          - invited
+          - role
+          - status
+          - updated
+      - in: query
+        name: filter[actor]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[entity]
+        schema:
+          type: string
+          enum:
+          - comment
+          - member
+          - project
+          - role
+          - sprint
+          - task
+          - view
+          - workspace
+      - in: query
+        name: filter[since]
+        schema:
+          type: string
+        description: ISO-8601 timestamp
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - audit
       responses:
         '200':
           description: No response body
@@ -2666,6 +2775,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
+  /api/v1/workspaces/{slug}/search:
+    get:
+      operationId: workspaces_search_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[type]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - project
+            - task
+            - user
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - search
+      responses:
+        '200':
+          description: No response body
   /api/v1/workspaces/{slug}/slug-availability:
     get:
       operationId: workspaces_slug_availability_retrieve
@@ -2746,6 +2888,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/TaskDetailOut'
           description: ''
+  /api/v1/workspaces/{slug}/trash:
+    get:
+      operationId: workspaces_trash_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - trash
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/trash/purge:
+    post:
+      operationId: workspaces_trash_purge_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - trash
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrashPurgeItemsRequest'
+        required: true
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/trash/restore:
+    post:
+      operationId: workspaces_trash_restore_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - trash
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrashItemsRequest'
+        required: true
+      responses:
+        '200':
+          description: No response body
   /health:
     get:
       operationId: health_retrieve_2
@@ -2902,7 +3101,7 @@ components:
         mimeType:
           type: string
         kind:
-          $ref: '#/components/schemas/KindEnum'
+          $ref: '#/components/schemas/AttachmentKindEnum'
         downloadUrl:
           type: string
           format: uri
@@ -2924,6 +3123,12 @@ components:
       - size
       - taskId
       - uploaderId
+    AttachmentKindEnum:
+      enum:
+      - image
+      - code
+      - text
+      type: string
     AuthOut:
       type: object
       properties:
@@ -3222,12 +3427,6 @@ components:
       required:
       - emails
       - roleId
-    KindEnum:
-      enum:
-      - image
-      - code
-      - text
-      type: string
     Label:
       type: object
       properties:
@@ -4595,6 +4794,37 @@ components:
           nullable: true
         version:
           type: integer
+    TrashItemsRequest:
+      type: object
+      properties:
+        items:
+          $ref: '#/components/schemas/TrashRefRequest'
+      required:
+      - items
+    TrashPurgeItemsRequest:
+      type: object
+      properties:
+        items:
+          $ref: '#/components/schemas/TrashRefRequest'
+      required:
+      - items
+    TrashRefKindEnum:
+      enum:
+      - task
+      - comment
+      - project
+      type: string
+    TrashRefRequest:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/TrashRefKindEnum'
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+      - kind
     TypeDc0Enum:
       enum:
       - feature

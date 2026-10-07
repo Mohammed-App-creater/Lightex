@@ -423,4 +423,32 @@ ROWS = [
         deny=("anon",),
         body=lambda w: {"events": {}, "emailDelivery": "instant"},
     ),
+    # ── search, audit, trash ──
+    _row("search", "GET", allow=ANY_USER, deny=("anon",), query="?q=board"),
+    _row("workspace-search", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon"), query="?q=task"),
+    _row("workspace-audit", "GET", S, allow=("owner", "ws_admin"), deny=("ws_member", "manager", "outsider")),
+    _row("workspace-trash", "GET", S, allow=("owner", "manager", "pmember"), deny=("viewer", "ws_member", "outsider")),
+    _row(
+        "workspace-trash-restore",
+        "POST",
+        S,
+        allow=("owner", "manager"),
+        deny=("viewer", "pmember", "outsider"),
+        body=lambda w: {"items": [{"kind": "task", "id": str(w.deleted_task.id)}]},
+    ),
+    _row(
+        "workspace-trash-purge",
+        "POST",
+        S,
+        allow=("manager",),
+        deny=("viewer", "pmember", "outsider"),
+        body=lambda w: {"items": [{"kind": "task", "id": str(w.deleted_task.id)}]},
+    ),
+    _row(
+        "trash-item-restore",
+        "POST",
+        lambda w: {"kind": "task", "item_id": w.deleted_task.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
 ]

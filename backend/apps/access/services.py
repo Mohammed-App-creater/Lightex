@@ -74,41 +74,48 @@ def is_workspace_member(user: Any, workspace: Any) -> bool:
 # ───────────────────────── project scope ─────────────────────────
 
 
-def _load_project_permissions(user: Any, project_ids: Iterable[Any]) -> dict[Any, frozenset[str]]:
+def _load_project_permissions(
+    user: Any, project_ids: Iterable[Any], *, include_deleted: bool = False
+) -> dict[Any, frozenset[str]]:
     from apps.projects.models import ProjectMember
 
     ids = list(project_ids)
     found: dict[Any, set[str]] = {}
     status: dict[Any, str] = {}
+    only_live = {} if include_deleted else {"project__deleted_at__isnull": True}
     rows = ProjectMember.objects.filter(
         user_id=user.pk,
         project_id__in=ids,
-        project__deleted_at__isnull=True,
+        **only_live,
         project__workspace__deleted_at__isnull=True,
         project__workspace__members__user_id=user.pk,
         project__workspace__members__status="active",
     ).values_list("project_id", "project__status", "role__permissions__code", "role__permissions__scope")
-    for pid, project_status, code, scope in rows:
+    for pid, project_status, code, code_scope in rows:
         found.setdefault(pid, set())
         status[pid] = project_status
-        if code and scope == PROJECT:
+        if code and code_scope == PROJECT:
             found[pid].add(code)
     out: dict[Any, frozenset[str]] = {}
     for pid in ids:
         perms = found.get(pid)
         if perms is None:
             out[pid] = frozenset()
-        elif status.get(pid) == "archived":
+        elif status.get(pid) == "archived" and not include_deleted:
             out[pid] = frozenset(perms & ARCHIVED_ALLOWED)
         else:
             out[pid] = frozenset(perms)
     return out
 
 
-def project_permissions(user: Any, project: Any) -> frozenset[str]:
+def project_permissions(user: Any, project: Any, *, include_deleted: bool = False) -> frozenset[str]:
+    """Permissions from the user's project role. `include_deleted` reads the role a member held in a
+    soft-deleted project (trash: restore and purge decisions)."""
     if not getattr(user, "is_authenticated", False):
         return frozenset()
     pid = _key(project)
+    if include_deleted:
+        return _load_project_permissions(user, [pid], include_deleted=True)[pid]
     cache = _cache(user)["prj"]
     if pid not in cache:
         cache.update(_load_project_permissions(user, [pid]))
@@ -141,7 +148,7 @@ def is_project_member(user: Any, project: Any) -> bool:
 # ───────────────────────── the decision ─────────────────────────
 
 
-def can(user: User | Any, code: str, obj: Any) -> bool:
+def can(user: User | Any, code: str, obj: Any, *, include_deleted: bool = False) -> bool:
     """May `user` exercise permission `code` on `obj` (a Workspace or a Project)?
 
     A workspace-scope code is only ever checked against a workspace, a project-scope code only
@@ -156,7 +163,7 @@ def can(user: User | Any, code: str, obj: Any) -> bool:
     if label == "workspaces.workspace":
         return scope == WORKSPACE and obj.deleted_at is None and code in workspace_permissions(user, obj)
     if label == "projects.project":
-        return scope == PROJECT and code in project_permissions(user, obj)
+        return scope == PROJECT and code in project_permissions(user, obj, include_deleted=include_deleted)
     raise TypeError(f"can() needs a Workspace or Project, got {label}")
 
 
