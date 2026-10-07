@@ -360,7 +360,7 @@ export function Gallery({ scope }: { scope: string }) {
       </Section>
 
       <Section title="Empty, loading, error, progress">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
           <EmptyState
             icon={<Plus size={20} aria-hidden />}
             title="No tasks yet"

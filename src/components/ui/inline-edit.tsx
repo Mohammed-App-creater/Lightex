@@ -92,7 +92,7 @@ export function InlineEditText({
     );
   }
 
-  return (
+  const button = (
     <button
       type="button"
       onClick={() => {
@@ -109,5 +109,12 @@ export function InlineEditText({
     >
       {value || placeholder}
     </button>
+  );
+  // Editable headings stay headings for screen-reader navigation; the heading is named by the value alone.
+  if (As === "span") return button;
+  return (
+    <As className="m-0" aria-label={value || placeholder}>
+      {button}
+    </As>
   );
 }
