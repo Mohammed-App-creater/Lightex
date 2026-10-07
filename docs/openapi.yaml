@@ -5,6 +5,139 @@ info:
   description: 'Lightex v1: project management for software teams. All paths are under
     /api/v1.'
 paths:
+  /api/v1/auth/forgot-password:
+    post:
+      operationId: auth_forgot_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailInRequest'
+      security:
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/login:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInRequest'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOut'
+          description: ''
+  /api/v1/auth/logout:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/me:
+    get:
+      operationId: auth_me_retrieve
+      tags:
+      - auth
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/auth/me/password:
+    put:
+      operationId: auth_me_password_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordInRequest'
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/refresh:
+    post:
+      operationId: auth_refresh_create
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessOut'
+          description: ''
+  /api/v1/auth/register:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInRequest'
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOut'
+          description: ''
+  /api/v1/auth/reset-password:
+    post:
+      operationId: auth_reset_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetInRequest'
+      security:
+      - {}
+      responses:
+        '204':
+          description: No response body
   /api/v1/health:
     get:
       operationId: health_retrieve
@@ -18,6 +151,382 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
+          description: ''
+  /api/v1/invites/{token}:
+    get:
+      operationId: invites_retrieve
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invite'
+          description: ''
+  /api/v1/invites/{token}/accept:
+    post:
+      operationId: invites_accept_create
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInviteInRequest'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptInviteOut'
+          description: ''
+  /api/v1/workspaces:
+    get:
+      operationId: workspaces_list
+      tags:
+      - workspaces
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workspace'
+          description: ''
+    post:
+      operationId: workspaces_create
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreateInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/v1/workspaces/{slug}:
+    get:
+      operationId: workspaces_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    patch:
+      operationId: workspaces_partial_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceCreateInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: workspaces_destroy
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/access-requests:
+    post:
+      operationId: workspaces_access_requests_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+          description: ''
+  /api/v1/workspaces/{slug}/access-requests/mine:
+    get:
+      operationId: workspaces_access_requests_mine_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyWsAccessRequest'
+          description: ''
+    delete:
+      operationId: workspaces_access_requests_mine_destroy
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/invites:
+    get:
+      operationId: workspaces_invites_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invite'
+          description: ''
+    post:
+      operationId: workspaces_invites_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invite'
+          description: ''
+  /api/v1/workspaces/{slug}/invites/{invite_id}:
+    delete:
+      operationId: workspaces_invites_destroy
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: invite_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/invites/{invite_id}/resend:
+    post:
+      operationId: workspaces_invites_resend_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: invite_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invite'
+          description: ''
+  /api/v1/workspaces/{slug}/members:
+    get:
+      operationId: workspaces_members_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - members
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/{slug}/members/{user_id}:
+    patch:
+      operationId: workspaces_members_partial_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - members
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRoleIdInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMember'
+          description: ''
+    delete:
+      operationId: workspaces_members_destroy
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - members
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/slug-availability:
+    get:
+      operationId: workspaces_slug_availability_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlugAvailability'
           description: ''
   /health:
     get:
@@ -35,6 +544,73 @@ paths:
           description: ''
 components:
   schemas:
+    AcceptInviteInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        password:
+          type: string
+    AcceptInviteOut:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        workspaceSlug:
+          type: string
+      required:
+      - accessToken
+      - workspaceSlug
+    AccessOut:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+      - accessToken
+    AccessRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - createdAt
+      - id
+      - userId
+      - workspaceId
+    AuthOut:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - accessToken
+      - user
+    ChangePasswordInRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+    EmailInRequest:
+      type: object
+      properties:
+        email:
+          type: string
     Health:
       type: object
       properties:
@@ -45,3 +621,245 @@ components:
       required:
       - db
       - status
+    Invite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspaceId:
+          type: string
+          format: uuid
+        workspaceName:
+          type: string
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        roleId:
+          type: string
+          format: uuid
+        roleName:
+          type: string
+        invitedBy:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        expiresAt:
+          type: string
+          nullable: true
+          readOnly: true
+        status:
+          type: string
+      required:
+      - createdAt
+      - email
+      - expiresAt
+      - id
+      - invitedBy
+      - roleId
+      - roleName
+      - status
+      - workspaceId
+      - workspaceName
+    InviteInRequest:
+      type: object
+      properties:
+        emails:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        roleId:
+          type: string
+          minLength: 1
+      required:
+      - emails
+      - roleId
+    LoginInRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    MyWsAccessRequest:
+      type: object
+      properties:
+        request:
+          allOf:
+          - $ref: '#/components/schemas/AccessRequest'
+          nullable: true
+      required:
+      - request
+    PatchedProfileInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        avatarUrl:
+          type: string
+          nullable: true
+          minLength: 1
+    PatchedRoleIdInRequest:
+      type: object
+      properties:
+        roleId:
+          type: string
+          minLength: 1
+    PatchedWorkspaceCreateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+    RegisterInRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+    ResetInRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+    SlugAvailability:
+      type: object
+      properties:
+        slug:
+          type: string
+        available:
+          type: boolean
+      required:
+      - available
+      - slug
+    StatusEnum:
+      enum:
+      - active
+      - deactivated
+      type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 60
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        hue:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        avatarUrl:
+          type: string
+          readOnly: true
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - avatarUrl
+      - createdAt
+      - email
+      - id
+      - name
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 40
+        hue:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        memberCount:
+          type: integer
+          readOnly: true
+        myRoleId:
+          type: string
+          nullable: true
+          readOnly: true
+        my_permissions:
+          type: array
+          items:
+            type: string
+          readOnly: true
+      required:
+      - createdAt
+      - id
+      - memberCount
+      - myRoleId
+      - my_permissions
+      - name
+      - slug
+    WorkspaceCreateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+    WorkspaceMember:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        roleId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        joinedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        lastActiveAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - joinedAt
+      - lastActiveAt
+      - roleId
+      - user
+      - userId
+      - workspaceId

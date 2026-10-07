@@ -22,3 +22,17 @@ def health(request):
     except Exception:
         db = "unavailable"
     return Response({"status": "ok" if db == "ok" else "degraded", "db": db}, status=200 if db == "ok" else 503)
+
+
+def json_404(request, exception=None):
+    from django.http import JsonResponse
+
+    return JsonResponse({"code": "not_found", "message": "Not found.", "details": {}}, status=404)
+
+
+def json_500(request):
+    from django.http import JsonResponse
+
+    return JsonResponse(
+        {"code": "server_error", "message": "Something went wrong on our side.", "details": {}}, status=500
+    )

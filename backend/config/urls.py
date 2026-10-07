@@ -11,3 +11,6 @@ urlpatterns = [
     path("api/v1/", include("config.api_urls")),
     path("admin/", admin.site.urls),
 ]
+
+handler404 = "apps.common.views.json_404"
+handler500 = "apps.common.views.json_500"

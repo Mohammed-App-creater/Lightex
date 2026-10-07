@@ -23,6 +23,7 @@ ignore = [
 "conftest.py" = ["S101", "S105", "S106"]
 "apps/common/management/commands/seed_demo.py" = ["S311", "S105"]
 "config/settings/*.py" = ["S105"]
+"apps/common/testing.py" = ["S105"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "config"]
@@ -36,7 +37,7 @@ warn_unused_ignores = false
 exclude = ["migrations/", "[.]venv/"]
 
 [[tool.mypy.overrides]]
-module = ["apps.*.tests.*", "conftest"]
+module = ["apps.*.tests.*", "conftest", "apps.common.testing"]
 ignore_errors = true
 
 [tool.django-stubs]
