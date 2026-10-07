@@ -1,14 +1,25 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { SkeletonRows } from "@/components/ui/feedback";
 import { SidePanel } from "@/components/ui/side-panel";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes, withTaskParam } from "@/lib/routes";
-import { TaskDetailView } from "./task-detail";
 import { taskOrigin } from "./task-origin";
+
+// Tiptap and the detail view load on first open, not with every project page.
+const TaskDetailView = dynamic(() => import("./task-detail").then((m) => m.TaskDetailView), {
+  ssr: false,
+  loading: () => (
+    <div className="p-6">
+      <SkeletonRows rows={6} label="Loading task" />
+    </div>
+  ),
+});
 
 const PANEL_W = 520;
 

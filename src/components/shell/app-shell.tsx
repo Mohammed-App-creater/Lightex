@@ -1,13 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 import { AppLoader } from "@/components/brand/app-loader";
 import { Drawer } from "@/components/ui/modal";
 import { useSession } from "@/features/auth/session";
 import { SessionExpiredModal } from "@/features/auth/session-expired";
-import { CommandPalette } from "@/features/palette/command-palette";
-import { CreateTaskDialog } from "@/features/tasks/create-task-dialog";
 import { useWorkspace } from "@/features/workspace/queries";
 import { isNotFound } from "@/lib/api/errors";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
@@ -19,9 +18,13 @@ import { DevTools } from "./dev-tools";
 import { GlobalHotkeys } from "./global-hotkeys";
 import { OfflineBanner } from "./offline-banner";
 import { shell, useShell } from "./shell-state";
-import { ShortcutsDialog } from "./shortcuts-dialog";
 import { Sidebar } from "./sidebar";
 import { TopBar, TopBarSlotProvider } from "./top-bar";
+
+// Overlays open on demand: split out of the shell chunk so first paint doesn't wait for cmdk/Tiptap.
+const CommandPalette = dynamic(() => import("@/features/palette/command-palette").then((m) => m.CommandPalette), { ssr: false });
+const CreateTaskDialog = dynamic(() => import("@/features/tasks/create-task-dialog").then((m) => m.CreateTaskDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import("./shortcuts-dialog").then((m) => m.ShortcutsDialog), { ssr: false });
 
 /** Redirects anonymous visitors to /login?next=… and shows the loader while the session boots. */
 export function AuthGate({ children }: { children: ReactNode }) {
