@@ -13,6 +13,7 @@ from apps.tasks.services import create_task
 pytestmark = pytest.mark.django_db
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+PNG_SIZE = len(PNG)
 
 
 @pytest.fixture
