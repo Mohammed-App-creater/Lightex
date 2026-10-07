@@ -8,6 +8,10 @@ class AuditLog(BaseModel):
     """Append-only record of every mutation. Also the source of the project/task activity feeds."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="audit_logs")
+    project = models.ForeignKey(
+        "projects.Project", null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs"
+    )
+    task = models.ForeignKey("tasks.Task", null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs")
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -27,5 +31,7 @@ class AuditLog(BaseModel):
     class Meta:
         indexes = [
             models.Index(fields=["workspace", "-created_at"], name="audit_ws_created"),
+            models.Index(fields=["project", "-created_at"], name="audit_project_created"),
+            models.Index(fields=["task", "-created_at"], name="audit_task_created"),
             models.Index(fields=["workspace", "actor", "-created_at"], name="audit_ws_actor"),
         ]

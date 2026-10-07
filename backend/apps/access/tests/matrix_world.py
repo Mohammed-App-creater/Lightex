@@ -67,14 +67,16 @@ def build_world() -> World:
 
 
 def _add_project(w: World) -> None:
-    from apps.projects.models import Project, ProjectMember
+    from apps.common.testing import make_project
+    from apps.projects.models import AccessRequest, Label, ProjectMember, Status
 
-    project = Project.objects.create(workspace=w.ws, key="PRJ", name="Platform Rebuild")
-    for actor, key in (
-        ("owner", "project_admin"),
-        ("manager", "manager"),
-        ("pmember", "project_member"),
-        ("viewer", "viewer"),
-    ):
+    project = make_project(w.ws, w.users["owner"], key="PRJ", name="Platform Rebuild", template="scrum")
+    for actor, key in (("manager", "manager"), ("pmember", "project_member"), ("viewer", "viewer")):
         ProjectMember.objects.create(project=project, user=w.users[actor], role=w.role(key))
     w.project = project
+    w.extra["status"] = Status.objects.create(
+        project=project, name="QA", category="in_progress", glyph="review", position=9
+    )
+    w.extra["label"] = Label.objects.create(project=project, name="matrix")
+    w.extra["access_request"] = AccessRequest.objects.create(project=project, user=w.users["ws_member"])
+    w.extra["status_ids"] = [str(i) for i in project.statuses.order_by("position").values_list("id", flat=True)]

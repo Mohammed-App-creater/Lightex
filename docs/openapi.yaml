@@ -219,6 +219,533 @@ paths:
                 items:
                   $ref: '#/components/schemas/PermissionInfo'
           description: ''
+  /api/v1/projects/{project_id}:
+    get:
+      operationId: projects_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    patch:
+      operationId: projects_partial_update
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - projects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    delete:
+      operationId: projects_destroy
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - projects
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/{project_id}/access-requests:
+    get:
+      operationId: projects_access_requests_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - access requests
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessRequestWithUser'
+          description: ''
+    post:
+      operationId: projects_access_requests_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - access requests
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+          description: ''
+  /api/v1/projects/{project_id}/access-requests/{request_id}/deny:
+    post:
+      operationId: projects_access_requests_deny_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - access requests
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+          description: ''
+  /api/v1/projects/{project_id}/access-requests/mine:
+    delete:
+      operationId: projects_access_requests_mine_destroy
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - access requests
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/{project_id}/archive:
+    post:
+      operationId: projects_archive_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+  /api/v1/projects/{project_id}/labels:
+    get:
+      operationId: projects_labels_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - labels
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+          description: ''
+    post:
+      operationId: projects_labels_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - labels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+          description: ''
+  /api/v1/projects/{project_id}/labels/{label_id}:
+    patch:
+      operationId: projects_labels_partial_update
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: label_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - labels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLabelInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+          description: ''
+    delete:
+      operationId: projects_labels_destroy
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: label_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - labels
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/{project_id}/members:
+    get:
+      operationId: projects_members_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - project members
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectMember'
+          description: ''
+    post:
+      operationId: projects_members_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - project members
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMember'
+          description: ''
+  /api/v1/projects/{project_id}/members/{user_id}:
+    patch:
+      operationId: projects_members_partial_update
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - project members
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMemberInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMember'
+          description: ''
+    delete:
+      operationId: projects_members_destroy
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - project members
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/{project_id}/statuses:
+    get:
+      operationId: projects_statuses_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - statuses
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+          description: ''
+    post:
+      operationId: projects_statuses_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - statuses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+  /api/v1/projects/{project_id}/statuses/{status_id}:
+    patch:
+      operationId: projects_statuses_partial_update
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: status_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - statuses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStatusInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+    delete:
+      operationId: projects_statuses_destroy
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: status_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - statuses
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/{project_id}/statuses/reorder:
+    post:
+      operationId: projects_statuses_reorder_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - statuses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdsInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+          description: ''
+  /api/v1/projects/{project_id}/unarchive:
+    post:
+      operationId: projects_unarchive_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
   /api/v1/roles/{role_id}:
     patch:
       operationId: roles_partial_update
@@ -593,6 +1120,103 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/workspaces/{slug}/project-directory:
+    get:
+      operationId: workspaces_project_directory_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectDirectoryEntry'
+          description: ''
+  /api/v1/workspaces/{slug}/projects:
+    get:
+      operationId: workspaces_projects_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[status]
+        schema:
+          type: string
+          enum:
+          - active
+          - all
+          - archived
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+          description: ''
+    post:
+      operationId: workspaces_projects_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - projects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+  /api/v1/workspaces/{slug}/projects/{key}:
+    get:
+      operationId: workspaces_projects_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
   /api/v1/workspaces/{slug}/roles:
     get:
       operationId: workspaces_roles_list
@@ -706,21 +1330,57 @@ components:
         id:
           type: string
           format: uuid
-        workspaceId:
+        projectId:
           type: string
           format: uuid
         userId:
           type: string
           format: uuid
+        message:
+          type: string
         createdAt:
           type: string
           nullable: true
           readOnly: true
+        status:
+          type: string
       required:
       - createdAt
       - id
+      - message
+      - projectId
+      - status
       - userId
-      - workspaceId
+    AccessRequestWithUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        message:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        status:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - createdAt
+      - id
+      - message
+      - projectId
+      - status
+      - user
+      - userId
     AuthOut:
       type: object
       properties:
@@ -743,6 +1403,15 @@ components:
       properties:
         email:
           type: string
+    GlyphEnum:
+      enum:
+      - backlog
+      - todo
+      - progress
+      - review
+      - done
+      - canceled
+      type: string
     Health:
       type: object
       properties:
@@ -753,6 +1422,16 @@ components:
       required:
       - db
       - status
+    IdsInRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - ids
     Invite:
       type: object
       properties:
@@ -814,6 +1493,39 @@ components:
       required:
       - emails
       - roleId
+    Label:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 24
+        color:
+          type: string
+          maxLength: 40
+        taskCount:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - name
+      - projectId
+      - taskCount
+    LabelInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        color:
+          type: string
+          minLength: 1
     LoginInRequest:
       type: object
       properties:
@@ -821,6 +1533,18 @@ components:
           type: string
         password:
           type: string
+    MemberInRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        roleId:
+          type: string
+          format: uuid
+      required:
+      - roleId
+      - userId
     MyWsAccessRequest:
       type: object
       properties:
@@ -830,6 +1554,24 @@ components:
           nullable: true
       required:
       - request
+    PatchedLabelInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        color:
+          type: string
+          minLength: 1
+    PatchedMemberInRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        roleId:
+          type: string
+          format: uuid
     PatchedProfileInRequest:
       type: object
       properties:
@@ -840,6 +1582,21 @@ components:
           type: string
           nullable: true
           minLength: 1
+    PatchedProjectInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        key:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        template:
+          $ref: '#/components/schemas/ProjectInTemplateEnum'
+        hue:
+          type: integer
     PatchedRoleIdInRequest:
       type: object
       properties:
@@ -861,6 +1618,20 @@ components:
           items:
             type: string
             minLength: 1
+    PatchedStatusInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          $ref: '#/components/schemas/StatusInCategoryEnum'
+        position:
+          type: integer
+        color:
+          type: string
+          nullable: true
+          minLength: 1
     PatchedWorkspaceCreateInRequest:
       type: object
       properties:
@@ -887,6 +1658,141 @@ components:
       - key
       - label
       - scope
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspaceId:
+          type: string
+          format: uuid
+        key:
+          type: string
+          maxLength: 5
+        name:
+          type: string
+          maxLength: 60
+        description:
+          type: string
+        hue:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        leadId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ProjectStatusEnum'
+        template:
+          $ref: '#/components/schemas/ProjectTemplateEnum'
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        memberCount:
+          type: integer
+          readOnly: true
+        openTaskCount:
+          type: integer
+          readOnly: true
+        doneTaskCount:
+          type: integer
+          readOnly: true
+        activeSprintId:
+          type: string
+          nullable: true
+          readOnly: true
+        myRoleId:
+          type: string
+          nullable: true
+          readOnly: true
+        my_permissions:
+          type: array
+          items:
+            type: string
+          readOnly: true
+      required:
+      - activeSprintId
+      - createdAt
+      - doneTaskCount
+      - id
+      - key
+      - leadId
+      - memberCount
+      - myRoleId
+      - my_permissions
+      - name
+      - openTaskCount
+      - workspaceId
+    ProjectDirectoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+    ProjectInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        key:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        template:
+          $ref: '#/components/schemas/ProjectInTemplateEnum'
+        hue:
+          type: integer
+    ProjectInTemplateEnum:
+      enum:
+      - simple
+      - scrum
+      - kanban
+      - bugs
+      type: string
+    ProjectMember:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        roleId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        addedAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - addedAt
+      - projectId
+      - roleId
+      - user
+      - userId
+    ProjectStatusEnum:
+      enum:
+      - active
+      - archived
+      type: string
+    ProjectTemplateEnum:
+      enum:
+      - simple
+      - scrum
+      - kanban
+      - bugs
+      type: string
     RegisterInRequest:
       type: object
       properties:
@@ -984,11 +1890,67 @@ components:
       required:
       - available
       - slug
-    StatusEnum:
+    Status:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 30
+        category:
+          $ref: '#/components/schemas/StatusCategoryEnum'
+        glyph:
+          $ref: '#/components/schemas/GlyphEnum'
+        position:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        color:
+          type: string
+          nullable: true
+          maxLength: 40
+        taskCount:
+          type: integer
+          readOnly: true
+      required:
+      - category
+      - glyph
+      - id
+      - name
+      - projectId
+      - taskCount
+    StatusCategoryEnum:
       enum:
-      - active
-      - deactivated
+      - todo
+      - in_progress
+      - done
       type: string
+    StatusInCategoryEnum:
+      enum:
+      - todo
+      - in_progress
+      - done
+      type: string
+    StatusInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          $ref: '#/components/schemas/StatusInCategoryEnum'
+        position:
+          type: integer
+        color:
+          type: string
+          nullable: true
+          minLength: 1
     User:
       type: object
       properties:
@@ -1084,7 +2046,7 @@ components:
         user:
           $ref: '#/components/schemas/User'
         status:
-          $ref: '#/components/schemas/StatusEnum'
+          $ref: '#/components/schemas/WorkspaceMemberStatusEnum'
         joinedAt:
           type: string
           nullable: true
@@ -1100,3 +2062,8 @@ components:
       - user
       - userId
       - workspaceId
+    WorkspaceMemberStatusEnum:
+      enum:
+      - active
+      - deactivated
+      type: string

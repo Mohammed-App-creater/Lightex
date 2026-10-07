@@ -34,16 +34,6 @@ def _scrub(obj: Any) -> Any:
     return obj
 
 
-def _scope_fields(project: Any, task: Any) -> dict[str, Any]:
-    fields = {f.name for f in AuditLog._meta.get_fields()}
-    out: dict[str, Any] = {}
-    if "project" in fields:
-        out["project_id"] = getattr(project, "pk", project)
-    if "task" in fields:
-        out["task_id"] = getattr(task, "pk", task)
-    return out
-
-
 def record(
     *,
     workspace: Any,
@@ -61,7 +51,8 @@ def record(
     clean_changes = [c for c in (changes or []) if not _SECRET.search(str(c.get("field", "")))]
     return AuditLog.objects.create(
         workspace_id=getattr(workspace, "pk", workspace),
-        **_scope_fields(project, task),
+        project_id=getattr(project, "pk", project),
+        task_id=getattr(task, "pk", task),
         actor_id=getattr(actor, "pk", None),
         actor_name=(getattr(actor, "name", "") or "")[:80],
         action=action,
