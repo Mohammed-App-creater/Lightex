@@ -14,7 +14,7 @@ from apps.common.exceptions import conflict, invalid
 from apps.notifications.events import emit
 from apps.tasks.models import Task
 
-from .models import Sprint
+from .models import Sprint, SprintScopeChange
 from .selectors import _uuid
 
 SPRINT_LENGTH_DAYS = 14
@@ -172,6 +172,13 @@ def complete_sprint(actor: Any, sprint: Sprint, move_open_to: Any) -> Sprint:
     total = Task.objects.filter(sprint=sprint).exclude(status__glyph="canceled").count()
     done = Task.objects.filter(sprint=sprint, status__category="done").exclude(status__glyph="canceled").count()
     now = timezone.now()
+    # Carry-over leaves the sprint at completion; recorded so its burndown can be replayed later.
+    SprintScopeChange.objects.bulk_create(
+        [
+            SprintScopeChange(sprint=sprint, task_id=tid, kind="removed", estimate=est, actor=actor, at=now)
+            for tid, est in open_tasks.values_list("pk", "estimate")
+        ]
+    )
     Task.objects.filter(Q(pk__in=open_ids) | Q(parent_id__in=open_ids)).update(
         sprint=target, version=F("version") + 1, updated_at=now
     )

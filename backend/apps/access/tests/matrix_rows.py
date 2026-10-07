@@ -451,4 +451,10 @@ ROWS = [
         allow=("manager",),
         deny=("pmember", "viewer", "outsider"),
     ),
+    # ── reports ──
+    *[
+        _row(f"report-{name}", "GET", P, allow=("pmember", "manager"), deny=("viewer", "ws_admin", "outsider"))
+        for name in ("kpis", "burndown", "velocity", "cycle-time", "throughput", "progress")
+    ],
+    _row("project-summary", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
 ]

@@ -1315,6 +1315,173 @@ paths:
               schema:
                 $ref: '#/components/schemas/ObjectiveOut'
           description: ''
+  /api/v1/projects/{project_id}/reports/burndown:
+    get:
+      operationId: projects_reports_burndown_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: filter[sprint]
+        schema:
+          type: string
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          description: No response body
+  /api/v1/projects/{project_id}/reports/cycle-time:
+    get:
+      operationId: projects_reports_cycle_time_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: filter[from]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: query
+        name: filter[range]
+        schema:
+          type: string
+          enum:
+          - custom
+          - last2
+          - last6
+          - last90
+      - in: query
+        name: filter[to]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          description: No response body
+  /api/v1/projects/{project_id}/reports/kpis:
+    get:
+      operationId: projects_reports_kpis_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportKpis'
+          description: ''
+  /api/v1/projects/{project_id}/reports/progress:
+    get:
+      operationId: projects_reports_progress_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          description: No response body
+  /api/v1/projects/{project_id}/reports/throughput:
+    get:
+      operationId: projects_reports_throughput_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: filter[from]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: query
+        name: filter[range]
+        schema:
+          type: string
+          enum:
+          - custom
+          - last2
+          - last6
+          - last90
+      - in: query
+        name: filter[to]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          description: No response body
+  /api/v1/projects/{project_id}/reports/velocity:
+    get:
+      operationId: projects_reports_velocity_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: filter[from]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: query
+        name: filter[range]
+        schema:
+          type: string
+          enum:
+          - custom
+          - last2
+          - last6
+          - last90
+      - in: query
+        name: filter[to]
+        schema:
+          type: string
+        description: YYYY-MM-DD (custom range)
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          description: No response body
   /api/v1/projects/{project_id}/sprints:
     get:
       operationId: projects_sprints_list
@@ -1493,6 +1660,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Status'
+          description: ''
+  /api/v1/projects/{project_id}/summary:
+    get:
+      operationId: projects_summary_retrieve
+      description: Project overview KPIs; visible to every project member (not only
+        report.view).
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSummary'
           description: ''
   /api/v1/projects/{project_id}/tasks:
     get:
@@ -4134,6 +4322,23 @@ components:
       - active
       - archived
       type: string
+    ProjectSummary:
+      type: object
+      properties:
+        openTasks:
+          type: integer
+        doneThisSprint:
+          type: integer
+        cycleTimeDays:
+          type: number
+          format: double
+        dueThisWeek:
+          type: integer
+      required:
+      - cycleTimeDays
+      - doneThisSprint
+      - dueThisWeek
+      - openTasks
     ProjectTemplateEnum:
       enum:
       - simple
@@ -4185,6 +4390,13 @@ components:
           type: string
         name:
           type: string
+    ReportKpis:
+      type: object
+      properties:
+        completedThisSprint:
+          type: integer
+      required:
+      - completedThisSprint
     ResetInRequest:
       type: object
       properties:
