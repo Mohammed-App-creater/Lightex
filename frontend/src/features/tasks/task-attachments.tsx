@@ -1,24 +1,27 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Trash2, Upload, X } from "lucide-react";
-import { useRef, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "@/components/ui/toast";
 import { useMe } from "@/features/auth/session";
+import { useProjectMembers } from "@/features/projects/queries";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
 import type { Attachment, TaskDetail } from "@/lib/api/types";
 import { uploadAttachment } from "@/lib/api/uploads";
-import { ACCEPT_ATTR, MAX_FILES_PER_DROP, extOf, formatBytes, isRasterImage, validateUpload } from "@/lib/files";
+import { ACCEPT_ATTR, MAX_FILES_PER_DROP, formatBytes, isRasterImage, validateUpload } from "@/lib/files";
 import { can } from "@/lib/permissions/can";
 import { cn } from "@/lib/utils/cn";
+import { AttachmentViewer, ExtBadge } from "./attachment-viewer";
 
 type Upload = { id: string; name: string; size: number; pct: number; error?: string; ctrl?: AbortController };
 
 /**
- * Attachments (board 14 §2.9). Raster images get an inline preview; every other type
- * (code, text, SVG, HTML) is a download only and is never rendered as markup.
+ * Attachments (board 14 §2.9, viewer board 34). Raster images get an inline preview and open in
+ * the viewer; every other type (code, text, SVG, HTML) is a download-only card, never rendered.
+ * Delete waits out a 5s Undo window before the DELETE is sent.
  */
 export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail; canUpload: boolean; deleted: boolean }) {
   const qc = useQueryClient();
@@ -29,20 +32,60 @@ export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail
   const input = useRef<HTMLInputElement>(null);
   const canDeleteAny = can("attachment.delete_any", task.project.my_permissions);
 
-  const remove = useMutation({
-    mutationFn: (a: Attachment) => api.attachments.remove(a.id),
-    onMutate: async (a) => {
-      await qc.cancelQueries({ queryKey: qk.attachments(task.id) });
-      const prev = qc.getQueryData<Attachment[]>(qk.attachments(task.id));
-      qc.setQueryData<Attachment[]>(qk.attachments(task.id), (l) => l?.filter((x) => x.id !== a.id));
-      return { prev };
-    },
-    onError: (e, a, ctx) => {
-      qc.setQueryData(qk.attachments(task.id), ctx?.prev);
-      toast.error(`Couldn’t delete ${a.fileName}`, { body: errorMessage(e) });
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: qk.attachments(task.id) }),
-  });
+  const { data: members = [] } = useProjectMembers(task.projectId);
+  const users = useMemo(() => new Map(members.map((m) => [m.userId, m.user])), [members]);
+  const [viewing, setViewing] = useState<number | null>(null);
+  const pending = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; run: () => void }>());
+  const canDelete = (f: Attachment) => !deleted && ((f.uploaderId === me.id && canUpload) || canDeleteAny);
+
+  // Leaving the task (or the page) commits deletes still inside their Undo window.
+  useEffect(() => {
+    const map = pending.current;
+    const flush = () => map.forEach((p) => p.run());
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
+
+  const remove = (a: Attachment) => {
+    const key = qk.attachments(task.id);
+    void qc.cancelQueries({ queryKey: key });
+    qc.setQueryData<Attachment[]>(key, (l) => l?.filter((x) => x.id !== a.id));
+    const run = () => {
+      const p = pending.current.get(a.id);
+      if (!p) return;
+      clearTimeout(p.timer);
+      pending.current.delete(a.id);
+      api.attachments
+        .remove(a.id)
+        .catch((e) => {
+          qc.setQueryData<Attachment[]>(key, (l) => (l?.some((x) => x.id === a.id) ? l : [...(l ?? []), a]));
+          toast.error(`Couldn’t delete ${a.fileName}`, { body: `${errorMessage(e)} Restored.` });
+        })
+        .finally(() => void qc.invalidateQueries({ queryKey: key }));
+    };
+    pending.current.set(a.id, { timer: setTimeout(run, 5200), run });
+    toast({
+      tone: "info",
+      title: `Deleted ${a.fileName}`,
+      duration: 5000,
+      action: {
+        label: "Undo",
+        key: "Z",
+        onClick: () => {
+          const p = pending.current.get(a.id);
+          if (!p) return;
+          clearTimeout(p.timer);
+          pending.current.delete(a.id);
+          qc.setQueryData<Attachment[]>(key, (l) =>
+            l?.some((x) => x.id === a.id) ? l : [...(l ?? []), a].sort((x, y) => x.createdAt.localeCompare(y.createdAt)),
+          );
+        },
+      },
+    });
+  };
 
   const patchUpload = (id: string, patch: Partial<Upload>) => setUploads((list) => list.map((u) => (u.id === id ? { ...u, ...patch } : u)));
 
@@ -118,13 +161,8 @@ export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail
         ))}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
           {isPending && <div className="skeleton h-[104px] rounded-md" />}
-          {files.map((f) => (
-            <FileTile
-              key={f.id}
-              file={f}
-              canDelete={!deleted && ((f.uploaderId === me.id && canUpload) || canDeleteAny)}
-              onDelete={() => remove.mutate(f)}
-            />
+          {files.map((f, i) => (
+            <FileTile key={f.id} file={f} canDelete={canDelete(f)} onOpen={() => setViewing(i)} onDelete={() => remove(f)} />
           ))}
           {canUpload && !deleted && (
             <div
@@ -158,32 +196,34 @@ export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail
           )}
         </div>
       </div>
+      <AttachmentViewer
+        files={files}
+        index={viewing === null ? null : Math.min(viewing, Math.max(0, files.length - 1))}
+        onIndex={setViewing}
+        onClose={() => setViewing(null)}
+        users={users}
+        canDelete={canDelete}
+        onDelete={remove}
+      />
     </section>
   );
 }
 
-function ExtBadge({ name }: { name: string }) {
-  return (
-    <span className="flex size-[26px] flex-none items-center justify-center rounded-sm border border-line-2 bg-raised font-mono text-[8.5px] font-semibold uppercase">
-      {extOf(name).slice(0, 4) || "FILE"}
-    </span>
-  );
-}
-
-function FileTile({ file, canDelete, onDelete }: { file: Attachment; canDelete: boolean; onDelete: () => void }) {
+function FileTile({ file, canDelete, onOpen, onDelete }: { file: Attachment; canDelete: boolean; onOpen: () => void; onDelete: () => void }) {
   const raster = file.kind === "image" && isRasterImage(file.fileName, file.mimeType) && file.previewUrl;
   return (
-    <div className="group/tile relative overflow-hidden rounded-md border border-line bg-bg">
-      {raster ? (
-        // eslint-disable-next-line @next/next/no-img-element -- signed blob/data URLs; next/image can't optimise them
-        <img src={file.previewUrl!} alt={file.fileName} className="h-[70px] w-full border-b border-line object-cover" loading="lazy" />
-      ) : file.kind === "image" ? (
-        <div className="flex h-[70px] items-center justify-center border-b border-line bg-[repeating-linear-gradient(135deg,var(--raised)_0_8px,var(--surface)_8px_16px)] font-mono text-[11px] font-medium uppercase text-fg-3">
-          {extOf(file.fileName)}
-        </div>
-      ) : (
-        <div className="h-[70px] overflow-hidden whitespace-pre border-b border-line px-2.5 py-2 font-mono text-[10.5px] leading-[15px] text-fg-2">{`// ${file.fileName}`}</div>
-      )}
+    <div className="group/tile relative overflow-hidden rounded-md border border-line bg-bg transition-colors hover:border-control">
+      <button type="button" onClick={onOpen} aria-label={`Open ${file.fileName}`} className="block w-full border-b border-line text-left">
+        {raster ? (
+          // eslint-disable-next-line @next/next/no-img-element -- signed blob/data URLs; next/image can't optimise them
+          <img src={file.previewUrl!} alt="" className="h-[70px] w-full object-cover" loading="lazy" />
+        ) : (
+          // Not a raster image: never rendered (SVG / HTML / code are download-only).
+          <span className="flex h-[70px] items-center justify-center bg-[repeating-linear-gradient(135deg,var(--raised)_0_8px,var(--surface)_8px_16px)]">
+            <ExtBadge name={file.fileName} size={30} />
+          </span>
+        )}
+      </button>
       <div className="flex flex-col gap-0.5 px-2.5 py-[7px]">
         <span className="truncate text-[12px] font-medium" title={file.fileName}>
           {file.fileName}

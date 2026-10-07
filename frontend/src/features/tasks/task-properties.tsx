@@ -380,7 +380,7 @@ export function TaskPlanning({ task, canEdit, onPatch, open, onOpenChange, force
           <div className="pb-2">
             {row("Sprint", sprint?.name, sprints.filter((s) => s.state !== "completed" || s.id === task.sprintId), "sprintId", task.sprintId, "No sprint", "sprint")}
             {row("Milestone", milestone?.name, milestones, "milestoneId", task.milestoneId, "No milestone", "milestone")}
-            {row("Epic", epic?.name, epics, "epicId", task.epicId, "No epic", "epic")}
+            {row("Epic", epic?.name, epics.filter((e) => !e.archivedAt || e.id === task.epicId), "epicId", task.epicId, "No epic", "epic")}
             {(linked.length > 0 || canEdit) && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] items-start px-2.5 py-1">
                 <span className="pt-[5px] text-[12px] font-medium text-fg-3">Objectives</span>

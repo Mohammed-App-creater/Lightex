@@ -9,6 +9,9 @@ import { registerProjects } from "./handlers/projects";
 import { registerReports } from "./handlers/reports";
 import { mockUploads, registerTasks } from "./handlers/tasks";
 import { registerWorkspaces } from "./handlers/workspaces";
+import { registerViews } from "./handlers/views";
+import { registerHome } from "./handlers/home";
+import { registerTrash } from "./handlers/trash";
 import { match } from "./router";
 import { startTeammates } from "./teammates";
 
@@ -23,6 +26,9 @@ function ensureRoutes() {
   registerTasks();
   registerReports();
   registerNotifications();
+  registerViews();
+  registerHome();
+  registerTrash();
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>

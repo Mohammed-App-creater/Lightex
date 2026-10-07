@@ -24,13 +24,15 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph, PriorityIcon, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { StatusGlyph } from "@/components/ui/glyphs";
 import { FilterPills } from "@/components/ui/tabs";
 import { Segmented } from "@/components/ui/choice";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { shell } from "@/components/shell/shell-state";
 import { useMe } from "@/features/auth/session";
+import { applyFilters, completeRules } from "@/features/filters/filter-model";
+import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
+import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
 import { useLabels, useProjectMembers } from "@/features/projects/queries";
 import { useMoveTask, useUpdateTask } from "@/features/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
@@ -38,7 +40,6 @@ import { POLL_MS } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
 import type { Label, Status, Task, User } from "@/lib/api/types";
-import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { canEditTask, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes, withTaskParam } from "@/lib/routes";
@@ -66,9 +67,9 @@ export function BoardScreen() {
 
   const [scope, setScope] = useState<"active" | "all">("active");
   const [pill, setPill] = useState<Pill>("all");
-  const [prios, setPrios] = useState<Set<number>>(new Set());
-  const [labelIds, setLabelIds] = useState<Set<string>>(new Set());
-  const [filterOpen, setFilterOpen] = useState(false);
+  // Field · operator · value filters live in the URL (?f=…) so a filtered board is linkable (board 30).
+  const { rules, setRules, viewId } = useUrlFilters();
+  const filterOpts = useFilterOptions(project.id);
   const [drag, setDrag] = useState<{ activeId: string; columns: Columns; overCol: string | null } | null>(null);
   const lastSwitch = useRef(0);
 
@@ -93,17 +94,20 @@ export function BoardScreen() {
   const userById = useMemo(() => new Map(members.map((m) => [m.userId, m.user])), [members]);
   const labelById = useMemo(() => new Map(labels.map((l) => [l.id, l])), [labels]);
 
-  const filtersActive = pill !== "all" || prios.size > 0 || labelIds.size > 0;
+  const filtersActive = pill !== "all" || completeRules(rules).length > 0;
+  const clearFilters = () => {
+    setPill("all");
+    setRules([]);
+  };
   const visibleTasks = useMemo(() => {
     const all = (board.data?.tasks ?? []).filter((t) => !t.deletedAt);
-    return all.filter((t) => {
+    const byPill = all.filter((t) => {
       if (pill === "mine" && t.assigneeId !== me.id) return false;
       if (pill === "unassigned" && t.assigneeId) return false;
-      if (prios.size && !prios.has(t.priority)) return false;
-      if (labelIds.size && !t.labelIds.some((l) => labelIds.has(l))) return false;
       return true;
     });
-  }, [board.data, pill, prios, labelIds, me.id]);
+    return applyFilters(byPill, rules, filterOpts.ctx);
+  }, [board.data, pill, rules, filterOpts.ctx, me.id]);
   const taskById = useMemo(() => new Map((board.data?.tasks ?? []).map((t) => [t.id, t])), [board.data]);
 
   const serverColumns = useMemo(() => {
@@ -231,98 +235,49 @@ export function BoardScreen() {
 
   const dropAnimation: DropAnimation | null = reduced ? null : { duration: 200, easing: "cubic-bezier(.16,1,.3,1)" };
 
-  useHotkeys({
-    f: () => setFilterOpen(true),
-    "shift+f": () => {
-      setPill("all");
-      setPrios(new Set());
-      setLabelIds(new Set());
-    },
-  });
-
   const activeTask = drag ? taskById.get(drag.activeId) : undefined;
 
   /* ───── render ───── */
 
+  const shownCount = visibleTasks.filter((t) => columnStatuses.some((s) => s.id === t.statusId)).length;
   const toolbar = (
-    <div className="flex flex-wrap items-center gap-2 px-5 pb-1 pt-3 max-[760px]:px-3">
-      {sprint !== undefined && (
-        <Segmented
-          label="Board scope"
-          value={scope}
-          onChange={setScope}
-          options={[
-            { value: "active", label: sprint ? `${sprint.name} · ${dateRange(sprint.startDate, sprint.endDate)}` : "Active sprint" },
-            { value: "all", label: "All open" },
-          ]}
-        />
-      )}
-      <FilterPills
-        label="Task filter"
-        value={pill}
-        onChange={setPill}
-        items={[
-          { value: "all", label: "All", count: counts.all },
-          { value: "mine", label: "Mine", count: counts.mine },
-          { value: "unassigned", label: "Unassigned", count: counts.unassigned },
-        ]}
-      />
-      <span className="flex-1" />
-      <Menu open={filterOpen} onOpenChange={setFilterOpen}>
-        <MenuTrigger asChild>
-          <Button size="sm" variant={prios.size || labelIds.size ? "secondary" : "ghost"} kbd="F">
-            <Filter size={13} aria-hidden /> Filter
-            {prios.size + labelIds.size > 0 && (
-              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-s px-1 font-mono text-[10.5px] font-semibold text-accent-t">
-                {prios.size + labelIds.size}
-              </span>
-            )}
-          </Button>
-        </MenuTrigger>
-        <MenuContent align="end" width={220}>
-          <MenuLabel>Priority</MenuLabel>
-          {([4, 3, 2, 1, 0] as PriorityLevel[]).map((p) => (
-            <MenuCheckboxItem
-              key={p}
-              checked={prios.has(p)}
-              onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(c) => setPrios((s) => toggleSet(s, p, c))}
-              icon={<PriorityIcon level={p} />}
-            >
-              {priorityMeta[p].label}
-            </MenuCheckboxItem>
-          ))}
-          {labels.length > 0 && <MenuSeparator />}
-          {labels.length > 0 && <MenuLabel>Labels</MenuLabel>}
-          {labels.map((l) => (
-            <MenuCheckboxItem
-              key={l.id}
-              checked={labelIds.has(l.id)}
-              onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(c) => setLabelIds((s) => toggleSet(s, l.id, c))}
-              icon={<span className="size-[7px] rounded-full" style={{ background: l.color }} />}
-            >
-              {l.name}
-            </MenuCheckboxItem>
-          ))}
-          {filtersActive && (
-            <>
-              <MenuSeparator />
-              <MenuItem
-                keys={["⇧", "F"]}
-                onSelect={() => {
-                  setPill("all");
-                  setPrios(new Set());
-                  setLabelIds(new Set());
-                }}
-              >
-                Clear filters
-              </MenuItem>
-            </>
+    <ProjectFilterBar
+      slug={ws.slug}
+      project={project}
+      layout="board"
+      rules={rules}
+      setRules={setRules}
+      viewId={viewId}
+      opts={filterOpts}
+      count={board.isPending ? null : shownCount}
+      className="border-b-0 px-5 pt-3 max-[760px]:px-3"
+      leading={
+        <>
+          {sprint !== undefined && (
+            <Segmented
+              label="Board scope"
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: "active", label: sprint ? `${sprint.name} · ${dateRange(sprint.startDate, sprint.endDate)}` : "Active sprint" },
+                { value: "all", label: "All open" },
+              ]}
+            />
           )}
-        </MenuContent>
-      </Menu>
-    </div>
+          <FilterPills
+            label="Task filter"
+            value={pill}
+            onChange={setPill}
+            items={[
+              { value: "all", label: "All", count: counts.all },
+              { value: "mine", label: "Mine", count: counts.mine },
+              { value: "unassigned", label: "Unassigned", count: counts.unassigned },
+            ]}
+          />
+          <span aria-hidden className="mx-1 h-5 w-px flex-none bg-line max-[760px]:hidden" />
+        </>
+      }
+    />
   );
 
   return (
@@ -350,14 +305,7 @@ export function BoardScreen() {
               title="No matching tasks"
               body="Nothing on this board matches the current filters."
               actions={
-                <Button
-                  kbd="⇧F"
-                  onClick={() => {
-                    setPill("all");
-                    setPrios(new Set());
-                    setLabelIds(new Set());
-                  }}
-                >
+                <Button kbd="⇧F" onClick={clearFilters}>
                   Clear filters
                 </Button>
               }
@@ -439,13 +387,6 @@ export function BoardScreen() {
   );
 }
 
-function toggleSet<T>(s: Set<T>, v: T, on: boolean | "indeterminate") {
-  const n = new Set(s);
-  if (on === true) n.add(v);
-  else n.delete(v);
-  return n;
-}
-
 const BoardColumn = memo(function BoardColumn({
   status,
   ids,
@@ -486,7 +427,7 @@ const BoardColumn = memo(function BoardColumn({
       )}
     >
       <header className="flex h-[30px] items-center gap-2 px-1 font-semibold">
-        <StatusGlyph kind={status.glyph} />
+        <StatusGlyph kind={status.glyph} color={status.color ?? undefined} />
         <h2 className="m-0 text-[13px] font-semibold">{status.name}</h2>
         <span className="font-mono text-[11px] font-normal text-fg-3">{ids.length}</span>
         {canCreate && (

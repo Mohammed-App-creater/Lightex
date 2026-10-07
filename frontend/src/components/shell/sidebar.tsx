@@ -3,14 +3,12 @@
 import { motion } from "motion/react";
 import {
   BarChart3,
-  Calendar,
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
   CircleCheck,
   CircleHelp,
   Columns3,
-  Filter,
   Flag,
   Inbox,
   ListTodo,
@@ -57,7 +55,7 @@ import { daysUntil } from "@/lib/domain/progress";
 import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { useModKey } from "@/lib/hooks/use-platform";
-import { addDaysISO, todayISO } from "@/lib/utils/dates";
+import { PinnedViews } from "@/features/filters/pinned-views";
 import { shell } from "./shell-state";
 
 const SUB_ITEMS: { view: ProjectView; label: string; icon: ReactNode; gate?: (perms: string[]) => boolean }[] = [
@@ -264,9 +262,6 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
   const roleName = roles.find((r) => r.id === ws.myRoleId)?.name ?? "";
   const activeProject = projects.find((p) => p.key === route.projectKey) ?? projects[0];
   const openMine = myTasks.filter((t) => !t.completedAt);
-  const bugCount = openMine.filter((t) => t.type === "bug").length;
-  const weekAhead = addDaysISO(todayISO(), 7);
-  const dueCount = openMine.filter((t) => t.dueDate && t.dueDate <= weekAhead).length;
   const shownProjects = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return projects;
@@ -407,13 +402,8 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           trailing={<span className="font-mono text-[11px] font-medium text-fg-3">{openMine.length}</span>}
         />
 
-        <SectionHeader label="Pinned views" open={pinnedOpen} onToggle={() => setPinnedOpen((o) => !o)} />
-        <div className="collapse-rows" data-open={pinnedOpen}>
-          <div>
-            <NavItem href={routes.myTasks(ws.slug, "bugs")} icon={<Filter size={16} strokeWidth={1.6} aria-hidden />} label="My open bugs" onNavigate={nav} trailing={<span className="font-mono text-[11px] text-fg-3">{bugCount}</span>} />
-            <NavItem href={routes.myTasks(ws.slug, "due")} icon={<Calendar size={16} strokeWidth={1.6} aria-hidden />} label="Due this week" onNavigate={nav} trailing={<span className="font-mono text-[11px] text-fg-3">{dueCount}</span>} />
-          </div>
-        </div>
+        {/* Saved views pinned by me (board 30): Manage / Done, Alt+↑↓ reorder. */}
+        <PinnedViews open={pinnedOpen} onToggle={() => setPinnedOpen((o) => !o)} onNavigate={nav} />
 
         <SectionHeader
           label="Projects"

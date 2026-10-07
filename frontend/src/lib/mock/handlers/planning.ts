@@ -1,3 +1,4 @@
+import type { EpicWrite } from "@/lib/api/types";
 import { isDoneStatus } from "@/lib/domain/progress";
 import { nowISO, uid } from "../db";
 import type { EpicRec, MilestoneRec, ObjectiveRec, SprintRec } from "../db-types";
@@ -161,21 +162,36 @@ export function registerPlanning() {
   route("POST", "/projects/:id/epics", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "epic.manage");
-    const b = bodyOf<EpicRec>(ctx);
+    const b = bodyOf<EpicWrite>(ctx);
     if (!b.name?.trim()) invalid({ name: "Name the epic" });
-    const e: EpicRec = { id: uid("ep"), projectId: p.id, name: b.name!.trim().slice(0, 80), description: b.description ?? "", hue: b.hue ?? Math.floor(Math.random() * 360) };
+    checkEpicFields(ctx, p.id, b, null);
+    const e: EpicRec = {
+      id: uid("ep"),
+      projectId: p.id,
+      name: b.name!.trim().slice(0, 80),
+      description: (b.description ?? "").slice(0, 600),
+      hue: typeof b.hue === "number" ? b.hue : Math.floor(Math.random() * 360),
+      ownerId: b.ownerId ?? ctx.userId ?? null,
+      milestoneId: b.milestoneId ?? null,
+      archivedAt: null,
+    };
     ctx.db.epics.push(e);
     return toEpic(ctx.db, e);
   });
   route("PATCH", "/epics/:id", (ctx) => {
     const e = find(ctx.db.epics, ctx.params.id!, "Epic");
     requireProject(ctx, e.projectId, "epic.manage");
-    const b = bodyOf<EpicRec>(ctx);
+    const b = bodyOf<EpicWrite>(ctx);
     if (b.name !== undefined) {
       if (!b.name.trim()) invalid({ name: "Name the epic" });
       e.name = b.name.trim().slice(0, 80);
     }
-    if (b.description !== undefined) e.description = b.description;
+    checkEpicFields(ctx, e.projectId, b, e.id);
+    if (b.description !== undefined) e.description = b.description.slice(0, 600);
+    if (typeof b.hue === "number") e.hue = b.hue;
+    if (b.ownerId !== undefined) e.ownerId = b.ownerId;
+    if (b.milestoneId !== undefined) e.milestoneId = b.milestoneId;
+    if (b.archived !== undefined) e.archivedAt = b.archived ? (e.archivedAt ?? nowISO()) : null;
     return toEpic(ctx.db, e);
   });
   route("DELETE", "/epics/:id", (ctx) => {
@@ -298,4 +314,16 @@ function addDays(iso: string, days: number) {
   const d = new Date(`${iso}T00:00:00`);
   d.setDate(d.getDate() + days);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Board 27: epic names are unique per project; owner must be a project member; milestone must be in the project. */
+function checkEpicFields(ctx: Ctx, projectId: string, b: EpicWrite, selfId: string | null) {
+  const fields: Record<string, string> = {};
+  const name = b.name?.trim().toLowerCase();
+  if (name && ctx.db.epics.some((x) => x.projectId === projectId && x.id !== selfId && x.name.trim().toLowerCase() === name))
+    fields.name = "An epic with this name exists";
+  if (b.ownerId && !ctx.db.projectMembers.some((m) => m.projectId === projectId && m.userId === b.ownerId)) fields.ownerId = "Pick a project member";
+  if (b.milestoneId && !ctx.db.milestones.some((m) => m.projectId === projectId && m.id === b.milestoneId)) fields.milestoneId = "Pick a milestone in this project";
+  if (b.hue !== undefined && (typeof b.hue !== "number" || b.hue < 0 || b.hue > 360)) fields.hue = "Pick a color";
+  if (Object.keys(fields).length) invalid(fields);
 }

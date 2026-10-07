@@ -18,6 +18,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for OG/icon URLs; set NEXT_PUBLIC_APP_URL to the public origin in production.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: { default: "Lightex", template: "%s · Lightex" },
   description: "Project management for software teams. Fast, quiet, keyboard-first.",
   applicationName: "Lightex",

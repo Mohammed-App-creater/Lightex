@@ -60,7 +60,8 @@ export type ProjectRec = Omit<
 export type ProjectMemberRec = { projectId: string; userId: string; roleId: string; addedAt: string };
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
 export type MilestoneRec = Omit<Milestone, "progress">;
-export type EpicRec = Omit<Epic, "progress">;
+// Board 27 fields are optional on the record (older seeds lack them); toEpic normalizes to null.
+export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archivedAt"> & Partial<Pick<Epic, "ownerId" | "milestoneId" | "archivedAt">>;
 export type SprintRec = Omit<Sprint, "progress">;
 export type TaskRec = Omit<Task, "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount"> & {
   description: RichDoc | null;
@@ -94,4 +95,30 @@ export interface MockDB {
   audit: (AuditEntry & { workspaceId: string })[];
   resetTokens: { token: string; userId: string; expiresAt: string }[];
   recents: { userId: string; kind: "task" | "project"; id: string; at: string }[];
+  /** Workspace-level "add me to a project" requests (board 24). Optional: created lazily by handlers/home.ts. */
+  wsAccessRequests?: { id: string; workspaceId: string; userId: string; createdAt: string }[];
+  /** Saved views (board 30). Optional: created lazily by handlers/views.ts, so no SCHEMA bump. */
+  views?: SavedViewRec[];
+  viewPins?: { userId: string; viewId: string; position: number }[];
+  /** Trash (board 29). Optional: created lazily by handlers/trash.ts, so no SCHEMA bump. */
+  trash?: TrashStore;
 }
+
+/* Trash (board 29): deleted comments and whole projects live here; tasks keep TaskRec.deletedAt. */
+export type TrashedCommentRec = Comment & { deletedAt: string; deletedBy: string | null };
+export type TrashedProjectRec = {
+  project: ProjectRec;
+  tasks: TaskRec[];
+  members: ProjectMemberRec[];
+  deletedAt: string;
+  deletedBy: string | null;
+};
+export type TrashStore = {
+  seeded: boolean;
+  comments: TrashedCommentRec[];
+  projects: TrashedProjectRec[];
+  /** taskId → user who deleted it. */
+  taskDeletedBy: Record<string, string>;
+};
+
+export type SavedViewRec = Omit<import("@/lib/api/types").SavedView, "pinned" | "position" | "count">;

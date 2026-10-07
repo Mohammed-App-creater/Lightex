@@ -99,7 +99,8 @@ export function statusesOf(db: MockDB, projectId: string) {
 
 export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
   const statuses = statusesOf(db, p.id);
-  const open = liveTasks(db, p.id).filter((t) => {
+  const live = liveTasks(db, p.id);
+  const open = live.filter((t) => {
     const s = statuses.find((x) => x.id === t.statusId);
     return s?.category !== "done";
   }).length;
@@ -108,6 +109,7 @@ export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
     ...stripSeq(p),
     memberCount: db.projectMembers.filter((x) => x.projectId === p.id).length,
     openTaskCount: open,
+    doneTaskCount: live.length - open,
     activeSprintId: db.sprints.find((s) => s.projectId === p.id && s.state === "active")?.id ?? null,
     myRoleId: m?.roleId ?? null,
     my_permissions: projectPermissions(db, userId, p.id),
@@ -147,7 +149,7 @@ export function toMilestone(db: MockDB, m: MilestoneRec): Milestone {
 
 export function toEpic(db: MockDB, e: EpicRec): Epic {
   const tasks = liveTasks(db, e.projectId).filter((t) => t.epicId === e.id);
-  return { ...e, progress: progressOf(tasks, statusesOf(db, e.projectId)) };
+  return { ...e, ownerId: e.ownerId ?? null, milestoneId: e.milestoneId ?? null, archivedAt: e.archivedAt ?? null, progress: progressOf(tasks, statusesOf(db, e.projectId)) };
 }
 
 export function toSprint(db: MockDB, s: SprintRec): Sprint {

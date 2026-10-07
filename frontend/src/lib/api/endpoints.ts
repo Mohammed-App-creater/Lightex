@@ -4,11 +4,12 @@ import type {
   AccessRequest,
   ActivityEntry,
   Attachment,
-  AuditEntry,
+  AuditPage,
   BurndownPoint,
   Comment,
   CycleBin,
   Epic,
+  EpicWrite,
   Invite,
   Label,
   Milestone,
@@ -32,11 +33,14 @@ import type {
   TaskDetail,
   TaskMove,
   TaskPatch,
+  TrashList,
+  TrashRef,
   ThroughputPoint,
   UploadTicket,
   User,
   VelocityPoint,
   Workspace,
+  WorkspaceAccessRequest,
   WorkspaceMember,
 } from "./types";
 
@@ -89,6 +93,11 @@ export const workspaces = {
     http.get<Paginated<Task>>(`/workspaces/${enc(slug)}/tasks`, { filter: { assignee }, limit: 200 }),
   projectDirectory: (slug: string) =>
     http.get<(ProjectAccessInfo & { isMember: boolean; status: Project["status"] })[]>(`/workspaces/${enc(slug)}/project-directory`),
+  /** Board 24: my pending "add me to a project" request to the workspace admins (or null). */
+  myAccessRequest: (slug: string) =>
+    http.get<{ request: WorkspaceAccessRequest | null }>(`/workspaces/${enc(slug)}/access-requests/mine`),
+  requestAccess: (slug: string) => http.post<WorkspaceAccessRequest>(`/workspaces/${enc(slug)}/access-requests`),
+  withdrawAccessRequest: (slug: string) => http.del(`/workspaces/${enc(slug)}/access-requests/mine`),
 };
 
 export const roles = {
@@ -107,7 +116,7 @@ export const projects = {
   get: (slug: string, key: string) => http.get<Project>(`/workspaces/${enc(slug)}/projects/${enc(key)}`),
   create: (slug: string, body: { name: string; key: string; description?: string; template?: Project["template"] }) =>
     http.post<Project>(`/workspaces/${enc(slug)}/projects`, body),
-  update: (id: string, body: Partial<Pick<Project, "name" | "description" | "key">>) => http.patch<Project>(`/projects/${enc(id)}`, body),
+  update: (id: string, body: Partial<Pick<Project, "name" | "description" | "key" | "hue">>) => http.patch<Project>(`/projects/${enc(id)}`, body),
   archive: (id: string) => http.post<Project>(`/projects/${enc(id)}/archive`),
   unarchive: (id: string) => http.post<Project>(`/projects/${enc(id)}/unarchive`),
   remove: (id: string, confirm: string) => http.del(`/projects/${enc(id)}`, { confirm }),
@@ -121,11 +130,16 @@ export const projects = {
   accessRequests: (id: string) => http.get<(AccessRequest & { user: User })[]>(`/projects/${enc(id)}/access-requests`),
   statuses: (id: string) => http.get<Status[]>(`/projects/${enc(id)}/statuses`),
   createStatus: (id: string, body: { name: string; category: Status["category"] }) => http.post<Status>(`/projects/${enc(id)}/statuses`, body),
-  updateStatus: (id: string, statusId: string, body: { name?: string; position?: number }) =>
+  updateStatus: (id: string, statusId: string, body: { name?: string; position?: number; color?: string | null }) =>
     http.patch<Status>(`/projects/${enc(id)}/statuses/${enc(statusId)}`, body),
-  removeStatus: (id: string, statusId: string) => http.del(`/projects/${enc(id)}/statuses/${enc(statusId)}`),
+  /** `moveTo`: status that receives the deleted status's tasks (required when it has tasks). */
+  removeStatus: (id: string, statusId: string, moveTo?: string) =>
+    http.del(`/projects/${enc(id)}/statuses/${enc(statusId)}`, moveTo ? { moveTo } : undefined),
   labels: (id: string) => http.get<Label[]>(`/projects/${enc(id)}/labels`),
   createLabel: (id: string, name: string, color?: string) => http.post<Label>(`/projects/${enc(id)}/labels`, { name, color }),
+  updateLabel: (id: string, labelId: string, body: { name?: string; color?: string }) =>
+    http.patch<Label>(`/projects/${enc(id)}/labels/${enc(labelId)}`, body),
+  removeLabel: (id: string, labelId: string) => http.del(`/projects/${enc(id)}/labels/${enc(labelId)}`),
   activity: (id: string, query?: ListQuery) => http.get<Paginated<ActivityEntry>>(`/projects/${enc(id)}/activity`, query),
   summary: (id: string) => http.get<ProjectSummary>(`/projects/${enc(id)}/summary`),
 };
@@ -144,8 +158,8 @@ export const planning = {
     http.patch<Milestone>(`/milestones/${enc(id)}`, body),
   removeMilestone: (id: string) => http.del(`/milestones/${enc(id)}`),
   epics: (projectId: string) => http.get<Epic[]>(`/projects/${enc(projectId)}/epics`),
-  createEpic: (projectId: string, body: { name: string; description?: string }) => http.post<Epic>(`/projects/${enc(projectId)}/epics`, body),
-  updateEpic: (id: string, body: { name?: string; description?: string }) => http.patch<Epic>(`/epics/${enc(id)}`, body),
+  createEpic: (projectId: string, body: EpicWrite & { name: string }) => http.post<Epic>(`/projects/${enc(projectId)}/epics`, body),
+  updateEpic: (id: string, body: EpicWrite) => http.patch<Epic>(`/epics/${enc(id)}`, body),
   removeEpic: (id: string) => http.del(`/epics/${enc(id)}`),
   sprints: (projectId: string) => http.get<Sprint[]>(`/projects/${enc(projectId)}/sprints`),
   createSprint: (projectId: string, body: Partial<Sprint> = {}) => http.post<Sprint>(`/projects/${enc(projectId)}/sprints`, body),
@@ -255,10 +269,31 @@ export const search = {
 };
 
 export const audit = {
-  list: (slug: string, query?: ListQuery) => http.get<Paginated<AuditEntry>>(`/workspaces/${enc(slug)}/audit`, query),
+  /** filter[actor] (repeatable user ids), filter[action] (kind), filter[entity], filter[since] (ISO). */
+  list: (slug: string, query?: ListQuery) => http.get<AuditPage>(`/workspaces/${enc(slug)}/audit`, query),
+};
+
+/** Saved filter views + per-user sidebar pins (board 30). Requested API addition. */
+type SavedViewT = import("./types").SavedView;
+export const views = {
+  list: (slug: string) => http.get<SavedViewT[]>(`/workspaces/${enc(slug)}/views`),
+  create: (slug: string, body: import("./types").SavedViewInput) => http.post<SavedViewT>(`/workspaces/${enc(slug)}/views`, body),
+  update: (id: string, body: Partial<Pick<SavedViewT, "name" | "icon" | "visibility" | "filters" | "pinned">>) =>
+    http.patch<SavedViewT>(`/views/${enc(id)}`, body),
+  remove: (id: string) => http.del(`/views/${enc(id)}`),
+  /** Sets the current user's pin order (ids of pinned views, top to bottom). */
+  reorder: (slug: string, ids: string[]) => http.put<SavedViewT[]>(`/workspaces/${enc(slug)}/views/order`, { ids }),
+};
+
+/** Workspace trash (board 29): soft-deleted tasks, comments and projects, kept 30 days. */
+export const trash = {
+  list: (slug: string) => http.get<TrashList>(`/workspaces/${enc(slug)}/trash`),
+  restore: (slug: string, items: TrashRef[]) => http.post<{ restored: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/restore`, { items }),
+  purge: (slug: string, items: TrashRef[]) => http.post<{ purged: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/purge`, { items }),
 };
 
 export const api = {
+  trash,
   auth,
   workspaces,
   roles,
@@ -273,4 +308,5 @@ export const api = {
   notifications,
   search,
   audit,
+  views,
 };

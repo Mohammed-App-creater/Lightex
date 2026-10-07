@@ -1,59 +1,69 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { ProjectBadge } from "@/components/ui/avatar";
-import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
-import { DueText } from "@/features/tasks/task-bits";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
+import { triggerSpark } from "@/features/tasks/task-origin";
+import { useUpdateTask } from "@/features/tasks/mutations";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
 import type { Project, Status, Task } from "@/lib/api/types";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { can, canEditTask, useCurrentWorkspace } from "@/lib/permissions/can";
+import { withTaskParam } from "@/lib/routes";
 import { useProjects } from "./queries";
 
 /** Status lookup across every project the user can see (for cross-project task lists). */
 export function useStatusMap() {
   const ws = useCurrentWorkspace()!;
-  const { data: projects = [] } = useProjects(ws.slug);
-  const results = useQueries({
-    queries: projects.map((p) => ({ queryKey: qk.statuses(p.id), queryFn: () => api.projects.statuses(p.id), staleTime: 5 * 60_000 })),
+  const projectsQ = useProjects(ws.slug);
+  const projects = projectsQ.data;
+  const combined = useQueries({
+    queries: (projects ?? []).map((p) => ({ queryKey: qk.statuses(p.id), queryFn: () => api.projects.statuses(p.id), staleTime: 5 * 60_000 })),
+    combine: combineStatuses,
   });
-  return useMemo(() => {
-    const m = new Map<string, Status>();
-    results.forEach((r) => r.data?.forEach((s) => m.set(s.id, s)));
-    return { statuses: m, projects: new Map<string, Project>(projects.map((p) => [p.id, p])) };
-  }, [results, projects]);
+  const pending = projectsQ.isPending || combined.pending;
+  return useMemo(() => build(projects ?? [], combined.data, pending), [projects, combined, pending]);
 }
 
-/** One task in a cross-project list: glyph, key, title, project, priority, due. Opens the panel. */
-export function TaskLine({ task, status, project }: { task: Task; status: Status | undefined; project: Project | undefined }) {
-  const ws = useCurrentWorkspace()!;
-  const router = useRouter();
-  const done = status?.category === "done";
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={() => router.push(project ? `${routes.project(ws.slug, project.key, "board")}?task=${task.key}` : routes.task(ws.slug, task.key))}
-        aria-label={`Open ${task.key}: ${task.title}`}
-        className="-mx-2 flex h-11 w-[calc(100%+16px)] items-center gap-3 rounded-md px-2 text-left hover:bg-hover"
-      >
-        <StatusGlyph kind={status?.glyph ?? "todo"} label={status?.name} />
-        <span className="w-[56px] flex-none font-mono text-[11.5px] font-medium text-fg-3">{task.key}</span>
-        <span className={`min-w-0 flex-1 truncate font-medium ${done ? "text-fg-3 line-through" : ""}`}>{task.title}</span>
-        {project && (
-          <span className="hidden items-center gap-1.5 text-meta text-fg-3 sm:flex">
-            <ProjectBadge code={project.key.slice(0, 2)} hue={project.hue} size={18} />
-            {project.name}
-          </span>
-        )}
-        <PriorityIcon level={task.priority} bars />
-        <span className="w-14 text-right">
-          <DueText due={task.dueDate} done={done} />
-        </span>
-      </button>
-    </li>
+// Module-level so TanStack only re-runs it when a query result changes (stable result otherwise).
+function combineStatuses(results: { data?: Status[]; isPending: boolean }[]) {
+  return { data: results.map((r) => r.data), pending: results.some((r) => r.isPending) };
+}
+
+function build(projects: Project[], data: (Status[] | undefined)[], pending: boolean) {
+  const statuses = new Map<string, Status>();
+  const byProject = new Map<string, Status[]>();
+  data.forEach((list) => {
+    if (!list?.length) return;
+    list.forEach((s) => statuses.set(s.id, s));
+    byProject.set(list[0]!.projectId, [...list].sort((a, b) => a.position - b.position));
+  });
+  return { statuses, byProject, projects: new Map<string, Project>(projects.map((p) => [p.id, p])), pending };
+}
+
+/** Same rule as the board: task.move, or the task-edit rule (edit_any / edit_own). */
+export function canChangeStatus(task: Task, project: Project | undefined, meId: string) {
+  if (!project) return false;
+  return can("task.move", project.my_permissions) || canEditTask(task, project.my_permissions, meId);
+}
+
+/** Optimistic status change (rollback + toast live in useUpdateTask). Sparks on Done. */
+export function useSetStatus(byProject: Map<string, Status[]>) {
+  const update = useUpdateTask();
+  return useCallback(
+    (task: Task, status: Status) => {
+      if (task.statusId === status.id) return;
+      if (status.glyph === "done") triggerSpark(task.id);
+      update.mutate({ task, patch: { statusId: status.id }, statuses: byProject.get(task.projectId) });
+    },
+    [update, byProject],
   );
+}
+
+/** href that opens the task side panel on the current page (?task=KEY). */
+export function useTaskHref() {
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const qs = search.toString();
+  return useCallback((key: string) => withTaskParam(pathname, qs, key), [pathname, qs]);
 }

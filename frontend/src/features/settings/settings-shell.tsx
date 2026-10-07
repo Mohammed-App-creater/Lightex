@@ -1,16 +1,17 @@
 "use client";
 
-import { Bell, Building2, KeyRound, TriangleAlert, UserRound, Users } from "lucide-react";
+import { Bell, Building2, KeyRound, ShieldCheck, Trash2, TriangleAlert, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { useSession } from "@/features/auth/session";
-import { useRoles } from "@/features/workspace/queries";
+import { canOpenTrash } from "@/features/trash/lib";
+import { useProjects, useRoles } from "@/features/workspace/queries";
 import { can, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes, useRouteInfo, type SettingsSection } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 
-type NavItem = { key: SettingsSection | "danger"; label: string; icon: ReactNode; href: string; danger?: boolean };
+type NavItem = { key: SettingsSection | "danger" | "trash"; label: string; icon: ReactNode; href: string; danger?: boolean };
 
 /**
  * Settings shell (board 20 B.2): a 220px settings nav (Account / Workspace / Danger zone) next to
@@ -22,6 +23,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
   const { user } = useSession();
   const roles = useRoles(ws.slug);
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
+  const projects = useProjects(ws.slug);
 
   const account: NavItem[] = [
     { key: "profile", label: "Profile", icon: <UserRound size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "profile") },
@@ -32,6 +34,14 @@ export function SettingsShell({ children }: { children: ReactNode }) {
     { key: "members", label: "Members", icon: <Users size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "members") },
     { key: "roles", label: "Roles", icon: <KeyRound size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "roles") },
   ];
+  // Board 31: audit log is admins-only; hidden (not disabled) without audit.view.
+  if (can("audit.view", ws.my_permissions)) {
+    workspace.push({ key: "audit", label: "Audit log", icon: <ShieldCheck size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "audit") });
+  }
+  // Board 29: workspace Trash (its own page, /:ws/trash); hidden for users who can't restore anything.
+  if (canOpenTrash(ws.my_permissions, projects.data ?? [])) {
+    workspace.push({ key: "trash", label: "Trash", icon: <Trash2 size={16} strokeWidth={1.5} aria-hidden />, href: routes.trash(ws.slug) });
+  }
   if (can("workspace.delete", ws.my_permissions)) {
     workspace.push({
       key: "danger",
@@ -41,7 +51,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
       danger: true,
     });
   }
-  const isActive = (k: NavItem["key"]) => k !== "danger" && route.section === k;
+  const isActive = (k: NavItem["key"]) => k !== "danger" && k !== "trash" && route.section === k;
 
   return (
     <div className="flex h-full min-h-0 max-[760px]:flex-col">

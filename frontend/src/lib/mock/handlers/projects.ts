@@ -1,5 +1,6 @@
 import type { ProjectAccessInfo, ProjectSummary, ProjectTemplate, Status } from "@/lib/api/types";
 import { DAY, isDoneStatus } from "@/lib/domain/progress";
+import { TEMPLATE_IDS, templateDef } from "@/lib/domain/project-templates";
 import { nowISO, uid } from "../db";
 import type { MockDB, ProjectRec } from "../db-types";
 import {
@@ -12,6 +13,7 @@ import {
   wsMembership,
 } from "../derive";
 import { audit } from "./workspaces";
+import { trashProject } from "./trash";
 import { logActivity, notify } from "./common";
 import {
   fail,
@@ -50,6 +52,13 @@ export function accessInfo(db: MockDB, p: ProjectRec, userId: string): ProjectAc
     admins,
     myRequest: db.accessRequests.find((r) => r.projectId === p.id && r.userId === userId && r.status === "pending") ?? null,
   };
+}
+
+/** 409 when `userId` is the project's only member holding project.manage_members (board 28 "only admin"). */
+function lastAdminGuard(db: MockDB, projectId: string, userId: string) {
+  const adminRoles = new Set(db.roles.filter((r) => r.permissions.includes("project.manage_members")).map((r) => r.id));
+  const admins = db.projectMembers.filter((m) => m.projectId === projectId && adminRoles.has(m.roleId));
+  if (admins.length === 1 && admins[0]!.userId === userId) fail(409, "last_admin", "A project needs at least one admin.");
 }
 
 /** Member-only project lookup used by every project-scoped route. */
@@ -107,12 +116,14 @@ export function registerProjects() {
       hue: Math.floor(Math.random() * 360),
       leadId: ctx.userId,
       status: "active",
-      template: ["kanban", "scrum", "bugs"].includes(template) ? template : "kanban",
+      template: TEMPLATE_IDS.includes(template) ? template : "kanban",
       createdAt: nowISO(),
       taskSeq: 0,
     };
     ctx.db.projects.push(p);
-    STATUS_DEFS.forEach((s, i) => ctx.db.statuses.push({ id: `${p.id}-st-${s.glyph}`, projectId: p.id, ...s, position: i }));
+    // Board 24: each template creates its own workflow (names differ, glyphs stay canonical).
+    const statusDefs = TEMPLATE_IDS.includes(template) ? templateDef(template).statuses : STATUS_DEFS;
+    statusDefs.forEach((s, i) => ctx.db.statuses.push({ id: `${p.id}-st-${s.glyph}`, projectId: p.id, ...s, position: i }));
     [["frontend", "var(--low)"], ["backend", "var(--accent-t)"], ["bug", "var(--danger)"], ["design", "var(--warn)"]].forEach(([n, c]) =>
       ctx.db.labels.push({ id: `${p.id}-lb-${n}`, projectId: p.id, name: n!, color: c! }),
     );
@@ -133,6 +144,8 @@ export function registerProjects() {
     if (Object.keys(fields).length) invalid(fields);
     if (name !== undefined) p.name = name.trim().slice(0, 60);
     if (description !== undefined) p.description = description.slice(0, 500);
+    const hue = (ctx.body as { hue?: unknown })?.hue;
+    if (typeof hue === "number" && Number.isFinite(hue)) p.hue = Math.round(((hue % 360) + 360) % 360);
     if (key !== undefined && key.toUpperCase() !== p.key) {
       const next = key.toUpperCase();
       if (ctx.db.projects.some((x) => x.workspaceId === p.workspaceId && x.key === next)) invalid({ key: `${next} is already used` });
@@ -158,6 +171,7 @@ export function registerProjects() {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "project.delete");
     if (str(ctx.body, "confirm") !== p.key) invalid({ confirm: `Type ${p.key} to confirm` });
+    trashProject(ctx.db, p, ctx.userId); // board 29: restorable from the Trash for 30 days
     ctx.db.projects = ctx.db.projects.filter((x) => x.id !== p.id);
     ctx.db.tasks = ctx.db.tasks.filter((t) => t.projectId !== p.id);
     ctx.db.projectMembers = ctx.db.projectMembers.filter((m) => m.projectId !== p.id);
@@ -204,6 +218,7 @@ export function registerProjects() {
     const roleId = str(ctx.body, "roleId");
     const role = ctx.db.roles.find((r) => r.id === roleId && r.scope === "project" && r.workspaceId === p.workspaceId);
     if (!role) invalid({ roleId: "Pick a project role" });
+    if (!role.permissions.includes("project.manage_members")) lastAdminGuard(ctx.db, p.id, m.userId);
     m.roleId = role.id;
     return { ...m, user: toUser(ctx.db.users.find((u) => u.id === m.userId)!) };
   });
@@ -211,6 +226,7 @@ export function registerProjects() {
   route("DELETE", "/projects/:id/members/:userId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "project.manage_members");
+    lastAdminGuard(ctx.db, p.id, ctx.params.userId!);
     ctx.db.projectMembers = ctx.db.projectMembers.filter((m) => !(m.projectId === p.id && m.userId === ctx.params.userId));
     return undefined;
   });
@@ -247,7 +263,11 @@ export function registerProjects() {
   });
 
   /* statuses, labels */
-  route("GET", "/projects/:id/statuses", (ctx) => statusesOf(ctx.db, memberProject(ctx, ctx.params.id!).id));
+  route("GET", "/projects/:id/statuses", (ctx) => {
+    const p = memberProject(ctx, ctx.params.id!);
+    const live = liveTasks(ctx.db, p.id);
+    return statusesOf(ctx.db, p.id).map((s) => ({ ...s, taskCount: live.filter((t) => t.statusId === s.id).length }));
+  });
   route("POST", "/projects/:id/statuses", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "status.manage");
@@ -256,7 +276,13 @@ export function registerProjects() {
     const category = (str(ctx.body, "category") ?? "in_progress") as Status["category"];
     const glyph = category === "todo" ? "todo" : category === "done" ? "done" : "progress";
     const list = statusesOf(ctx.db, p.id);
+    if (list.some((x) => x.name.toLowerCase() === name.toLowerCase())) invalid({ name: `${name} already exists` });
     const s: Status = { id: uid("st"), projectId: p.id, name: name.slice(0, 30), category, glyph, position: list.length };
+    // Board 28: a new status goes to the end of its category group.
+    const order = ["todo", "in_progress", "done"];
+    const at = list.filter((x) => order.indexOf(x.category) <= order.indexOf(category)).length;
+    list.splice(at, 0, s);
+    list.forEach((x, i) => (x.position = i));
     ctx.db.statuses.push(s);
     return s;
   });
@@ -270,6 +296,8 @@ export function registerProjects() {
       if (!name.trim()) invalid({ name: "Name the status" });
       s.name = name.trim().slice(0, 30);
     }
+    const color = (ctx.body as { color?: unknown })?.color;
+    if (color === null || (typeof color === "string" && /^var\(--[a-z0-9-]+\)$/.test(color))) s.color = color;
     const position = (ctx.body as { position?: number })?.position;
     if (typeof position === "number") {
       const list = statusesOf(ctx.db, p.id).filter((x) => x.id !== s.id);
@@ -281,12 +309,62 @@ export function registerProjects() {
   route("DELETE", "/projects/:id/statuses/:statusId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "status.manage");
-    if (ctx.db.tasks.some((t) => t.statusId === ctx.params.statusId && !t.deletedAt))
-      fail(409, "status_in_use", "Move this status’s tasks before deleting it.");
-    ctx.db.statuses = ctx.db.statuses.filter((s) => s.id !== ctx.params.statusId);
+    const s = ctx.db.statuses.find((x) => x.id === ctx.params.statusId && x.projectId === p.id);
+    if (!s) fail(404, "not_found", "Status not found.");
+    if (statusesOf(ctx.db, p.id).filter((x) => x.category === s.category).length < 2)
+      fail(409, "last_in_category", "Each group needs at least one status.");
+    // Board 28: tasks (including deleted ones, so restores land somewhere) move to `moveTo`.
+    const moveTo = str(ctx.body, "moveTo");
+    const target = moveTo ? ctx.db.statuses.find((x) => x.id === moveTo && x.projectId === p.id && x.id !== s.id) : undefined;
+    const affected = ctx.db.tasks.filter((t) => t.statusId === s.id);
+    if (affected.some((t) => !t.deletedAt) && !target) fail(409, "status_in_use", "Pick where this status’s tasks go.");
+    if (target)
+      affected.forEach((t) => {
+        t.statusId = target.id;
+        t.version += 1;
+        t.completedAt = target.category === "done" ? (t.completedAt ?? nowISO()) : null;
+      });
+    ctx.db.statuses = ctx.db.statuses.filter((x) => x.id !== s.id);
+    statusesOf(ctx.db, p.id).forEach((x, i) => (x.position = i));
     return undefined;
   });
-  route("GET", "/projects/:id/labels", (ctx) => ctx.db.labels.filter((l) => l.projectId === memberProject(ctx, ctx.params.id!).id));
+  route("GET", "/projects/:id/labels", (ctx) => {
+    const p = memberProject(ctx, ctx.params.id!);
+    const live = liveTasks(ctx.db, p.id);
+    return ctx.db.labels
+      .filter((l) => l.projectId === p.id)
+      .map((l) => ({ ...l, taskCount: live.filter((t) => t.labelIds.includes(l.id)).length }));
+  });
+  /* Board 28: label rename / recolor / delete (project.update). */
+  route("PATCH", "/projects/:id/labels/:labelId", (ctx) => {
+    const p = projectById(ctx, ctx.params.id!);
+    requireProject(ctx, p.id, "project.update");
+    const l = ctx.db.labels.find((x) => x.id === ctx.params.labelId && x.projectId === p.id);
+    if (!l) fail(404, "not_found", "Label not found.");
+    const name = str(ctx.body, "name");
+    if (name !== undefined) {
+      const n = name.trim().toLowerCase().slice(0, 24);
+      if (!n) invalid({ name: "Name the label" });
+      if (ctx.db.labels.some((x) => x.projectId === p.id && x.id !== l.id && x.name === n)) invalid({ name: "Already exists" });
+      l.name = n;
+    }
+    const color = str(ctx.body, "color");
+    if (color !== undefined && /^var\(--[a-z0-9-]+\)$/.test(color)) l.color = color;
+    return l;
+  });
+  route("DELETE", "/projects/:id/labels/:labelId", (ctx) => {
+    const p = projectById(ctx, ctx.params.id!);
+    requireProject(ctx, p.id, "project.update");
+    const id = ctx.params.labelId!;
+    ctx.db.labels = ctx.db.labels.filter((x) => !(x.id === id && x.projectId === p.id));
+    ctx.db.tasks
+      .filter((t) => t.projectId === p.id && t.labelIds.includes(id))
+      .forEach((t) => {
+        t.labelIds = t.labelIds.filter((x) => x !== id);
+        t.version += 1;
+      });
+    return undefined;
+  });
   route("POST", "/projects/:id/labels", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     requireProject(ctx, p.id, "task.create");

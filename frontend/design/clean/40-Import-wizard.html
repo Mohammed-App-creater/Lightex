@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Import wizard</title>
+<script src="../assets/fad4b893-8026-44c6-acf1-0768a4342ee2.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.tp-grab{display:none;width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:8px auto 0;flex:none}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.tp-ring{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text-3);position:relative;flex:none;display:inline-block}
+.is .tp-ring{background:var(--ok);border-color:var(--ok)}
+.is .tp-ring::after{content:"";position:absolute;left:3.5px;top:1px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-ring.fx{animation:tppop 240ms var(--spring)}
+.tp-ring.fx::after{animation:tpdraw 180ms var(--ease) 60ms both}
+.tp-ring.fx::before,.tp-g.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:tpspark 440ms var(--ease) both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpdraw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-av.l{width:28px;height:28px;font-size:11px}
+.tp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.tp-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.tp-mini{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:22px;min-width:22px;padding:0 6px;border-radius:6px;border:1px dashed var(--line-2);background:transparent;color:var(--text-3);font:500 12px/1 'Inter',sans-serif;cursor:pointer}
+.tp-mini:hover{color:var(--text);border-color:var(--control)}
+.tp-menu{position:absolute;z-index:20;min-width:220px;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:tpmenu 150ms var(--ease)}
+@keyframes tpmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.tp-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left}
+.tp-mi:hover{background:var(--hover)}
+.tp-mi.on{background:var(--accent-s)}
+.tp-mi.dng{color:var(--danger)}
+.tp-sep{height:1px;background:var(--line);margin:4px -4px}
+.tp-mi:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg)}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--text-2);animation:spin .7s linear infinite;flex:none;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.bt{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:32px;padding:0 12px;border-radius:7px;font:500 13px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;text-decoration:none;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),border-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),opacity 120ms var(--ease)}
+.bt:hover{background:var(--hover);color:var(--text)}
+.bt:active{transform:scale(.97)}
+.bt.pri{background:var(--accent);color:#fff}
+.bt.pri:hover{background:var(--accent-h);box-shadow:0 0 0 4px var(--accent-s)}
+.bt.pri.blk{opacity:.5;cursor:not-allowed;box-shadow:none}
+.bt.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.bt.sec:hover{background:var(--hover);border-color:var(--control)}
+.bt.sm{height:28px;padding:0 10px;font-size:12px}
+.bt:focus-visible,.bt:focus-within{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+/* wizard shell */
+.iw{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--surface)}
+.iw-head{height:54px;flex:none;display:flex;align-items:center;gap:10px;padding:0 10px 0 20px;border-bottom:1px solid var(--line)}
+.iw-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.iw-into{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden}
+.iw-ib{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-2);cursor:pointer}
+.iw-ib:hover{background:var(--hover);color:var(--text)}
+.iw-steps{position:relative;flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;padding:14px 12px 12px;list-style:none;border-bottom:1px solid var(--line)}
+.iw-track{position:absolute;left:12.5%;right:12.5%;top:27px;height:2px;border-radius:1px;background:var(--line-2);margin:0 12px}
+.iw-fill{position:absolute;left:0;top:0;bottom:0;border-radius:1px;background:var(--accent);transition:width 500ms var(--ease)}
+.iw-fill.run{background:linear-gradient(90deg,var(--accent),var(--accent-t),var(--accent));background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+.iw-step{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.iw-sb{display:flex;flex-direction:column;align-items:center;gap:7px;border:0;background:transparent;padding:0 4px;border-radius:8px;color:inherit;font:inherit;cursor:default}
+button.iw-sb{cursor:pointer}
+button.iw-sb:hover .iw-dot{border-color:var(--accent-t)}
+.iw-dot{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--surface);border:1.5px solid var(--line-2);font:600 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);transition:background-color 250ms var(--ease),border-color 250ms var(--ease),color 250ms var(--ease),transform 250ms var(--spring)}
+.iw-step.cur .iw-dot{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 4px var(--accent-s);transform:scale(1.06)}
+.iw-step.done .iw-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.iw-sl{font-size:12px;font-weight:500;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.iw-step.cur .iw-sl,.iw-step.done .iw-sl{color:var(--text)}
+.iw-body{flex:1;min-height:0;overflow:auto;padding:20px 22px 24px;display:flex;flex-direction:column;gap:18px;animation:fadein 200ms var(--ease)}
+.iw-foot{height:60px;flex:none;display:flex;align-items:center;gap:8px;padding:0 16px 0 20px;border-top:1px solid var(--line);background:var(--surface)}
+.iw-reason{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--warn);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-reason svg{flex:none}
+.iw-reason.mute{color:var(--text-3)}
+.iw-reason.shake,.iw-reason.shake2{animation:iwshake 360ms var(--ease)}
+.iw-reason.shake2{animation-name:iwshake2}
+@keyframes iwshake{0%,100%{transform:none}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes iwshake2{0%,100%{transform:none}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.iw-sec{display:flex;flex-direction:column;gap:10px;min-width:0}
+.iw-sec h3{margin:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.iw-meta{font:500 11px/1.3 'JetBrains Mono',monospace;color:var(--text-3)}
+.tp-cnt{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+/* step 1 */
+.iw-src{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.iw-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:118px;padding:14px;border-radius:10px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);text-align:left;font:inherit;cursor:pointer;transition:border-color 150ms var(--ease),background-color 150ms var(--ease),box-shadow 150ms var(--ease),transform 150ms var(--spring)}
+.iw-tile:hover{border-color:var(--control);transform:translateY(-1px)}
+.iw-tile[aria-checked=true]{border-color:var(--accent);background:var(--accent-s);box-shadow:0 0 0 3px var(--accent-s)}
+.iw-tile b{font-size:14px;font-weight:600;margin-top:auto}
+.iw-glyph{width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line-2);color:var(--text-2)}
+.iw-tile[aria-checked=true] .iw-glyph{color:var(--accent-t);border-color:transparent;background:var(--surface)}
+.iw-radio{position:absolute;top:12px;right:12px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--control);transition:border-color 150ms var(--ease),border-width 150ms var(--spring)}
+[aria-checked=true]>.iw-radio{border:5px solid var(--accent)}
+.iw-pick{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;align-self:flex-start}
+.iw-pick:hover,.iw-pick[aria-expanded=true]{border-color:var(--control);background:var(--hover)}
+.iw-rel{position:relative;align-self:flex-start}
+/* step 2 */
+.iw-dz{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:190px;padding:20px;border:1.5px dashed var(--line-2);border-radius:12px;background:var(--bg);text-align:center;color:var(--text-2);transition:border-color 150ms var(--ease),background-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.iw-dz:hover{border-color:var(--control)}
+.iw-dz.over{border-color:var(--accent);background:var(--accent-s);box-shadow:0 0 0 4px var(--accent-s)}
+.iw-dz.bad{border-color:var(--danger)}
+.iw-dz b{font-size:14px;font-weight:600;color:var(--text)}
+.iw-dz input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.iw-dz:focus-within{box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.iw-dzi{width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line-2);color:var(--text-2)}
+.iw-alert{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,122,112,.4);background:rgba(255,122,112,.08);font-size:12.5px;line-height:18px;animation:fadein 160ms var(--ease)}
+.iw-alert svg{flex:none;margin-top:1px;color:var(--danger)}
+.iw-alert b{font-weight:600}
+.iw-alert .iw-meta{display:block;margin-top:2px}
+.iw-file{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg)}
+.iw-ext{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font:600 9.5px/1 'JetBrains Mono',monospace;background:rgba(74,222,128,.12);color:var(--ok);flex:none}
+.iw-fn{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.iw-fn b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-cols{display:flex;flex-wrap:wrap;gap:6px}
+.iw-col{display:inline-flex;flex-direction:column;gap:3px;max-width:180px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.iw-col b{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-col span{font:400 11px/1.2 'JetBrains Mono',monospace;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-conn{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:18px;border:1px solid var(--line-2);border-radius:12px;background:var(--bg)}
+.iw-conn b{font-size:14px;font-weight:600}
+.iw-f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:var(--text-2);width:100%;max-width:320px}
+.iw-inp{height:34px;width:100%;padding:0 10px;border-radius:6px;border:1px solid var(--control);background:var(--surface);color:var(--text);font:400 13px/1 'JetBrains Mono',monospace;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.iw-inp::placeholder{color:var(--text-3)}
+.iw-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+.iw-inp.err{border-color:var(--danger)}
+.iw-err{font-size:12px;color:var(--danger);font-weight:400}
+.iw-okline{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);font-size:12.5px}
+.iw-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.iw-row{position:relative;display:flex;align-items:center;gap:10px;height:46px;padding:0 14px 0 40px;border:0;background:var(--bg);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background-color 120ms var(--ease)}
+.iw-row+.iw-row{box-shadow:inset 0 1px 0 var(--line)}
+.iw-row:hover{background:var(--hover)}
+.iw-row[aria-checked=true]{background:var(--accent-s)}
+.iw-row .iw-radio{left:14px;right:auto;top:15px}
+.iw-row b{flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-skr{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px}
+/* step 3 */
+.iw-map{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.wide .iw-map{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px}
+.iw-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+.iw-tbl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.iw-tr{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:center;gap:10px;min-height:46px;padding:6px 12px;background:var(--bg)}
+.iw-tr+.iw-tr{box-shadow:inset 0 1px 0 var(--line)}
+.iw-th{min-height:32px;background:var(--raised);font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3)}
+.iw-tr.skip .iw-sc b{color:var(--text-3)}
+.iw-tr.dup{background:rgba(245,183,59,.06)}
+.iw-sc{display:flex;flex-direction:column;gap:3px;min-width:0}
+.iw-sc b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.iw-sc span{font:400 11px/1.2 'JetBrains Mono',monospace;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-arrow{color:var(--text-3)}
+.iw-selw{display:flex;align-items:center;gap:8px;min-width:0}
+.iw-sel{appearance:none;-webkit-appearance:none;flex:1;min-width:0;height:32px;padding:0 28px 0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none' stroke='%238794B6' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 6.5L8 10l3.5-3.5'/%3E%3C/svg%3E") no-repeat right 9px center;color:var(--text);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;transition:border-color 120ms var(--ease),box-shadow 120ms var(--ease)}
+.iw-sel:hover{border-color:var(--control)}
+.iw-sel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+.iw-sel.skip{color:var(--text-3)}
+.iw-sel.need{border-color:var(--warn);box-shadow:0 0 0 3px rgba(245,183,59,.15)}
+.iw-sel option{background:var(--raised);color:var(--text)}
+.iw-auto{font:500 10px/1 'JetBrains Mono',monospace;color:var(--accent-t);background:var(--accent-s);padding:3px 5px;border-radius:4px;flex:none}
+.iw-req{color:var(--warn);font:600 10.5px/1 'JetBrains Mono',monospace}
+.iw-vr{display:grid;grid-template-columns:minmax(0,1fr) 14px minmax(0,1.1fr);align-items:center;gap:10px;min-height:42px;padding:5px 12px;background:var(--bg)}
+.iw-vr+.iw-vr{box-shadow:inset 0 1px 0 var(--line)}
+.iw-val{display:flex;align-items:center;gap:8px;min-width:0;font-weight:500}
+.iw-val span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-pv{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.iw-pv table{width:100%;border-collapse:collapse;font-size:12.5px}
+.iw-pv th{position:sticky;top:0;background:var(--raised);padding:8px 10px;text-align:left;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.iw-pv td{padding:8px 10px;border-top:1px solid var(--line);white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.iw-pv tr.bad td{background:rgba(255,122,112,.05)}
+.iw-rn{width:36px;font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.iw-cell{display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.iw-miss{color:var(--danger);font-style:italic}
+.iw-mute{color:var(--text-3)}
+.iw-lab{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:5px;background:var(--raised);border:1px solid var(--line);font-size:11.5px}
+/* step 4 */
+.iw-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.iw-stat{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);min-width:0}
+.iw-stat span{font-size:12px;color:var(--text-2)}
+.iw-stat b{font-size:24px;line-height:30px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.iw-stat.warn b{color:var(--warn)}
+.iw-stat.ok b{color:var(--ok)}
+.iw-stat.bad b{color:var(--danger)}
+.iw-route{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);flex-wrap:wrap}
+.iw-route span{display:inline-flex;align-items:center;gap:8px;font-weight:500;min-width:0}
+.iw-note{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
+.iw-note svg{color:var(--warn);flex:none}
+.iw-prog{display:flex;flex-direction:column;gap:10px}
+.iw-ph{display:flex;align-items:center;gap:10px}
+.iw-ph b{font-size:14px;font-weight:600;flex:1}
+.iw-bar{height:8px;border-radius:4px;background:var(--raised);border:1px solid var(--line);overflow:hidden}
+.iw-bar span{display:block;height:100%;border-radius:4px;background:var(--accent);transition:width 120ms linear}
+.iw-log{flex:1;min-height:150px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font:400 12px/20px 'JetBrains Mono',monospace;color:var(--text-2);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.iw-ll{display:flex;gap:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:iwline 200ms var(--ease)}
+@keyframes iwline{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.iw-ll .k{color:var(--text);flex:none}
+.iw-ll.ok .t{color:var(--ok)}
+.iw-ll.bad .t{color:var(--danger)}
+.iw-ll .t{flex:none;width:30px}
+.iw-ll .m{overflow:hidden;text-overflow:ellipsis}
+.iw-done{display:flex;align-items:center;gap:16px}
+.iw-done h3{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+.iw-spark{width:44px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.iw-spark .tp-ring{transform:scale(2.4)}
+.iw-spark .tp-ring.fx{animation:iwpop 360ms var(--spring) both}
+@keyframes iwpop{0%{transform:scale(1.2)}60%{transform:scale(2.8)}100%{transform:scale(2.4)}}
+.iw-etbl{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.iw-etbl table{width:100%;border-collapse:collapse;font-size:12.5px}
+.iw-etbl th{background:var(--raised);padding:8px 12px;text-align:left;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3)}
+.iw-etbl td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:top}
+.iw-etbl td:first-child{font:500 12px/1.4 'JetBrains Mono',monospace;color:var(--text-2);width:56px}
+.iw-etbl td.v{font:400 11.5px/1.4 'JetBrains Mono',monospace;color:var(--text-3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iw-lock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:var(--surface)}
+.iw-lock b{font-size:15px;font-weight:600}
+/* narrow (phone + 400 frames) */
+.narrow .iw-head{padding-left:14px}
+.narrow .iw-into{display:none}
+.narrow .iw-sl{font-size:11px}
+.narrow .iw-body{padding:16px}
+.narrow .iw-src{grid-template-columns:minmax(0,1fr)}
+.narrow .iw-tile{min-height:0;flex-direction:row;align-items:center}
+.narrow .iw-tile b{margin-top:0}
+.narrow .iw-tile .iw-meta{display:none}
+.narrow .iw-tr{grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 12px}
+.narrow .iw-tr .iw-arrow,.narrow .iw-th{display:none}
+.narrow .iw-vr{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+.narrow .iw-vr .iw-arrow{display:none}
+.narrow .iw-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.narrow .iw-foot{padding:0 12px;gap:6px}
+.narrow .iw-reason{white-space:normal;font-size:12px;line-height:15px}
+.narrow .bt{height:40px}
+.narrow .iw-sel{height:40px;font-size:14px}
+@media (max-width:760px){.iw-head{padding-left:14px}.iw-into{display:none}.iw-body{padding:16px}.iw-src{grid-template-columns:minmax(0,1fr)}.iw-tr{grid-template-columns:minmax(0,1fr);gap:6px}.iw-tr .iw-arrow,.iw-th{display:none}.iw-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.wide .iw-map{grid-template-columns:minmax(0,1fr)}}
+.iw-ib:focus-visible,.iw-sb:focus-visible,.iw-tile:focus-visible,.iw-pick:focus-visible,.iw-row:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}.sk,.spin,.iw-fill.run{animation:none}}
+
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:4960px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · IMPORT</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Import wizard</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>Trello · Jira · CSV</span><span>4 steps</span><span>client-side CSV parse</span><span>error report</span><span>role: {{role}}</span></div>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="width:{{fx.fw}}px">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="height:{{fx.h}}px;border-radius:{{fx.r}}px">
+          <div class="iw {{fx.z.cls}}" role="dialog" aria-label="Import tasks" sc-camel-on-key-down="{{fx.z.onKey}}">
+            <sc-if value="{{fx.z.noAccess}}" hint-placeholder-val="{{false}}">
+              <div class="iw-lock">
+                <span class="iw-dzi"><svg width="18" height="18" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2"></rect><path d="M4 5.5V4a2 2 0 014 0v1.5"></path></svg></span>
+                <b>Import needs member access</b>
+                <span class="iw-meta">You have view access to Platform Rebuild</span>
+                <a class="bt sec" href="#request-access">Ask an admin</a>
+              </div>
+            </sc-if>
+            <sc-if value="{{fx.z.access}}" hint-placeholder-val="{{true}}">
+              <div class="iw-head">
+                <svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 11v2.5h11V11"></path></svg>
+                <h2>Import</h2>
+                <span class="iw-into">into <span class="pk" style="background:oklch(var(--pk-l) var(--pk-c) {{fx.z.proj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{fx.z.proj.hue}})">{{fx.z.proj.key}}</span>{{fx.z.proj.name}}</span>
+                <span style="flex:1"></span>
+                <sc-if value="{{fx.z.canClose}}" hint-placeholder-val="{{true}}"><button class="iw-ib" type="button" aria-label="Close and start over" sc-camel-on-click="{{fx.z.reset}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button></sc-if>
+              </div>
+
+              <div class="iw-steps" role="list" aria-label="Import steps">
+                <span class="iw-track" aria-hidden="true"><span class="iw-fill {{fx.z.fillCls}}" style="width:{{fx.z.fill}}%"></span></span>
+                <sc-for list="{{fx.z.steps}}" as="sp" hint-placeholder-count="4">
+                  <div role="listitem" class="iw-step {{sp.cls}}" aria-current="{{sp.cur}}">
+                    <sc-if value="{{sp.canGo}}" hint-placeholder-val="{{false}}"><button class="iw-sb" type="button" sc-camel-on-click="{{sp.go}}" aria-label="Back to step {{sp.n}}: {{sp.label}}"><span class="iw-dot"><sc-if value="{{sp.done}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if><sc-if value="{{sp.todo}}" hint-placeholder-val="{{true}}">{{sp.n}}</sc-if></span><span class="iw-sl">{{sp.label}}</span></button></sc-if>
+                    <sc-if value="{{sp.noGo}}" hint-placeholder-val="{{true}}"><span class="iw-sb"><span class="iw-dot"><sc-if value="{{sp.done}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if><sc-if value="{{sp.running}}" hint-placeholder-val="{{false}}"><span class="spin" style="width:12px;height:12px"></span></sc-if><sc-if value="{{sp.todoNum}}" hint-placeholder-val="{{true}}">{{sp.n}}</sc-if></span><span class="iw-sl">{{sp.label}}</span></span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div class="iw-body">
+                <!-- STEP 1 -->
+                <sc-if value="{{fx.z.s1}}" hint-placeholder-val="{{true}}">
+                  <div class="iw-sec">
+                    <h3>Source</h3>
+                    <div class="iw-src" role="radiogroup" aria-label="Import source">
+                      <sc-for list="{{fx.z.sources}}" as="so" hint-placeholder-count="3">
+                        <button class="iw-tile" type="button" role="radio" aria-checked="{{so.on}}" sc-camel-tab-index="{{so.tab}}" ref="{{so.ref}}" sc-camel-on-click="{{so.pick}}" sc-camel-on-key-down="{{so.key}}">
+                          <span class="iw-glyph">
+                            <sc-if value="{{so.isBoard}}" hint-placeholder-val="{{true}}"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="2"></rect><rect x="4" y="4.5" width="3" height="6" rx=".8"></rect><rect x="9" y="4.5" width="3" height="4" rx=".8"></rect></svg></sc-if>
+                            <sc-if value="{{so.isIssue}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8l6.2 6.2L8 14.2 1.8 8z"></path><path d="M8 5.5v3.2M8 10.6h.01"></path></svg></sc-if>
+                            <sc-if value="{{so.isFile}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z"></path><path d="M9.5 1.5v3h3M5.5 8h5M5.5 10.5h5M8 7v6"></path></svg></sc-if>
+                          </span>
+                          <b>{{so.name}}</b><span class="iw-meta">{{so.meta}}</span><span class="iw-radio" aria-hidden="true"></span>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div class="iw-sec">
+                    <h3>Import into</h3>
+                    <div class="iw-rel">
+                      <button class="iw-pick" type="button" aria-haspopup="listbox" aria-expanded="{{fx.z.projOpen}}" sc-camel-on-click="{{fx.z.toggleProj}}"><span class="pk" style="background:oklch(var(--pk-l) var(--pk-c) {{fx.z.proj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{fx.z.proj.hue}})">{{fx.z.proj.key}}</span>{{fx.z.proj.name}}<svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button>
+                      <sc-if value="{{fx.z.projOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="tp-menu" role="listbox" aria-label="Target project" style="top:40px;left:0">
+                          <sc-for list="{{fx.z.projOpts}}" as="po" hint-placeholder-count="3"><button class="tp-mi {{po.on}}" type="button" role="option" aria-selected="{{po.sel}}" sc-camel-on-click="{{po.pick}}"><span class="pk" style="background:oklch(var(--pk-l) var(--pk-c) {{po.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{po.hue}})">{{po.key}}</span><span style="flex:1">{{po.name}}</span><span class="iw-meta">{{po.next}}</span></button></sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 2 · CSV -->
+                <sc-if value="{{fx.z.s2csv}}" hint-placeholder-val="{{false}}">
+                  <sc-if value="{{fx.z.noFile}}" hint-placeholder-val="{{true}}">
+                    <div class="iw-dz {{fx.z.dzCls}}" sc-camel-on-drag-over="{{fx.z.onDragOver}}" sc-camel-on-drag-leave="{{fx.z.onDragLeave}}" sc-camel-on-drop="{{fx.z.onDrop}}">
+                      <span class="iw-dzi"><svg width="18" height="18" sc-camel-view-box="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12V3M5.5 6.5L9 3l3.5 3.5M3 12.5V15h12v-2.5"></path></svg></span>
+                      <b>{{fx.z.dzText}}</b>
+                      <span class="iw-meta">.csv · max 10 MB</span>
+                      <input type="file" accept=".csv,text/csv" aria-label="Choose a CSV file" sc-camel-on-change="{{fx.z.onPick}}">
+                    </div>
+                    <sc-if value="{{fx.z.reading}}" hint-placeholder-val="{{false}}"><div class="iw-note" role="status"><span class="spin"></span>Reading {{fx.z.readingName}}</div></sc-if>
+                    <sc-if value="{{fx.z.hasFileErr}}" hint-placeholder-val="{{false}}">
+                      <div class="iw-alert" role="alert"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3.5M8 11h.01"></path></svg><span><b>{{fx.z.fileErr.title}}</b><span class="iw-meta">{{fx.z.fileErr.meta}}</span></span></div>
+                    </sc-if>
+                    <button class="bt sm" type="button" sc-camel-on-click="{{fx.z.useSample}}" style="align-self:center">Use sample file</button>
+                  </sc-if>
+                  <sc-if value="{{fx.z.hasFile}}" hint-placeholder-val="{{false}}">
+                    <div class="iw-file">
+                      <span class="iw-ext">CSV</span>
+                      <span class="iw-fn"><b>{{fx.z.file.name}}</b><span class="iw-meta">{{fx.z.file.meta}}</span></span>
+                      <label class="bt sm sec">Replace<input class="vh" type="file" accept=".csv,text/csv" aria-label="Replace CSV file" sc-camel-on-change="{{fx.z.onPick}}"></label>
+                      <button class="iw-ib" type="button" aria-label="Remove file" sc-camel-on-click="{{fx.z.removeFile}}"><svg width="12" height="12" sc-camel-view-box="0 0 10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8"></path></svg></button>
+                    </div>
+                    <sc-if value="{{fx.z.hasFileErr}}" hint-placeholder-val="{{false}}">
+                      <div class="iw-alert" role="alert"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3.5M8 11h.01"></path></svg><span><b>{{fx.z.fileErr.title}}</b><span class="iw-meta">{{fx.z.fileErr.meta}}</span></span></div>
+                    </sc-if>
+                    <div class="iw-sec">
+                      <h3>Detected columns <span class="tp-cnt">{{fx.z.colCount}}</span></h3>
+                      <div class="iw-cols">
+                        <sc-for list="{{fx.z.cols}}" as="cc" hint-placeholder-count="6"><span class="iw-col"><b>{{cc.name}}</b><span>{{cc.sample}}</span></span></sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+
+                <!-- STEP 2 · Trello / Jira -->
+                <sc-if value="{{fx.z.s2api}}" hint-placeholder-val="{{false}}">
+                  <sc-if value="{{fx.z.connIdle}}" hint-placeholder-val="{{true}}">
+                    <div class="iw-conn">
+                      <b>Connect {{fx.z.srcName}}</b>
+                      <sc-if value="{{fx.z.needsSite}}" hint-placeholder-val="{{false}}">
+                        <label class="iw-f">Site URL<input class="iw-inp {{fx.z.siteCls}}" type="text" placeholder="jira.team.dev" aria-invalid="{{fx.z.siteBad}}" value="{{fx.z.site}}" sc-camel-on-change="{{fx.z.onSite}}" sc-camel-on-key-down="{{fx.z.onSiteKey}}"><sc-if value="{{fx.z.siteBad}}" hint-placeholder-val="{{false}}"><span class="iw-err" role="alert">{{fx.z.siteErr}}</span></sc-if></label>
+                      </sc-if>
+                      <button class="bt sec" type="button" sc-camel-on-click="{{fx.z.connect}}">Connect</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{fx.z.connecting}}" hint-placeholder-val="{{false}}">
+                    <div class="iw-note" role="status"><span class="spin"></span>Connecting to {{fx.z.srcName}}</div>
+                    <div class="iw-list" aria-busy="true" aria-label="Loading {{fx.z.boardLabel}}">
+                      <sc-for list="{{fx.z.skRows}}" as="sk" hint-placeholder-count="3"><div class="iw-skr"><i class="sk" style="width:16px;height:16px;border-radius:50%"></i><i class="sk" style="height:12px;width:{{sk.w}}%"></i><i class="sk" style="height:10px;width:60px;margin-left:auto"></i></div></sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{fx.z.connError}}" hint-placeholder-val="{{false}}">
+                    <div class="iw-alert" role="alert"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3.5M8 11h.01"></path></svg><span style="flex:1"><b>Couldn’t reach {{fx.z.srcName}}</b><span class="iw-meta">401 · authorization expired</span></span><button class="bt sm sec" type="button" sc-camel-on-click="{{fx.z.connect}}">Retry</button></div>
+                  </sc-if>
+                  <sc-if value="{{fx.z.connected}}" hint-placeholder-val="{{false}}">
+                    <div class="iw-okline"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg><span style="flex:1">{{fx.z.srcName}} · alex@team.dev</span><button class="bt sm" type="button" sc-camel-on-click="{{fx.z.disconnect}}">Disconnect</button></div>
+                    <div class="iw-sec">
+                      <h3>{{fx.z.boardLabel}}</h3>
+                      <div class="iw-list" role="radiogroup" aria-label="{{fx.z.boardLabel}}">
+                        <sc-for list="{{fx.z.boards}}" as="bo" hint-placeholder-count="3"><button class="iw-row" type="button" role="radio" aria-checked="{{bo.on}}" sc-camel-on-click="{{bo.pick}}"><span class="iw-radio" aria-hidden="true"></span><b>{{bo.name}}</b><span class="iw-meta">{{bo.meta}}</span></button></sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+
+                <!-- STEP 3 -->
+                <sc-if value="{{fx.z.s3}}" hint-placeholder-val="{{false}}">
+                  <div class="iw-map">
+                    <div class="iw-sec">
+                      <h3>Fields <span class="tp-cnt">{{fx.z.mappedCount}}/{{fx.z.colCount}}</span></h3>
+                      <div class="iw-tbl">
+                        <div class="iw-tr iw-th" aria-hidden="true"><span>{{fx.z.srcName}} column</span><span></span><span>Lightex field</span></div>
+                        <sc-for list="{{fx.z.fieldRows}}" as="fr2" hint-placeholder-count="6">
+                          <div class="iw-tr {{fr2.cls}}">
+                            <span class="iw-sc"><b>{{fr2.name}}</b><span>{{fr2.sample}}</span></span>
+                            <svg class="iw-arrow" width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"></path></svg>
+                            <span class="iw-selw"><sc-raw-select class="iw-sel {{fr2.selCls}}" aria-label="Map {{fr2.name}} to" value="{{fr2.val}}" sc-camel-on-change="{{fr2.onChange}}"><sc-for list="{{fx.z.fieldOpts}}" as="fo" hint-placeholder-count="9"><option value="{{fo.v}}">{{fo.label}}</option></sc-for></sc-raw-select><sc-if value="{{fr2.auto}}" hint-placeholder-val="{{false}}"><span class="iw-auto" title="Matched by name">auto</span></sc-if></span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <div class="iw-side">
+                      <sc-if value="{{fx.z.hasStatusMap}}" hint-placeholder-val="{{true}}">
+                        <div class="iw-sec">
+                          <h3>Statuses <span class="tp-cnt">{{fx.z.statusDone}}/{{fx.z.statusCount}}</span></h3>
+                          <div class="iw-tbl">
+                            <sc-for list="{{fx.z.statusRows}}" as="sm" hint-placeholder-count="4">
+                              <div class="iw-vr">
+                                <span class="iw-val"><span>{{sm.name}}</span><span class="tp-cnt">{{sm.count}}</span></span>
+                                <svg class="iw-arrow" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"></path></svg>
+                                <span class="iw-selw"><span class="tp-g {{sm.glyph}}" style="color:{{sm.color}}" aria-hidden="true"></span><sc-raw-select class="iw-sel {{sm.selCls}}" aria-label="Map status {{sm.name}} to" value="{{sm.val}}" sc-camel-on-change="{{sm.onChange}}"><sc-for list="{{fx.z.statusOpts}}" as="so2" hint-placeholder-count="7"><option value="{{so2.v}}">{{so2.label}}</option></sc-for></sc-raw-select></span>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{fx.z.hasUserMap}}" hint-placeholder-val="{{true}}">
+                        <div class="iw-sec">
+                          <h3>People <span class="tp-cnt">{{fx.z.userCount}}</span></h3>
+                          <div class="iw-tbl">
+                            <sc-for list="{{fx.z.userRows}}" as="um" hint-placeholder-count="4">
+                              <div class="iw-vr">
+                                <span class="iw-val"><span>{{um.name}}</span><span class="tp-cnt">{{um.count}}</span></span>
+                                <svg class="iw-arrow" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"></path></svg>
+                                <span class="iw-selw"><sc-if value="{{um.hasAv}}" hint-placeholder-val="{{true}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{um.hue}})" aria-hidden="true">{{um.ini}}</span></sc-if><sc-if value="{{um.noAv}}" hint-placeholder-val="{{false}}"><span class="tp-av" style="border:1px dashed var(--line-2)" aria-hidden="true"></span></sc-if><sc-raw-select class="iw-sel {{um.selCls}}" aria-label="Map person {{um.name}} to" value="{{um.val}}" sc-camel-on-change="{{um.onChange}}"><sc-for list="{{fx.z.userOpts}}" as="uo" hint-placeholder-count="7"><option value="{{uo.v}}">{{uo.label}}</option></sc-for></sc-raw-select></span>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <div class="iw-sec">
+                    <h3>Preview <span class="iw-meta">first 5 rows</span></h3>
+                    <div class="iw-pv">
+                      <sc-raw-table>
+                        <sc-raw-thead><sc-raw-tr><sc-raw-th class="iw-rn">Row</sc-raw-th><sc-for list="{{fx.z.pvCols}}" as="pc2" hint-placeholder-count="5"><sc-raw-th>{{pc2.label}}</sc-raw-th></sc-for></sc-raw-tr></sc-raw-thead>
+                        <sc-raw-tbody>
+                          <sc-for list="{{fx.z.pvRows}}" as="pr" hint-placeholder-count="5">
+                            <sc-raw-tr class="{{pr.cls}}" title="{{pr.issue}}">
+                              <sc-raw-td class="iw-rn">{{pr.n}}</sc-raw-td>
+                              <sc-for list="{{pr.cells}}" as="pcl" hint-placeholder-count="5">
+                                <sc-raw-td>
+                                  <sc-if value="{{pcl.isText}}" hint-placeholder-val="{{true}}"><span class="{{pcl.cls}}">{{pcl.text}}</span></sc-if>
+                                  <sc-if value="{{pcl.isStatus}}" hint-placeholder-val="{{false}}"><span class="iw-cell"><span class="tp-g {{pcl.glyph}}" style="color:{{pcl.color}}"></span>{{pcl.text}}</span></sc-if>
+                                  <sc-if value="{{pcl.isUser}}" hint-placeholder-val="{{false}}"><span class="iw-cell"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{pcl.hue}})">{{pcl.ini}}</span>{{pcl.text}}</span></sc-if>
+                                  <sc-if value="{{pcl.isPri}}" hint-placeholder-val="{{false}}"><span class="iw-cell"><span class="tp-bars {{pcl.bars}}" style="color:{{pcl.color}}"><i></i><i></i><i></i><i></i></span>{{pcl.text}}</span></sc-if>
+                                  <sc-if value="{{pcl.isLabels}}" hint-placeholder-val="{{false}}"><span class="iw-cell"><sc-for list="{{pcl.labels}}" as="lb" hint-placeholder-count="2"><span class="iw-lab">{{lb.t}}</span></sc-for></span></sc-if>
+                                </sc-raw-td>
+                              </sc-for>
+                            </sc-raw-tr>
+                          </sc-for>
+                        </sc-raw-tbody>
+                      </sc-raw-table>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 4 · summary -->
+                <sc-if value="{{fx.z.s4sum}}" hint-placeholder-val="{{false}}">
+                  <div class="iw-stats">
+                    <div class="iw-stat"><span>Tasks</span><b>{{fx.z.nImport}}</b></div>
+                    <div class="iw-stat {{fx.z.skipCls}}"><span>Will skip</span><b>{{fx.z.nSkip}}</b></div>
+                    <div class="iw-stat"><span>Statuses</span><b>{{fx.z.statusCount}}</b></div>
+                    <div class="iw-stat"><span>People</span><b>{{fx.z.nPeople}}</b></div>
+                  </div>
+                  <div class="iw-route">
+                    <span><span class="iw-glyph" style="width:28px;height:28px">
+                      <sc-if value="{{fx.z.src.isBoard}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="2"></rect><rect x="4" y="4.5" width="3" height="6" rx=".8"></rect><rect x="9" y="4.5" width="3" height="4" rx=".8"></rect></svg></sc-if>
+                      <sc-if value="{{fx.z.src.isIssue}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8l6.2 6.2L8 14.2 1.8 8z"></path><path d="M8 5.5v3.2M8 10.6h.01"></path></svg></sc-if>
+                      <sc-if value="{{fx.z.src.isFile}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z"></path><path d="M9.5 1.5v3h3M5.5 8h5M5.5 10.5h5M8 7v6"></path></svg></sc-if>
+                    </span>{{fx.z.originName}}</span>
+                    <svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"></path></svg>
+                    <span><span class="pk" style="background:oklch(var(--pk-l) var(--pk-c) {{fx.z.proj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{fx.z.proj.hue}})">{{fx.z.proj.key}}</span>{{fx.z.proj.name}}</span>
+                    <span class="iw-meta" style="margin-left:auto">{{fx.z.keyRange}}</span>
+                  </div>
+                  <sc-if value="{{fx.z.hasSkips}}" hint-placeholder-val="{{true}}"><div class="iw-note"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2l6.5 11.5h-13z"></path><path d="M8 6.5v3M8 11.6h.01"></path></svg>{{fx.z.skipSummary}}</div></sc-if>
+                </sc-if>
+
+                <!-- STEP 4 · running -->
+                <sc-if value="{{fx.z.running}}" hint-placeholder-val="{{false}}">
+                  <div class="iw-prog">
+                    <div class="iw-ph"><b>Importing</b><span class="iw-meta">{{fx.z.pos}} / {{fx.z.total}} rows</span><span class="iw-meta" style="color:var(--text)">{{fx.z.pct}}%</span></div>
+                    <div class="iw-bar" role="progressbar" aria-label="Import progress" aria-valuenow="{{fx.z.pct}}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{fx.z.pct}}%"></span></div>
+                  </div>
+                  <div class="iw-log" role="log" aria-live="polite" aria-label="Import log">
+                    <sc-for list="{{fx.z.log}}" as="lg" hint-placeholder-count="6"><div class="iw-ll {{lg.cls}}"><span class="t">{{lg.t}}</span><span class="k">{{lg.k}}</span><span class="m">{{lg.m}}</span></div></sc-for>
+                  </div>
+                </sc-if>
+
+                <!-- STEP 4 · results -->
+                <sc-if value="{{fx.z.done}}" hint-placeholder-val="{{false}}">
+                  <div class="iw-done"><span class="iw-spark is" aria-hidden="true"><span class="tp-ring fx"></span></span><div style="display:flex;flex-direction:column;gap:4px"><h3>Import complete</h3><span class="iw-meta">{{fx.z.keyRangeDone}}</span></div></div>
+                  <div class="iw-stats" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+                    <div class="iw-stat ok"><span>Imported</span><b>{{fx.z.nOk}}</b></div>
+                    <div class="iw-stat {{fx.z.badCls}}"><span>Skipped</span><b>{{fx.z.nBad}}</b></div>
+                  </div>
+                  <sc-if value="{{fx.z.hasErrors}}" hint-placeholder-val="{{true}}">
+                    <div class="iw-sec">
+                      <h3>Error report <span style="flex:1"></span><a class="bt sm sec" href="{{fx.z.reportHref}}" download="{{fx.z.reportName}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg>Download report</a></h3>
+                      <div class="iw-etbl">
+                        <sc-raw-table>
+                          <sc-raw-thead><sc-raw-tr><sc-raw-th>Row</sc-raw-th><sc-raw-th>Reason</sc-raw-th><sc-raw-th>Value</sc-raw-th></sc-raw-tr></sc-raw-thead>
+                          <sc-raw-tbody><sc-for list="{{fx.z.errors}}" as="er" hint-placeholder-count="4"><sc-raw-tr><sc-raw-td>{{er.row}}</sc-raw-td><sc-raw-td>{{er.reason}}</sc-raw-td><sc-raw-td class="v">{{er.value}}</sc-raw-td></sc-raw-tr></sc-for></sc-raw-tbody>
+                        </sc-raw-table>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </div>
+
+              <div class="iw-foot">
+                <sc-if value="{{fx.z.hasReason}}" hint-placeholder-val="{{true}}"><span class="iw-reason {{fx.z.reasonCls}}" role="status" id="why-{{fx.id}}"><sc-if value="{{fx.z.reasonWarn}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2l6.5 11.5h-13z"></path><path d="M8 6.5v3M8 11.6h.01"></path></svg></sc-if>{{fx.z.reason}}</span></sc-if>
+                <span style="flex:1"></span>
+                <sc-if value="{{fx.z.showBack}}" hint-placeholder-val="{{true}}"><button class="bt" type="button" sc-camel-on-click="{{fx.z.back}}">Back</button></sc-if>
+                <sc-if value="{{fx.z.showNext}}" hint-placeholder-val="{{true}}"><button class="bt pri {{fx.z.nextCls}}" type="button" aria-disabled="{{fx.z.blocked}}" aria-describedby="why-{{fx.id}}" sc-camel-on-click="{{fx.z.next}}">Next<svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg></button></sc-if>
+                <sc-if value="{{fx.z.showStart}}" hint-placeholder-val="{{false}}"><button class="bt pri" type="button" sc-camel-on-click="{{fx.z.start}}">Start import</button></sc-if>
+                <sc-if value="{{fx.z.showDoneBtns}}" hint-placeholder-val="{{false}}"><button class="bt" type="button" sc-camel-on-click="{{fx.z.reset}}">Import more</button><a class="bt pri" href="#project">Open project</a></sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:4960}}">
+class Component extends DCLogic {
+  state = { im: {} };
+  // ---------- data ----------
+  people() { return [{ name: 'Alex Kim', ini: 'AK', hue: 285 }, { name: 'Jordan Lee', ini: 'JL', hue: 200 }, { name: 'Sam Patel', ini: 'SP', hue: 20 }, { name: 'Riley Chen', ini: 'RC', hue: 150 }, { name: 'Morgan Diaz', ini: 'MD', hue: 60 }, { name: 'Taylor Ng', ini: 'TN', hue: 330 }]; }
+  stat() { return { backlog: ['Backlog', 'backlog', 'var(--text-3)'], todo: ['Todo', 'todo', 'var(--todo)'], progress: ['In progress', 'progress', 'var(--warn)'], review: ['In review', 'review', 'var(--info)'], done: ['Done', 'done', 'var(--ok)'], cancel: ['Canceled', 'cancel', 'var(--text-3)'] }; }
+  projects() { return [{ id: 'PRJ', key: 'PR', prefix: 'PRJ', name: 'Platform Rebuild', hue: 255, next: 61 }, { id: 'MO', key: 'MO', prefix: 'MO', name: 'Mobile App', hue: 150, next: 23 }, { id: 'IN', key: 'IN', prefix: 'IN', name: 'Infra', hue: 30, next: 15 }]; }
+  titles() {
+    return ['Fix login redirect loop', 'Add SSO for admin console', 'Board loads slowly with 500 cards', 'Rate-limit password reset', 'Dark mode for settings', 'Export sprint report as PDF', 'Flaky test: drag between columns', 'Webhook retries with backoff', 'Keyboard shortcut cheatsheet', 'Archive closed sprints', 'Paginate activity feed', 'Mobile: offline task cache', 'Audit log for role changes', 'Invite flow email copy', 'Bulk edit priority', 'Search by task key', 'Billing: proration on seat change', 'Upgrade to Node 22', 'Remove legacy v1 endpoints', 'Attachment virus scan', 'Due date reminders', 'Burndown off by one day', 'Slack notifications digest', 'Custom fields on cards', 'Reduce bundle size under 300 KB', 'Timezone bug in due dates', 'Retry failed uploads', 'Sticky table headers', 'Onboarding checklist', 'Two-factor recovery codes'];
+  }
+  csvCell(v) { const s = String(v == null ? '' : v); return /[",\n\r;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  sampleText() {
+    const T = this.titles();
+    const ST = ['todo', 'in progress', 'todo', 'done', 'review', 'in progress', 'blocked'];
+    const AS = ['Alex Kim', 'Riley Chen', 'Sam Patel', 'Chris Ortiz', ''];
+    const PR = ['High', 'Medium', 'Low', 'Urgent', 'Medium', ''];
+    const ES = ['3', '2', '5', '1', '8', ''];
+    const TG = ['frontend', 'backend', 'frontend;perf', '', 'api'];
+    const DS = ['Repro in Safari 17', 'See incident 112', '', 'Spec in "Billing v2" doc', ''];
+    const lines = [['Title', 'Description', 'Status', 'Assignee', 'Priority', 'Estimate', 'Due', 'Tags'].join(',')];
+    for (let i = 0; i < 48; i++) {
+      const title = i === 6 || i === 40 ? '' : T[i % 30] + (i >= 30 ? ' (follow-up)' : '');
+      const due = i === 18 ? 'next week' : (i % 4 === 3 ? '' : '2026-10-' + String(8 + (i % 20)).padStart(2, '0'));
+      const est = i === 25 ? 'XL' : ES[i % 6];
+      lines.push([title, DS[i % 5], ST[i % 7], AS[i % 5], PR[i % 6], est, due, TG[i % 5]].map((x) => this.csvCell(x)).join(','));
+    }
+    return lines.join('\r\n') + '\r\n';
+  }
+  apiData(source, board) {
+    const T = this.titles();
+    if (source === 'trello') {
+      const n = board === 'web' ? 30 : board === 'mob' ? 24 : 0; const off = board === 'mob' ? 6 : 0;
+      const L = ['Backlog', 'To Do', 'Doing', 'Review', 'Done']; const M = ['Alex Kim', 'jordan.lee', 'Sam P.', 'Priya Shah', ''];
+      const rows = []; for (let i = 0; i < n; i++) rows.push([i === 12 ? '' : T[(i + off) % 30], i % 3 ? '' : 'Checklist inside', L[i % 5], M[i % 5], i === 20 ? 'someday' : (i % 3 === 2 ? '' : '2026-10-' + String(9 + (i % 18)).padStart(2, '0')), ['frontend', '', 'bug', 'api'][i % 4]]);
+      return { cols: ['Card name', 'Description', 'List', 'Members', 'Due date', 'Labels'], rows };
+    }
+    const n = board === 'web' ? 30 : board === 'pay' ? 24 : 0; const off = board === 'pay' ? 12 : 0;
+    const S = ['Open', 'In Progress', 'In Review', 'Done', 'Won’t Do']; const U = ['Alex Kim', 'Jordan Lee', 'Riley Chen', 'Dana Wu', ''];
+    const P = ['Highest', 'High', 'Medium', 'Low', 'Lowest']; const SP = ['1', '2', '3', '5', '8', ''];
+    const rows = []; for (let i = 0; i < n; i++) rows.push([i === 9 ? '' : T[(i + off) % 30], i % 4 ? '' : 'Acceptance criteria in ticket', S[i % 5], U[i % 5], P[i % 5], i === 17 ? '?' : SP[i % 6], i % 3 === 1 ? '' : '2026-10-' + String(12 + (i % 16)).padStart(2, '0'), ['backend', 'frontend', '', 'infra'][i % 4]]);
+    return { cols: ['Summary', 'Description', 'Status', 'Assignee', 'Priority', 'Story Points', 'Due date', 'Labels'], rows };
+  }
+  boardsFor(source) {
+    return source === 'trello'
+      ? [{ id: 'web', name: 'Web redesign', meta: '30 cards · 5 lists' }, { id: 'mob', name: 'Mobile sprint board', meta: '24 cards' }, { id: 'ops', name: 'Ops backlog', meta: '0 cards' }]
+      : [{ id: 'web', name: 'WEB · Website', meta: '30 issues' }, { id: 'pay', name: 'PAY · Payments', meta: '24 issues' }, { id: 'old', name: 'OLD · Archive', meta: '0 issues' }];
+  }
+  // ---------- CSV ----------
+  parseCsv(text, maxRows) {
+    let i = text.charCodeAt(0) === 0xFEFF ? 1 : 0;
+    const nl = text.indexOf('\n');
+    const first = text.slice(i, nl < 0 ? text.length : nl);
+    const cnt = (ch) => first.split(ch).length - 1;
+    const delim = [',', ';', '\t'].reduce((a, b) => (cnt(b) > cnt(a) ? b : a), ',');
+    const rows = []; let row = []; let f = ''; let q = false; let fieldStart = true; let line = 1; let qLine = 0; let stopped = false;
+    for (; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+        else { if (ch === '\n') line++; f += ch; }
+        continue;
+      }
+      if (ch === '"' && fieldStart) { q = true; qLine = line; fieldStart = false; continue; }
+      if (ch === delim) { row.push(f); f = ''; fieldStart = true; continue; }
+      if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        line++;
+        row.push(f); f = ''; fieldStart = true;
+        if (!(row.length === 1 && row[0] === '')) rows.push(row);
+        row = [];
+        if (rows.length > maxRows) { stopped = true; break; }
+        continue;
+      }
+      f += ch; fieldStart = false;
+    }
+    if (!stopped && (f !== '' || row.length)) { row.push(f); rows.push(row); }
+    return { rows, delim, unterminated: q && !stopped, qLine, stopped };
+  }
+  ingestText(id, name, size, text, partial) {
+    const set = (p) => this.imSet(id, p);
+    if (text.indexOf('\u0000') >= 0) { set({ reading: null, file: null, fileErr: { title: 'Not a text file', meta: name } }); return; }
+    const res = this.parseCsv(text, 50);
+    if (res.unterminated && !partial) { set({ reading: null, file: null, fileErr: { title: 'Unclosed quote', meta: name + ' · near line ' + res.qLine } }); return; }
+    if (!res.rows.length) { set({ reading: null, file: null, fileErr: { title: 'No rows found', meta: name } }); return; }
+    const seen = {};
+    const head = res.rows[0].map((h, k) => { let s = String(h).trim().slice(0, 60) || 'Column ' + (k + 1); const b = s.toLowerCase(); seen[b] = (seen[b] || 0) + 1; if (seen[b] > 1) s += ' (' + seen[b] + ')'; return s; });
+    if (head.length > 40) { set({ reading: null, file: null, fileErr: { title: 'Too many columns', meta: head.length + ' columns · max 40' } }); return; }
+    const rows = res.rows.slice(1, 51).map((r) => head.map((_, k) => String(r[k] == null ? '' : r[k]).slice(0, 500)));
+    if (!rows.length) { set({ reading: null, file: null, fileErr: { title: 'Header only, no rows', meta: name } }); return; }
+    const truncated = res.stopped || !!partial;
+    const kb = size / 1024;
+    const sz = kb < 1024 ? Math.max(1, Math.round(kb)) + ' KB' : (kb / 1024).toFixed(1) + ' MB';
+    const delimName = res.delim === ',' ? '' : (res.delim === ';' ? ' · ; separated' : ' · tab separated');
+    set({ reading: null, fileErr: null, drag: false, file: { name, size, cols: head, rows, meta: (truncated ? 'first 50 rows' : rows.length + ' rows') + ' · ' + head.length + ' columns · ' + sz + delimName }, fmap: null, smap: null, umap: null, mapKey: null });
+  }
+  readFile(id, f) {
+    const self = this;
+    const set = (p) => this.imSet(id, p);
+    if (!f) return;
+    const name = String(f.name || 'file').slice(0, 120);
+    const ext = name.indexOf('.') >= 0 ? name.split('.').pop().toLowerCase() : '';
+    const mb = (f.size || 0) / 1048576;
+    if (ext !== 'csv') { set({ drag: false, fileErr: { title: 'Only .csv files', meta: name + ' · ' + (ext ? '.' + ext : 'no extension') + ' · export as CSV first' } }); return; }
+    if (mb > 10) { set({ drag: false, fileErr: { title: 'File is too large', meta: name + ' · ' + mb.toFixed(1) + ' MB · max 10 MB' } }); return; }
+    if (!f.size) { set({ drag: false, fileErr: { title: 'File is empty', meta: name } }); return; }
+    set({ drag: false, fileErr: null, reading: name });
+    const LIM = 1048576;
+    const partial = f.size > LIM;
+    const blob = f.slice ? f.slice(0, LIM) : f;
+    const fail = () => set({ reading: null, fileErr: { title: 'Couldn’t read file', meta: name } });
+    const ok = (t) => self.ingestText(id, name, f.size, String(t || ''), partial);
+    if (blob.text) blob.text().then(ok, fail);
+    else { try { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = fail; fr.readAsText(blob); } catch (e) { fail(); } }
+  }
+  // ---------- matching ----------
+  norm(s) { return String(s || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  autoField(name) {
+    const n = this.norm(name);
+    const SYN = { title: ['title', 'summary', 'name', 'card name', 'task', 'task name', 'subject'], description: ['description', 'desc', 'details', 'body', 'notes'], status: ['status', 'list', 'state', 'column', 'stage'], assignee: ['assignee', 'members', 'member', 'owner', 'assigned to', 'assigned'], priority: ['priority', 'prio', 'severity'], estimate: ['estimate', 'story points', 'points', 'sp', 'estimation', 'effort'], due: ['due', 'due date', 'deadline', 'due on'], labels: ['labels', 'tags', 'label', 'tag'] };
+    return Object.keys(SYN).find((k) => SYN[k].indexOf(n) >= 0) || '';
+  }
+  autoStatus(v) {
+    const n = this.norm(v).replace(/ /g, '');
+    const M = { backlog: 'backlog', icebox: 'backlog', todo: 'todo', open: 'todo', new: 'todo', doing: 'progress', inprogress: 'progress', started: 'progress', wip: 'progress', review: 'review', inreview: 'review', qa: 'review', done: 'done', closed: 'done', complete: 'done', completed: 'done', resolved: 'done', wontdo: 'cancel', canceled: 'cancel', cancelled: 'cancel' };
+    return M[n] || '';
+  }
+  autoUser(v) {
+    const n = this.norm(String(v).replace(/[._]/g, ' '));
+    const P = this.people();
+    const hit = P.find((pp) => { const pn = this.norm(pp.name); const a = pn.split(' '); const b = n.split(' '); return pn === n || (b[0] === a[0] && b.length > 1 && b[1][0] === a[1][0]); });
+    return hit ? hit.ini : 'none';
+  }
+  parseDate(s) {
+    const t = String(s).trim();
+    const ok = (y, m, d) => { const x = new Date(y, m, d); return x.getFullYear() === y && x.getMonth() === m && x.getDate() === d ? x : null; };
+    let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t); if (m) return ok(+m[1], +m[2] - 1, +m[3]);
+    m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t); if (m) return ok(+m[3], +m[1] - 1, +m[2]);
+    if (/\d/.test(t)) { const d = Date.parse(t); if (!isNaN(d)) return new Date(d); }
+    return null;
+  }
+  priOf(v) { const n = this.norm(v); return { urgent: 4, highest: 4, critical: 4, high: 3, medium: 2, normal: 2, low: 1, lowest: 1 }[n] || 0; }
+  // ---------- state ----------
+  imGet(id) { const b = this._im || this.state.im || {}; return b[id] || {}; }
+  imSet(id, patch) { const all = { ...(this._im || this.state.im || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this._im = all; this.setState({ im: all }); }
+  later(fn, ms) { this._to = this._to || []; this._to.push(setTimeout(fn, ms)); }
+  cur(id) { const c = (this._cfg || {})[id] || {}; return { ...(c.init || {}), ...this.imGet(id) }; }
+  ensureRun() {
+    if (this._run) return;
+    this._run = setInterval(() => {
+      const ids = Object.keys(this._cfg || {}).filter((k) => this.cur(k).phase === 'running');
+      if (!ids.length) { clearInterval(this._run); this._run = null; return; }
+      ids.forEach((k) => {
+        const st = this.cur(k); const total = this.model(k, st).results.length; const pos = (st.pos || 0) + 1;
+        if (pos >= total) {
+          this.imSet(k, { pos: total, phase: 'done' });
+          if (this._cfg[k].loop) this.later(() => { this.imSet(k, { phase: 'running', pos: 0 }); this.ensureRun(); }, 2600);
+        } else this.imSet(k, { pos });
+      });
+    }, 120);
+  }
+  componentDidMount() { this._refs = this._refs || {}; this.later(() => this.ensureRun(), 50); }
+  componentDidUpdate() { if (this._focus && this._refs && this._refs[this._focus]) { try { this._refs[this._focus].focus(); } catch (e) {} this._focus = null; } }
+  componentWillUnmount() { if (this._run) clearInterval(this._run); this._run = null; (this._to || []).forEach((t) => clearTimeout(t)); this._to = []; }
+  // ---------- model ----------
+  dataFor(st) {
+    if (st.source === 'csv') {
+      if (st.file === 'sample') { if (!this._sample) this.ingestTextTo(this.sampleText()); return { key: 'csv:sample', ...this._sample }; }
+      if (st.file && st.file.cols) return { key: 'csv:' + st.file.name + ':' + st.file.size, ...st.file };
+      return null;
+    }
+    if ((st.source === 'trello' || st.source === 'jira') && st.conn === 'connected' && st.board) { const d = this.apiData(st.source, st.board); const b = this.boardsFor(st.source).find((x) => x.id === st.board); return { key: st.source + ':' + st.board, name: b ? b.name : st.board, ...d }; }
+    return null;
+  }
+  ingestTextTo(text) {
+    const res = this.parseCsv(text, 50);
+    const head = res.rows[0];
+    const rows = res.rows.slice(1, 51).map((r) => head.map((_, k) => String(r[k] == null ? '' : r[k])));
+    this._sample = { name: 'tasks-export.csv', size: text.length, cols: head, rows, meta: rows.length + ' rows · ' + head.length + ' columns · ' + Math.round(text.length / 1024) + ' KB' };
+  }
+  model(id, st) {
+    const data = this.dataFor(st);
+    const cols = data ? data.cols : [];
+    const rows = data ? data.rows : [];
+    const own = data && st.mapKey === data.key;
+    const fmapS = own && st.fmap ? st.fmap : {};
+    const smapS = own && st.smap ? st.smap : {};
+    const umapS = own && st.umap ? st.umap : {};
+    const used = {};
+    const auto = cols.map((c) => { const f = this.autoField(c); if (f && !used[f]) { used[f] = 1; return f; } return 'skip'; });
+    const fm = cols.map((c, i) => (fmapS[i] != null ? fmapS[i] : auto[i]));
+    const colOf = (f) => fm.indexOf(f);
+    const tally = (ci, splitFirst) => {
+      const out = []; const idx = {};
+      if (ci < 0) return out;
+      rows.forEach((r) => { let v = String(r[ci] || '').trim(); if (splitFirst) v = v.split(/[,;]/)[0].trim(); if (!v) return; const k = v.toLowerCase(); if (idx[k] == null) { if (out.length >= 12) return; idx[k] = out.length; out.push({ v, count: 0 }); } out[idx[k]].count++; });
+      return out;
+    };
+    const sCol = colOf('status'); const uCol = colOf('assignee');
+    const svals = tally(sCol, false).map((x) => ({ ...x, to: smapS[x.v] != null ? smapS[x.v] : this.autoStatus(x.v), auto: smapS[x.v] == null && !!this.autoStatus(x.v) }));
+    const uvals = tally(uCol, true).map((x) => ({ ...x, to: umapS[x.v] != null ? umapS[x.v] : this.autoUser(x.v) }));
+    const counts = {}; fm.forEach((f) => { if (f !== 'skip') counts[f] = (counts[f] || 0) + 1; });
+    const dups = Object.keys(counts).filter((k) => counts[k] > 1);
+    const unm = svals.filter((x) => !x.to).length;
+    const FL = { title: 'Title', description: 'Description', status: 'Status', assignee: 'Assignee', priority: 'Priority', estimate: 'Estimate', due: 'Due date', labels: 'Labels' };
+    const reason3 = colOf('title') < 0 ? 'Map a column to Title' : (dups.length ? 'Two columns map to ' + FL[dups[0]] : (unm ? 'Map ' + unm + ' more status' + (unm > 1 ? 'es' : '') : ''));
+    const isCsv = st.source === 'csv';
+    const results = rows.map((r, i) => {
+      const n = isCsv ? i + 2 : i + 1;
+      const g = (f) => { const c = colOf(f); return c < 0 ? '' : String(r[c] || '').trim(); };
+      const title = g('title');
+      let reason = ''; let value = '';
+      if (!title) reason = 'Missing title';
+      else if (title.length > 200) { reason = 'Title over 200 characters'; value = title.slice(0, 40) + '…'; }
+      else if (g('due') && !this.parseDate(g('due'))) { reason = 'Invalid due date'; value = g('due'); }
+      else if (g('estimate') && !isFinite(Number(g('estimate')))) { reason = 'Estimate is not a number'; value = g('estimate'); }
+      return { n, ok: !reason, reason, value, title, row: r };
+    });
+    return { data, cols, rows, fm, auto, colOf, svals, uvals, dups, reason3, results, FL, own: !!own, fmapS, smapS, umapS };
+  }
+  // ---------- wizard view ----------
+  wizard(id, cfg) {
+    const self = this;
+    this._cfg = this._cfg || {}; this._cfg[id] = cfg;
+    const st = this.cur(id);
+    const set = (p) => this.imSet(id, p);
+    const role = cfg.role || 'admin';
+    const size = cfg.size || '';
+    if (role === 'viewer') return { cls: size, noAccess: true, access: false, onKey: () => {} };
+    const S = this.stat(); const P = this.people();
+    const step = st.step || 1; const src = st.source || null; const phase = st.phase || 'setup';
+    const PJ = this.projects(); const proj = PJ.find((x) => x.id === (st.proj || 'PRJ')) || PJ[0];
+    const SRC = { trello: { name: 'Trello', meta: 'Boards · lists · cards', isBoard: true, isIssue: false, isFile: false }, jira: { name: 'Jira', meta: 'Projects · issues', isBoard: false, isIssue: true, isFile: false }, csv: { name: 'CSV', meta: 'Any spreadsheet export', isBoard: false, isIssue: false, isFile: true } };
+    const srcInfo = SRC[src] || SRC.csv;
+    const M = this.model(id, st);
+    const data = M.data;
+    const boardWord = src === 'jira' ? 'project' : 'board';
+    // reasons per step
+    let reason = '';
+    if (step === 1 && !src) reason = 'Pick a source';
+    if (step === 2) {
+      if (src === 'csv') reason = !data ? (st.fileErr ? 'Fix the file to continue' : (st.reading ? 'Reading file' : 'Upload a CSV file')) : '';
+      else if (st.conn === 'connecting') reason = 'Connecting to ' + srcInfo.name;
+      else if (st.conn !== 'connected') reason = 'Connect ' + srcInfo.name + ' to continue';
+      else if (!st.board) reason = 'Pick a ' + boardWord;
+      else if (!M.rows.length) reason = 'This ' + boardWord + ' is empty';
+    }
+    if (step === 3) reason = M.reason3;
+    const blocked = !!reason;
+    const setMap = (patch) => set({ ...patch, mapKey: data ? data.key : null });
+    const go = (n) => set({ step: n, projOpen: false });
+    const okRows = M.results.filter((r) => r.ok);
+    const badRows = M.results.filter((r) => !r.ok);
+    const total = M.results.length;
+    const pos = Math.min(total, st.pos || 0);
+    const keyAt = (k) => proj.prefix + '-' + (proj.next + k);
+    // steps
+    const labels = ['Source', src === 'csv' || !src ? 'Upload' : 'Connect', 'Map', 'Import'];
+    const lockedNav = phase !== 'setup';
+    const steps = labels.map((l, i) => {
+      const n = i + 1; const done = n < step || (n === 4 && phase === 'done'); const curr = n === step && !done;
+      const canGo = done && !lockedNav && n < step;
+      const running = n === 4 && phase === 'running';
+      return { n, label: l, done, cur: curr ? 'step' : 'false', cls: (done ? 'done' : '') + (curr ? ' cur' : ''), canGo, noGo: !canGo, todo: !done, todoNum: !done && !running, running, go: () => go(n) };
+    });
+    // step 1
+    const SK = ['trello', 'jira', 'csv'];
+    const sources = SK.map((k, i) => ({
+      ...SRC[k], on: src === k, tab: src === k || (!src && i === 0) ? 0 : -1,
+      ref: (el) => { if (el) { self._refs = self._refs || {}; self._refs['src-' + id + '-' + k] = el; } },
+      pick: () => { if (src !== k) set({ source: k, conn: 'idle', board: null, fmap: null, smap: null, umap: null, mapKey: null }); },
+      key: (e) => { const dl = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0); if (!dl) return; e.preventDefault(); const nx = SK[(i + dl + 3) % 3]; self._focus = 'src-' + id + '-' + nx; set({ source: nx, conn: 'idle', board: null, fmap: null, smap: null, umap: null, mapKey: null }); }
+    }));
+    // step 2 api
+    const site = st.site == null ? '' : st.site;
+    const siteN = site.trim().replace(/^https?:\/\//i, '');
+    const siteErr = !siteN ? 'Enter your site URL' : (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/[^\s]*)?$/i.test(siteN) ? '' : 'Use a URL like jira.team.dev');
+    const connect = () => {
+      if (src === 'jira' && siteErr) { set({ siteTried: true }); return; }
+      set({ conn: 'connecting', siteTried: false });
+      self.later(() => { const s2 = self.cur(id); if (s2.conn !== 'connecting') return; const fail = cfg.failOnce && !(s2.attempts > 0); self.imSet(id, { conn: fail ? 'error' : 'connected', attempts: (s2.attempts || 0) + 1, board: fail ? null : (s2.board || null) }); }, 1200);
+    };
+    // step 3 view
+    const FOPTS = [['title', 'Title *'], ['description', 'Description'], ['status', 'Status'], ['assignee', 'Assignee'], ['priority', 'Priority'], ['estimate', 'Estimate'], ['due', 'Due date'], ['labels', 'Labels'], ['skip', 'Don’t import']];
+    const sample = (ci) => { const r = M.rows.find((x) => String(x[ci] || '').trim()); return r ? String(r[ci]).trim().slice(0, 40) : 'empty'; };
+    const fieldRows = M.cols.map((c, i) => {
+      const f = M.fm[i]; const dup = f !== 'skip' && M.dups.indexOf(f) >= 0;
+      return {
+        name: c, sample: sample(i), val: f, auto: f !== 'skip' && M.fmapS[i] == null,
+        cls: (f === 'skip' ? 'skip' : '') + (dup ? ' dup' : ''), selCls: f === 'skip' ? 'skip' : (dup ? 'need' : ''),
+        onChange: (e) => setMap({ fmap: { ...M.fmapS, [i]: e.target.value }, smap: M.own ? M.smapS : null, umap: M.own ? M.umapS : null })
+      };
+    });
+    const snapS = () => M.svals.reduce((a, x) => { a[x.v] = x.to; return a; }, {});
+    const snapU = () => M.uvals.reduce((a, x) => { a[x.v] = x.to; return a; }, {});
+    const statusRows = M.svals.map((x) => {
+      const s = S[x.to];
+      return { name: x.v, count: x.count, val: x.to, glyph: s ? s[1] : 'backlog', color: s ? s[2] : 'var(--warn)', selCls: x.to ? '' : 'need', onChange: (e) => setMap({ fmap: M.own ? M.fmapS : null, umap: M.own ? M.umapS : null, smap: { ...M.smapS, [x.v]: e.target.value } }) };
+    });
+    const userRows = M.uvals.map((x) => { const pp = P.find((y) => y.ini === x.to); return { name: x.v, count: x.count, val: x.to, hasAv: !!pp, noAv: !pp, ini: pp ? pp.ini : '', hue: pp ? pp.hue : 0, selCls: pp ? '' : 'skip', onChange: (e) => setMap({ fmap: M.own ? M.fmapS : null, smap: M.own ? M.smapS : null, umap: { ...M.umapS, [x.v]: e.target.value } }) }; });
+    // preview
+    const ORDER = ['title', 'status', 'assignee', 'priority', 'estimate', 'due', 'labels'];
+    const pvF = ORDER.filter((f) => M.colOf(f) >= 0);
+    const smap = snapS(); const umap = snapU();
+    const PRN = { 4: ['Urgent', 'n4', 'var(--danger)'], 3: ['High', 'n3', 'var(--orange)'], 2: ['Medium', 'n2', 'var(--warn)'], 1: ['Low', 'n1', 'var(--low)'] };
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const pvRows = M.results.slice(0, 5).map((res) => {
+      const r = res.row;
+      const cells = pvF.map((f) => {
+        const raw = String(r[M.colOf(f)] || '').trim();
+        const base = { isText: false, isStatus: false, isUser: false, isPri: false, isLabels: false, text: '', cls: '', glyph: '', color: '', ini: '', hue: 0, bars: '', labels: [] };
+        if (f === 'title') return { ...base, isText: true, text: raw || 'Missing title', cls: raw ? '' : 'iw-miss' };
+        if (f === 'status') { const k = raw ? smap[raw.split(/[,;]/)[0].trim()] || '' : 'todo'; const s = S[k]; return s ? { ...base, isStatus: true, text: s[0], glyph: s[1], color: s[2] } : { ...base, isText: true, text: 'Unmapped', cls: 'iw-miss' }; }
+        if (f === 'assignee') { const k = raw ? umap[raw.split(/[,;]/)[0].trim()] : 'none'; const pp = P.find((y) => y.ini === k); return pp ? { ...base, isUser: true, text: pp.name, ini: pp.ini, hue: pp.hue } : { ...base, isText: true, text: 'Unassigned', cls: 'iw-mute' }; }
+        if (f === 'priority') { const pn = this.priOf(raw); return pn ? { ...base, isPri: true, text: PRN[pn][0], bars: PRN[pn][1], color: PRN[pn][2] } : { ...base, isText: true, text: '—', cls: 'iw-mute' }; }
+        if (f === 'estimate') return { ...base, isText: true, text: raw ? (isFinite(Number(raw)) ? raw + ' pts' : raw) : '—', cls: raw && !isFinite(Number(raw)) ? 'iw-miss' : (raw ? 'mono' : 'iw-mute') };
+        if (f === 'due') { const d = raw ? this.parseDate(raw) : null; return { ...base, isText: true, text: d ? MON[d.getMonth()] + ' ' + d.getDate() : (raw || '—'), cls: raw && !d ? 'iw-miss' : (raw ? '' : 'iw-mute') }; }
+        const ls = raw.split(/[;,]/).map((x) => x.trim()).filter(Boolean).slice(0, 3);
+        return ls.length ? { ...base, isLabels: true, labels: ls.map((t) => ({ t })) } : { ...base, isText: true, text: '—', cls: 'iw-mute' };
+      });
+      return { n: res.n, cls: res.ok ? '' : 'bad', issue: res.ok ? '' : 'Will skip: ' + res.reason, cells };
+    });
+    // running log + results
+    const log = M.results.slice(Math.max(0, pos - 7), pos).map((r, k0) => {
+      const k = Math.max(0, pos - 7) + k0;
+      const okIdx = M.results.slice(0, k).filter((x) => x.ok).length;
+      return r.ok ? { cls: 'ok', t: 'ok', k: keyAt(okIdx), m: r.title } : { cls: 'bad', t: 'skip', k: 'row ' + r.n, m: r.reason };
+    });
+    const san = (v) => { let s = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(s)) s = '\'' + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const report = ['Row,Reason,Value'].concat(badRows.map((r) => [r.n, san(r.reason), san(r.value)].join(','))).join('\n');
+    const skipBy = {}; badRows.forEach((r) => { skipBy[r.reason] = (skipBy[r.reason] || 0) + 1; });
+    const reset = () => set({ step: 1, source: null, file: null, fileErr: null, reading: null, conn: 'idle', board: null, fmap: null, smap: null, umap: null, mapKey: null, phase: 'setup', pos: 0, projOpen: false, shake: 0 });
+    const next = () => { if (blocked) { set({ shake: (st.shake || 0) === 1 ? 2 : 1 }); return; } go(Math.min(4, step + 1)); };
+    const start = () => { set({ phase: 'running', pos: 0 }); self.ensureRun(); };
+    let footReason = reason; let reasonWarn = !!reason; let reasonCls = st.shake ? 'shake' + (st.shake === 2 ? '2' : '') : '';
+    if (step === 4 && phase === 'running') { footReason = 'Runs in the background'; reasonWarn = false; reasonCls = 'mute'; }
+    if (step === 4 && phase === 'setup' && badRows.length) { footReason = ''; }
+    if (step === 3 && !reason && st.source === 'csv' && data && /first 50/.test(data.meta || '')) { footReason = 'Preview covers the first 50 rows'; reasonWarn = false; reasonCls = 'mute'; }
+    return {
+      cls: size, noAccess: false, access: true,
+      onKey: (e) => { if (e.key === 'Escape' && st.projOpen) { e.stopPropagation(); set({ projOpen: false }); } },
+      proj: { key: proj.key, name: proj.name, hue: proj.hue },
+      canClose: phase !== 'running', reset,
+      steps, fill: phase !== 'setup' ? 100 : Math.round((step - 1) / 3 * 100), fillCls: phase === 'running' ? 'run' : '',
+      s1: step === 1, sources, projOpen: !!st.projOpen, toggleProj: () => set({ projOpen: !st.projOpen }),
+      projOpts: PJ.map((x) => ({ key: x.key, name: x.name, hue: x.hue, next: x.prefix + '-' + x.next, sel: x.id === proj.id, on: x.id === proj.id ? 'on' : '', pick: () => set({ proj: x.id, projOpen: false }) })),
+      // step 2 csv
+      s2csv: step === 2 && src === 'csv', noFile: !data, hasFile: !!data, file: data ? { name: data.name, meta: data.meta } : { name: '', meta: '' },
+      cols: M.cols.map((c, i) => ({ name: c, sample: sample(i) })), colCount: M.cols.length,
+      hasFileErr: !!st.fileErr, fileErr: st.fileErr || { title: '', meta: '' }, reading: !!st.reading, readingName: st.reading || '',
+      dzCls: (st.drag ? 'over' : '') + (st.fileErr ? ' bad' : ''), dzText: st.drag ? 'Drop to upload' : 'Drop a CSV or browse',
+      onDragOver: (e) => { e.preventDefault(); if (!self.cur(id).drag) set({ drag: true }); },
+      onDragLeave: () => set({ drag: false }),
+      onDrop: (e) => { e.preventDefault(); const fl = e.dataTransfer && e.dataTransfer.files; self.readFile(id, fl && fl[0]); },
+      onPick: (e) => { const fl = e.target.files; self.readFile(id, fl && fl[0]); e.target.value = ''; },
+      useSample: () => set({ file: 'sample', fileErr: null, fmap: null, smap: null, umap: null, mapKey: null }),
+      removeFile: () => set({ file: null, fileErr: null, fmap: null, smap: null, umap: null, mapKey: null }),
+      // step 2 api
+      s2api: step === 2 && (src === 'trello' || src === 'jira'), srcName: srcInfo.name, boardLabel: src === 'jira' ? 'Project' : 'Board',
+      connIdle: !st.conn || st.conn === 'idle', connecting: st.conn === 'connecting', connError: st.conn === 'error', connected: st.conn === 'connected',
+      needsSite: src === 'jira', site, siteBad: !!st.siteTried && !!siteErr, siteErr, siteCls: st.siteTried && siteErr ? 'err' : '',
+      onSite: (e) => set({ site: e.target.value }), onSiteKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); connect(); } },
+      connect, disconnect: () => set({ conn: 'idle', board: null, fmap: null, smap: null, umap: null, mapKey: null }),
+      skRows: [{ w: 46 }, { w: 34 }, { w: 52 }],
+      boards: this.boardsFor(src).map((b) => ({ ...b, on: st.board === b.id, pick: () => set({ board: b.id, fmap: null, smap: null, umap: null, mapKey: null }) })),
+      // step 3
+      s3: step === 3, fieldRows, fieldOpts: FOPTS.map((o) => ({ v: o[0], label: o[1] })), mappedCount: M.fm.filter((f) => f !== 'skip').length,
+      hasStatusMap: statusRows.length > 0, statusRows, statusCount: statusRows.length, statusDone: M.svals.filter((x) => x.to).length,
+      statusOpts: [{ v: '', label: 'Choose…' }].concat(Object.keys(S).map((k) => ({ v: k, label: S[k][0] }))),
+      hasUserMap: userRows.length > 0, userRows, userCount: userRows.length,
+      userOpts: P.map((pp) => ({ v: pp.ini, label: pp.name })).concat({ v: 'none', label: 'Leave unassigned' }),
+      pvCols: pvF.map((f) => ({ label: M.FL[f] })), pvRows,
+      // step 4
+      s4sum: step === 4 && phase === 'setup', src: srcInfo, originName: data ? data.name : '',
+      nImport: okRows.length, nSkip: badRows.length, skipCls: badRows.length ? 'warn' : '', nPeople: M.uvals.filter((x) => x.to !== 'none').length,
+      keyRange: okRows.length ? keyAt(0) + ' → ' + keyAt(okRows.length - 1) : '',
+      hasSkips: badRows.length > 0, skipSummary: Object.keys(skipBy).map((k) => skipBy[k] + ' × ' + k.toLowerCase()).join(' · '),
+      running: step === 4 && phase === 'running', pos, total, pct: total ? Math.round(pos / total * 100) : 0, log,
+      done: step === 4 && phase === 'done', nOk: okRows.length, nBad: badRows.length, badCls: badRows.length ? 'bad' : '',
+      keyRangeDone: okRows.length ? keyAt(0) + ' → ' + keyAt(okRows.length - 1) + ' · ' + proj.name : proj.name,
+      hasErrors: badRows.length > 0, errors: badRows.map((r) => ({ row: r.n, reason: r.reason, value: r.value || '—' })),
+      reportHref: 'data:text/csv;charset=utf-8,' + encodeURIComponent(report), reportName: 'import-errors-' + proj.prefix.toLowerCase() + '-2026-10-07.csv',
+      // footer
+      hasReason: !!footReason, reason: footReason, reasonWarn, reasonCls,
+      showBack: step > 1 && phase === 'setup', back: () => go(step - 1),
+      showNext: step < 4, nextCls: blocked ? 'blk' : '', blocked, next,
+      showStart: step === 4 && phase === 'setup', start,
+      showDoneBtns: step === 4 && phase === 'done'
+    };
+  }
+  renderVals() {
+    const theme = this.props.theme || 'navy';
+    const role = this.props.role || 'admin';
+    const themeCls = theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy';
+    const F = (id, label, meta, fw, h, cfg) => ({ id, label, meta, fw, h, r: fw <= 400 ? 28 : 14, z: this.wizard(id, { role, ...cfg }) });
+    const ready = { source: 'csv', file: 'sample', smap: { blocked: 'todo' }, mapKey: 'csv:sample' };
+    const frames = [
+      F('S1', 'Step 1 · Source', 'pick a tile · arrow keys', 620, 640, { init: { step: 1 } }),
+      F('S2', 'Step 2 · Upload CSV', 'drop a real .csv · parsed in the browser', 620, 640, { init: { step: 2, source: 'csv', file: 'sample' } }),
+      F('S3', 'Step 3 · Map fields, statuses, people', 'auto-matched · one status left · live preview', 1280, 920, { size: 'wide', init: { step: 3, source: 'csv', file: 'sample' } }),
+      F('S4', 'Step 4 · Summary', 'Start import runs it', 620, 640, { init: { step: 4, ...ready } }),
+      F('RUN', 'Import running', 'streams · loops', 620, 640, { loop: true, init: { step: 4, phase: 'running', pos: 0, ...ready } }),
+      F('RES', 'Results with errors', 'Download report · CSV', 620, 700, { init: { step: 4, phase: 'done', pos: 48, ...ready } }),
+      F('S2J', 'Step 2 · Connect Jira', 'connected · pick a project', 620, 700, { init: { step: 2, source: 'jira', conn: 'connected', board: 'web', site: 'jira.team.dev' } }),
+      F('MOB', 'Mobile', '390 · mapping stacks', 390, 844, { size: 'narrow', init: { step: 3, source: 'csv', file: 'sample' } }),
+      F('ERR', 'Upload rejected', 'error · too large', 400, 520, { size: 'narrow', init: { step: 2, source: 'csv', fileErr: { title: 'File is too large', meta: 'roadmap-2026.csv · 12.4 MB · max 10 MB' } } }),
+      F('CF', 'Connect failed', 'Retry works', 400, 520, { size: 'narrow', init: { step: 2, source: 'trello', conn: 'error' } }),
+      F('CON', 'Connecting', 'loading · skeleton', 620, 520, { init: { step: 2, source: 'trello', conn: 'connecting' } }),
+      F('V', 'Viewer', 'import hidden', 620, 520, { role: 'viewer', init: { step: 1 } })
+    ];
+    return { themeCls, role, frames };
+  }
+}
+
+</script>
+
+
+</body></html>

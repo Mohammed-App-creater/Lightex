@@ -5,7 +5,6 @@ import type { Epic, Label, Milestone, Sprint, Status, Task, User } from "@/lib/a
 export type ColumnId = "key" | "title" | "status" | "pri" | "asg" | "sprint" | "ms" | "due" | "labels";
 export type GroupBy = "status" | "epic" | "sprint" | "assignee";
 export type SortState = { col: ColumnId; dir: "asc" | "desc" } | null;
-export type QuickFilter = "mine" | "week" | "urgent";
 
 export const COLUMNS: { id: ColumnId; label: string; width: number; min: number }[] = [
   { id: "key", label: "Key", width: 70, min: 56 },
@@ -71,19 +70,6 @@ export function sortTasks(tasks: Task[], sort: SortState, ctx: Ctx) {
     return sort.dir === "asc" ? r : -r;
   });
   return list;
-}
-
-export function filterTasks(tasks: Task[], filters: Set<QuickFilter>, ctx: Ctx, epicId?: string | null) {
-  return tasks.filter((t) => {
-    if (epicId && t.epicId !== epicId) return false;
-    if (filters.has("mine") && t.assigneeId !== ctx.meId) return false;
-    if (filters.has("urgent") && t.priority < 3) return false;
-    if (filters.has("week")) {
-      const done = ctx.statuses.find((s) => s.id === t.statusId)?.category === "done";
-      if (!t.dueDate || t.dueDate > ctx.weekEnd || done) return false;
-    }
-    return true;
-  });
 }
 
 export function groupTasks(tasks: Task[], by: GroupBy, ctx: Ctx): Group[] {

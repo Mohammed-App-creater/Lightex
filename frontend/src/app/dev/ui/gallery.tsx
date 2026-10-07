@@ -3,6 +3,7 @@
 import { Calendar, Filter, Flag, MoreHorizontal, Plus, Search, Target, Zap } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AppIcon, LogoMark, Wordmark } from "@/components/brand/logo";
+import { BrandGallery } from "./brand-gallery";
 import { Avatar, AvatarStack, ProjectBadge, UnassignedAvatar } from "@/components/ui/avatar";
 import { CopyKey, EntityChip, LabelChip, PriorityBadge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,8 @@ export function Gallery({ scope }: { scope: string }) {
           <LogoMark className="h-8 w-10" title="Lightex mark" />
         </Row>
       </Section>
+
+      <BrandGallery />
 
       <Section title="Buttons">
         <Row>

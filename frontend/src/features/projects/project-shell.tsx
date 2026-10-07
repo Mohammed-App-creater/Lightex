@@ -19,6 +19,8 @@ export function projectTabs(p: Pick<Project, "my_permissions">): { view: Project
     { view: "board", label: "Board", show: true },
     { view: "list", label: "List", show: true },
     { view: "backlog", label: "Backlog", show: true },
+    // Board 27: everyone can view epics (viewer frame is read-only); epic.manage gates the actions.
+    { view: "epics", label: "Epics", show: true },
     { view: "sprints", label: "Sprints", show: can("sprint.manage", perms) || can("task.move", perms) },
     { view: "objectives", label: "Objectives", show: true },
     { view: "milestones", label: "Milestones", show: true },
@@ -71,7 +73,8 @@ export function ProjectShell({ projectKey, children }: { projectKey: string; chi
             }))}
           />
         </div>
-        {project.status === "archived" && (
+        {/* Settings shows its own archived banner with Unarchive (board 28). */}
+        {project.status === "archived" && route.view !== "settings" && (
           <div role="status" className="flex h-10 items-center gap-2 border-b border-line bg-raised px-8 text-[13px] text-fg-2">
             This project is archived. It’s read-only until a project admin restores it.
           </div>

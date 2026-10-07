@@ -3,6 +3,7 @@ import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/lib/permissions/catalogue
 import { nowISO, uid } from "../db";
 import type { MockDB, RoleRec } from "../db-types";
 import { projectMembership, toProject, toRole, toTask, toUser, toWorkspace, wsMembership } from "../derive";
+import { auditList } from "./audit";
 import { toInvite } from "./auth";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
@@ -20,7 +21,17 @@ function toMember(db: MockDB, m: MockDB["wsMembers"][number]): WorkspaceMember {
 }
 
 export function audit(db: MockDB, workspaceId: string, actorId: string, action: string, target: string) {
-  db.audit.unshift({ id: uid("au"), workspaceId, actorId, action, target, createdAt: nowISO() });
+  db.audit.unshift({
+    id: uid("au"),
+    workspaceId,
+    actorId,
+    action,
+    target,
+    createdAt: nowISO(),
+    entityType: action.split(".")[0],
+    source: "web",
+    requestId: `req_${uid("").slice(-10)}`,
+  });
 }
 
 function seedRoles(db: MockDB, workspaceId: string) {
@@ -278,11 +289,7 @@ export function registerWorkspaces() {
   });
 
   /* audit, activity, my tasks, search */
-  route("GET", "/workspaces/:slug/audit", (ctx) => {
-    const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "audit.view");
-    return paginate(ctx.db.audit.filter((a) => a.workspaceId === ws.id), ctx.query, 50);
-  });
+  route("GET", "/workspaces/:slug/audit", (ctx) => auditList(ctx));
 
   route("GET", "/workspaces/:slug/activity", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);

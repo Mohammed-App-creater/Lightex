@@ -19,6 +19,7 @@ const VIEW_LABEL: Record<string, string> = {
   sprints: "Sprints",
   objectives: "Objectives",
   milestones: "Milestones",
+  epics: "Epics",
   reports: "Reports",
   settings: "Settings",
 };
@@ -28,6 +29,7 @@ const PAGE_LABEL: Record<string, string> = {
   "my-tasks": "My tasks",
   search: "Search",
   settings: "Settings",
+  trash: "Trash",
 };
 
 /* Pages put their actions into the top bar through a portal slot. */

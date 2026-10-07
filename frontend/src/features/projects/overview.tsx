@@ -91,7 +91,7 @@ function Header({ project }: { project: Project }) {
 function Ready({ project, tasks, statuses }: { project: Project; tasks: Task[]; statuses: Status[] }) {
   const { data: objectives = [] } = useObjectives(project.id);
   const { data: milestones = [] } = useMilestones(project.id);
-  const { data: epics = [] } = useEpics(project.id);
+  const epics = (useEpics(project.id).data ?? []).filter((e) => !e.archivedAt);
   const { data: sprints = [] } = useSprints(project.id);
   const { data: members = [] } = useProjectMembers(project.id);
   const today = todayISO();
@@ -284,7 +284,8 @@ function MilestonesPanel({ project, milestones }: { project: Project; milestones
 
 function EpicsPanel({ project, tasks }: { project: Project; tasks: Task[] }) {
   const ws = useCurrentWorkspace()!;
-  const { data: epics = [] } = useEpics(project.id);
+  const { data: allEpics = [] } = useEpics(project.id);
+  const epics = allEpics.filter((e) => !e.archivedAt);
   const { data: milestones = [] } = useMilestones(project.id);
   return (
     <Panel

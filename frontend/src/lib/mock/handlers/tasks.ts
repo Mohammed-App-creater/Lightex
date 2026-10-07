@@ -6,6 +6,7 @@ import type { AttachmentRec, MockDB, TaskRec } from "../db-types";
 import { projectPermissions, statusesOf, toProject, toTask } from "../derive";
 import { logActivity, notify } from "./common";
 import { memberProject } from "./projects";
+import { markTaskDeleted, trashComment } from "./trash";
 import {
   fail,
   filterValues,
@@ -322,6 +323,7 @@ export function registerTasks() {
     const now = nowISO();
     t.deletedAt = now;
     t.version += 1;
+    markTaskDeleted(ctx.db, t.id, ctx.userId);
     ctx.db.tasks.filter((x) => x.parentId === t.id).forEach((x) => (x.deletedAt = now));
     logActivity(ctx.db, ctx.userId, "deleted", t.projectId, t);
     return undefined;
@@ -351,6 +353,7 @@ export function registerTasks() {
       tasks.forEach((t) => {
         t.deletedAt = b.delete ? now : null;
         t.version += 1;
+        if (b.delete) markTaskDeleted(ctx.db, t.id, userId);
       });
       return tasks.map((t) => toTask(ctx.db, t));
     }
@@ -373,6 +376,11 @@ export function registerTasks() {
       if (patch.labelIds) t.labelIds = [...new Set([...t.labelIds, ...patch.labelIds])];
       if (patch.sprintId !== undefined) t.sprintId = patch.sprintId;
       if (patch.priority !== undefined) t.priority = patch.priority;
+      // Board 27: "Add tasks to epic" / remove from epic go through bulk { epicId }.
+      if (patch.epicId !== undefined) {
+        if (patch.epicId && !ctx.db.epics.some((e) => e.id === patch.epicId && e.projectId === p.id)) invalid({ epicId: "Pick an epic in this project" });
+        t.epicId = patch.epicId;
+      }
       t.version += 1;
       t.updatedAt = nowISO();
     }
@@ -482,6 +490,7 @@ export function registerTasks() {
     const perms = projectPermissions(ctx.db, userId, t.projectId);
     const own = c.authorId === userId && perms.includes("comment.edit_own");
     if (!own && !perms.includes("comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "comment.delete_any" });
+    trashComment(ctx.db, c, userId); // board 29: deleted comments go to the Trash for 30 days
     ctx.db.comments = ctx.db.comments.filter((x) => x.id !== c.id);
     return undefined;
   });

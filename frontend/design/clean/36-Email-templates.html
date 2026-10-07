@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Email templates</title>
+<script src="../assets/62616b91-9ad9-4d09-bbd3-4ad8c02b144a.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em}
+.tag{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em}
+
+/* Email preview: mirrors emails/*.html (safe font stack, same tokens) */
+.em{--o:#F3F4F8;--c:#FFFFFF;--s:#F7F8FA;--l:#E4E4EA;--t1:#121217;--t2:#55556A;--t3:#5F5F70;--lg:#1D4ED8;--ac:#1D4ED8;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--o);color:var(--t1);
+  border:1px solid var(--line-2);border-radius:12px;overflow:hidden;width:100%;transition:background-color 200ms var(--ease)}
+.em.em-d{--o:#060B18;--c:#0C1326;--s:#131C34;--l:#2B3A5E;--t1:#EAF0FF;--t2:#A5B2D1;--t3:#8794B6;--lg:#3B7BFF;--ac:#8AB0FF}
+.em-bar{display:flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-bottom:1px solid var(--l);background:var(--c)}
+.em-bar i{width:8px;height:8px;border-radius:50%;background:var(--l);display:block}
+.em-wrap{padding:28px 20px 24px}
+.em-logo{padding:0 20px 18px;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.5px;color:var(--t1)}
+.em-logo span{color:var(--lg)}
+.em-card{background:var(--c);border:1px solid var(--l);border-radius:12px;padding:32px 40px}
+.em-h1{margin:0;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-.3px;color:var(--t1)}
+.em-p{margin:8px 0 0;font-size:15px;line-height:24px;color:var(--t2)}
+.em-q{margin-top:12px;padding-left:12px;border-left:3px solid var(--l);font-size:14px;line-height:22px;color:var(--t1)}
+.em-sum{margin-top:20px;background:var(--s);border:1px solid var(--l);border-radius:8px;padding:16px 20px}
+.em-key{font:12px/16px Menlo,Consolas,monospace;color:var(--t3);letter-spacing:.02em}
+.em-tt{padding-top:4px;font-size:15px;line-height:22px;font-weight:600;color:var(--t1)}
+.em-hr{margin:10px 0 6px;border-top:1px solid var(--l)}
+.em-kv{display:flex;align-items:center;font-size:13px;line-height:20px;padding:6px 0}
+.em-kv .k{width:96px;flex:none;color:var(--t3)}
+.em-kv .v{font-weight:500;color:var(--t1);display:inline-flex;align-items:center;gap:8px}
+.em-kv .pb{width:3px;height:12px;border-radius:1px;display:block}
+.em-ln{margin:0;font-size:13px;line-height:20px;color:var(--t2)}
+.em-ln.first{color:var(--t1);font-weight:500}
+.em-ln + .em-ln{margin-top:8px}
+.em-trk{margin-top:10px;height:6px;border-radius:3px;background:var(--l);overflow:hidden}
+.em-trk i{display:block;height:6px;border-radius:3px;background:#0891B2}
+.em-btn{display:inline-block;margin-top:24px;padding:12px 24px;border-radius:6px;background:#1D4ED8;color:#FFFFFF;font-size:15px;line-height:20px;font-weight:600;text-decoration:none;text-align:center;cursor:pointer;transition:background-color 150ms var(--ease)}
+.em-btn:hover{background:#2563EB}
+.em-btn:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.em-fb{margin:16px 0 0;font-size:12px;line-height:18px;color:var(--t3);word-break:break-all}
+.em-fb span{color:var(--ac)}
+.em-foot{padding:22px 20px 0;font-size:12px;line-height:18px;color:var(--t3)}
+.em-foot p{margin:0}
+.em-foot .lk{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.em-foot .lk u{color:var(--t2)}
+.em-foot .co{margin-top:14px}
+/* Mobile (375): mirrors the <=620px media query */
+.em.em-m{border-radius:28px}
+.em-m .em-wrap{padding:20px 12px 28px}
+.em-m .em-logo{padding:0 12px 16px}
+.em-m .em-card{padding:28px 24px}
+.em-m .em-h1{font-size:20px;line-height:28px}
+.em-m .em-btn{display:block}
+.em-m .em-foot{padding:20px 12px 0}
+.em-m .em-bar{height:34px;justify-content:center}
+.em-m .em-bar i{width:48px;height:5px;border-radius:3px}
+@media (prefers-reduced-motion:reduce){.ds *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:{{rootH}}px;padding:64px 80px;display:flex;flex-direction:column;gap:44px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="tag">TEMPLATES · EMAIL</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Emails</h1>
+    </div>
+    <div style="display:flex;gap:16px" class="tag"><span>7 templates</span><span>600 / 375</span><span>light + dark clients</span><span>table + inline</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:80px;row-gap:48px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="8">
+      <figure class="frame" style="width:{{fx.w}}px">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="em {{fx.cls}}">
+          <div class="em-bar" aria-hidden="true"><i></i><sc-if value="{{fx.desk}}" hint-placeholder-val="{{true}}"><i></i><i></i></sc-if></div>
+          <div class="em-wrap">
+            <div class="em-logo" role="img" aria-label="Lightex">Lighte<span>x</span></div>
+            <div class="em-card">
+              <h2 class="em-h1">{{fx.e.headline}}</h2>
+              <p class="em-p">{{fx.e.body}}</p>
+              <sc-if value="{{fx.e.hasQuote}}" hint-placeholder-val="{{false}}"><div class="em-q">{{fx.e.quote}}</div></sc-if>
+              <div class="em-sum">
+                <sc-if value="{{fx.e.isTask}}" hint-placeholder-val="{{true}}">
+                  <div class="em-key">{{fx.e.key}}</div>
+                  <div class="em-tt">{{fx.e.title}}</div>
+                  <div class="em-hr"></div>
+                </sc-if>
+                <sc-if value="{{fx.e.hasHead}}" hint-placeholder-val="{{false}}">
+                  <div class="em-tt" style="padding:0 0 6px">{{fx.e.head}}</div>
+                </sc-if>
+                <sc-for list="{{fx.e.lines}}" as="ln" hint-placeholder-count="0">
+                  <p class="em-ln {{ln.cls}}">{{ln.t}}</p>
+                </sc-for>
+                <sc-for list="{{fx.e.rows}}" as="rw" hint-placeholder-count="2">
+                  <div class="em-kv"><span class="k">{{rw.k}}</span><span class="v"><sc-if value="{{rw.bar}}" hint-placeholder-val="{{false}}"><i class="pb" style="background:{{rw.c}}"></i></sc-if>{{rw.v}}</span></div>
+                </sc-for>
+                <sc-if value="{{fx.e.hasPct}}" hint-placeholder-val="{{false}}">
+                  <div class="em-trk"><i style="width:{{fx.e.pct}}%"></i></div>
+                </sc-if>
+              </div>
+              <a class="em-btn" href="#" tabindex="0">{{fx.e.cta}}</a>
+              <sc-if value="{{fx.e.hasFb}}" hint-placeholder-val="{{false}}">
+                <p class="em-fb">Button not working? Paste this link into your browser:<br><span>…/reset/7f3k9q</span></p>
+              </sc-if>
+            </div>
+            <div class="em-foot">
+              <p>{{fx.e.why}}</p>
+              <p class="lk"><sc-for list="{{fx.e.links}}" as="lk" hint-placeholder-count="2"><span><u>{{lk.t}}</u>{{lk.sep}}</span></sc-for></p>
+              <p class="co">Lightex · Platform team</p>
+            </div>
+          </div>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:6300},&quot;client&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;both&quot;,&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;both&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;}}">
+class Component extends DCLogic {
+  emails() {
+    const P = { Urgent: '#E5484D', High: '#F76B15', Medium: '#E5A000', Low: '#12A594' };
+    const task = (key, title, project, prio, extra) => ({
+      isTask: true, key, title,
+      rows: [{ k: 'Project', v: project }, { k: 'Priority', v: prio, bar: true, c: P[prio] }].concat(extra || [])
+    });
+    const prefs = [{ t: 'Notification preferences', sep: ' · ' }, { t: 'Unsubscribe', sep: '' }];
+    return [
+      { id: 'invitation', label: 'Workspace invitation', file: 'invitation.html',
+        headline: 'Alex Kim invited you to Platform team', body: 'Join to see the projects, sprints and tasks your team is working on.',
+        hasHead: true, head: 'Platform team',
+        rows: [{ k: 'Role', v: 'Member' }, { k: 'Invited by', v: 'alex@team.dev' }, { k: 'Expires', v: 'Oct 14, 2026' }],
+        cta: 'Accept invitation', why: 'You got this because Alex Kim invited taylor@team.dev to a Lightex workspace. Not expecting it? Ignore this email.',
+        links: [{ t: 'Unsubscribe', sep: '' }] },
+      Object.assign({ id: 'assigned', label: 'Task assigned', file: 'task-assigned.html',
+        headline: 'Alex Kim assigned you PRJ-42', body: 'It’s in Sprint 14 and due Oct 9.',
+        cta: 'Open task', why: 'You got this because you were assigned a task in Platform team.', links: prefs },
+        task('PRJ-42', 'Cache board queries per sprint', 'Platform Rebuild', 'High')),
+      Object.assign({ id: 'mentioned', label: 'Mentioned in a comment', file: 'mentioned.html',
+        headline: 'Jordan Lee mentioned you on PRJ-38', body: 'Comment on Auth token refresh drops session:',
+        hasQuote: true, quote: '“Can you confirm the refresh window before Beta launch?”',
+        cta: 'Reply in Lightex', why: 'You got this because someone mentioned you in Platform team.', links: prefs },
+        task('PRJ-38', 'Auth token refresh drops session', 'Platform Rebuild', 'Urgent')),
+      Object.assign({ id: 'due', label: 'Due soon', file: 'due-soon.html',
+        headline: 'PRJ-51 is due tomorrow', body: 'Due Oct 8. Update the status or date if plans changed.',
+        cta: 'Open task', why: 'You got this because you’re assigned to a task due within 24 hours in Platform team.', links: prefs },
+        task('PRJ-51', 'Sprint burndown endpoint', 'Platform Rebuild', 'Medium', [{ k: 'Due', v: 'Oct 8, 2026' }])),
+      { id: 'started', label: 'Sprint started', file: 'sprint-started.html',
+        headline: 'Sprint 14 has started', body: '24 tasks in scope, 6 assigned to you.',
+        hasHead: true, head: 'Sprint 14',
+        rows: [{ k: 'Project', v: 'Platform Rebuild' }, { k: 'Dates', v: 'Oct 1 – Oct 14' }, { k: 'Scope', v: '24 tasks · 58 pts' }],
+        cta: 'View sprint board', why: 'You got this because you’re a member of Platform Rebuild in Platform team.', links: prefs },
+      { id: 'completed', label: 'Sprint completed', file: 'sprint-completed.html',
+        headline: 'Sprint 13 is complete', body: '19 done, 5 carried over to Sprint 14.',
+        hasHead: true, head: 'Sprint 13',
+        rows: [{ k: 'Project', v: 'Platform Rebuild' }, { k: 'Dates', v: 'Sep 17 – Sep 30' }, { k: 'Completed', v: '19 of 24' }, { k: 'Carried', v: '5' }],
+        hasPct: true, pct: 79,
+        cta: 'View sprint report', why: 'You got this because you’re a member of Platform Rebuild in Platform team.', links: prefs },
+      { id: 'reset', label: 'Password reset', file: 'password-reset.html',
+        headline: 'Reset your Lightex password', body: 'We got a request to reset the password for sam@team.dev.',
+        lines: [{ t: 'This link expires in 30 minutes (10:45 AM) and works once.', cls: 'first' },
+                { t: 'Didn’t ask for this? Ignore this email. Your password won’t change.', cls: '' }],
+        cta: 'Reset password', hasFb: true,
+        why: 'You got this security email because a password reset was requested for your Lightex account. It’s sent regardless of notification settings.',
+        links: [{ t: 'Notification preferences', sep: '' }] }
+    ].map((e) => Object.assign({ isTask: false, hasHead: false, hasQuote: false, hasPct: false, hasFb: false, lines: [], rows: [] }, e));
+  }
+  renderVals() {
+    const theme = this.props.theme ?? 'navy';
+    const client = this.props.client ?? 'both';
+    const modes = client === 'both' ? ['light', 'dark'] : [client];
+    const frames = [];
+    const list = this.emails();
+    list.forEach((e) => {
+      modes.forEach((m) => {
+        frames.push({ id: e.id + '-' + m, label: e.label, meta: e.file + ' · ' + m.toUpperCase(), w: 600, desk: true,
+          cls: m === 'dark' ? 'em-d' : 'em-l', e });
+      });
+    });
+    const assigned = list.find((e) => e.id === 'assigned');
+    modes.forEach((m) => {
+      frames.push({ id: 'mobile-' + m, label: 'Task assigned, mobile', meta: '375 · ' + m.toUpperCase(), w: 375, desk: false,
+        cls: (m === 'dark' ? 'em-d' : 'em-l') + ' em-m', e: assigned });
+    });
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      frames,
+      rootH: client === 'both' ? 6300 : 3400
+    };
+  }
+}
+</script>
+
+
+</body></html>

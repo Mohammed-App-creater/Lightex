@@ -39,7 +39,8 @@ import { withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { keyBetween } from "@/lib/utils/fractional-index";
-import { CompleteSprintDialog, EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";
+import { EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";
+import { CompleteSprintDialog } from "./sprint-review";
 
 const BACKLOG = "backlog";
 type Cols = Record<string, string[]>;

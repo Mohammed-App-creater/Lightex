@@ -124,7 +124,8 @@ export interface Invite {
 
 /* ───────────────────────── Projects ───────────────────────── */
 
-export type ProjectTemplate = "kanban" | "scrum" | "bugs";
+/** "simple" added by board 24 (4 templates). */
+export type ProjectTemplate = "simple" | "kanban" | "scrum" | "bugs";
 
 export interface Project {
   id: ID;
@@ -140,9 +141,19 @@ export interface Project {
   createdAt: ISODateTime;
   memberCount: number;
   openTaskCount: number;
+  /** Board 24 (home project ring): tasks in a done-category status. Optional for older payloads. */
+  doneTaskCount?: number;
   activeSprintId: ID | null;
   myRoleId: ID | null;
   my_permissions: ProjectPermission[];
+}
+
+/** Board 24 "Not on any project": a member asks workspace admins to be added to a project. */
+export interface WorkspaceAccessRequest {
+  id: ID;
+  workspaceId: ID;
+  userId: ID;
+  createdAt: ISODateTime;
 }
 
 /** Returned with a 403 for a project the user is not a member of. */
@@ -183,6 +194,10 @@ export interface Status {
   /** Display glyph. Optional on the wire; derived from category when absent. */
   glyph: StatusGlyph;
   position: number;
+  /** CSS colour token for the glyph (board 28). Null/absent = the glyph's default colour. */
+  color?: string | null;
+  /** Live tasks in this status (returned by GET /projects/:id/statuses). */
+  taskCount?: number;
 }
 
 export interface Label {
@@ -191,6 +206,8 @@ export interface Label {
   name: string;
   /** CSS colour token, e.g. "var(--low)". */
   color: string;
+  /** Live tasks carrying this label (returned by GET /projects/:id/labels). */
+  taskCount?: number;
 }
 
 /* ───────────────────────── Planning ───────────────────────── */
@@ -238,8 +255,15 @@ export interface Epic {
   name: string;
   description: string;
   hue: number;
+  /** Board 27: epic owner, target milestone, archive state. */
+  ownerId: ID | null;
+  milestoneId: ID | null;
+  archivedAt: ISODateTime | null;
   progress: Progress;
 }
+
+/** Board 27: body for create / update epic. `archived` toggles archivedAt server-side. */
+export type EpicWrite = Partial<Pick<Epic, "name" | "description" | "hue" | "ownerId" | "milestoneId">> & { archived?: boolean };
 
 export type SprintState = "planned" | "active" | "completed";
 
@@ -343,6 +367,8 @@ export interface TaskCreate {
   parentId?: ID | null;
   labelIds?: ID[];
   description?: RichDoc | null;
+  /** Story points (board 30 create dialog). */
+  estimate?: number | null;
 }
 
 export interface TaskMove {
@@ -444,9 +470,38 @@ export interface NotificationPreferences {
 export interface AuditEntry {
   id: ID;
   actorId: ID;
+  /** "<entity>.<verb>", e.g. "task.status_changed", "member.invited". */
   action: string;
+  /** Human-readable entity name at the time of the event (task title, email, role name…). */
   target: string;
   createdAt: ISODateTime;
+  /* Board 31 additions (requested API fields; optional so older rows still parse). */
+  /** Actor display name snapshot; used for integrations ("ci-bot") and removed members. */
+  actorName?: string | null;
+  /** "user" (a workspace member) or "integration" (API token / automation). */
+  actorKind?: "user" | "integration";
+  entityType?: string;
+  /** Task key ("PRJ-42") or project key ("PRJ") when the entity has one. */
+  entityKey?: string | null;
+  source?: "web" | "api";
+  requestId?: string | null;
+  changes?: AuditChange[];
+}
+
+/** Field-level change. `kind` tells the UI how to render values (status glyph, priority bars…). */
+export interface AuditChange {
+  field: string;
+  kind: "text" | "status" | "priority" | "person" | "value";
+  /** status: glyph key; priority: 0–4; person: user id; text/value: plain string. null = none. */
+  before: string | number | null;
+  after: string | number | null;
+}
+
+/** Audit list response: Paginated plus an optional total for the "312 events" counter. */
+export interface AuditPage {
+  data: AuditEntry[];
+  nextCursor: string | null;
+  total?: number;
 }
 
 /* ───────────────────────── Search, reports, misc ───────────────────────── */
@@ -498,4 +553,81 @@ export interface Paginated<T> {
 export interface Session {
   accessToken: string | null;
   user: User;
+}
+
+/* ───────────────────────── Saved views (board 30) ───────────────────────── */
+
+export type FilterField = "status" | "priority" | "assignee" | "label" | "sprint" | "due" | "epic";
+export type FilterOp = "is" | "not" | "any" | "empty" | "before" | "after";
+
+/**
+ * One filter row; rows combine with AND. Values are ids (status, label, sprint, epic, user;
+ * "me" = the viewer), priority numbers as strings, or for `due` an ISO date or a relative
+ * token: "today", "tomorrow", "week" (today + 7) or "sprint" (active sprint end).
+ */
+export interface FilterRule {
+  field: FilterField;
+  op: FilterOp;
+  values: string[];
+}
+
+export type ViewIcon = "filter" | "star" | "user" | "calendar" | "bolt" | "flag";
+
+export interface SavedView {
+  id: ID;
+  workspaceId: ID;
+  projectId: ID;
+  ownerId: ID;
+  name: string;
+  icon: ViewIcon;
+  /** "me" = only the owner sees it; "project" = every project member sees it. */
+  visibility: "me" | "project";
+  layout: "board" | "list";
+  filters: FilterRule[];
+  /** Pinned to the current user's sidebar, and the user's pin order. */
+  pinned: boolean;
+  position: number;
+  /** Tasks in the project that match, for the current user ("me"). */
+  count: number;
+  createdAt: ISODateTime;
+}
+
+export type SavedViewInput = Pick<SavedView, "projectId" | "name" | "icon" | "visibility" | "layout" | "filters"> & { pinned?: boolean };
+
+/* ───────────────────────── Trash (board 29) ───────────────────────── */
+
+export type TrashKind = "task" | "comment" | "project";
+
+/** Reference to one trashed entity (restore / purge bodies). */
+export interface TrashRef {
+  kind: TrashKind;
+  id: ID;
+}
+
+export interface TrashItem extends TrashRef {
+  /** Task title, comment excerpt or project name. */
+  title: string;
+  /** Task key (PRJ-88) or project key (LA). */
+  key: string | null;
+  /** Project badge hue for project items. */
+  hue: number | null;
+  /** Comments: key of the task the comment was on. */
+  parentKey: string | null;
+  /** Projects: live task count inside the trashed project. */
+  taskCount: number | null;
+  /** Owning project for tasks and comments; null for projects. */
+  project: Pick<Project, "id" | "key" | "name" | "hue"> | null;
+  deletedBy: Pick<User, "id" | "name" | "hue"> | null;
+  deletedAt: ISODateTime;
+  /** deletedAt + 30 days; the item is purged automatically after this. */
+  purgeAt: ISODateTime;
+}
+
+export interface TrashList {
+  data: TrashItem[];
+  /** "own" = the user only sees items they deleted ("Only yours"). */
+  scope: "all" | "own";
+  /** Kinds this user may see (Projects is admin-only). */
+  kinds: TrashKind[];
+  retentionDays: number;
 }

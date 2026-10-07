@@ -61,6 +61,7 @@ NEXT_PUBLIC_API_MODE=live
 NEXT_PUBLIC_API_URL=https://api.example.com     # the client appends /api/v1
 NEXT_PUBLIC_UPLOAD_ORIGIN=https://uploads.example.com   # signed-upload host, added to CSP connect-src
 NEXT_PUBLIC_DEV_TOOLS=false
+NEXT_PUBLIC_APP_URL=https://app.example.com    # absolute Open Graph / icon URLs
 ```
 
 The backend must:
@@ -82,16 +83,16 @@ src/
   app/                      Routes (App Router). Pages are thin: they render a screen from features/.
     (auth)/                 login, register, forgot/reset password, invite/[token]
     onboarding/
-    [workspace]/            home, inbox, my-tasks, search, settings/*, tasks/[taskKey]
-      projects/[key]/       overview, board, list, backlog, sprints, objectives, milestones, reports, settings
-    dev/ui/                 component gallery (dev tools only)
+    [workspace]/            home, inbox, my-tasks, search, trash, settings/* (incl. audit), tasks/[taskKey]
+      projects/[key]/       overview, board, list, backlog, epics, sprints, objectives, milestones, reports, settings
+    dev/ui/, dev/emails/    component gallery and email previews (dev tools only)
   components/
     ui/                     design-system primitives (button, menu, modal, side panel, toast, glyphs, ...)
     shell/                  sidebar, top bar, hotkeys, dev tools, edge screens (404/403/500), offline banner
     brand/                  logo, app loader
   features/                 one folder per product area: screens, queries, mutations, and their tests
-    auth/ onboarding/ workspace/ projects/ board/ list/ sprints/ tasks/ goals/
-    reports/ members/ notifications/ settings/ palette/
+    auth/ onboarding/ workspace/ projects/ board/ list/ sprints/ epics/ tasks/ goals/ filters/
+    reports/ members/ notifications/ settings/ trash/ audit/ palette/
   lib/
     api/                    types, endpoints, transports, query keys, optimistic helpers, uploads
     mock/                   seed, in-memory DB, router and handlers (mock backend)
@@ -106,6 +107,7 @@ docs/
   final-report.md           what was built, deviations, requested API additions, known gaps
 design/                     the design source (HTML boards) and extracted notes
 e2e/                        Playwright smoke suite
+emails/                     transactional email templates for the backend (see emails/README.md; preview at /dev/emails)
 ```
 
 ## Conventions in brief

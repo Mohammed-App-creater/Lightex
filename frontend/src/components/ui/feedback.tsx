@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Illustration, type IllustrationName } from "@/components/brand/illustrations";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "./button";
 import { ErrorGlyph } from "./glyphs";
@@ -30,13 +31,16 @@ export function SkeletonRows({ rows = 4, label = "Loading" }: { rows?: number; l
 /** Empty state (board 06): dashed 44px icon tile, 16px title, 13px body, actions. */
 export function EmptyState({
   icon,
+  illustration,
   title,
   body,
   actions,
   className,
   align = "start",
 }: {
-  icon: ReactNode;
+  icon?: ReactNode;
+  /** Board 35: a 160×120 illustration replaces the dashed icon tile (top-level empty states). */
+  illustration?: IllustrationName;
   title: ReactNode;
   body?: ReactNode;
   actions?: ReactNode;
@@ -51,9 +55,13 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="flex size-11 items-center justify-center rounded-[10px] border border-dashed border-line-2 bg-bg text-fg-2">
-        {icon}
-      </div>
+      {illustration ? (
+        <Illustration name={illustration} className="mb-1" />
+      ) : (
+        <div className="flex size-11 items-center justify-center rounded-[10px] border border-dashed border-line-2 bg-bg text-fg-2">
+          {icon}
+        </div>
+      )}
       <h3 className="m-0 text-[16px] font-semibold leading-6">{title}</h3>
       {body && <p className="m-0 max-w-[320px] text-[13px] leading-5 text-fg-2">{body}</p>}
       {actions && <div className="flex flex-wrap gap-2 pt-1">{actions}</div>}

@@ -8,12 +8,13 @@ export type ProjectView =
   | "list"
   | "backlog"
   | "sprints"
+  | "epics"
   | "objectives"
   | "milestones"
   | "reports"
   | "settings";
 
-export type SettingsSection = "general" | "members" | "roles" | "notifications" | "profile";
+export type SettingsSection = "general" | "members" | "roles" | "notifications" | "profile" | "audit";
 
 export const routes = {
   login: (next?: string) => (next ? `/login?next=${encodeURIComponent(next)}` : "/login"),
@@ -26,6 +27,7 @@ export const routes = {
     `/${ws}/projects/${key}${view === "overview" ? "" : `/${view}`}`,
   task: (ws: string, key: string) => `/${ws}/tasks/${key}`,
   settings: (ws: string, section: SettingsSection = "general") => `/${ws}/settings/${section}`,
+  trash: (ws: string) => `/${ws}/trash`,
 };
 
 /** Adds or removes ?task=KEY on the current URL (task side panel). */
@@ -52,7 +54,7 @@ export function useRouteInfo() {
     taskKey: params.taskKey ?? null,
     view,
     section,
-    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings",
+    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash",
     pathname,
   };
 }

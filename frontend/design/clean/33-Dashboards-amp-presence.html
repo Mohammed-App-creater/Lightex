@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Dashboards</title>
+<script src="../assets/6a895523-2d12-4435-b579-de984d78550f.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8}
+/* chart palette from Reports: orchid (series 1) + olive (series 2), neutral reference */
+.t-navy{--c1:#C564AB;--c2:#A39335;--c1-t:#44243B;--cref:#8794B6;--lv-l:.76;--lv-c:.14;--lv-tx:#06101F}
+.t-dark{--c1:#C564AB;--c2:#A39335;--c1-t:#3E2437;--cref:#8E8E9D;--lv-l:.76;--lv-c:.14;--lv-tx:#0B0B0F}
+.t-light{--c1:#B04496;--c2:#848E2D;--c1-t:#F8DFF0;--cref:#5F5F70;--lv-l:.54;--lv-c:.16;--lv-tx:#FFFFFF}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);overflow:hidden;background:var(--bg)}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+/* shared glyphs (from Task panel) */
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+.tp-g.fx::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:var(--spark);box-shadow:0 -11px 0 var(--spark),10px -5px 0 var(--spark),10px 6px 0 var(--spark),0 11px 0 var(--spark),-10px 6px 0 var(--spark),-10px -5px 0 var(--spark);animation:tpspark 440ms var(--ease) both;pointer-events:none}
+@keyframes tppop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes tpspark{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.tp-g.fx{animation:tppop 240ms var(--spring)}
+/* shell */
+.app{display:flex;height:100%}
+.app.ph{flex-direction:column}
+.db{position:relative;flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--bg)}
+.db-top{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;border-bottom:1px solid var(--line)}
+.db-crumb{display:flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap;min-width:0}
+.db-crumb .mut{color:var(--text-3);font-weight:500}
+.db-pick{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 8px;margin-left:-4px;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 13px/1 'Inter',sans-serif;cursor:pointer}
+.db-pick:hover{background:var(--hover)}
+.db-pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:12px;background:var(--accent-s);color:var(--accent-t);font:600 11.5px/1 'Inter',sans-serif;white-space:nowrap}
+.db-btn{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:7px;font:500 12.5px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),color 120ms var(--ease),transform 120ms var(--ease)}
+.db-btn:hover{background:var(--hover);color:var(--text)}
+.db-btn:active{transform:scale(.97)}
+.db-btn.pri{background:var(--accent);color:#fff}
+.db-btn.pri:hover{background:var(--accent-h)}
+.db-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.db-btn.sec:hover{background:var(--hover)}
+.db-btn.sm{height:26px;padding:0 9px;font-size:12px}
+.db-ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.db-ib:hover{background:var(--hover);color:var(--text)}
+.db-vsep{width:1px;height:20px;background:var(--line);margin:0 2px;flex:none}
+/* presence */
+.pr{display:inline-flex;align-items:center;padding-left:6px;flex:none}
+.pr-av{position:relative;width:26px;height:26px;margin-left:-6px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:600 10px/1 'Inter',sans-serif;color:var(--text);background:oklch(var(--av-l) var(--av-c) var(--hue));box-shadow:0 0 0 2px var(--bg);flex:none}
+.pr-av.sm{width:20px;height:20px;font-size:8.5px;margin-left:-5px}
+.pr-av.live{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px oklch(var(--lv-l) var(--lv-c) var(--hue))}
+.pr-av.live::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid oklch(var(--lv-l) var(--lv-c) var(--hue));animation:prpulse 1.8s var(--ease) infinite;pointer-events:none}
+@keyframes prpulse{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.3);opacity:0}100%{transform:scale(1.3);opacity:0}}
+.pr-av .dot{position:absolute;right:-2px;bottom:-2px;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--bg)}
+.pr-edit{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:12px;background:color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) var(--hue)) 18%,transparent);color:oklch(var(--lv-l) var(--lv-c) var(--hue));font:600 11.5px/1 'Inter',sans-serif;white-space:nowrap;flex:none}
+.pr-edit svg{flex:none}
+/* grid */
+.db-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 20px 24px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.ph .db-scroll{padding:8px 10px 40px;scrollbar-width:none}
+.db-grid{position:relative;margin:0 -6px;transition:height 260ms var(--ease)}
+.db-guides{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));pointer-events:none;animation:fadein 200ms var(--ease);background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--u) - 1px),var(--line) calc(var(--u) - 1px),var(--line) var(--u))}
+.db-guides i{margin:0 6px;border-left:1px dashed var(--line-2);border-right:1px dashed var(--line-2);background:rgba(128,140,170,.035)}
+.db-ph{position:absolute;padding:6px;transition:left 200ms var(--ease),top 200ms var(--ease),width 200ms var(--ease),height 200ms var(--ease);pointer-events:none}
+.db-ph::before{content:"";position:absolute;inset:6px;border-radius:12px;border:1.5px dashed var(--accent-t);background:var(--accent-s)}
+.db-w{position:absolute;padding:6px;transition:left 280ms var(--ease),top 280ms var(--ease),width 280ms var(--ease),height 280ms var(--ease)}
+.db-w.drag{transition:none;z-index:20}
+.db-w.new{animation:dbnew 320ms var(--spring)}
+@keyframes dbnew{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.db-card{position:relative;height:100%;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);min-width:0;transition:border-color 150ms var(--ease),box-shadow 200ms var(--ease),transform 200ms var(--ease)}
+.db-w.ed .db-card{border-color:var(--line-2)}
+.db-w.ed:hover .db-card{border-color:var(--control)}
+.db-w.drag .db-card{transform:scale(1.015) rotate(-.4deg);box-shadow:var(--shadow-modal);border-color:var(--accent-t)}
+.db-w.rz .db-card{border-color:var(--accent-t)}
+.db-h{display:flex;align-items:center;gap:8px;min-height:24px;flex:none}
+.db-h h2{margin:0;font-size:13px;line-height:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.db-meta{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.db-sp{flex:1}
+.db-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.db-w.ed .db-body{pointer-events:none;opacity:.86}
+.db-grip{width:24px;height:24px;margin-left:-6px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:grab;touch-action:none}
+.db-grip:hover{background:var(--hover);color:var(--text)}
+.db-w.drag .db-grip{cursor:grabbing;color:var(--accent-t)}
+.db-x{width:24px;height:24px;margin-right:-6px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer}
+.db-x:hover{background:color-mix(in oklab,var(--danger) 16%,transparent);color:var(--danger)}
+.db-rz{position:absolute;right:2px;bottom:2px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:nwse-resize;touch-action:none;z-index:3}
+.db-rz:hover,.db-w.rz .db-rz{color:var(--accent-t);background:var(--accent-s)}
+.db-sz{position:absolute;right:28px;bottom:6px;height:20px;padding:0 7px;border-radius:5px;background:var(--raised);border:1px solid var(--line-2);font:600 11px/18px 'JetBrains Mono',monospace;color:var(--text);box-shadow:var(--shadow-pop);z-index:4}
+/* charts (Reports style) */
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;line-height:14px;color:var(--text-2);flex:none}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.lk-line{width:14px;height:2px;border-radius:1px;background:var(--c1)}
+.lk-dash{width:14px;height:0;border-top:2px dashed var(--cref)}
+.lk-rect{width:9px;height:9px;border-radius:2px}
+.lk-tick{width:2px;height:11px;border-radius:1px;background:var(--text)}
+.ch{flex:1;min-height:0;display:grid;grid-template-columns:24px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 18px}
+.ch-y{position:relative}
+.ch-y span{position:absolute;right:7px;transform:translateY(-50%);font:500 10px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.ch-x{grid-column:2;position:relative}
+.ch-x span{position:absolute;top:6px;transform:translateX(-50%);font:500 10px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.ch-x span.td{color:var(--text-2)}
+.ch-p{position:relative;min-width:0;min-height:0}
+.ch-p svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.ch-gl{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line)}
+.ch-gl.base{border-top-color:var(--line-2)}
+.ch-td{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--line-2)}
+.ch-line{fill:none;stroke:var(--c1);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ch-ideal{fill:none;stroke:var(--cref);stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.ch-area{fill:var(--c1);opacity:.1}
+.ch-dot{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--c1);box-shadow:0 0 0 2px var(--surface);transform:translate(-50%,-50%);pointer-events:none;z-index:2;transition:top 500ms var(--ease)}
+.ch-elab{position:absolute;transform:translate(9px,-130%);font:600 12px/1 'Inter',sans-serif;color:var(--text);pointer-events:none;white-space:nowrap;padding:2px 4px;border-radius:4px;transition:top 500ms var(--ease)}
+.ch-hits{position:absolute;inset:0;display:flex}
+.ch-hit{flex:1;min-width:0;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding:0;border:0;border-radius:4px 4px 0 0;background:transparent;color:inherit;font:inherit;cursor:crosshair}
+.ch-hit:hover,.ch-hit.on{background:rgba(128,140,170,.07)}
+.ch-hit.on{z-index:4}
+.ch-xh{position:absolute;top:0;bottom:0;left:50%;width:0;border-left:1px solid var(--text-3);pointer-events:none}
+.ch-bar{display:block;width:clamp(4px,28%,18px);border-radius:3px 3px 0 0;transition:height 500ms var(--ease)}
+.ch-hit:hover .ch-bar,.ch-hit.on .ch-bar{filter:brightness(1.18)}
+.t-light .ch-hit:hover .ch-bar,.t-light .ch-hit.on .ch-bar{filter:brightness(.88)}
+.tip{position:absolute;top:2px;left:calc(50% + 10px);z-index:8;min-width:120px;padding:7px 9px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);display:flex;flex-direction:column;gap:5px;text-align:left;white-space:nowrap;pointer-events:none;animation:tipin 120ms var(--ease)}
+.tip.l{left:auto;right:calc(50% + 10px)}
+.tip.row{top:auto;bottom:calc(100% + 4px);left:auto;right:0}
+@keyframes tipin{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+.tip-h{font:500 10.5px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.tip-r{display:flex;align-items:center;gap:7px;font-size:11.5px;line-height:15px;color:var(--text-2)}
+.tip-r b{font-size:12.5px;font-weight:600;color:var(--text);min-width:22px}
+.tip-k{width:10px;height:2px;border-radius:1px;flex:none}
+.tip-k.dash{height:0;border-top:2px dashed var(--cref);background:none!important}
+.tip-k.rect{width:8px;height:8px;border-radius:2px}
+.tip-k.tick{width:2px;height:10px}
+.hb{position:relative;display:grid;align-items:center;gap:10px;width:calc(100% + 12px);height:28px;margin:0 -6px;padding:0 6px;border:0;border-radius:6px;background:transparent;color:var(--text);font:400 12.5px/1 'Inter',sans-serif;text-align:left;cursor:default;flex:none}
+.hb:hover,.hb.on{background:var(--hover)}
+.hb-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;display:flex;align-items:center;gap:7px}
+.hb-tr{position:relative;height:8px;border-radius:4px;background:var(--c1-t)}
+.hb-tr.neu{background:var(--raised)}
+.hb-f{position:absolute;top:0;bottom:0;left:0;border-radius:4px;background:var(--c1);transition:width 600ms var(--ease)}
+.hb-f2{position:absolute;top:0;bottom:0;border-radius:0 4px 4px 0;background:var(--c2);transition:left 600ms var(--ease),width 600ms var(--ease)}
+.hb-tg{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:1px;background:var(--text);box-shadow:0 0 0 1px var(--surface)}
+.hb-v{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-2);text-align:right;white-space:nowrap;padding:3px 4px;border-radius:4px}
+.hb-v.over{color:var(--danger)}
+.hl{animation:hlflash 1.6s var(--ease)}
+@keyframes hlflash{0%,30%{background:color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) 150) 34%,transparent);box-shadow:0 0 0 2px color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) 150) 34%,transparent)}100%{background:transparent;box-shadow:none}}
+/* lists */
+.mt{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.mt-r{display:flex;align-items:center;gap:9px;height:32px;padding:0 6px;margin:0 -6px;border-radius:6px;min-width:0;flex:none;transition:background-color 120ms var(--ease)}
+.mt-r:hover{background:var(--hover)}
+.mt-cb{width:22px;height:22px;margin:0 -4px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:6px;background:transparent;cursor:pointer}
+.mt-cb:hover{background:var(--raised)}
+.mt-k{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);flex:none}
+.mt-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+.mt-r.dn .mt-t{color:var(--text-3)}
+.mt-d{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);flex:none;padding:3px 4px;border-radius:4px}
+.mt-d.soon{color:var(--warn)}
+.ac-r{display:flex;align-items:center;gap:9px;min-height:32px;padding:3px 6px;margin:0 -6px;border-radius:6px;font-size:12.5px;line-height:17px;color:var(--text-2);min-width:0;flex:none}
+.ac-r b{color:var(--text);font-weight:600}
+.ac-tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-k{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text)}
+.ac-t{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);flex:none}
+.ac-t.now{color:oklch(var(--lv-l) var(--lv-c) 150)}
+/* toast */
+.db-toast{position:absolute;right:16px;bottom:16px;z-index:60;display:flex;align-items:center;gap:10px;height:40px;padding:0 12px 0 8px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;white-space:nowrap;animation:dbtoast 240ms var(--ease)}
+.db-toast.l{right:auto;left:16px}
+.ph .db-toast{left:12px;right:12px;bottom:28px}
+@keyframes dbtoast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.db-toast .k{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+/* gallery */
+.scrim{position:absolute;inset:0;z-index:70;background:rgba(2,5,14,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;animation:fadein 200ms var(--ease)}
+.t-light .scrim{background:rgba(18,18,23,.25)}
+.gal{width:640px;max-width:100%;max-height:100%;display:flex;flex-direction:column;border-radius:14px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-modal);animation:galin 240ms var(--ease);overflow:hidden}
+@keyframes galin{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.gal-h{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 18px;border-bottom:1px solid var(--line)}
+.gal-h h2{margin:0;font-size:15px;font-weight:600;flex:1}
+.gal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px;padding:14px;overflow-y:auto}
+.gal-t{position:relative;display:flex;flex-direction:column;gap:9px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:border-color 120ms var(--ease),transform 150ms var(--ease),background-color 120ms var(--ease)}
+.gal-t:hover{border-color:var(--control);transform:translateY(-1px)}
+.gal-t.added{cursor:default;transform:none;border-color:var(--line)}
+.gal-pv{height:64px;border-radius:7px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gal-pv svg{width:100%;height:100%}
+.gal-n{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.gal-n .db-meta{margin-left:auto}
+.gal-ad{display:inline-flex;align-items:center;gap:5px;font:500 11px/1 'JetBrains Mono',monospace;color:var(--ok);margin-left:auto}
+/* states */
+.db-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1;padding:24px;text-align:center}
+.db-state h3{margin:0;font-size:15px;font-weight:600}
+.db-eic{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--line);color:var(--text-3)}
+.mm{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sk{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 45%,var(--raised) 90%);background-size:240% 100%;animation:shim 1.4s linear infinite;flex:none}
+@keyframes shim{from{background-position:120% 0}to{background-position:-120% 0}}
+/* task presence frame */
+.tk{display:flex;height:100%}
+.tk-col{width:236px;flex:none;display:flex;flex-direction:column;gap:8px;padding:12px;border-right:1px solid var(--line);background:var(--surface)}
+.tk-ch{display:flex;align-items:center;gap:8px;height:28px;font-weight:600;font-size:12.5px}
+.tk-card{position:relative;display:flex;flex-direction:column;gap:8px;padding:10px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);transition:border-color 200ms var(--ease),box-shadow 200ms var(--ease)}
+.tk-card.live{border-color:oklch(var(--lv-l) var(--lv-c) var(--hue));box-shadow:0 0 0 3px color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) var(--hue)) 16%,transparent)}
+.tk-card .pr{position:absolute;top:-9px;right:8px}
+.tk-r{display:flex;align-items:center;gap:7px;min-width:0}
+.tk-tt{font-size:12.5px;line-height:17px;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tk-p{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding:16px 18px;overflow:hidden}
+.tk-ph{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.tk-p h3{margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-.01em}
+.tk-props{display:grid;grid-template-columns:84px minmax(0,1fr);gap:6px 10px;align-items:center;font-size:12.5px}
+.tk-props dt{color:var(--text-3)}
+.tk-props dd{margin:0;display:flex;align-items:center;gap:7px;min-width:0}
+.tk-fv{position:relative;display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 8px;margin-left:-8px;border-radius:6px;transition:box-shadow 200ms var(--ease)}
+.tk-fv.live{box-shadow:inset 0 0 0 1.5px oklch(var(--lv-l) var(--lv-c) var(--hue))}
+.flag{position:absolute;left:-1px;bottom:calc(100% + 1px);height:16px;padding:0 5px;border-radius:4px 4px 4px 0;background:oklch(var(--lv-l) var(--lv-c) var(--hue));color:var(--lv-tx);font:600 10px/16px 'Inter',sans-serif;white-space:nowrap;pointer-events:none}
+.tk-desc{position:relative;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:13px;line-height:20px;color:var(--text-2);min-height:88px}
+.tk-desc.live{border-color:oklch(var(--lv-l) var(--lv-c) var(--hue))}
+.caret{position:relative;display:inline-block;width:2px;height:16px;margin:0 0 -3px 1px;background:oklch(var(--lv-l) var(--lv-c) var(--hue));animation:blink 1s steps(1) infinite}
+.caret .flag{left:0;bottom:100%}
+@keyframes blink{50%{opacity:.25}}
+.typed{color:var(--text)}
+/* comments frame */
+.cm{position:relative;display:flex;flex-direction:column;height:100%}
+.cm-h{display:flex;align-items:center;gap:8px;height:52px;flex:none;padding:0 14px 0 18px;border-bottom:1px solid var(--line)}
+.cm-h h3{margin:0;font-size:14px;font-weight:600}
+.cm-th{position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:16px 18px}
+.cm-c{display:flex;gap:10px;min-width:0;padding:4px 6px;margin:-4px -6px;border-radius:8px}
+.cm-b{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cm-m{display:flex;align-items:baseline;gap:8px;font-size:12.5px}
+.cm-m b{font-weight:600}
+.cm-tx{font-size:13px;line-height:19px;color:var(--text-2)}
+.cm-sel{background:color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) var(--hue)) 26%,transparent);color:var(--text);border-radius:2px;box-shadow:0 0 0 1px color-mix(in oklab,oklch(var(--lv-l) var(--lv-c) var(--hue)) 40%,transparent)}
+.cur{position:absolute;z-index:10;pointer-events:none;transition:left 900ms var(--ease),top 900ms var(--ease)}
+.cur svg{display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+.cur .flag{left:14px;top:16px;bottom:auto;border-radius:0 4px 4px 4px}
+.cm-ty{display:flex;align-items:center;gap:8px;height:28px;padding:0 18px;flex:none;font-size:12px;color:var(--text-3);transition:opacity 200ms var(--ease)}
+.cm-ty.off{opacity:0}
+.dots{display:inline-flex;gap:3px;align-items:center;height:16px;padding:0 6px;border-radius:8px;background:var(--raised)}
+.dots i{width:4px;height:4px;border-radius:50%;background:var(--text-3);animation:bob 1.1s var(--ease) infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-3px);opacity:1}}
+.cm-f{display:flex;align-items:flex-end;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--line);flex:none}
+.cm-in{flex:1;min-width:0;height:36px;padding:0 12px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:400 13px/1 'Inter',sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.cm-in::placeholder{color:var(--text-3)}
+.cm-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.cm-new{animation:dbnew 320ms var(--spring)}
+/* phone */
+.ph-sb{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font:600 14px/1 'Inter',sans-serif}
+.ph-top{height:52px;flex:none;display:flex;align-items:center;gap:2px;padding:0 10px 0 4px;border-bottom:1px solid var(--line)}
+.ph-ib{width:44px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer}
+.ph-home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--text-3);opacity:.5;z-index:61}
+.db-btn:focus-visible,.db-ib:focus-visible,.db-pick:focus-visible,.db-grip:focus-visible,.db-x:focus-visible,.db-rz:focus-visible,.ch-hit:focus-visible,.hb:focus-visible,.mt-cb:focus-visible,.gal-t:focus-visible,.ph-ib:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){.sb-host{display:none!important}.db-top{flex-wrap:wrap;height:auto;padding:8px 12px}.db-scroll{padding:10px 12px 32px}.tk{flex-direction:column}.tk-col{width:auto}}
+@media (prefers-reduced-motion:reduce){.db *,.tk *,.cm *,.db-w,.db-ph,.db-grid,.db-guides,.gal,.scrim,.db-toast,.sk,.pr-av.live::after,.hl,.cur,.caret,.dots i{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:3600px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · DASHBOARDS</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Dashboards &amp; presence</h1>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)">
+      <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--c1)"></i>series 1</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--c2)"></i>series 2</span>
+      <span>12 columns</span><span>6 widgets</span><span>live every 7s</span>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="9">
+      <figure class="frame" style="grid-column:{{fx.gc}};grid-row:{{fx.gr}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="width:{{fx.w}}px;height:{{fx.h}}px;border-radius:{{fx.r}}px">
+
+          <sc-if value="{{fx.isDash}}" hint-placeholder-val="{{true}}">
+            <div class="app {{fx.appCls}}">
+              <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="1">
+                <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+                </div>
+              </sc-for>
+
+              <section class="db" aria-label="Dashboard" sc-camel-on-key-down="{{fx.onKey}}">
+                <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}">
+                  <div class="ph-sb"><span>9:41</span><svg width="56" height="12" sc-camel-view-box="0 0 56 12" fill="var(--text)" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="5" width="3" height="7" rx="1"></rect><rect x="10" y="2.5" width="3" height="9.5" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect><rect x="31" y="1" width="21" height="10" rx="3" fill="none" stroke="var(--text)" stroke-opacity=".5"></rect><rect x="33" y="3" width="15" height="6" rx="1.5"></rect><rect x="53" y="4" width="2" height="4" rx="1" fill-opacity=".5"></rect></svg></div>
+                  <div class="ph-top">
+                    <button class="ph-ib" type="button" aria-label="Open navigation"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"></path></svg></button>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font:600 15px/1 'Inter',sans-serif">Sprint 14 health</span><span style="font-size:11.5px;line-height:1;color:var(--text-3)">Dashboard · Platform Rebuild</span></div>
+                    <span class="pr"><sc-for list="{{fx.pres}}" as="pv" hint-placeholder-count="2"><span class="pr-av {{pv.cls}}" style="--hue:{{pv.hue}}" role="img" aria-label="{{pv.aria}}">{{pv.ini}}</span></sc-for></span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.deskTop}}" hint-placeholder-val="{{true}}">
+                  <div class="db-top">
+                    <div class="db-crumb"><span class="mut">Dashboards</span><span class="mut">/</span><button class="db-pick" type="button" aria-haspopup="menu">Sprint 14 health<svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button></div>
+                    <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}"><span class="db-pill fade"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h4.5v4.5H2.5zM9 3h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"></path></svg>Editing layout</span></sc-if>
+                    <span style="flex:1"></span>
+                    <sc-if value="{{fx.view}}" hint-placeholder-val="{{true}}">
+                      <span class="pr" role="group" aria-label="Viewing now"><sc-for list="{{fx.pres}}" as="pv" hint-placeholder-count="3"><span class="pr-av {{pv.cls}}" style="--hue:{{pv.hue}}" role="img" aria-label="{{pv.aria}}" title="{{pv.aria}}">{{pv.ini}}<sc-if value="{{pv.on}}" hint-placeholder-val="{{false}}"><span class="dot"></span></sc-if></span></sc-for></span>
+                      <sc-if value="{{fx.canLayout}}" hint-placeholder-val="{{true}}">
+                        <span class="db-vsep"></span>
+                        <button class="db-btn sec" type="button" sc-camel-on-click="{{fx.startEdit}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h4.5v4.5H2.5zM9 3h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"></path></svg>Edit layout</button>
+                      </sc-if>
+                    </sc-if>
+                    <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}">
+                      <button class="db-btn sec" type="button" sc-camel-on-click="{{fx.openGal}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>Add widget</button>
+                      <span class="db-vsep"></span>
+                      <button class="db-btn" type="button" sc-camel-on-click="{{fx.cancel}}">Cancel</button>
+                      <button class="db-btn pri" type="button" sc-camel-on-click="{{fx.save}}">Save layout</button>
+                    </sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isLoading}}" hint-placeholder-val="{{false}}">
+                  <div class="db-scroll" aria-busy="true" aria-label="Loading dashboard">
+                    <div style="display:grid;grid-template-columns:repeat({{fx.skCols}},minmax(0,1fr));gap:12px">
+                      <sc-for list="{{fx.skCards}}" as="sk" hint-placeholder-count="4">
+                        <div class="db-card" style="height:{{sk.h}}px;grid-column:span {{sk.span}}"><span class="sk" style="width:{{sk.tw}}px;height:10px"></span><span class="sk" style="flex:1;width:100%;height:auto;border-radius:8px"></span></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+                  <div class="db-state fade" role="alert">
+                    <svg width="26" height="26" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3zM12 10v4.5M12 17.2v.1"></path></svg>
+                    <h3>Couldn’t load dashboard</h3>
+                    <span class="mm">timeout · 3 widgets</span>
+                    <button class="db-btn sec" type="button" sc-camel-on-click="{{fx.retry}}">Retry</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.isEmpty}}" hint-placeholder-val="{{false}}">
+                  <div class="db-state fade">
+                    <span class="db-eic"><svg width="22" height="22" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h4.5v4.5H2.5zM9 3h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"></path></svg></span>
+                    <h3>No widgets yet</h3>
+                    <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}"><button class="db-btn pri" type="button" sc-camel-on-click="{{fx.openGal}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>Add widget</button></sc-if>
+                    <sc-if value="{{fx.viewer}}" hint-placeholder-val="{{false}}"><span class="mm">Ask an editor to add widgets</span></sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.ready}}" hint-placeholder-val="{{true}}">
+                  <div class="db-scroll">
+                    <div class="db-grid" data-dbgrid="1" style="height:{{fx.gridH}}px;--u:{{fx.u}}px">
+                      <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}"><div class="db-guides" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></sc-if>
+                      <sc-if value="{{fx.phOn}}" hint-placeholder-val="{{false}}"><div class="db-ph" style="left:{{fx.ph.l}};top:{{fx.ph.t}};width:{{fx.ph.w}};height:{{fx.ph.h}}"></div></sc-if>
+                      <sc-for list="{{fx.widgets}}" as="wg" hint-placeholder-count="6">
+                        <div class="db-w {{wg.cls}}" style="left:{{wg.l}};top:{{wg.t}};width:{{wg.w}};height:{{wg.h}}">
+                          <section class="db-card" aria-label="{{wg.name}}">
+                            <header class="db-h">
+                              <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}"><button class="db-grip" type="button" aria-label="Move {{wg.name}}. Arrow keys reorder" aria-roledescription="drag handle" ref="{{wg.gripRef}}" sc-camel-on-pointer-down="{{wg.down}}" sc-camel-on-pointer-move="{{wg.move}}" sc-camel-on-pointer-up="{{wg.up}}" sc-camel-on-pointer-cancel="{{wg.up}}" sc-camel-on-key-down="{{wg.gripKey}}"><svg width="12" height="14" sc-camel-view-box="0 0 12 14" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.3"></circle><circle cx="8.5" cy="3" r="1.3"></circle><circle cx="3.5" cy="7" r="1.3"></circle><circle cx="8.5" cy="7" r="1.3"></circle><circle cx="3.5" cy="11" r="1.3"></circle><circle cx="8.5" cy="11" r="1.3"></circle></svg></button></sc-if>
+                              <h2>{{wg.name}}</h2><span class="db-meta">{{wg.meta}}</span><span class="db-sp"></span>
+                              <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}"><button class="db-x" type="button" aria-label="Remove {{wg.name}}" sc-camel-on-click="{{wg.remove}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button></sc-if>
+                            </header>
+                            <div class="db-body">
+                              <sc-if value="{{wg.isBurn}}" hint-placeholder-val="{{false}}">
+                                <div class="leg"><span><i class="lk-line"></i>Remaining</span><span><i class="lk-dash"></i>Ideal</span></div>
+                                <div class="ch">
+                                  <div class="ch-y"><sc-for list="{{wg.b.grid}}" as="yg" hint-placeholder-count="4"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                                  <div class="ch-p">
+                                    <sc-for list="{{wg.b.grid}}" as="yg" hint-placeholder-count="4"><i class="ch-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                                    <i class="ch-td" style="left:{{wg.b.endX}}%"></i>
+                                    <svg sc-camel-view-box="0 0 100 100" sc-camel-preserve-aspect-ratio="none" role="img" aria-label="{{wg.b.aria}}"><path class="ch-area" d="{{wg.b.areaD}}"></path><path class="ch-ideal" d="{{wg.b.idealD}}"></path><path class="ch-line" d="{{wg.b.lineD}}"></path></svg>
+                                    <span class="ch-dot" style="left:{{wg.b.endX}}%;top:{{wg.b.endY}}%"></span>
+                                    <span class="ch-elab {{wg.b.hl}}" style="left:{{wg.b.endX}}%;top:{{wg.b.endY}}%">{{wg.b.endV}}</span>
+                                    <div class="ch-hits">
+                                      <sc-for list="{{wg.b.hits}}" as="bh" hint-placeholder-count="14">
+                                        <button class="ch-hit {{bh.on}}" type="button" aria-label="{{bh.aria}}" sc-camel-on-mouse-enter="{{bh.show}}" sc-camel-on-focus="{{bh.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                          <sc-if value="{{bh.tipOn}}" hint-placeholder-val="{{false}}">
+                                            <span class="ch-xh"></span>
+                                            <sc-if value="{{bh.hasV}}" hint-placeholder-val="{{true}}"><span class="ch-dot" style="left:50%;top:{{bh.y}}%"></span></sc-if>
+                                            <span class="tip {{bh.side}}" aria-hidden="true"><span class="tip-h">{{bh.head}}</span><sc-for list="{{bh.rows}}" as="tr" hint-placeholder-count="2"><span class="tip-r"><i class="tip-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span>
+                                          </sc-if>
+                                        </button>
+                                      </sc-for>
+                                    </div>
+                                  </div>
+                                  <div class="ch-x"><sc-for list="{{wg.b.xl}}" as="xl" hint-placeholder-count="3"><span class="{{xl.cls}}" style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                                </div>
+                              </sc-if>
+
+                              <sc-if value="{{wg.isVel}}" hint-placeholder-val="{{false}}">
+                                <div class="leg"><span><i class="lk-rect" style="background:var(--c2)"></i>Committed</span><span><i class="lk-rect" style="background:var(--c1)"></i>Completed</span></div>
+                                <div class="ch">
+                                  <div class="ch-y"><sc-for list="{{wg.v.grid}}" as="yg" hint-placeholder-count="4"><span style="top:{{yg.top}}%">{{yg.t}}</span></sc-for></div>
+                                  <div class="ch-p" role="group" aria-label="{{wg.v.aria}}">
+                                    <sc-for list="{{wg.v.grid}}" as="yg" hint-placeholder-count="4"><i class="ch-gl {{yg.cls}}" style="top:{{yg.top}}%"></i></sc-for>
+                                    <div class="ch-hits">
+                                      <sc-for list="{{wg.v.groups}}" as="vg" hint-placeholder-count="5">
+                                        <button class="ch-hit {{vg.on}}" type="button" aria-label="{{vg.aria}}" sc-camel-on-mouse-enter="{{vg.show}}" sc-camel-on-focus="{{vg.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                          <span class="ch-bar" style="height:{{vg.h1}}%;background:var(--c2)"></span><span class="ch-bar" style="height:{{vg.h2}}%;background:var(--c1)"></span>
+                                          <sc-if value="{{vg.tipOn}}" hint-placeholder-val="{{false}}"><span class="tip {{vg.side}}" aria-hidden="true"><span class="tip-h">{{vg.head}}</span><sc-for list="{{vg.rows}}" as="tr" hint-placeholder-count="2"><span class="tip-r"><i class="tip-k {{tr.k}}" style="background:{{tr.c}}"></i><b>{{tr.v}}</b>{{tr.n}}</span></sc-for></span></sc-if>
+                                        </button>
+                                      </sc-for>
+                                    </div>
+                                  </div>
+                                  <div class="ch-x"><sc-for list="{{wg.v.xl}}" as="xl" hint-placeholder-count="5"><span style="left:{{xl.left}}%">{{xl.t}}</span></sc-for></div>
+                                </div>
+                              </sc-if>
+
+                              <sc-if value="{{wg.isObj}}" hint-placeholder-val="{{false}}">
+                                <div class="leg"><span><i class="lk-rect" style="background:var(--c1)"></i>Progress</span><span><i class="lk-tick"></i>Expected today</span></div>
+                                <sc-for list="{{wg.o}}" as="ob" hint-placeholder-count="4">
+                                  <button class="hb {{ob.on}}" type="button" style="grid-template-columns:minmax(0,1fr) 38% 40px" aria-label="{{ob.aria}}" sc-camel-on-mouse-enter="{{ob.show}}" sc-camel-on-focus="{{ob.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                    <span class="hb-n">{{ob.name}}</span>
+                                    <span class="hb-tr"><span class="hb-f" style="width:{{ob.pct}}%"></span><span class="hb-tg" style="left:{{ob.exp}}%"></span></span>
+                                    <span class="hb-v {{ob.hl}}">{{ob.pct}}%</span>
+                                    <sc-if value="{{ob.tipOn}}" hint-placeholder-val="{{false}}"><span class="tip row" aria-hidden="true"><span class="tip-h">{{ob.name}}</span><span class="tip-r"><i class="tip-k rect" style="background:var(--c1)"></i><b>{{ob.pct}}%</b>progress</span><span class="tip-r"><i class="tip-k tick" style="background:var(--text)"></i><b>{{ob.exp}}%</b>expected</span></span></sc-if>
+                                  </button>
+                                </sc-for>
+                              </sc-if>
+
+                              <sc-if value="{{wg.isLoad}}" hint-placeholder-val="{{false}}">
+                                <div class="leg"><span><i class="lk-rect" style="background:var(--c1)"></i>In progress</span><span><i class="lk-rect" style="background:var(--c2)"></i>To do</span><span><i class="lk-tick"></i>Capacity</span></div>
+                                <sc-for list="{{wg.ld}}" as="lp" hint-placeholder-count="6">
+                                  <button class="hb {{lp.on}}" type="button" style="grid-template-columns:96px minmax(0,1fr) 48px" aria-label="{{lp.aria}}" sc-camel-on-mouse-enter="{{lp.show}}" sc-camel-on-focus="{{lp.show}}" sc-camel-on-mouse-leave="{{fx.hide}}" sc-camel-on-blur="{{fx.hide}}">
+                                    <span class="hb-n"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{lp.hue}})">{{lp.ini}}</span>{{lp.first}}</span>
+                                    <span class="hb-tr neu"><span class="hb-f" style="width:{{lp.w1}}%"></span><span class="hb-f2" style="left:{{lp.w1}}%;width:{{lp.w2}}%"></span><span class="hb-tg" style="left:{{lp.cap}}%"></span></span>
+                                    <span class="hb-v {{lp.vCls}}">{{lp.tot}}/{{lp.capV}}</span>
+                                    <sc-if value="{{lp.tipOn}}" hint-placeholder-val="{{false}}"><span class="tip row" aria-hidden="true"><span class="tip-h">{{lp.name}} · pts</span><span class="tip-r"><i class="tip-k rect" style="background:var(--c1)"></i><b>{{lp.p}}</b>in progress</span><span class="tip-r"><i class="tip-k rect" style="background:var(--c2)"></i><b>{{lp.t}}</b>to do</span><span class="tip-r"><i class="tip-k tick" style="background:var(--text)"></i><b>{{lp.capV}}</b>capacity</span></span></sc-if>
+                                  </button>
+                                </sc-for>
+                              </sc-if>
+
+                              <sc-if value="{{wg.isMine}}" hint-placeholder-val="{{false}}">
+                                <div class="mt">
+                                  <sc-for list="{{wg.m}}" as="mr" hint-placeholder-count="4">
+                                    <div class="mt-r {{mr.rowCls}}">
+                                      <sc-if value="{{mr.can}}" hint-placeholder-val="{{true}}"><button class="mt-cb" type="button" aria-label="{{mr.toggleAria}}" aria-pressed="{{mr.done}}" sc-camel-on-click="{{mr.toggle}}"><span class="tp-g {{mr.glyph}} {{mr.fx}}" style="color:{{mr.sc}}"></span></button></sc-if>
+                                      <sc-if value="{{mr.ro}}" hint-placeholder-val="{{false}}"><span class="tp-g {{mr.glyph}}" style="color:{{mr.sc}}"></span></sc-if>
+                                      <span class="mt-k">{{mr.key}}</span><span class="mt-t">{{mr.title}}</span><span class="mt-d {{mr.dCls}}">{{mr.due}}</span>
+                                    </div>
+                                  </sc-for>
+                                </div>
+                              </sc-if>
+
+                              <sc-if value="{{wg.isAct}}" hint-placeholder-val="{{false}}">
+                                <div class="mt">
+                                  <sc-for list="{{wg.a}}" as="ar" hint-placeholder-count="5">
+                                    <div class="ac-r {{ar.hl}}"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{ar.hue}})">{{ar.ini}}</span><span class="ac-tx"><b>{{ar.name}}</b> {{ar.verb}} <span class="ac-k">{{ar.key}}</span> {{ar.tail}}</span><span class="ac-t {{ar.tCls}}">{{ar.t}}</span></div>
+                                  </sc-for>
+                                </div>
+                              </sc-if>
+                            </div>
+                            <sc-if value="{{fx.edit}}" hint-placeholder-val="{{false}}">
+                              <button class="db-rz" type="button" aria-label="Resize {{wg.name}}, {{wg.size}}. Arrow keys resize" sc-camel-on-pointer-down="{{wg.rzDown}}" sc-camel-on-pointer-move="{{wg.rzMove}}" sc-camel-on-pointer-up="{{wg.rzUp}}" sc-camel-on-pointer-cancel="{{wg.rzUp}}" sc-camel-on-key-down="{{wg.rzKey}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M9 3L3 9M9 6.5L6.5 9"></path></svg></button>
+                              <sc-if value="{{wg.rzOn}}" hint-placeholder-val="{{false}}"><span class="db-sz" aria-hidden="true">{{wg.size}}</span></sc-if>
+                            </sc-if>
+                          </section>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+                  <div class="db-toast {{fx.toast.cls}}" role="status">
+                    <sc-if value="{{fx.toast.av}}" hint-placeholder-val="{{true}}"><span class="pr-av live sm" style="--hue:{{fx.toast.hue}};margin-left:0">{{fx.toast.ini}}</span></sc-if>
+                    <sc-if value="{{fx.toast.ok}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                    <span>{{fx.toast.msg}}</span><span class="k">{{fx.toast.k}}</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.galOpen}}" hint-placeholder-val="{{false}}">
+                  <div class="scrim" sc-camel-on-click="{{fx.closeGal}}">
+                    <div class="gal" role="dialog" aria-modal="true" aria-label="Add widget" sc-camel-on-click="{{fx.stop}}" sc-camel-on-key-down="{{fx.galKey}}">
+                      <div class="gal-h"><h2>Add widget</h2><span class="mm">{{fx.galCount}}</span><button class="db-ib" type="button" aria-label="Close" sc-camel-on-click="{{fx.closeGal}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button></div>
+                      <div class="gal-g">
+                        <sc-for list="{{fx.gallery}}" as="gt" hint-placeholder-count="6">
+                          <button class="gal-t {{gt.cls}}" type="button" aria-disabled="{{gt.added}}" aria-label="{{gt.aria}}" sc-camel-auto-focus="{{gt.first}}" sc-camel-on-click="{{gt.add}}">
+                            <span class="gal-pv" aria-hidden="true">
+                              <sc-if value="{{gt.isBurn}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><path d="M14 52H150M14 34H150M14 16H150" stroke="var(--line)" stroke-width="1"></path><path d="M18 12L146 54" stroke="var(--cref)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"></path><path d="M18 12L36 15L54 15L72 24L90 30L108 33" stroke="var(--c1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="108" cy="33" r="3.5" fill="var(--c1)"></circle></svg></sc-if>
+                              <sc-if value="{{gt.isMine}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><g fill="none" stroke-width="1.5"><circle cx="24" cy="16" r="4.5" stroke="var(--warn)"></circle><circle cx="24" cy="32" r="4.5" stroke="var(--todo)"></circle><circle cx="24" cy="48" r="4.5" fill="var(--ok)" stroke="var(--ok)"></circle></g><g fill="var(--line-2)"><rect x="36" y="13" width="70" height="6" rx="3"></rect><rect x="36" y="29" width="88" height="6" rx="3"></rect><rect x="36" y="45" width="56" height="6" rx="3"></rect></g><g fill="var(--text-3)" opacity=".5"><rect x="128" y="13" width="18" height="6" rx="3"></rect><rect x="128" y="29" width="18" height="6" rx="3"></rect><rect x="128" y="45" width="18" height="6" rx="3"></rect></g></svg></sc-if>
+                              <sc-if value="{{gt.isObj}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><g fill="var(--c1-t)"><rect x="16" y="12" width="128" height="7" rx="3.5"></rect><rect x="16" y="29" width="128" height="7" rx="3.5"></rect><rect x="16" y="46" width="128" height="7" rx="3.5"></rect></g><g fill="var(--c1)"><rect x="16" y="12" width="80" height="7" rx="3.5"></rect><rect x="16" y="29" width="108" height="7" rx="3.5"></rect><rect x="16" y="46" width="50" height="7" rx="3.5"></rect></g><g fill="var(--text)"><rect x="104" y="9" width="2" height="13" rx="1"></rect><rect x="112" y="26" width="2" height="13" rx="1"></rect><rect x="84" y="43" width="2" height="13" rx="1"></rect></g></svg></sc-if>
+                              <sc-if value="{{gt.isLoad}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><g fill="var(--raised)"><rect x="40" y="10" width="104" height="8" rx="4"></rect><rect x="40" y="28" width="104" height="8" rx="4"></rect><rect x="40" y="46" width="104" height="8" rx="4"></rect></g><g fill="var(--c1)"><rect x="40" y="10" width="40" height="8" rx="4"></rect><rect x="40" y="28" width="58" height="8" rx="4"></rect><rect x="40" y="46" width="22" height="8" rx="4"></rect></g><g fill="var(--c2)"><rect x="78" y="10" width="44" height="8" rx="2"></rect><rect x="96" y="28" width="22" height="8" rx="2"></rect><rect x="60" y="46" width="40" height="8" rx="2"></rect></g><g fill="var(--line-2)"><circle cx="24" cy="14" r="6"></circle><circle cx="24" cy="32" r="6"></circle><circle cx="24" cy="50" r="6"></circle></g></svg></sc-if>
+                              <sc-if value="{{gt.isVel}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><path d="M14 56H150" stroke="var(--line-2)" stroke-width="1"></path><g fill="var(--c2)"><rect x="24" y="22" width="9" height="34" rx="2"></rect><rect x="52" y="16" width="9" height="40" rx="2"></rect><rect x="80" y="19" width="9" height="37" rx="2"></rect><rect x="108" y="12" width="9" height="44" rx="2"></rect></g><g fill="var(--c1)"><rect x="35" y="27" width="9" height="29" rx="2"></rect><rect x="63" y="20" width="9" height="36" rx="2"></rect><rect x="91" y="19" width="9" height="37" rx="2"></rect><rect x="119" y="16" width="9" height="40" rx="2"></rect></g></svg></sc-if>
+                              <sc-if value="{{gt.isAct}}" hint-placeholder-val="{{false}}"><svg sc-camel-view-box="0 0 160 64"><g fill="var(--line-2)"><circle cx="22" cy="16" r="6"></circle><circle cx="22" cy="32" r="6"></circle><circle cx="22" cy="48" r="6"></circle><rect x="36" y="13" width="84" height="6" rx="3"></rect><rect x="36" y="29" width="64" height="6" rx="3"></rect><rect x="36" y="45" width="92" height="6" rx="3"></rect></g><g fill="var(--text-3)" opacity=".5"><rect x="132" y="13" width="14" height="6" rx="3"></rect><rect x="132" y="29" width="14" height="6" rx="3"></rect><rect x="132" y="45" width="14" height="6" rx="3"></rect></g></svg></sc-if>
+                            </span>
+                            <span class="gal-n">{{gt.name}}<sc-if value="{{gt.added}}" hint-placeholder-val="{{false}}"><span class="gal-ad"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Added</span></sc-if><sc-if value="{{gt.free}}" hint-placeholder-val="{{true}}"><span class="db-meta">{{gt.size}}</span></sc-if></span>
+                          </button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+                <span class="sr" aria-live="polite">{{fx.live}}</span>
+                <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}"><span class="ph-home" aria-hidden="true"></span></sc-if>
+              </section>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{fx.isTask}}" hint-placeholder-val="{{false}}">
+            <div class="tk">
+              <div class="tk-col" aria-label="In progress column">
+                <div class="tk-ch"><span class="tp-g progress" style="color:var(--warn)"></span>In progress<span class="mm">3</span></div>
+                <sc-for list="{{fx.cards}}" as="kc" hint-placeholder-count="3">
+                  <div class="tk-card {{kc.cls}}" style="--hue:{{kc.lhue}}">
+                    <sc-if value="{{kc.live}}" hint-placeholder-val="{{false}}"><span class="pr" role="group" aria-label="{{kc.liveAria}}"><sc-for list="{{kc.pres}}" as="kp" hint-placeholder-count="2"><span class="pr-av sm live" style="--hue:{{kp.hue}}">{{kp.ini}}</span></sc-for></span></sc-if>
+                    <span class="tk-r"><span class="mt-k">{{kc.key}}</span><span style="flex:1"></span><span class="tp-bars {{kc.bars}}" style="color:{{kc.pc}}"><i></i><i></i><i></i><i></i></span></span>
+                    <span class="tk-tt">{{kc.title}}</span>
+                    <span class="tk-r"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) {{kc.hue}})">{{kc.ini}}</span><span class="mm">{{kc.due}}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+              <div class="tk-p" aria-label="PRJ-42 task panel">
+                <div class="tk-ph">
+                  <span class="mt-k" style="font-size:12px">PRJ-42</span>
+                  <span style="flex:1"></span>
+                  <span class="pr-edit" style="--hue:200"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3l2.5 2.5L6 12.5H3.5V10z"></path></svg>Jordan is editing</span>
+                  <span class="pr" role="group" aria-label="Jordan and Riley are here"><span class="pr-av live" style="--hue:200">JL</span><span class="pr-av live" style="--hue:150">RC</span><span class="pr-av" style="--hue:285">AK</span></span>
+                </div>
+                <h3>Fix flaky board reflow on column resize</h3>
+                <dl class="tk-props">
+                  <dt>Status</dt><dd><span class="tp-g progress" style="color:var(--warn)"></span>In progress</dd>
+                  <dt>Assignee</dt><dd><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span>Alex Kim</dd>
+                  <dt>Due</dt><dd><span class="tk-fv live {{fx.dueHl}}" style="--hue:150"><span class="flag" style="--hue:150">Riley</span><span class="mono" style="font-size:12px">{{fx.due}}</span></span></dd>
+                  <dt>Priority</dt><dd><span class="tp-bars n3" style="color:var(--orange)"><i></i><i></i><i></i><i></i></span>High</dd>
+                </dl>
+                <div class="tk-desc live" style="--hue:200" aria-label="Description, Jordan is typing">{{fx.descBase}}<span class="typed">{{fx.typed}}</span><span class="caret" style="--hue:200"><span class="flag" style="--hue:200">Jordan</span></span></div>
+              </div>
+              <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+                <div class="db-toast" role="status"><span class="pr-av live sm" style="--hue:{{fx.toast.hue}};margin-left:0">{{fx.toast.ini}}</span><span>{{fx.toast.msg}}</span><span class="k">{{fx.toast.k}}</span></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{fx.isCmt}}" hint-placeholder-val="{{false}}">
+            <div class="cm">
+              <div class="cm-h"><svg width="15" height="15" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11v7.5H6l-3.5 2.5z"></path></svg><h3>Comments</h3><span class="mm">{{fx.cmCount}}</span><span style="flex:1"></span><span class="mt-k">PRJ-44</span><span class="pr" role="group" aria-label="Riley and Sam are here"><span class="pr-av sm live" style="--hue:150">RC</span><span class="pr-av sm live" style="--hue:20">SP</span></span></div>
+              <div class="cm-th">
+                <sc-for list="{{fx.cms}}" as="cmt" hint-placeholder-count="3">
+                  <div class="cm-c {{cmt.cls}}">
+                    <span class="tp-av" style="width:26px;height:26px;font-size:10px;background:oklch(var(--av-l) var(--av-c) {{cmt.hue}})">{{cmt.ini}}</span>
+                    <div class="cm-b"><span class="cm-m"><b>{{cmt.name}}</b><span class="mm">{{cmt.t}}</span></span><span class="cm-tx">{{cmt.pre}}<sc-if value="{{cmt.sel}}" hint-placeholder-val="{{false}}"><span class="cm-sel" style="--hue:150">{{cmt.selT}}</span></sc-if>{{cmt.post}}</span></div>
+                  </div>
+                </sc-for>
+                <div class="cur" style="left:{{fx.cur.x}}%;top:{{fx.cur.y}}%;--hue:150" aria-hidden="true">
+                  <svg width="16" height="20" sc-camel-view-box="0 0 16 20"><path d="M1.5 1.5v15l4.2-3.9 2.7 6 2.6-1.2-2.7-5.9h5.6z" fill="oklch(var(--lv-l) var(--lv-c) 150)" stroke="var(--bg)" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+                  <span class="flag" style="--hue:150">Riley</span>
+                </div>
+              </div>
+              <div class="cm-ty {{fx.tyCls}}" aria-live="polite"><span class="pr-av sm" style="--hue:20;margin-left:0">SP</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>{{fx.tyText}}</span></div>
+              <sc-if value="{{fx.canEdit}}" hint-placeholder-val="{{true}}">
+                <form class="cm-f" sc-camel-on-submit="{{fx.send}}">
+                  <span class="tp-av" style="width:26px;height:26px;font-size:10px;margin-bottom:5px;background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+                  <input class="cm-in" type="text" placeholder="Reply…" aria-label="Write a comment" value="{{fx.draft}}" sc-camel-on-change="{{fx.onDraft}}" sc-camel-max-length="400">
+                  <button class="db-btn pri" type="submit" style="height:36px">Send</button>
+                </form>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:3600}}">
+class Component extends DCLogic {
+  state = { sb: {}, fr: {}, L: null, hl: null, rt: null, ev: 0, typ: 0, cur: 0, ty: 0 };
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  fGet(id) { return (this.state.fr && this.state.fr[id]) || {}; }
+  fSet(id, patch) { const all = { ...(this.state.fr || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ fr: all }); }
+  later(key, ms, fn) { this._tm = this._tm || {}; clearTimeout(this._tm[key]); this._tm[key] = setTimeout(fn, ms); }
+  componentDidMount() {
+    let reduce = false;
+    try { reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (err) {}
+    this._reduce = reduce;
+    this._iv = [setInterval(() => this.remote(), 7000), setInterval(() => this.setState({ cur: (this.state.cur || 0) + 1, ty: (this.state.ty || 0) + 1 }), 1600)];
+    if (!reduce) this._iv.push(setInterval(() => this.setState({ typ: (this.state.typ || 0) + 1 }), 190));
+  }
+  componentWillUnmount() { (this._iv || []).forEach((t) => clearInterval(t)); Object.values(this._tm || {}).forEach((t) => clearTimeout(t)); }
+  K() {
+    if (this._K) return this._K;
+    const P = { AK: ['Alex Kim', 285], JL: ['Jordan Lee', 200], SP: ['Sam Patel', 20], RC: ['Riley Chen', 150], MD: ['Morgan Diaz', 60], TN: ['Taylor Ng', 330] };
+    const CAT = [
+      ['burn', 'Burndown', 6, 2, 2], ['mine', 'My tasks', 3, 2, 1], ['obj', 'Objective progress', 3, 2, 1],
+      ['load', 'Workload by person', 6, 2, 2], ['vel', 'Velocity', 3, 2, 2], ['act', 'Recent activity', 3, 2, 1]
+    ];
+    const CATM = {}; CAT.forEach(([type, name, w, h, minH]) => { CATM[type] = { type, name, w, h, minH }; });
+    const STACK = { burn: 236, mine: 200, obj: 206, load: 268, vel: 214, act: 236 };
+    const base = () => ({
+      burn: [42, 41, 38, 36, 33, 31, 28],
+      obj: [['Cut p95 latency to 200ms', 62, 70], ['Ship beta on time', 78, 75], ['Zero P1 incidents in Q4', 85, 80], ['Onboarding under 5 minutes', 40, 55]],
+      load: [['AK', 5, 6, 10], ['JL', 6, 3, 10], ['SP', 2, 6, 8], ['RC', 3, 4, 10], ['MD', 4, 2, 8], ['TN', 3, 5, 10]],
+      mine: [['PRJ-42', 'Fix flaky board reflow on column resize', 'progress', 'Oct 9', 'soon'], ['PRJ-77', 'Tooltip clipping in timeline rows', 'todo', 'Oct 12', ''], ['PRJ-68', 'Beta launch checklist', 'todo', 'Oct 21', ''], ['PRJ-40', 'Virtualize board columns', 'done', 'Oct 2', '']],
+      act: [['RC', 'moved', 'PRJ-45', '→ In review', '4m'], ['JL', 'commented on', 'PRJ-33', '', '12m'], ['MD', 'completed', 'PRJ-53', '', '1h'], ['SP', 'picked up', 'PRJ-58', '', '2h'], ['TN', 'created', 'PRJ-72', '', '3h']],
+      due: 'Oct 9'
+    });
+    const EV = [
+      { who: 'RC', k: 'Burndown', hl: 'burn', scope: 'dash', run: (L) => { L.burn = L.burn.slice(0, 6).concat([26]); L.act.unshift(['RC', 'completed', 'PRJ-45', '', 'now']); } },
+      { who: 'JL', k: 'Ship beta on time', hl: 'obj1', scope: 'dash', run: (L) => { L.obj = L.obj.map((o, i) => (i === 1 ? [o[0], 81, o[2]] : o)); L.act.unshift(['JL', 'updated', 'Ship beta', '→ 81%', 'now']); } },
+      { who: 'RC', k: 'PRJ-42 · Due', hl: 'due', scope: 'task', run: (L) => { L.due = 'Oct 10'; L.act.unshift(['RC', 'changed due on', 'PRJ-42', '→ Oct 10', 'now']); } },
+      { who: 'RC', k: 'Workload', hl: 'load-RC', scope: 'dash', run: (L) => { L.load = L.load.map((p) => (p[0] === 'RC' ? ['RC', 5, 3, 10] : p)); L.act.unshift(['RC', 'picked up', 'PRJ-71', '', 'now']); } },
+      { who: 'JL', k: 'PRJ-77', hl: 'mine-PRJ-77', scope: 'dash', run: (L) => { L.mine = L.mine.map((m) => (m[0] === 'PRJ-77' ? [m[0], m[1], 'progress', m[3], m[4]] : m)); L.act.unshift(['JL', 'started', 'PRJ-77', '', 'now']); } },
+      { who: 'RC', k: 'Burndown', hl: 'burn', scope: 'dash', run: (L) => { L.burn = L.burn.slice(0, 6).concat([24]); L.act.unshift(['RC', 'completed', 'PRJ-64', '', 'now']); } }
+    ];
+    this._K = { P, CAT, CATM, STACK, base, EV };
+    return this._K;
+  }
+  live() { return this.state.L || this.K().base(); }
+  remote() {
+    const K = this.K(), i = this.state.ev || 0;
+    if (i >= K.EV.length) { this.setState({ L: null, ev: 0, hl: null }); return; }
+    const L = JSON.parse(JSON.stringify(this.live()));
+    L.act = L.act.map((a) => (a[4] === 'now' ? [a[0], a[1], a[2], a[3], '1m'] : a));
+    const e = K.EV[i]; e.run(L); L.act = L.act.slice(0, 6);
+    const n = (this.state.rtn || 0) + 1;
+    this.setState({ L, ev: i + 1, hl: e.hl + ':' + n, rt: { who: e.who, k: e.k, scope: e.scope }, rtn: n });
+    this.later('hl', 1700, () => this.setState({ hl: null }));
+    this.later('rt', 3800, () => this.setState({ rt: null }));
+  }
+  hlOn(key) { const h = this.state.hl; return !!h && h.split(':')[0] === key; }
+  ticks(max) { return [0, 1, 2, 3].map((j) => { const v = max * j / 3; return { t: String(Math.round(v)), top: (100 - j / 3 * 100).toFixed(2), cls: j === 0 ? 'base' : '' }; }); }
+  defLayout() { return [{ id: 1, type: 'burn', w: 6, h: 2 }, { id: 2, type: 'mine', w: 3, h: 2 }, { id: 3, type: 'obj', w: 3, h: 2 }, { id: 4, type: 'load', w: 6, h: 2 }, { id: 5, type: 'vel', w: 3, h: 2 }, { id: 6, type: 'act', w: 3, h: 2 }]; }
+  pack(lay, U, stack) {
+    const K = this.K(), rects = {};
+    if (stack) { let y = 0; lay.forEach((it) => { const h = K.STACK[it.type]; rects[it.id] = { x: 0, y: 0, w: 12, h: 1, l: '0%', wd: '100%', t: y, hp: h }; y += h; }); return { rects, H: y }; }
+    const occ = []; let rows = 0;
+    const free = (x, y, w, h) => { for (let r = y; r < y + h; r++) for (let c = x; c < x + w; c++) if (occ[r] && occ[r][c]) return false; return true; };
+    lay.forEach((it) => {
+      const w = Math.min(12, it.w), h = it.h;
+      for (let y = 0; y < 200; y++) {
+        let px = -1;
+        for (let x = 0; x <= 12 - w; x++) if (free(x, y, w, h)) { px = x; break; }
+        if (px >= 0) {
+          for (let r = y; r < y + h; r++) { occ[r] = occ[r] || []; for (let c = px; c < px + w; c++) occ[r][c] = 1; }
+          rects[it.id] = { x: px, y, w, h, l: (px / 12 * 100).toFixed(4) + '%', wd: (w / 12 * 100).toFixed(4) + '%', t: y * U, hp: h * U };
+          rows = Math.max(rows, y + h); break;
+        }
+      }
+    });
+    return { rects, H: rows * U };
+  }
+  // ---- widget contents ----
+  wBurn(fid, tip, set, L) {
+    const N = 14, rem = L.burn, start = rem[0], today = rem.length - 1, max = 48;
+    const bx = (i) => (i + 0.5) / N * 100, by = (v) => (1 - v / max) * 100;
+    const ideal = (i) => Math.round(start * (1 - i / (N - 1)));
+    const line = rem.map((v, i) => (i ? 'L' : 'M') + bx(i).toFixed(2) + ' ' + by(v).toFixed(2)).join(' ');
+    return {
+      grid: this.ticks(max), lineD: line,
+      areaD: line + ' L' + bx(today).toFixed(2) + ' 100 L' + bx(0).toFixed(2) + ' 100 Z',
+      idealD: 'M' + bx(0).toFixed(2) + ' ' + by(start).toFixed(2) + ' L' + bx(N - 1).toFixed(2) + ' ' + by(0).toFixed(2),
+      endX: bx(today).toFixed(2), endY: by(rem[today]).toFixed(2), endV: rem[today], hl: this.hlOn('burn') ? 'hl' : '',
+      xl: [{ t: 'Oct 1', left: bx(0).toFixed(2), cls: '' }, { t: 'Today', left: bx(today).toFixed(2), cls: 'td' }, { t: 'Oct 14', left: bx(N - 1).toFixed(2), cls: '' }],
+      aria: 'Sprint 14 burndown: ' + rem[today] + ' of ' + start + ' points remaining on Oct 7, ideal ' + ideal(today),
+      hits: Array.from({ length: N }, (_, i) => {
+        const key = fid + 'b' + i, has = i < rem.length;
+        return {
+          on: tip === key ? 'on' : '', tipOn: tip === key, hasV: has, y: has ? by(rem[i]).toFixed(2) : 0, side: i > N / 2 ? 'l' : '',
+          head: 'Oct ' + (i + 1) + (i === today ? ' · today' : ''),
+          rows: (has ? [{ v: rem[i], n: 'remaining', c: 'var(--c1)', k: '' }] : []).concat([{ v: ideal(i), n: 'ideal', c: 'transparent', k: 'dash' }]),
+          aria: 'Oct ' + (i + 1) + ': ' + (has ? rem[i] + ' points remaining, ' : '') + 'ideal ' + ideal(i), show: () => set({ tip: key })
+        };
+      })
+    };
+  }
+  wVel(fid, tip, set) {
+    const vc = [34, 38, 36, 40, 42], vd = [30, 35, 36, 33, 40], max = 48, n = vc.length;
+    return {
+      grid: this.ticks(max), aria: 'Velocity, sprints 9 to 13: average 35 points completed of 38 committed',
+      xl: vc.map((_, i) => ({ t: 'S' + (9 + i), left: ((i + 0.5) / n * 100).toFixed(2) })),
+      groups: vc.map((c, i) => {
+        const key = fid + 'v' + i;
+        return { h1: (c / max * 100).toFixed(2), h2: (vd[i] / max * 100).toFixed(2), on: tip === key ? 'on' : '', tipOn: tip === key, side: i >= 3 ? 'l' : '',
+          head: 'Sprint ' + (9 + i) + ' · ' + Math.round(vd[i] / c * 100) + '%', rows: [{ v: vd[i], n: 'completed', c: 'var(--c1)', k: 'rect' }, { v: c, n: 'committed', c: 'var(--c2)', k: 'rect' }],
+          aria: 'Sprint ' + (9 + i) + ': ' + vd[i] + ' of ' + c + ' points', show: () => set({ tip: key }) };
+      })
+    };
+  }
+  build(fid, cfg) {
+    const self = this, K = this.K(), u = this.fGet(fid), set = (p) => this.fSet(fid, p);
+    const role = cfg.role, canEdit = role !== 'viewer';
+    const L = this.live(), tip = u.tip;
+    const st = u.st || cfg.state || 'ready';
+    const lay = u.lay || cfg.lay || this.defLayout();
+    const edit = canEdit && (u.edit !== undefined ? u.edit : !!cfg.edit);
+    const stack = !!cfg.stack, U = cfg.u || 140;
+    const dragW = u.drag || null, rzId = u.rz || null;
+    const pk = this.pack(lay, U, stack);
+    const order = {}; lay.forEach((it, i) => { order[it.id] = i; });
+    const setLay = (nl, extra) => set({ lay: nl, ...(extra || {}) });
+    const sorted = lay.slice().sort((a, b) => a.id - b.id);
+    const due0 = { soon: 'soon' };
+    const widgets = sorted.map((it) => {
+      const r = pk.rects[it.id] || { l: '0%', wd: '100%', t: 0, hp: U, x: 0, y: 0, w: 12, h: 1 }, c = K.CATM[it.type];
+      const dg = dragW && dragW.id === it.id;
+      const idx = order[it.id];
+      const o = {
+        name: c.name, meta: '', size: it.w + ' × ' + it.h, rzOn: rzId === it.id,
+        cls: (edit ? 'ed' : '') + (dg ? ' drag' : '') + (rzId === it.id ? ' rz' : '') + (u.fresh === it.id ? ' new' : ''),
+        l: dg ? dragW.x + 'px' : r.l, t: (dg ? dragW.y : r.t) + 'px', w: r.wd, h: r.hp + 'px',
+        isBurn: it.type === 'burn', isMine: it.type === 'mine', isObj: it.type === 'obj', isLoad: it.type === 'load', isVel: it.type === 'vel', isAct: it.type === 'act',
+        remove: () => setLay(self.fGet(fid).lay ? self.fGet(fid).lay.filter((x) => x.id !== it.id) : lay.filter((x) => x.id !== it.id), { live: c.name + ' removed' }),
+        gripRef: (el) => { if (el && self._focus === fid + it.id) { self._focus = null; try { el.focus({ preventScroll: true }); } catch (err) {} } },
+        down: (ev) => {
+          if (ev.button !== undefined && ev.button !== 0) return;
+          const el = ev.currentTarget, grid = el.closest ? el.closest('[data-dbgrid]') : null;
+          let k = 1, gr = { left: 0, top: 0 }, W = 960;
+          try { el.setPointerCapture(ev.pointerId); gr = grid.getBoundingClientRect(); W = grid.offsetWidth || gr.width; k = (gr.width / W) || 1; } catch (err) {}
+          ev.preventDefault();
+          const gx = (ev.clientX - gr.left) / k, gy = (ev.clientY - gr.top) / k;
+          const ox = gx - r.x * W / 12, oy = gy - r.t;
+          self._dd = { fid, id: it.id, gr, k, W, ox, oy };
+          set({ drag: { id: it.id, x: Math.round(gx - ox), y: Math.round(gy - oy) }, tip: null });
+        },
+        move: (ev) => {
+          const d = self._dd; if (!d || d.fid !== fid || d.id !== it.id) return;
+          const gx = (ev.clientX - d.gr.left) / d.k, gy = (ev.clientY - d.gr.top) / d.k;
+          const cur = self.fGet(fid).lay || lay;
+          const p2 = self.pack(cur, U, false);
+          const col = Math.floor(gx / (d.W / 12)), row = Math.floor(gy / U);
+          const inside = (rc) => rc && col >= rc.x && col < rc.x + rc.w && row >= rc.y && row < rc.y + rc.h;
+          let nl = null;
+          if (!inside(p2.rects[it.id])) {
+            const tgt = cur.find((x) => x.id !== it.id && inside(p2.rects[x.id]));
+            const from = cur.findIndex((x) => x.id === it.id);
+            let to = tgt ? cur.indexOf(tgt) : (row >= p2.H / U ? cur.length - 1 : -1);
+            if (to >= 0 && to !== from) { nl = cur.slice(); const [m] = nl.splice(from, 1); nl.splice(to, 0, m); }
+          }
+          const patch = { drag: { id: it.id, x: Math.round(gx - d.ox), y: Math.round(gy - d.oy) } };
+          if (nl) patch.lay = nl;
+          set(patch);
+        },
+        up: (ev) => {
+          const d = self._dd; if (!d || d.fid !== fid || d.id !== it.id) return;
+          try { ev.currentTarget.releasePointerCapture(ev.pointerId); } catch (err) {}
+          self._dd = null;
+          const cur = self.fGet(fid).lay || lay;
+          set({ drag: null, live: c.name + ' moved to position ' + (cur.findIndex((x) => x.id === it.id) + 1) + ' of ' + cur.length });
+        },
+        gripKey: (ev) => {
+          const dl = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[ev.key]; if (!dl) return;
+          ev.preventDefault();
+          const cur = (self.fGet(fid).lay || lay).slice(), from = cur.findIndex((x) => x.id === it.id), to = Math.max(0, Math.min(cur.length - 1, from + dl));
+          if (to === from) return;
+          const [m] = cur.splice(from, 1); cur.splice(to, 0, m);
+          self._focus = fid + it.id;
+          setLay(cur, { live: c.name + ' moved to position ' + (to + 1) + ' of ' + cur.length });
+        },
+        rzDown: (ev) => {
+          if (ev.button !== undefined && ev.button !== 0) return;
+          const el = ev.currentTarget, grid = el.closest ? el.closest('[data-dbgrid]') : null;
+          let k = 1, W = 960;
+          try { el.setPointerCapture(ev.pointerId); const gr = grid.getBoundingClientRect(); W = grid.offsetWidth || gr.width; k = (gr.width / W) || 1; } catch (err) {}
+          ev.preventDefault(); ev.stopPropagation();
+          self._rz = { fid, id: it.id, x: ev.clientX, y: ev.clientY, k, cw: W / 12, w0: it.w, h0: it.h };
+          set({ rz: it.id, tip: null });
+        },
+        rzMove: (ev) => {
+          const d = self._rz; if (!d || d.fid !== fid || d.id !== it.id) return;
+          const nw = Math.max(3, Math.min(12, d.w0 + Math.round((ev.clientX - d.x) / d.k / d.cw)));
+          const nh = Math.max(c.minH, Math.min(4, d.h0 + Math.round((ev.clientY - d.y) / d.k / U)));
+          const cur = self.fGet(fid).lay || lay, me = cur.find((x) => x.id === it.id);
+          if (me && (me.w !== nw || me.h !== nh)) setLay(cur.map((x) => (x.id === it.id ? { ...x, w: nw, h: nh } : x)));
+        },
+        rzUp: (ev) => {
+          const d = self._rz; if (!d || d.fid !== fid || d.id !== it.id) return;
+          try { ev.currentTarget.releasePointerCapture(ev.pointerId); } catch (err) {}
+          self._rz = null;
+          const me = (self.fGet(fid).lay || lay).find((x) => x.id === it.id) || it;
+          set({ rz: null, live: c.name + ' resized to ' + me.w + ' by ' + me.h });
+        },
+        rzKey: (ev) => {
+          const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key]; if (!m) return;
+          ev.preventDefault();
+          const nw = Math.max(3, Math.min(12, it.w + m[0])), nh = Math.max(c.minH, Math.min(4, it.h + m[1]));
+          setLay((self.fGet(fid).lay || lay).map((x) => (x.id === it.id ? { ...x, w: nw, h: nh } : x)), { rz: it.id, live: c.name + ' ' + nw + ' by ' + nh });
+          self.later('rz' + fid, 900, () => self.fSet(fid, { rz: null }));
+        }
+      };
+      if (it.type === 'burn') { o.b = this.wBurn(fid, tip, set, L); o.meta = 'Sprint 14'; }
+      if (it.type === 'vel') { o.v = this.wVel(fid, tip, set); o.meta = 'avg 35'; }
+      if (it.type === 'obj') {
+        o.meta = 'Q4';
+        o.o = L.obj.map(([name, pct, exp], i) => { const key = fid + 'o' + i; return { name, pct, exp, on: tip === key ? 'on' : '', tipOn: tip === key, hl: this.hlOn('obj' + i) ? 'hl' : '', aria: name + ': ' + pct + ' percent, expected ' + exp, show: () => set({ tip: key }) }; });
+      }
+      if (it.type === 'load') {
+        o.meta = 'pts · Sprint 14';
+        o.ld = L.load.map(([ini, p, t, cap]) => {
+          const key = fid + 'l' + ini, sc = 14, nm = K.P[ini][0];
+          return { ini, hue: K.P[ini][1], name: nm, first: nm.split(' ')[0], p, t, tot: p + t, capV: cap, w1: (p / sc * 100).toFixed(2), w2: (t / sc * 100).toFixed(2), cap: (cap / sc * 100).toFixed(2),
+            vCls: (p + t > cap ? 'over' : '') + (this.hlOn('load-' + ini) ? ' hl' : ''), on: tip === key ? 'on' : '', tipOn: tip === key,
+            aria: nm + ': ' + p + ' in progress, ' + t + ' to do, capacity ' + cap + (p + t > cap ? ', over capacity' : ''), show: () => set({ tip: key }) };
+        });
+      }
+      if (it.type === 'mine') {
+        const dn = u.done || {}, fxk = u.fxk;
+        o.meta = String(L.mine.filter((m) => !(dn[m[0]] !== undefined ? dn[m[0]] : m[2] === 'done')).length) + ' open';
+        o.m = L.mine.map(([key, title, st0, due, dc]) => {
+          const isDone = dn[key] !== undefined ? dn[key] : st0 === 'done';
+          const st = isDone ? 'done' : (st0 === 'done' ? 'todo' : st0);
+          const sc = { todo: 'var(--todo)', progress: 'var(--warn)', review: 'var(--info)', done: 'var(--ok)' }[st];
+          return { key, title, due, dCls: (isDone ? '' : (due0[dc] || '')) + (this.hlOn('mine-' + key) ? ' hl' : ''), glyph: st, sc, done: isDone, rowCls: isDone ? 'dn' : '', fx: fxk === key && isDone ? 'fx' : '',
+            can: canEdit, ro: !canEdit, toggleAria: (isDone ? 'Reopen ' : 'Complete ') + key,
+            toggle: () => { const nd = { ...(self.fGet(fid).done || {}) }; nd[key] = !isDone; set({ done: nd, fxk: key, live: key + (isDone ? ' reopened' : ' completed') }); } };
+        });
+      }
+      if (it.type === 'act') {
+        o.meta = 'live';
+        o.a = L.act.map(([ini, verb, key, tail, t], i) => ({ ini, hue: K.P[ini][1], name: K.P[ini][0].split(' ')[0], verb, key, tail, t, tCls: t === 'now' ? 'now' : '', hl: t === 'now' && i === 0 && this.state.hl ? 'hl' : '' }));
+      }
+      return o;
+    });
+    const dragRect = dragW ? pk.rects[dragW.id] : null;
+    const rt = this.state.rt;
+    const showRt = !!(rt && cfg.liveScope && rt.scope === cfg.liveScope);
+    const own = u.toast || null;
+    const toast = own ? { ...own, cls: stack ? '' : 'l' } : showRt ? { av: true, ok: false, hue: K.P[rt.who][1], ini: rt.who, msg: 'Updated just now by ' + K.P[rt.who][0].split(' ')[0], k: rt.k, cls: '' } : null;
+    const present = {}; lay.forEach((x) => { present[x.type] = true; });
+    const gallery = K.CAT.map(([type, name, w, h], i) => ({
+      name, size: w + ' × ' + h, added: !!present[type], free: !present[type], first: i === K.CAT.findIndex((cc) => !present[cc[0]]),
+      cls: present[type] ? 'added' : '', aria: name + (present[type] ? ', already on dashboard' : ', ' + w + ' by ' + h),
+      isBurn: type === 'burn', isMine: type === 'mine', isObj: type === 'obj', isLoad: type === 'load', isVel: type === 'vel', isAct: type === 'act',
+      add: () => {
+        if (present[type]) return;
+        const cur = self.fGet(fid).lay || lay;
+        const id = cur.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+        set({ lay: cur.concat([{ id, type, w, h }]), gal: false, fresh: id, st: 'ready', edit: stack ? self.fGet(fid).edit : true, snap: self.fGet(fid).snap || (cur.length ? cur : []), live: name + ' added' });
+        self.later('fr' + fid, 500, () => self.fSet(fid, { fresh: null }));
+      }
+    }));
+    const pres = [
+      { ini: 'JL', hue: 200, cls: 'live', on: true, aria: 'Jordan Lee, viewing' },
+      { ini: 'RC', hue: 150, cls: 'live', on: true, aria: 'Riley Chen, viewing' },
+      { ini: 'AK', hue: 285, cls: '', on: false, aria: 'Alex Kim, you' }
+    ];
+    const isEmpty = st === 'empty' || (st === 'ready' && lay.length === 0);
+    return {
+      isDash: true, isTask: false, isCmt: false, phone: !!cfg.phone, appCls: cfg.phone ? 'ph' : '',
+      sbFrames: cfg.sb ? [this.sbFrame(fid, { role, collapsible: true, active: 'PR', sub: 'none' })] : [],
+      deskTop: !cfg.phone, view: !edit, edit, canEdit, canLayout: canEdit && !stack, viewer: !canEdit, pres,
+      isLoading: st === 'loading', isError: st === 'error', isEmpty, ready: st === 'ready' && !isEmpty,
+      skCols: stack ? 1 : 2, skCards: stack ? [{ h: 120, span: 1, tw: 90 }, { h: 90, span: 1, tw: 70 }] : [{ h: 150, span: 1, tw: 90 }, { h: 150, span: 1, tw: 64 }, { h: 110, span: 2, tw: 110 }],
+      gridH: pk.H, u: U, widgets, phOn: !!dragRect, ph: dragRect ? { l: dragRect.l, t: dragRect.t + 'px', w: dragRect.wd, h: dragRect.hp + 'px' } : { l: '0', t: '0', w: '0', h: '0' },
+      hide: () => { if (self.fGet(fid).tip) set({ tip: null }); },
+      startEdit: () => set({ edit: true, snap: lay, tip: null }),
+      cancel: () => set({ edit: false, lay: u.snap || lay, snap: null, drag: null, rz: null, live: 'Layout changes discarded' }),
+      save: () => { set({ edit: false, snap: null, drag: null, rz: null, toast: { ok: true, av: false, msg: 'Layout saved', k: lay.length + ' widgets' }, live: 'Layout saved' }); self.later('ts' + fid, 3000, () => self.fSet(fid, { toast: null })); },
+      onKey: (ev) => { if (ev.key === 'Escape' && self.fGet(fid).gal) { ev.preventDefault(); set({ gal: false }); } },
+      galOpen: !!(u.gal !== undefined ? u.gal : cfg.gal) && canEdit, gallery, galCount: Object.keys(present).length + ' of 6 added',
+      openGal: () => set({ gal: true }), closeGal: () => set({ gal: false }), stop: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); },
+      galKey: (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); set({ gal: false }); } },
+      retry: () => { set({ st: 'loading' }); self.later('r' + fid, 1100, () => self.fSet(fid, { st: 'ready' })); },
+      toastOn: !!toast, toast: toast || { msg: '', k: '', hue: 0, ini: '', av: false, ok: false, cls: '' }, live: u.live || ''
+    };
+  }
+  buildTask(fid, cfg) {
+    const L = this.live(), K = this.K();
+    const ADD = ' Repro: resize column 2 while a card is mid-drag.';
+    const n = this._reduce ? ADD.length : (this.state.typ || 0) % (ADD.length + 14);
+    const rt = this.state.rt, showRt = !!(rt && rt.scope === 'task');
+    return {
+      isDash: false, isTask: true, isCmt: false,
+      cards: [
+        { key: 'PRJ-42', title: 'Fix flaky board reflow on column resize', bars: 'n3', pc: 'var(--orange)', hue: 285, ini: 'AK', due: L.due, live: true, cls: 'live', lhue: 200, liveAria: 'Jordan and Riley are here', pres: [{ ini: 'JL', hue: 200 }, { ini: 'RC', hue: 150 }] },
+        { key: 'PRJ-44', title: 'Debounce reflow on sidebar toggle', bars: 'n2', pc: 'var(--warn)', hue: 200, ini: 'JL', due: 'Oct 8', live: false, cls: '', lhue: 0, liveAria: '', pres: [] },
+        { key: 'PRJ-57', title: 'Proration on plan change', bars: 'n3', pc: 'var(--orange)', hue: 330, ini: 'TN', due: 'Oct 15', live: false, cls: '', lhue: 0, liveAria: '', pres: [] }
+      ],
+      due: L.due, dueHl: this.hlOn('due') ? 'hl' : '',
+      descBase: 'Reflow runs twice when a column is resized during drag.', typed: ADD.slice(0, Math.min(n, ADD.length)),
+      toastOn: showRt, toast: showRt ? { hue: K.P[rt.who][1], ini: rt.who, msg: 'Updated just now by ' + K.P[rt.who][0].split(' ')[0], k: rt.k } : { hue: 0, ini: '', msg: '', k: '' }
+    };
+  }
+  buildCmt(fid, cfg) {
+    const self = this, u = this.fGet(fid), set = (p) => this.fSet(fid, p);
+    const canEdit = cfg.role !== 'viewer';
+    const POS = [[62, 64], [40, 38], [70, 22], [30, 70], [55, 46]];
+    const c = this._reduce ? 0 : (this.state.cur || 0) % POS.length;
+    const phase = (this.state.ty || 0) % 5;
+    const cms = [
+      { ini: 'JL', hue: 200, name: 'Jordan', t: '2h', pre: 'Reflow fires twice when the sidebar animates.', sel: false, selT: '', post: '', cls: '' },
+      { ini: 'AK', hue: 285, name: 'Alex', t: '1h', pre: 'Repro’d on Safari only. ', sel: true, selT: 'Debounce at 120ms?', post: '', cls: '' },
+      { ini: 'RC', hue: 150, name: 'Riley', t: '12m', pre: '120 feels laggy on drag. Try rAF batching.', sel: false, selT: '', post: '', cls: '' }
+    ];
+    if (phase >= 2 && phase <= 3) cms.push({ ini: 'SP', hue: 20, name: 'Sam', t: 'now', pre: 'Agree. rAF plus one trailing frame.', sel: false, selT: '', post: '', cls: phase === 2 ? 'cm-new hl' : '' });
+    (u.mine || []).forEach((tx) => cms.push({ ini: 'AK', hue: 285, name: 'Alex', t: 'now', pre: tx, sel: false, selT: '', post: '', cls: 'cm-new' }));
+    const shown = cms.slice(-5);
+    return {
+      isDash: false, isTask: false, isCmt: true, canEdit,
+      cms: shown, cmCount: String(cms.length), cur: { x: POS[c][0], y: POS[c][1] },
+      tyCls: phase <= 1 ? '' : 'off', tyText: 'Sam is typing',
+      draft: u.draft || '', onDraft: (ev) => set({ draft: String(ev.target.value || '').slice(0, 400) }),
+      send: (ev) => { if (ev && ev.preventDefault) ev.preventDefault(); const tx = (self.fGet(fid).draft || '').trim(); if (!tx) return; set({ draft: '', mine: (self.fGet(fid).mine || []).concat([tx]).slice(-2) }); }
+    };
+  }
+  renderVals() {
+    const role = this.props.role || 'admin';
+    const theme = this.props.theme || 'navy';
+    const frames = [
+      { ...this.build('main', { role, sb: true, u: 170, liveScope: 'dash' }),
+        label: 'Dashboard', meta: 'hover charts · Edit layout · live updates', gc: '1 / span 6', gr: '1', w: 1280, h: 880, r: 14 },
+      { ...this.build('edit', { role, edit: true, u: 128 }),
+        label: 'Edit layout', meta: 'drag ⠿ to move · corner resizes · snaps to 12 cols', gc: '1 / span 4', gr: '2', w: 840, h: 700, r: 12 },
+      { ...this.build('mob', { role, phone: true, stack: true, liveScope: 'dash', lay: [{ id: 1, type: 'burn', w: 6, h: 2 }, { id: 2, type: 'mine', w: 3, h: 2 }, { id: 3, type: 'obj', w: 3, h: 2 }, { id: 4, type: 'load', w: 6, h: 2 }] }),
+        label: 'Mobile', meta: '390 · widgets stack', gc: '5 / span 2', gr: '2 / span 2', w: 390, h: 844, r: 36 },
+      { ...this.build('gal', { role, edit: true, gal: true, u: 116, lay: [{ id: 1, type: 'burn', w: 6, h: 2 }, { id: 2, type: 'mine', w: 3, h: 2 }, { id: 3, type: 'obj', w: 3, h: 2 }] }),
+        label: 'Add widget', meta: 'gallery · Esc closes', gc: '1 / span 4', gr: '3', w: 840, h: 600, r: 12 },
+      { ...this.buildTask('task', { role }),
+        label: 'Presence on task', meta: 'pulsing ring = live · field flags', gc: '1 / span 3', gr: '4', w: 620, h: 520, r: 12 },
+      { ...this.buildCmt('cmt', { role }),
+        label: 'Live cursors in comments', meta: 'remote cursor · typing', gc: '4 / span 3', gr: '4', w: 620, h: 520, r: 12 },
+      { ...this.build('load', { role, state: 'loading', stack: true }),
+        label: 'Loading', meta: 'skeleton cards', gc: '1 / span 2', gr: '5', w: 400, h: 300, r: 12 },
+      { ...this.build('emp', { role, state: 'empty', stack: true, lay: [] }),
+        label: 'Empty', meta: 'first widget', gc: '3 / span 2', gr: '5', w: 400, h: 300, r: 12 },
+      { ...this.build('err', { role, state: 'error', stack: true, lay: [{ id: 1, type: 'mine', w: 3, h: 2 }, { id: 2, type: 'obj', w: 3, h: 2 }] }),
+        label: 'Error', meta: 'retry reloads', gc: '5 / span 2', gr: '5', w: 400, h: 300, r: 12 }
+    ];
+    return { themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy', frames };
+  }
+}
+</script>
+
+
+</body></html>

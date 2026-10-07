@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Attachment viewer and shortcuts</title>
+<script src="../assets/5208becc-bf7f-4232-bdb1-f7f8c0bf033c.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--scrim:rgba(2,5,14,.55);--scrim-lb:rgba(2,5,14,.84);--danger-solid:#C23A30}
+.t-dark{--scrim:rgba(5,5,8,.55);--scrim-lb:rgba(5,5,8,.86);--danger-solid:#C23A30}
+.t-light{--scrim:rgba(18,18,23,.25);--scrim-lb:rgba(250,250,251,.9);--danger-solid:#B92F26}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg)}
+.dev.phone{border-radius:30px}
+.tag{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+/* buttons + kbd */
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.kbd.lg{min-width:22px;height:22px;font-size:12px;padding:0 6px}
+.bt{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:28px;padding:0 10px;border-radius:6px;font:500 12px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease),transform 120ms var(--ease)}
+.bt:hover{background:var(--hover);color:var(--text)}
+.bt:active{transform:scale(.97)}
+.bt.ic{width:28px;padding:0}
+.bt.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.bt.sec:hover{background:var(--hover)}
+.bt.pri{background:var(--accent);color:#fff}
+.bt.pri:hover{background:var(--accent-h)}
+.bt.dng{background:var(--danger-solid);color:#fff}
+.bt.dngt{color:var(--danger)}
+.bt[aria-pressed=true]{background:var(--accent-s);color:var(--accent-t)}
+.bt.ok{color:var(--ok)}
+.bt:focus-visible,.lb-vp:focus-visible,.lb-th:focus-visible,.bdp-tile:focus-visible,.cv-body:focus-visible,.cv-in:focus-visible,.ks-in:focus-visible,.ks-q:focus-visible,.ks-app:focus-visible,.seg button:focus-visible,.lb-nav:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+.seg{display:inline-flex;padding:2px;gap:2px;border-radius:7px;background:var(--raised);border:1px solid var(--line)}
+.seg button{height:22px;padding:0 9px;border-radius:5px;border:0;background:transparent;color:var(--text-3);font:500 11px/1 'Inter',sans-serif;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--hover);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+/* backdrop: blurred task panel */
+.bdp{position:absolute;inset:0;display:flex}
+.bdp-board{flex:1;display:flex;gap:12px;padding:56px 16px 16px;min-width:0}
+.bdp-col{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bdp-col i{display:block;height:64px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.bdp-panel{width:420px;flex:none;background:var(--surface);border-left:1px solid var(--line-2);padding:20px;display:flex;flex-direction:column;gap:12px}
+.bdp-panel span.ln{display:block;height:12px;border-radius:4px;background:var(--raised)}
+.bdp-chips{display:flex;gap:6px}
+.bdp-chips i{display:block;width:72px;height:24px;border-radius:7px;background:var(--raised);border:1px solid var(--line-2)}
+.bdp-att{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bdp-tile{height:64px;padding:4px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-2);font:500 11px/1 'JetBrains Mono',monospace;min-width:0;overflow:hidden}
+.bdp-tile:hover{border-color:var(--control)}
+.phone .bdp-board{display:none}
+.phone .bdp-panel{width:100%;border-left:0;padding-top:56px}
+.scrim{position:absolute;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lb-scrim{position:absolute;inset:0;background:var(--scrim-lb);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:fade 180ms var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* screenshot placeholders */
+.shot{position:relative;background:var(--bg);border:1px solid var(--line-2);border-radius:8px;overflow:hidden;flex:none}
+.shot .bk{position:absolute;display:block;border-radius:6px}
+.shot.mini{border-radius:3px;box-shadow:none}
+.shot.mini .bk{border-radius:1px}
+.bk.f{background:var(--raised)}
+.bk.k{background:var(--surface);border:1px solid var(--line-2)}
+.bk.t{background:var(--text-3);opacity:.45;border-radius:99px}
+.bk.l{background:var(--line-2);border-radius:0}
+.bk.g{background:var(--line);border-radius:0}
+.bk.a{background:var(--accent-s);border:2px solid var(--accent)}
+.bk.as{background:var(--accent-s)}
+.bk.ac{background:var(--accent)}
+.bk.d{background:var(--danger);opacity:.85}
+.bk.dl{border-top:2px dashed var(--danger);border-radius:0}
+.bk.ph{border:2px dashed var(--line-2)}
+.bk.dim{background:rgba(0,0,0,.35);border-radius:0}
+.bk.gh{border:1.5px dashed var(--line-2)}
+.bk.r{border-radius:999px}
+.shot-lab{position:absolute;right:1.4%;bottom:2%;padding:.35em .7em;border-radius:6px;background:var(--surface);border:1px solid var(--line-2);color:var(--text-2);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+/* lightbox */
+.lb{position:absolute;inset:0;display:flex;flex-direction:column;animation:lbin 200ms var(--ease)}
+@keyframes lbin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+.lb-top{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.lb-file{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.lb-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-meta{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.lb-by{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);white-space:nowrap}
+.lb-zoom{display:flex;align-items:center;gap:2px;padding:2px;border-radius:8px;background:var(--raised);border:1px solid var(--line-2)}
+.lb-pct{min-width:52px;font-family:'JetBrains Mono',monospace}
+.lb-vsep{width:1px;height:20px;background:var(--line-2);margin:0 2px}
+.lb-main{position:relative;flex:1;min-height:0}
+.lb-vp{position:absolute;top:0;bottom:0;left:56px;right:56px;overflow:hidden;outline:none;border-radius:8px}
+.lb-vp.zoomed{cursor:grab}
+.lb-vp.zoomed.drag{cursor:grabbing}
+.lb-slide{position:absolute;inset:0}
+.lb-img{position:absolute;left:50%;top:50%;transform-origin:50% 50%;transition:transform 200ms var(--ease);box-shadow:var(--shadow-modal)}
+.drag .lb-img{transition:none}
+.sl-r1{animation:slr1 240ms var(--ease)}.sl-r2{animation:slr2 240ms var(--ease)}
+.sl-l1{animation:sll1 240ms var(--ease)}.sl-l2{animation:sll2 240ms var(--ease)}
+@keyframes slr1{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+@keyframes slr2{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+@keyframes sll1{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:none}}
+@keyframes sll2{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:none}}
+.lb-nav{position:absolute;top:50%;margin-top:-20px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line-2);background:var(--raised);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;transition:background-color 120ms var(--ease),transform 120ms var(--ease)}
+.lb-nav:hover{background:var(--hover)}
+.lb-nav:active{transform:scale(.94)}
+.lb-nav.p{left:8px}.lb-nav.n{right:8px}
+.lb-strip{height:84px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px;border-top:1px solid var(--line)}
+.lb-ths{display:flex;gap:8px;flex:1;justify-content:center;min-width:0;overflow-x:auto;padding:4px}
+.lb-th{width:64px;height:48px;flex:none;padding:0;border-radius:6px;border:1px solid var(--line-2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.6;transition:opacity 120ms var(--ease),border-color 120ms var(--ease)}
+.lb-th:hover{opacity:.9}
+.lb-th.on{opacity:1;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.lb-keys{display:flex;align-items:center;gap:4px;color:var(--text-3);font-size:11px}
+.lb-pop{position:absolute;top:36px;right:0;z-index:20;width:240px;padding:14px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);display:flex;flex-direction:column;gap:12px;animation:pop 150ms var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.toast{position:absolute;left:50%;bottom:100px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);white-space:nowrap;z-index:6;animation:toastin 180ms var(--ease)}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-2);text-align:center}
+.cmp .bt-t,.cmp .lb-by-t{display:none}
+.cmp .lb-by{display:none}
+.phone .lb-top{height:64px;padding:0 8px;gap:6px}
+.phone .lb-file{flex-direction:column;align-items:flex-start;gap:5px}
+.phone .lb-by,.phone .bt-t,.phone .lb-keys,.phone .lb-count{display:none}
+.phone .lb-zoom{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:4;box-shadow:var(--shadow-pop)}
+.phone .lb-vp{left:0;right:0;border-radius:0}
+.phone .lb-nav{width:36px;height:36px;opacity:.9}
+.phone .lb-strip{height:72px;padding:0 8px}
+.phone .lb-th{width:52px;height:40px}
+.phone .lb-ths{justify-content:flex-start}
+.phone .toast{bottom:136px}
+.lb-close-first{display:none}
+.phone .lb-close-first{display:inline-flex}
+.phone .lb-close-last{display:none}
+@media (max-width:760px){.lb-top{height:64px;padding:0 8px;gap:6px}.lb-file{flex-direction:column;align-items:flex-start;gap:5px}.lb-by,.bt-t,.lb-keys,.lb-count{display:none}.lb-zoom{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:4}.lb-vp{left:0;right:0}.lb-strip{height:72px;padding:0 8px}.lb-close-first{display:inline-flex}.lb-close-last{display:none}.bdp-board{display:none}.bdp-panel{width:100%}}
+/* code viewer */
+.cv{position:absolute;inset:20px;display:flex;flex-direction:column;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);overflow:hidden;animation:lbin 200ms var(--ease)}
+.cv-head{height:56px;flex:none;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border-bottom:1px solid var(--line)}
+.cv-badge{width:30px;height:30px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font:600 10px/1 'JetBrains Mono',monospace;background:var(--raised);border:1px solid var(--line-2);color:var(--accent-t)}
+.cv-sb{height:44px;flex:none;display:flex;align-items:center;gap:6px;padding:0 10px 0 14px;border-bottom:1px solid var(--line);background:var(--bg);animation:pop 150ms var(--ease)}
+.cv-in{flex:1;min-width:0;height:28px;padding:0 10px 0 30px;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:400 12px/1 'JetBrains Mono',monospace}
+.cv-in::placeholder{color:var(--text-3)}
+.cv-body{flex:1;min-height:0;overflow:auto;background:var(--bg);outline:none}
+.cv-code{min-width:100%;width:max-content;padding:8px 0 16px;font:400 12.5px/20px 'JetBrains Mono',ui-monospace,monospace;color:var(--text)}
+.cv-code.wrap{width:auto}
+.cv-ln{display:flex;min-height:20px}
+.cv-ln.cur{background:var(--accent-s)}
+.cv-no{position:sticky;left:0;flex:none;width:48px;padding-right:14px;text-align:right;color:var(--text-3);background:var(--bg);user-select:none;opacity:.8}
+.cv-ln.cur .cv-no{color:var(--text);opacity:1;background:var(--raised)}
+.cv-tx{white-space:pre;padding-right:24px;padding-left:4px;min-width:0}
+.wrap .cv-tx{white-space:pre-wrap;word-break:break-all;flex:1}
+.sx-kw{color:var(--info)}
+.sx-str{color:var(--ok)}
+.sx-com{color:var(--text-3);font-style:italic}
+.sx-num{color:var(--orange)}
+.sx-fn{color:var(--accent-t)}
+.hit{background:rgba(245,183,59,.22);border-radius:2px;box-shadow:0 0 0 1px rgba(245,183,59,.45)}
+.hit.cur{background:var(--warn);color:var(--bg);box-shadow:0 0 0 1px var(--warn)}
+.cv-foot{height:34px;flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-top:1px solid var(--line);font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+/* shortcuts */
+.ks-app{position:absolute;inset:0;display:flex;flex-direction:column;outline:none}
+.ks-bar{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.ks-bar i{display:block;height:10px;border-radius:4px;background:var(--raised)}
+.ks-q{width:28px;height:28px;border-radius:50%;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:600 13px/1 'Inter',sans-serif;cursor:pointer}
+.ks-q:hover{background:var(--hover)}
+.ks{position:absolute;left:50%;top:44px;width:700px;max-width:calc(100% - 32px);transform:translateX(-50%);border-radius:12px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden;animation:ksin 180ms var(--ease)}
+@keyframes ksin{from{opacity:0;transform:translate(-50%,-6px) scale(.98)}to{opacity:1;transform:translateX(-50%)}}
+.ks-head{display:flex;align-items:center;gap:12px;padding:14px 12px 14px 20px;border-bottom:1px solid var(--line)}
+.ks-in{width:220px;height:30px;padding:0 10px 0 30px;border-radius:7px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',sans-serif}
+.ks-in::placeholder{color:var(--text-3)}
+.ks-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 32px;padding:18px 20px 20px;align-items:start}
+.ks-g h3{margin:0 0 6px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.ks-row{display:flex;align-items:center;justify-content:space-between;gap:12px;height:30px;border-bottom:1px solid var(--line)}
+.ks-row:last-child{border-bottom:0}
+.ks-keys{display:flex;align-items:center;gap:4px;flex:none}
+.ks-then{color:var(--text-3);display:inline-flex}
+.ks-or{color:var(--text-3);font:500 11px/1 'JetBrains Mono',monospace;padding:0 1px}
+.ks-foot{display:flex;align-items:center;gap:14px;padding:10px 20px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3)}
+@media (max-width:760px){.ks-grid{grid-template-columns:minmax(0,1fr)}.ks-in{width:100%}}
+/* states */
+.shim{position:relative;overflow:hidden;background:var(--raised);border-radius:6px}
+.shim::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:shim 1.4s infinite}
+.t-light .shim::after{background:linear-gradient(90deg,transparent,rgba(18,18,23,.06),transparent)}
+@keyframes shim{to{transform:translateX(100%)}}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent-t);animation:spin 700ms linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:3400px;padding:64px 80px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · ATTACHMENTS · SHORTCUTS</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Viewer and shortcuts</h1>
+    </div>
+    <div style="display:flex;gap:16px" class="tag"><span>+ − 0 zoom</span><span>← → browse</span><span>read-only code</span><span>? help</span><span>role: {{role}}</span></div>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+    <sc-for list="{{lbFrames}}" as="fx" hint-placeholder-count="3">
+      <figure class="frame" style="width:{{fx.w}}px">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev {{fx.devCls}}" style="height:{{fx.h}}px">
+          <div class="bdp">
+            <div class="bdp-board"><div class="bdp-col"><i></i><i></i><i></i></div><div class="bdp-col"><i></i><i></i></div><div class="bdp-col"><i></i><i></i><i></i></div></div>
+            <div class="bdp-panel">
+              <span class="ln" style="width:30%"></span>
+              <span class="ln" style="width:78%;height:18px"></span>
+              <div class="bdp-chips"><i></i><i></i><i></i></div>
+              <span class="ln" style="width:92%"></span><span class="ln" style="width:84%"></span><span class="ln" style="width:60%"></span>
+              <span class="tag" style="padding-top:8px">Attachments · {{fx.count}}</span>
+              <div class="bdp-att">
+                <sc-for list="{{fx.tiles}}" as="tl" hint-placeholder-count="3">
+                  <button class="bdp-tile" type="button" sc-camel-tab-index="{{fx.tileTab}}" sc-camel-on-click="{{tl.open}}" aria-label="Open {{tl.name}}">
+                    <span class="shot mini" style="width:{{tl.tw}}px;height:{{tl.th}}px"><sc-for list="{{tl.blocks}}" as="bk3" hint-placeholder-count="4"><i class="bk {{bk3.c}}" style="left:{{bk3.x}}%;top:{{bk3.y}}%;width:{{bk3.w}}%;height:{{bk3.h}}%"></i></sc-for></span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <sc-if value="{{fx.open}}" hint-placeholder-val="{{true}}">
+            <div class="lb-scrim"></div>
+            <div class="lb {{fx.cmpCls}}" role="dialog" aria-modal="true" aria-label="Attachment viewer" sc-camel-on-key-down="{{fx.onKey}}">
+              <div class="lb-top">
+                <button class="bt ic lb-close-first" type="button" sc-camel-on-click="{{fx.close}}" aria-label="Close viewer"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+                <div class="lb-file">
+                  <sc-if value="{{fx.hasCur}}" hint-placeholder-val="{{true}}">
+                    <span class="lb-name">{{fx.cur.name}}</span>
+                    <span class="lb-meta">{{fx.cur.size}} · {{fx.cur.dim}}</span>
+                    <span class="lb-by"><span class="av" style="background:oklch(var(--av-l) var(--av-c) {{fx.cur.hue}})">{{fx.cur.ini}}</span><span class="lb-by-t">{{fx.cur.by}} · {{fx.cur.when}}</span></span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{fx.hasCur}}" hint-placeholder-val="{{true}}">
+                  <div class="lb-zoom" role="group" aria-label="Zoom">
+                    <button class="bt ic" type="button" sc-camel-on-click="{{fx.zout}}" aria-label="Zoom out (−)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4"></circle><path d="M9 9l3 3M4 6h4"></path></svg></button>
+                    <button class="bt lb-pct" type="button" sc-camel-on-click="{{fx.toggle100}}" aria-label="Zoom {{fx.pct}}. Toggle 100%" aria-live="polite">{{fx.pct}}</button>
+                    <button class="bt ic" type="button" sc-camel-on-click="{{fx.zin}}" aria-label="Zoom in (+)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4"></circle><path d="M9 9l3 3M4 6h4M6 4v4"></path></svg></button>
+                    <span class="lb-vsep"></span>
+                    <button class="bt ic" type="button" sc-camel-on-click="{{fx.fit}}" aria-pressed="{{fx.isFit}}" aria-label="Fit (0)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9"></path></svg></button>
+                  </div>
+                  <button class="bt sec {{fx.dlCls}}" type="button" sc-camel-on-click="{{fx.download}}" aria-label="Download {{fx.cur.name}}"><sc-if value="{{fx.dl}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"></path></svg></sc-if><sc-if value="{{fx.notDl}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v7M4 6l3 3 3-3M2.5 11.5h9"></path></svg></sc-if><span class="bt-t">{{fx.dlLabel}}</span></button>
+                  <sc-if value="{{fx.canDelete}}" hint-placeholder-val="{{true}}">
+                    <div style="position:relative">
+                      <button class="bt dngt" type="button" sc-camel-on-click="{{fx.askDel}}" aria-haspopup="dialog" aria-expanded="{{fx.confirm}}" aria-label="Delete {{fx.cur.name}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h9M5.5 4V2.5h3V4M3.5 4l.6 7.5h5.8l.6-7.5"></path></svg><span class="bt-t">Delete</span></button>
+                      <sc-if value="{{fx.confirm}}" hint-placeholder-val="{{false}}">
+                        <div class="lb-pop" role="alertdialog" aria-label="Delete attachment" sc-camel-on-key-down="{{fx.popKey}}">
+                          <span style="font-weight:600;line-height:18px">Delete {{fx.cur.name}}?</span>
+                          <span class="tag">Removed for everyone</span>
+                          <div style="display:flex;justify-content:flex-end;gap:6px">
+                            <button class="bt" type="button" sc-camel-auto-focus="{{true}}" sc-camel-on-click="{{fx.cancelDel}}">Cancel</button>
+                            <button class="bt dng" type="button" sc-camel-on-click="{{fx.doDel}}">Delete</button>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </sc-if>
+                <span class="lb-vsep lb-close-last"></span>
+                <button class="bt ic lb-close-last" type="button" sc-camel-on-click="{{fx.close}}" aria-label="Close viewer (Esc)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+              </div>
+
+              <div class="lb-main">
+                <div class="lb-vp {{fx.vpCls}}" sc-camel-tab-index="0" role="img" aria-roledescription="image viewer" aria-label="{{fx.vpLabel}}" sc-camel-on-pointer-down="{{fx.pdown}}" sc-camel-on-pointer-move="{{fx.pmove}}" sc-camel-on-pointer-up="{{fx.pup}}" sc-camel-on-pointer-cancel="{{fx.pup}}" sc-camel-on-double-click="{{fx.toggle100}}">
+                  <sc-if value="{{fx.hasCur}}" hint-placeholder-val="{{true}}">
+                    <div class="lb-slide {{fx.animCls}}">
+                      <div class="lb-img shot" style="width:{{fx.cur.w}}px;height:{{fx.cur.h}}px;transform:{{fx.tf}}">
+                        <sc-for list="{{fx.cur.blocks}}" as="bk" hint-placeholder-count="6"><i class="bk {{bk.c}}" style="left:{{bk.x}}%;top:{{bk.y}}%;width:{{bk.w}}%;height:{{bk.h}}%"></i></sc-for>
+                        <span class="shot-lab" style="font-size:{{fx.cur.labFs}}px">{{fx.cur.name}}</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{fx.isEmpty}}" hint-placeholder-val="{{false}}">
+                    <div class="empty">
+                      <svg width="40" height="40" sc-camel-view-box="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--text-3)"><rect x="6" y="9" width="28" height="22" rx="4"></rect><path d="M6 25l8-7 7 6 4-3 9 7"></path><circle cx="27" cy="16" r="2.2"></circle></svg>
+                      <span style="font-weight:600;color:var(--text)">No attachments</span>
+                    </div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{fx.multi}}" hint-placeholder-val="{{true}}">
+                  <button class="lb-nav p" type="button" sc-camel-on-click="{{fx.prev}}" aria-label="Previous (←)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3L5 7l4 4"></path></svg></button>
+                  <button class="lb-nav n" type="button" sc-camel-on-click="{{fx.next}}" aria-label="Next (→)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l4 4-4 4"></path></svg></button>
+                </sc-if>
+              </div>
+
+              <div class="lb-strip">
+                <span class="tag lb-count" style="width:120px">{{fx.counter}}</span>
+                <div class="lb-ths">
+                  <sc-for list="{{fx.thumbs}}" as="th" hint-placeholder-count="5">
+                    <button class="lb-th {{th.on}}" type="button" sc-camel-on-click="{{th.go}}" aria-label="{{th.name}}" aria-current="{{th.cur}}">
+                      <span class="shot mini" style="width:{{th.tw}}px;height:{{th.th}}px"><sc-for list="{{th.blocks}}" as="bk2" hint-placeholder-count="4"><i class="bk {{bk2.c}}" style="left:{{bk2.x}}%;top:{{bk2.y}}%;width:{{bk2.w}}%;height:{{bk2.h}}%"></i></sc-for></span>
+                    </button>
+                  </sc-for>
+                </div>
+                <span class="lb-keys" style="width:120px;justify-content:flex-end"><span class="kbd">←</span><span class="kbd">→</span><span class="kbd">+</span><span class="kbd">−</span><span class="kbd">0</span></span>
+              </div>
+
+              <sc-if value="{{fx.hasUndo}}" hint-placeholder-val="{{false}}">
+                <div class="toast" role="status"><span>Deleted {{fx.undoName}}</span><button class="bt" type="button" sc-camel-on-click="{{fx.undo}}" style="color:var(--accent-t)">Undo</button></div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px">
+    <sc-for list="{{cvFrames}}" as="fx" hint-placeholder-count="2">
+      <figure class="frame">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="height:640px">
+          <div class="bdp">
+            <div class="bdp-board"><div class="bdp-col"><i></i><i></i></div><div class="bdp-col"><i></i><i></i><i></i></div></div>
+            <div class="bdp-panel" style="width:300px">
+              <span class="ln" style="width:30%"></span><span class="ln" style="width:78%;height:18px"></span>
+              <span class="ln" style="width:92%"></span><span class="ln" style="width:70%"></span>
+              <span class="tag" style="padding-top:8px">Attachments</span>
+              <button class="bdp-tile" type="button" sc-camel-tab-index="{{fx.tileTab}}" sc-camel-on-click="{{fx.reopen}}" style="justify-content:flex-start;padding:0 12px;height:44px"><span class="cv-badge" style="width:24px;height:24px">{{fx.f.ext}}</span>{{fx.f.name}}</button>
+            </div>
+          </div>
+          <sc-if value="{{fx.open}}" hint-placeholder-val="{{true}}">
+            <div class="scrim"></div>
+            <div class="cv" role="dialog" aria-modal="true" aria-label="Code viewer: {{fx.f.name}}" sc-camel-on-key-down="{{fx.onKey}}">
+              <div class="cv-head">
+                <span class="cv-badge">{{fx.f.ext}}</span>
+                <div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">
+                  <span style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{fx.f.name}}</span>
+                  <span class="lb-meta">{{fx.f.lang}} · {{fx.f.size}} · {{fx.lineCount}} lines</span>
+                </div>
+                <button class="bt ic" type="button" sc-camel-on-click="{{fx.toggleSearch}}" aria-pressed="{{fx.search}}" aria-label="Search in file (⌘F)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="3.8"></circle><path d="M9 9l3 3"></path></svg></button>
+                <button class="bt ic" type="button" sc-camel-on-click="{{fx.toggleWrap}}" aria-pressed="{{fx.wrap}}" aria-label="Wrap lines"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5h10M2 7h8a2 2 0 010 4H7.5M9 9.5L7.5 11 9 12.5M2 10.5h3"></path></svg></button>
+                <button class="bt sec {{fx.copyCls}}" type="button" sc-camel-on-click="{{fx.copy}}" aria-label="Copy file contents"><sc-if value="{{fx.copied}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"></path></svg></sc-if><sc-if value="{{fx.notCopied}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="4.5" y="4.5" width="7" height="7" rx="1.4"></rect><path d="M9.5 4.5V3.2c0-.7-.5-1.2-1.2-1.2H3.2C2.5 2 2 2.5 2 3.2v5.1c0 .7.5 1.2 1.2 1.2h1.3"></path></svg></sc-if><span aria-live="polite">{{fx.copyLabel}}</span></button>
+                <a class="bt ic" href="{{fx.dlHref}}" download="{{fx.f.name}}" aria-label="Download {{fx.f.name}}"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v7M4 6l3 3 3-3M2.5 11.5h9"></path></svg></a>
+                <span class="lb-vsep"></span>
+                <button class="bt ic" type="button" sc-camel-on-click="{{fx.close}}" aria-label="Close (Esc)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+              </div>
+              <sc-if value="{{fx.search}}" hint-placeholder-val="{{false}}">
+                <div class="cv-sb">
+                  <div style="position:relative;flex:1;min-width:0;display:flex">
+                    <svg width="13" height="13" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:10px;top:8px;color:var(--text-3)"><circle cx="6" cy="6" r="3.8"></circle><path d="M9 9l3 3"></path></svg>
+                    <input class="cv-in" type="text" ref="{{fx.inRef}}" value="{{fx.q}}" sc-camel-on-change="{{fx.onQ}}" sc-camel-on-key-down="{{fx.onQKey}}" placeholder="Find in file" aria-label="Find in {{fx.f.name}}">
+                  </div>
+                  <span class="lb-meta" style="min-width:64px;text-align:right" aria-live="polite">{{fx.matchLabel}}</span>
+                  <button class="bt ic" type="button" sc-camel-on-click="{{fx.prevHit}}" aria-label="Previous match (⇧↵)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5L7 5l3.5 3.5"></path></svg></button>
+                  <button class="bt ic" type="button" sc-camel-on-click="{{fx.nextHit}}" aria-label="Next match (↵)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5L7 9l3.5-3.5"></path></svg></button>
+                </div>
+              </sc-if>
+              <div class="cv-body" sc-camel-tab-index="0" role="region" aria-label="{{fx.f.name}} source" ref="{{fx.bodyRef}}">
+                <div class="cv-code {{fx.wrapCls}}">
+                  <sc-for list="{{fx.lines}}" as="ln" hint-placeholder-count="12">
+                    <div class="cv-ln {{ln.cls}}"><span class="cv-no">{{ln.n}}</span><span class="cv-tx"><sc-for list="{{ln.segs}}" as="sg" hint-placeholder-count="3"><span class="{{sg.c}}">{{sg.t}}</span></sc-for></span></div>
+                  </sc-for>
+                </div>
+              </div>
+              <div class="cv-foot">
+                <svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5" rx="1"></rect><path d="M4 5.5V4a2 2 0 014 0v1.5"></path></svg>
+                <span>Preview only · never executed</span>
+                <span style="margin-left:auto">UTF-8 · LF</span>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:40px;align-items:start">
+    <figure class="frame">
+      <figcaption>Shortcuts modal<span>open with ? · filter · Esc</span></figcaption>
+      <div class="dev" style="height:720px">
+        <div class="ks-app" sc-camel-tab-index="0" sc-camel-on-key-down="{{ksAppKey}}" aria-label="Board. Press ? for keyboard shortcuts">
+          <div class="ks-bar">
+            <span role="img" aria-label="Lightex" style="font-size:16px;font-weight:600;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline;color:var(--text)">Lighte<svg sc-camel-view-box="0 0 46 39" aria-hidden="true" style="width:.644em;height:.546em;margin-left:.02em;overflow:visible">
+              <mask id="ksxm" sc-camel-mask-units="userSpaceOnUse" x="-10" y="-10" width="70" height="60"><rect x="-10" y="-10" width="70" height="60" fill="#fff"></rect><path d="M50 -5L27 17H38L-4 44" fill="none" stroke="#000" stroke-width="13.5" stroke-linejoin="miter" stroke-miterlimit="10"></path></mask>
+              <clipPath id="ksxc"><rect width="46" height="39"></rect></clipPath>
+              <g clip-path="url(#ksxc)"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="9.5" fill="none" mask="url(#ksxm)"></path><path d="M50 -5L27 17H38L-4 44" stroke="var(--accent-t)" stroke-width="8.5" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></g>
+            </svg></span>
+            <i style="width:120px;margin-left:12px"></i><i style="width:64px"></i>
+            <span style="flex:1"></span>
+            <button class="ks-q" type="button" sc-camel-on-click="{{ksOpenFn}}" aria-haspopup="dialog" aria-expanded="{{ksOpen}}" aria-label="Keyboard shortcuts (?)">?</button>
+            <span class="av" style="width:26px;height:26px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK</span>
+          </div>
+          <div style="flex:1;display:flex;gap:12px;padding:16px">
+            <div class="bdp-col"><i></i><i></i><i></i></div><div class="bdp-col"><i></i><i></i></div><div class="bdp-col"><i></i><i></i><i></i></div><div class="bdp-col"><i></i></div>
+          </div>
+        </div>
+        <sc-if value="{{ksOpen}}" hint-placeholder-val="{{true}}">
+          <div class="scrim" sc-camel-on-click="{{ksClose}}"></div>
+          <div class="ks" role="dialog" aria-modal="true" aria-labelledby="ks-title" sc-camel-on-key-down="{{ksKey}}">
+            <div class="ks-head">
+              <h2 id="ks-title" style="margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;flex:1">Keyboard shortcuts</h2>
+              <div style="position:relative;display:flex">
+                <svg width="13" height="13" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:10px;top:9px;color:var(--text-3)"><circle cx="6" cy="6" r="3.8"></circle><path d="M9 9l3 3"></path></svg>
+                <input class="ks-in" type="text" ref="{{ksInRef}}" value="{{ksQ}}" sc-camel-on-change="{{ksOnQ}}" placeholder="Filter shortcuts" aria-label="Filter shortcuts">
+              </div>
+              <button class="bt ic" type="button" sc-camel-on-click="{{ksClose}}" aria-label="Close (Esc)"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8"></path></svg></button>
+            </div>
+            <div class="ks-grid">
+              <sc-for list="{{ksGroups}}" as="gp" hint-placeholder-count="4">
+                <section class="ks-g" aria-label="{{gp.name}}">
+                  <h3>{{gp.name}}</h3>
+                  <sc-for list="{{gp.rows}}" as="rw" hint-placeholder-count="5">
+                    <div class="ks-row">
+                      <span>{{rw.label}}</span>
+                      <span class="ks-keys" aria-label="{{rw.spoken}}">
+                        <sc-for list="{{rw.parts}}" as="kp" hint-placeholder-count="2">
+                          <sc-if value="{{kp.isKey}}" hint-placeholder-val="{{true}}"><span class="kbd lg" aria-hidden="true">{{kp.t}}</span></sc-if>
+                          <sc-if value="{{kp.isThen}}" hint-placeholder-val="{{false}}"><span class="ks-then" aria-hidden="true"><svg width="12" height="10" sc-camel-view-box="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5h8M7 2.5L9.5 5 7 7.5"></path></svg></span></sc-if>
+                          <sc-if value="{{kp.isOr}}" hint-placeholder-val="{{false}}"><span class="ks-or" aria-hidden="true">/</span></sc-if>
+                        </sc-for>
+                      </span>
+                    </div>
+                  </sc-for>
+                </section>
+              </sc-for>
+            </div>
+            <sc-if value="{{ksNone}}" hint-placeholder-val="{{false}}">
+              <div style="padding:40px 20px 48px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-2)">
+                <span style="font-weight:600;color:var(--text)">No shortcuts match “{{ksQ}}”</span>
+                <button class="bt" type="button" sc-camel-on-click="{{ksClear}}" style="color:var(--accent-t)">Clear filter</button>
+              </div>
+            </sc-if>
+            <div class="ks-foot">
+              <span style="display:flex;align-items:center;gap:4px"><span class="kbd">G</span><span class="ks-then"><svg width="12" height="10" sc-camel-view-box="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5h8M7 2.5L9.5 5 7 7.5"></path></svg></span><span class="kbd">B</span> then</span>
+              <span style="display:flex;align-items:center;gap:4px"><span class="kbd">⌘</span><span class="kbd">K</span> together</span>
+              <span style="flex:1"></span>
+              <div class="seg" role="group" aria-label="Key labels">
+                <button type="button" aria-pressed="{{ksMac}}" sc-camel-on-click="{{ksSetMac}}">Mac</button>
+                <button type="button" aria-pressed="{{ksWin}}" sc-camel-on-click="{{ksSetWin}}">Windows</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </figure>
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <figure class="frame">
+        <figcaption>Loading<span>skeleton in place</span></figcaption>
+        <div class="dev" style="height:180px;background:var(--surface)">
+          <div style="height:40px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--line)"><span class="shim" style="width:140px;height:10px"></span><span class="shim" style="width:60px;height:10px"></span><span style="flex:1"></span><span class="shim" style="width:96px;height:22px"></span></div>
+          <div style="display:flex;justify-content:center;padding:14px"><span class="shim" style="width:180px;height:72px"></span></div>
+          <div style="display:flex;justify-content:center;gap:6px"><span class="shim" style="width:36px;height:24px"></span><span class="shim" style="width:36px;height:24px"></span><span class="shim" style="width:36px;height:24px"></span></div>
+        </div>
+      </figure>
+      <figure class="frame">
+        <figcaption>Image failed<span>retry · download kept</span></figcaption>
+        <div class="dev" style="height:180px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+          <svg width="32" height="32" sc-camel-view-box="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--danger)"><rect x="6" y="9" width="28" height="22" rx="4"></rect><path d="M6 25l8-7 5 4"></path><path d="M24 17l8 8M32 17l-8 8"></path></svg>
+          <span style="font-weight:600" role="status">{{errTitle}}</span>
+          <div style="display:flex;gap:6px">
+            <button class="bt sec" type="button" sc-camel-on-click="{{retry}}"><sc-if value="{{retrying}}" hint-placeholder-val="{{false}}"><span class="spin" aria-hidden="true"></span></sc-if>Retry</button>
+            <button class="bt" type="button" aria-label="Download board-drag-glitch.png"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v7M4 6l3 3 3-3M2.5 11.5h9"></path></svg>Download</button>
+          </div>
+        </div>
+      </figure>
+      <figure class="frame">
+        <figcaption>Too large to preview<span>code · &gt; 1 MB</span></figcaption>
+        <div class="dev" style="height:180px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+          <span class="cv-badge">SQL</span>
+          <span style="font-weight:600">schema-dump.sql</span>
+          <span class="lb-meta">14.8 MB · preview limit 1 MB</span>
+          <button class="bt sec" type="button"><svg width="14" height="14" sc-camel-view-box="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v7M4 6l3 3 3-3M2.5 11.5h9"></path></svg>Download</button>
+        </div>
+      </figure>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:3400}}">
+class Component extends DCLogic {
+  state = {
+    lb: {
+      main: { open: true, files: ['s1', 's2', 's3', 's4', 's5'], idx: 0, zoom: null, px: 0, py: 0, nav: 0, dir: 1, confirm: false, undo: null, dl: false, drag: false },
+      zoom: { open: true, files: ['s1', 's2', 's3', 's4', 's5'], idx: 1, zoom: 2, px: -260, py: 90, nav: 0, dir: 1, confirm: false, undo: null, dl: false, drag: false },
+      mob: { open: true, files: ['s1', 's2', 's3', 's4', 's5'], idx: 2, zoom: null, px: 0, py: 0, nav: 0, dir: 1, confirm: false, undo: null, dl: false, drag: false }
+    },
+    cv: {
+      ts: { open: true, search: false, q: '', cur: 0, wrap: false, copied: false },
+      py: { open: true, search: true, q: 'tokens', cur: 2, wrap: false, copied: false }
+    },
+    ks: { open: true, q: '', plat: 'mac' },
+    retrying: false
+  };
+
+  lxShots() {
+    if (this._shots) return this._shots;
+    const B = (c, x, y, w, h) => ({ c, x, y, w, h });
+    const card = (x, y, w, h) => [B('k', x, y, w, h), B('t', x + 1.4, y + 2.6, w * 0.62, 1.7), B('t', x + 1.4, y + 6, w * 0.4, 1.4)];
+    const s1 = [B('f', 0, 0, 100, 6), B('t', 2, 2.2, 8, 1.8), B('f', 0, 6, 15, 94), B('t', 2, 10, 9, 1.6), B('t', 2, 14, 7, 1.6), B('as', 1, 17.4, 13, 3.6), B('t', 2, 18.4, 10, 1.6), B('t', 2, 23, 8, 1.6)];
+    [18, 38.5, 59, 79.5].forEach((x) => s1.push(B('t', x, 10, 7, 1.8)));
+    [[18, 15, 13], [18, 30, 17], [18, 49, 11], [38.5, 15, 15], [59, 15, 12], [59, 29, 16], [79.5, 15, 14], [38.5, 48, 12]].forEach((c) => s1.push(...card(c[0], c[1], 19, c[2])));
+    s1.push(B('ph', 38.5, 32, 19, 14), B('a', 47, 27, 19, 15), B('t', 48.6, 30, 11, 1.7), B('t', 48.6, 33.4, 7, 1.4));
+    const s2 = [B('t', 5, 6, 22, 3), B('t', 5, 11, 12, 2), B('l', 8, 20, 0.25, 68), B('l', 8, 88, 86, 0.3)];
+    [34, 48, 62, 76].forEach((y) => s2.push(B('g', 8.3, y, 85.7, 0.2)));
+    [40, 44, 38, 52, 47, 36, 30, 33, 28, 24, 22, 19].forEach((h, i) => s2.push(B(i === 11 ? 'ac' : 'f', 11 + i * 7, 88 - h * 1.1, 4.6, h * 1.1)));
+    s2.push(B('dl', 8.3, 66, 85.7, 0.6), B('t', 80, 6, 14, 3));
+    const s3 = [B('t', 6, 1.6, 12, 0.9), B('t', 80, 1.6, 14, 0.9), B('f', 0, 4.4, 100, 6), B('t', 6, 6.8, 34, 1.4), B('k', 6, 12.5, 24, 2.6), B('k', 32, 12.5, 24, 2.6), B('as', 58, 12.5, 24, 2.6)];
+    [[18, 12], [32, 14], [48, 12], [62, 12]].forEach((c) => s3.push(B('k', 6, c[0], 88, c[1]), B('t', 11, c[0] + 3, 56, 1.3), B('t', 11, c[0] + 6, 32, 1.1)));
+    s3.push(B('f', 0, 92, 100, 8));
+    [12, 36, 60, 84].forEach((x) => s3.push(B('t', x - 4, 95.4, 8, 1)));
+    s3.push(B('ac', 76, 82.5, 16, 7.4));
+    const s4 = [B('f', 0, 0, 100, 7), B('f', 0, 7, 14, 93), B('k', 18, 12, 36, 20), B('k', 58, 12, 36, 20), B('k', 18, 36, 36, 26), B('k', 58, 36, 36, 18), B('k', 18, 66, 76, 24), B('dim', 0, 0, 100, 100), B('k', 31, 22, 38, 52), B('d', 35, 29, 4.2, 7.4), B('t', 41.5, 30.2, 20, 2.6), B('t', 41.5, 34.4, 12, 1.8), B('t', 35, 44, 30, 1.8), B('t', 35, 48.4, 26, 1.8), B('t', 35, 52.8, 18, 1.8), B('f', 47, 63, 9.5, 6.2), B('ac', 58, 63, 9.5, 6.2)];
+    const s5 = [B('t', 5, 6, 24, 3), B('t', 5, 11, 10, 2), B('l', 8, 20, 0.25, 68), B('l', 8, 88, 86, 0.3)];
+    [62, 60, 57, 57, 52, 48, 47].forEach((h, i) => s5.push(B('f', 9.5 + i * 6.05, 88 - h, 5.2, h)));
+    [40, 36, 32, 28, 22, 16, 10].forEach((h, i) => s5.push(B('gh', 9.5 + (i + 7) * 6.05, 88 - h, 5.2, h)));
+    s5.push(B('as', 51.4, 18, 0.4, 70), B('t', 52.4, 18.5, 6, 1.6));
+    this._shots = {
+      s1: { id: 's1', name: 'board-drag-glitch.png', size: '1.2 MB', w: 1440, h: 900, by: 'Sam Patel', ini: 'SP', hue: 20, when: 'Oct 6', blocks: s1 },
+      s2: { id: 's2', name: 'latency-p95.png', size: '640 KB', w: 1200, h: 800, by: 'Riley Chen', ini: 'RC', hue: 150, when: 'Oct 5', blocks: s2 },
+      s3: { id: 's3', name: 'mobile-board.png', size: '410 KB', w: 780, h: 1688, by: 'Taylor Ng', ini: 'TN', hue: 330, when: 'Oct 4', blocks: s3 },
+      s4: { id: 's4', name: 'sync-error.png', size: '220 KB', w: 1280, h: 720, by: 'Jordan Lee', ini: 'JL', hue: 200, when: 'Oct 3', blocks: s4 },
+      s5: { id: 's5', name: 'sprint-14-burndown.png', size: '380 KB', w: 1600, h: 900, by: 'Alex Kim', ini: 'AK', hue: 285, when: 'Oct 7', blocks: s5 }
+    };
+    return this._shots;
+  }
+
+  lbGet(id) { return this.state.lb[id]; }
+  lbSet(id, p) { this.setState({ lb: { ...this.state.lb, [id]: { ...this.state.lb[id], ...p } } }); }
+
+  lbBuild(id, cfg) {
+    const self = this;
+    const SH = this.lxShots();
+    const st = this.lbGet(id);
+    const files = st.files.map((k) => SH[k]);
+    const n = files.length;
+    const idx = n ? Math.min(st.idx, n - 1) : 0;
+    const cur = n ? files[idx] : null;
+    const phone = !!cfg.phone;
+    const vpW = phone ? cfg.w : cfg.w - 112;
+    const vpH = phone ? cfg.h - 64 - 72 : cfg.h - 56 - 84;
+    const pad = phone ? 16 : 48;
+    const fitOf = (f) => Math.min((vpW - pad) / f.w, (vpH - pad) / f.h, 1);
+    const fit = cur ? fitOf(cur) : 1;
+    const scale = st.zoom == null ? fit : st.zoom;
+    const clampPan = (px, py, s) => {
+      if (!cur) return { px: 0, py: 0 };
+      const mx = Math.max(0, (cur.w * s - vpW) / 2 + 24);
+      const my = Math.max(0, (cur.h * s - vpH) / 2 + 24);
+      return { px: Math.max(-mx, Math.min(mx, px)), py: Math.max(-my, Math.min(my, py)) };
+    };
+    const pan = clampPan(st.px, st.py, scale);
+    const zoomed = cur && (cur.w * scale > vpW || cur.h * scale > vpH);
+    const STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+    const setZoom = (z) => {
+      const s = z == null ? fit : z;
+      const p = clampPan(st.px * (s / scale), st.py * (s / scale), s);
+      self.lbSet(id, { zoom: z, px: p.px, py: p.py });
+    };
+    const zin = () => { const nx = STEPS.find((s) => s > scale * 1.01); setZoom(nx == null ? 4 : nx); };
+    const zout = () => { const pv = STEPS.filter((s) => s < scale * 0.99).pop(); setZoom(pv == null || pv <= fit ? null : pv); };
+    const fitFn = () => setZoom(null);
+    const toggle100 = () => setZoom(Math.abs(scale - 1) < 0.01 ? null : 1);
+    const go = (i, dir) => { if (!n) return; self.lbSet(id, { idx: (i + n) % n, zoom: null, px: 0, py: 0, nav: st.nav + 1, dir, confirm: false }); };
+    const prev = () => go(idx - 1, -1);
+    const next = () => go(idx + 1, 1);
+    const close = () => self.lbSet(id, { open: false, confirm: false });
+    const openAt = (i) => self.lbSet(id, { open: true, idx: i, zoom: null, px: 0, py: 0 });
+    const doDel = () => {
+      if (!cur) return;
+      const files2 = st.files.filter((k) => k !== cur.id);
+      const token = Date.now();
+      self.lbSet(id, { files: files2, idx: Math.min(idx, Math.max(0, files2.length - 1)), confirm: false, zoom: null, px: 0, py: 0, undo: { id: cur.id, at: idx, token } });
+      setTimeout(() => { const s2 = self.lbGet(id); if (s2.undo && s2.undo.token === token) self.lbSet(id, { undo: null }); }, 5000);
+    };
+    const undo = () => {
+      const u = st.undo; if (!u) return;
+      const f2 = st.files.slice(); f2.splice(u.at, 0, u.id);
+      self.lbSet(id, { files: f2, idx: u.at, undo: null });
+    };
+    const download = () => {
+      self.lbSet(id, { dl: true });
+      setTimeout(() => self.lbSet(id, { dl: false }), 1400);
+    };
+    const onKey = (e) => {
+      const k = e.key;
+      if (k === '+' || k === '=') { e.preventDefault(); zin(); }
+      else if (k === '-' || k === '_') { e.preventDefault(); zout(); }
+      else if (k === '0') { e.preventDefault(); fitFn(); }
+      else if (k === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (k === 'ArrowRight') { e.preventDefault(); next(); }
+      else if (k === 'Escape') { e.preventDefault(); if (st.confirm) self.lbSet(id, { confirm: false }); else close(); }
+    };
+    const pdown = (e) => {
+      if (!zoomed || e.button !== 0) return;
+      self._drag = { id, x: e.clientX, y: e.clientY, px: pan.px, py: pan.py };
+      if (e.currentTarget && e.currentTarget.setPointerCapture) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }
+      self.lbSet(id, { drag: true });
+    };
+    const pmove = (e) => {
+      const d = self._drag; if (!d || d.id !== id) return;
+      const p = clampPan(d.px + (e.clientX - d.x), d.py + (e.clientY - d.y), scale);
+      self.lbSet(id, { px: p.px, py: p.py });
+    };
+    const pup = () => { if (self._drag && self._drag.id === id) { self._drag = null; self.lbSet(id, { drag: false }); } };
+    const miniSize = (f, bw, bh) => { const s = Math.min(bw / f.w, bh / f.h); return { tw: Math.round(f.w * s), th: Math.round(f.h * s) }; };
+    const canDelete = cfg.role !== 'viewer';
+    const animCls = st.nav === 0 ? '' : (st.dir > 0 ? 'sl-r' : 'sl-l') + (st.nav % 2 ? '1' : '2');
+    return {
+      id, w: cfg.w, h: cfg.h, label: cfg.label, meta: cfg.meta,
+      devCls: phone ? 'phone' : '', cmpCls: !phone && cfg.w < 1000 ? 'cmp' : '',
+      open: st.open, tileTab: st.open ? -1 : 0, count: n,
+      tiles: files.slice(0, 3).map((f, i) => ({ name: f.name, blocks: f.blocks, ...miniSize(f, 100, 54), open: () => openAt(i) })),
+      hasCur: !!cur, isEmpty: !cur, multi: n > 1,
+      cur: cur ? { ...cur, dim: cur.w + '×' + cur.h, labFs: Math.round(Math.max(cur.w, cur.h) * 0.013) } : { name: '', size: '', dim: '', blocks: [], hue: 0, ini: '', by: '', when: '', w: 0, h: 0, labFs: 12 },
+      pct: Math.round(scale * 100) + '%', isFit: st.zoom == null,
+      tf: 'translate(calc(-50% + ' + pan.px.toFixed(1) + 'px), calc(-50% + ' + pan.py.toFixed(1) + 'px)) scale(' + scale.toFixed(4) + ')',
+      vpCls: (zoomed ? 'zoomed' : '') + (st.drag ? ' drag' : ''),
+      vpLabel: cur ? cur.name + ', ' + Math.round(scale * 100) + '%. Plus and minus zoom, 0 fits, arrows browse, Escape closes' : 'No attachments',
+      animCls,
+      counter: n ? (idx + 1) + ' / ' + n : '0 / 0',
+      thumbs: files.map((f, i) => ({ name: f.name, blocks: f.blocks, ...miniSize(f, 62, 46), on: i === idx ? 'on' : '', cur: i === idx ? 'true' : 'false', go: () => go(i, i >= idx ? 1 : -1) })),
+      canDelete: canDelete && !!cur, confirm: st.confirm,
+      askDel: () => self.lbSet(id, { confirm: !st.confirm }),
+      cancelDel: () => self.lbSet(id, { confirm: false }),
+      popKey: (e) => { if (e.key === 'Escape') { e.stopPropagation(); self.lbSet(id, { confirm: false }); } },
+      doDel, undo, hasUndo: !!st.undo, undoName: st.undo ? SH[st.undo.id].name : '',
+      dl: st.dl, notDl: !st.dl, dlLabel: st.dl ? 'Downloaded' : 'Download', dlCls: st.dl ? 'ok' : '', download,
+      zin, zout, fit: fitFn, toggle100, prev, next, close, onKey, pdown, pmove, pup
+    };
+  }
+
+  cvFiles() {
+    if (this._cvf) return this._cvf;
+    const ts = [
+      "import { measure, type Card, type Column } from './layout';",
+      '',
+      '/** Reflow only the columns that changed since the last frame. */',
+      'const MAX_FRAME_MS = 8;',
+      'const dirty = new Set<string>();',
+      '',
+      'export function markDirty(columnId: string): void {',
+      '  dirty.add(columnId);',
+      '}',
+      '',
+      'export async function reflow(cols: Column[], now = performance.now()): Promise<number> {',
+      '  let moved = 0;',
+      '  for (const col of cols) {',
+      '    if (!dirty.has(col.id)) continue;',
+      '    const heights = col.cards.map((c: Card) => measure(c.el));',
+      '    let y = 0;',
+      '    for (let i = 0; i < col.cards.length; i++) {',
+      '      col.cards[i].y = y;',
+      '      y += heights[i] + 8; // 8px gap between cards',
+      '      moved++;',
+      '    }',
+      '    dirty.delete(col.id);',
+      '    if (performance.now() - now > MAX_FRAME_MS) {',
+      '      console.warn(`reflow: frame budget exceeded after ${moved} cards in "${col.title}", deferring ${dirty.size} dirty columns to the next animation frame`);',
+      '      await new Promise((r) => requestAnimationFrame(r));',
+      '      now = performance.now();',
+      '    }',
+      '  }',
+      '  return moved;',
+      '}'
+    ].join('\n');
+    const py = [
+      '"""Token bucket limiter for the public API."""',
+      'import time',
+      'from dataclasses import dataclass, field',
+      '',
+      'BURST = 40',
+      'REFILL_PER_SEC = 12.5',
+      '',
+      '',
+      '@dataclass',
+      'class Bucket:',
+      '    tokens: float = BURST',
+      '    updated: float = field(default_factory=time.monotonic)',
+      '',
+      '    def take(self, cost: int = 1) -> bool:',
+      '        now = time.monotonic()',
+      '        elapsed = now - self.updated',
+      '        self.tokens = min(BURST, self.tokens + elapsed * REFILL_PER_SEC)',
+      '        self.updated = now',
+      '        if self.tokens < cost:',
+      '            return False  # caller responds 429',
+      '        self.tokens -= cost',
+      '        return True',
+      '',
+      '',
+      'def limit_key(workspace_id: str, route: str) -> str:',
+      '    return f"rl:{workspace_id}:{route}"',
+      '',
+      '',
+      'buckets: dict[str, Bucket] = {}',
+      '',
+      '',
+      'def allow(workspace_id: str, route: str, cost: int = 1) -> bool:',
+      '    bucket = buckets.setdefault(limit_key(workspace_id, route), Bucket())',
+      '    return bucket.take(cost)'
+    ].join('\n');
+    this._cvf = {
+      ts: { name: 'reflow.ts', ext: 'TS', lang: 'TypeScript', size: '1.4 KB', src: ts, toks: this.lxTokenize(ts, 'ts') },
+      py: { name: 'rate_limit.py', ext: 'PY', lang: 'Python', size: '1.1 KB', src: py, toks: this.lxTokenize(py, 'py') }
+    };
+    return this._cvf;
+  }
+
+  lxTokenize(src, lang) {
+    const KW = lang === 'py'
+      ? new Set(['def', 'return', 'if', 'elif', 'else', 'for', 'in', 'import', 'from', 'class', 'None', 'True', 'False', 'async', 'await', 'with', 'as', 'not', 'and', 'or', 'raise', 'try', 'except', 'self', 'lambda', 'while', 'pass', 'is'])
+      : new Set(['import', 'from', 'export', 'const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'of', 'in', 'new', 'type', 'interface', 'async', 'await', 'true', 'false', 'null', 'undefined', 'as', 'readonly', 'while', 'break', 'continue', 'void', 'class', 'extends']);
+    const out = [];
+    let inBlock = false;
+    src.split('\n').forEach((line) => {
+      const toks = [];
+      const push = (t, c) => { if (!t) return; const last = toks[toks.length - 1]; if (last && last.c === c) last.t += t; else toks.push({ t, c }); };
+      const n = line.length;
+      let i = 0;
+      const readStr = (start, q) => { let j = start; while (j < n && line[j] !== q) { if (line[j] === '\\') j++; j++; } return Math.min(j + 1, n); };
+      while (i < n) {
+        if (inBlock) { const e = line.indexOf('*/', i); if (e < 0) { push(line.slice(i), 'com'); i = n; } else { push(line.slice(i, e + 2), 'com'); i = e + 2; inBlock = false; } continue; }
+        const ch = line[i];
+        const prevW = i > 0 && /\w/.test(line[i - 1]);
+        if (lang === 'ts' && ch === '/' && line[i + 1] === '/') { push(line.slice(i), 'com'); break; }
+        if (lang === 'py' && ch === '#') { push(line.slice(i), 'com'); break; }
+        if (lang === 'ts' && ch === '/' && line[i + 1] === '*') { inBlock = true; push('/*', 'com'); i += 2; continue; }
+        if (ch === '"' || ch === "'" || ch === '`') { const e = readStr(i + 1, ch); push(line.slice(i, e), 'str'); i = e; continue; }
+        if (lang === 'py' && /[fbr]/i.test(ch) && !prevW && (line[i + 1] === '"' || line[i + 1] === "'")) { const e = readStr(i + 2, line[i + 1]); push(line.slice(i, e), 'str'); i = e; continue; }
+        if (/[0-9]/.test(ch) && !prevW) { let j = i; while (j < n && /[0-9._]/.test(line[j])) j++; push(line.slice(i, j), 'num'); i = j; continue; }
+        if (/[A-Za-z_$@]/.test(ch)) {
+          let j = i + 1; while (j < n && /[\w$]/.test(line[j])) j++;
+          const w = line.slice(i, j);
+          let k = j; while (k < n && line[k] === ' ') k++;
+          let c = '';
+          if (w[0] === '@') c = 'fn'; else if (KW.has(w)) c = 'kw'; else if (line[k] === '(') c = 'fn';
+          push(w, c); i = j; continue;
+        }
+        push(ch, ''); i++;
+      }
+      out.push(toks);
+    });
+    return out;
+  }
+
+  cvMatches(f, q) {
+    const res = [];
+    if (!q) return res;
+    const ql = q.toLowerCase();
+    f.src.split('\n').forEach((line, li) => {
+      const l = line.toLowerCase();
+      let p = l.indexOf(ql);
+      while (p >= 0) { res.push({ li, s: p, e: p + ql.length }); p = l.indexOf(ql, p + ql.length); }
+    });
+    return res;
+  }
+
+  cvSet(id, p) { this.setState({ cv: { ...this.state.cv, [id]: { ...this.state.cv[id], ...p } } }); }
+
+  cvScrollTo(id, m) {
+    const self = this;
+    setTimeout(() => {
+      const el = self._cvb && self._cvb[id];
+      if (!el || !m) return;
+      el.scrollTop = Math.max(0, m.li * 20 + 8 - el.clientHeight / 2);
+      if (!self.state.cv[id].wrap) el.scrollLeft = Math.max(0, m.s * 7.5 + 52 - el.clientWidth / 2);
+    }, 0);
+  }
+
+  cvBuild(id, cfg) {
+    const self = this;
+    const F = this.cvFiles()[cfg.file];
+    const st = this.state.cv[id];
+    const q = st.search ? st.q : '';
+    const ms = this.cvMatches(F, q);
+    const cur = ms.length ? ((st.cur % ms.length) + ms.length) % ms.length : -1;
+    const lines = F.toks.map((toks, li) => {
+      const line = F.src.split('\n')[li];
+      const lm = [];
+      ms.forEach((m, gi) => { if (m.li === li) lm.push({ s: m.s, e: m.e, g: gi }); });
+      const segs = [];
+      let pos = 0;
+      toks.forEach((tk) => {
+        const s = pos; const e = pos + tk.t.length; let c0 = s;
+        const base = tk.c ? 'sx-' + tk.c : '';
+        lm.forEach((m) => {
+          if (m.e <= c0 || m.s >= e) return;
+          const a = Math.max(m.s, c0); const b = Math.min(m.e, e);
+          if (a > c0) segs.push({ t: line.slice(c0, a), c: base });
+          segs.push({ t: line.slice(a, b), c: base + ' hit' + (m.g === cur ? ' cur' : '') });
+          c0 = b;
+        });
+        if (c0 < e) segs.push({ t: line.slice(c0, e), c: base });
+        pos = e;
+      });
+      const hasCur = cur >= 0 && ms[cur].li === li;
+      return { n: li + 1, segs, cls: hasCur ? 'cur' : '' };
+    });
+    const step = (d) => { if (!ms.length) return; const nc = ((cur + d) % ms.length + ms.length) % ms.length; self.cvSet(id, { cur: nc }); self.cvScrollTo(id, ms[nc]); };
+    const focusIn = () => setTimeout(() => { const el = self._cvi && self._cvi[id]; if (el && el.focus) el.focus(); }, 30);
+    const copy = () => {
+      try { if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(F.src); } catch (err) { /* clipboard unavailable */ }
+      self.cvSet(id, { copied: true });
+      setTimeout(() => self.cvSet(id, { copied: false }), 1600);
+    };
+    return {
+      id, label: cfg.label, meta: cfg.meta, f: { name: F.name, ext: F.ext, lang: F.lang, size: F.size },
+      open: st.open, tileTab: st.open ? -1 : 0, lineCount: lines.length, lines,
+      search: st.search, wrap: st.wrap, wrapCls: st.wrap ? 'wrap' : '', q: st.q,
+      matchLabel: !q ? '' : ms.length ? (cur + 1) + ' of ' + ms.length : 'No matches',
+      copied: st.copied, notCopied: !st.copied, copyLabel: st.copied ? 'Copied' : 'Copy', copyCls: st.copied ? 'ok' : '', copy,
+      dlHref: 'data:text/plain;charset=utf-8,' + encodeURIComponent(F.src),
+      bodyRef: (el) => { self._cvb = self._cvb || {}; self._cvb[id] = el; },
+      inRef: (el) => { self._cvi = self._cvi || {}; self._cvi[id] = el; },
+      toggleSearch: () => { const on = !st.search; self.cvSet(id, { search: on }); if (on) focusIn(); },
+      toggleWrap: () => self.cvSet(id, { wrap: !st.wrap }),
+      close: () => self.cvSet(id, { open: false }),
+      reopen: () => self.cvSet(id, { open: true }),
+      onQ: (e) => { self.cvSet(id, { q: e.target.value, cur: 0 }); const m2 = self.cvMatches(F, e.target.value); if (m2.length) self.cvScrollTo(id, m2[0]); },
+      onQKey: (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); step(e.shiftKey ? -1 : 1); }
+        else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); self.cvSet(id, { search: false }); }
+      },
+      nextHit: () => step(1), prevHit: () => step(-1),
+      onKey: (e) => {
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); self.cvSet(id, { search: true }); focusIn(); }
+        else if (e.key === 'Escape') { e.preventDefault(); if (st.search) self.cvSet(id, { search: false }); else self.cvSet(id, { open: false }); }
+      }
+    };
+  }
+
+  ksData() {
+    return [
+      { name: 'Navigation', rows: [['Go to board', 'G>B'], ['Go to list', 'G>L'], ['Go to milestones', 'G>M'], ['Go to sprints', 'G>S'], ['Go to inbox', 'G>I'], ['Search and commands', '⌘+K']] },
+      { name: 'Tasks', rows: [['Create task', 'C'], ['Edit title', 'E'], ['Change status', 'S'], ['Set priority', 'P'], ['Assign', 'A'], ['Assign to me', 'I'], ['Save and close', '⌘+↵']] },
+      { name: 'Board', rows: [['Next / previous card', 'J|K'], ['Move between columns', '←|→'], ['Select card', 'X'], ['Extend selection', '⇧+X'], ['Open card', '↵'], ['Move card to column', '⌥+←|→']] },
+      { name: 'Global', rows: [['Toggle sidebar', '⌘+B'], ['Keyboard shortcuts', '?'], ['Close or cancel', 'Esc'], ['Focus filter', '⌘+/']] }
+    ];
+  }
+
+  ksBuild() {
+    const self = this;
+    const st = this.state.ks;
+    const win = st.plat === 'win';
+    const MAP = { '⌘': 'Ctrl', '⌥': 'Alt', '⇧': 'Shift', '↵': 'Enter' };
+    const NAMES = { '⌘': 'Command', '⌥': 'Option', '⇧': 'Shift', '↵': 'Enter', '←': 'Left', '→': 'Right', '?': 'Question mark', '/': 'Slash' };
+    const q = st.q.trim().toLowerCase();
+    const parse = (spec) => {
+      const parts = [];
+      const spoken = [];
+      spec.split('>').forEach((seq, si) => {
+        if (si > 0) { parts.push({ isKey: false, isThen: true, isOr: false, t: '' }); spoken.push('then'); }
+        seq.split('|').forEach((alt, ai) => {
+          if (ai > 0) { parts.push({ isKey: false, isThen: false, isOr: true, t: '' }); spoken.push('or'); }
+          const keys = alt === '+' ? ['+'] : alt.split('+');
+          keys.forEach((k) => { const t = win && MAP[k] ? MAP[k] : k; parts.push({ isKey: true, isThen: false, isOr: false, t }); spoken.push(win && MAP[k] ? MAP[k] : (NAMES[k] || k)); });
+        });
+      });
+      return { parts, spoken: spoken.join(' ') };
+    };
+    const groups = this.ksData().map((g) => {
+      const rows = g.rows.map((r) => ({ label: r[0], spec: r[1], ...parse(r[1]) }))
+        .filter((r) => !q || r.label.toLowerCase().includes(q) || g.name.toLowerCase().includes(q) || r.parts.some((p) => p.isKey && p.t.toLowerCase() === q));
+      return { name: g.name, rows };
+    }).filter((g) => g.rows.length);
+    const focusIn = () => setTimeout(() => { if (self._ksIn && self._ksIn.focus) self._ksIn.focus(); }, 30);
+    const setKs = (p) => self.setState({ ks: { ...self.state.ks, ...p } });
+    return {
+      ksOpen: st.open, ksQ: st.q, ksGroups: groups, ksNone: groups.length === 0,
+      ksMac: !win, ksWin: win,
+      ksSetMac: () => setKs({ plat: 'mac' }), ksSetWin: () => setKs({ plat: 'win' }),
+      ksOnQ: (e) => setKs({ q: e.target.value }),
+      ksClear: () => { setKs({ q: '' }); focusIn(); },
+      ksInRef: (el) => { self._ksIn = el; },
+      ksOpenFn: () => { setKs({ open: true }); focusIn(); },
+      ksClose: () => setKs({ open: false }),
+      ksKey: (e) => { if (e.key === 'Escape') { e.preventDefault(); setKs({ open: false }); } },
+      ksAppKey: (e) => { if (e.key === '?' && !st.open) { e.preventDefault(); setKs({ open: true }); focusIn(); } }
+    };
+  }
+
+  renderVals() {
+    const self = this;
+    const theme = this.props.theme || 'navy';
+    const role = this.props.role || 'admin';
+    const st = this.state;
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      role,
+      lbFrames: [
+        this.lbBuild('main', { w: 1280, h: 720, label: 'Lightbox', meta: 'fit · ' + role, role }),
+        this.lbBuild('zoom', { w: 850, h: 640, label: 'Lightbox zoomed', meta: 'drag to pan · ' + role, role }),
+        this.lbBuild('mob', { w: 390, h: 780, phone: true, label: 'Mobile lightbox', meta: '390 · viewer', role: 'viewer' })
+      ],
+      cvFrames: [
+        this.cvBuild('ts', { file: 'ts', label: 'Code viewer', meta: 'TypeScript · long line scrolls' }),
+        this.cvBuild('py', { file: 'py', label: 'Code viewer search', meta: 'Python · ↵ next · ⇧↵ prev' })
+      ],
+      ...this.ksBuild(),
+      retrying: st.retrying,
+      errTitle: st.retrying ? 'Retrying…' : 'Couldn’t load image',
+      retry: () => { if (st.retrying) return; self.setState({ retrying: true }); setTimeout(() => self.setState({ retrying: false }), 1200); }
+    };
+  }
+}
+</script>
+
+
+</body></html>

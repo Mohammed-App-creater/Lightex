@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Status, Task } from "@/lib/api/types";
-import { clampWidth, filterTasks, groupTasks, labelSlots, sortTasks, type Ctx } from "./list-model";
+import { clampWidth, groupTasks, labelSlots, sortTasks, type Ctx } from "./list-model";
 
 const statuses: Status[] = [
   { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 1 },
@@ -35,12 +35,6 @@ describe("list model", () => {
       ["Todo", 1],
       ["Done", 0],
     ]);
-  });
-
-  it("applies quick filters with AND", () => {
-    const list = [t(1, { assigneeId: "u1", priority: 4, dueDate: "2026-10-09" }), t(2, { assigneeId: "u1", priority: 1 }), t(3, { priority: 4, dueDate: "2026-10-08" })];
-    expect(filterTasks(list, new Set(["mine", "urgent"]), ctx).map((x) => x.number)).toEqual([1]);
-    expect(filterTasks(list, new Set(["week"]), ctx).map((x) => x.number)).toEqual([1, 3]);
   });
 
   it("clamps column widths and picks label slots", () => {

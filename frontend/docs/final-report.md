@@ -183,3 +183,92 @@ endpoint for avatars (like attachments), so the client can send a URL instead.
   mock API, hotkeys, transports, forms). Screens are covered by the e2e smoke suite and the screenshot sweep, not by
   per-screen component tests.
 - **Design mismatches still open:** the notification double header (§4).
+
+---
+
+## 7. Design bundle 2 (boards 24–40)
+
+A second design file (`desing - orignal/Lightex Design System (1).html`) added 17 boards. They are unpacked
+into `design/clean/24-…40-*.html`, next to boards 01–23.
+
+### Scope decision
+
+| Board | Status |
+|---|---|
+| 24 Workspace home, 25 My tasks | **Built.** Reworked to match. |
+| 26 Sprints & review | **Built.** Table, sprint board (`?sprint=`), 3-step close: review → carry over → done. |
+| 27 Epics | **Built.** New project view at `/[ws]/projects/[key]/epics`. |
+| 28 Project settings | **Built.** General / Workflow / Labels / Members tabs, archive, delete to Trash. |
+| 29 Trash | **Built.** New, at `/[ws]/trash`. Covers tasks, comments and projects, with 30-day retention. |
+| 30 Create task, filters & views | **Built.** New create dialog, one shared filter builder for Board and List (kept in the URL), saved and pinned views. |
+| 31 Audit log & activity | **Built.** At `/[ws]/settings/audit`, gated by `audit.view`. A shared `ActivityFeed` component is available but not placed on a screen yet (see gaps). |
+| 34 Attachments & shortcuts | **Built.** Image viewer and shortcuts modal. Code preview is **not** built (brief conflict below). |
+| 35 Illustrations, icons, OG, loading | **Built.** Empty-state illustrations, app icons and manifest, OG image, splash loader. |
+| 36 Email templates | **Delivered** as `emails/*.html` plus `emails/README.md` (merge tags, subjects, triggers), with a dev preview at `/dev/emails`. Sending emails is the backend's job. |
+| 32 Timeline & calendar | **Not built.** v2 (banned by the brief). |
+| 33 Dashboards & presence | **Not built.** Live presence needs realtime updates (no WebSockets in v1), and dashboards are not in the brief. |
+| 37 Integrations (GitHub/GitLab) | **Not built.** v2. |
+| 38 Telegram / SMS / Push | **Not built.** v2. These stay "Coming soon" in notification preferences. |
+| 39 Custom fields, dependencies, time | **Not built.** v2. |
+| 40 Import wizard | **Not built.** v2. |
+
+### Conflicts (the brief wins on behaviour)
+
+- **Code preview.** Board 34 shows a read-only code preview, but the brief says code files are download-only. Code,
+  text, SVG and HTML files get a download card.
+- **Audit permission name.** Board 31 uses `audit.read`; the brief's `audit.view` is used.
+- **Project key format.** Board 28 allows letters and digits; the API contract (letters only, 2–5) is kept.
+- **Shortcut list.** Board 34 lists keys that don't exist in the app (E, S, P, A, I, X, J/K). The modal lists only
+  real shortcuts.
+
+### Deviations
+
+- **My tasks:** the open count and the List/Board toggle sit in the top bar's action area.
+- **Mobile workspace switcher and "Create workspace"** (board 24) are not built; they are shell work.
+- **Epics** has no sidebar entry because board 27's sidebar shows none; the project tab strip is the way in.
+- **Trash** opens from the settings navigation, not the sidebar, matching board 29.
+- **No Undo after deleting a status or label.** Undo is built for role changes, member removal, Trash restore,
+  epic archive, attachment delete and view delete.
+- **Quick-add on board columns** (board 30) is not built; the column "+" opens the create dialog.
+- **OG image font:** uses the bundled Geist font, because Satori can't load the app's Inter woff2.
+
+### Requested API additions (bundle 2)
+
+All of these are implemented in the mock and typed in `src/lib/api`.
+
+- **Projects:**
+  - templates gain `simple`, and each template creates its own statuses;
+  - new fields `Project.doneTaskCount` and `hue` (on PATCH).
+- **Workspace access requests:** `GET`, `POST` and `DELETE /workspaces/:slug/access-requests[/mine]`, for members who
+  are on no project.
+- **Epics:**
+  - new fields `ownerId`, `milestoneId` and `archivedAt`;
+  - PATCH accepts `archived`, and names must be unique per project;
+  - `tasks/bulk` must honour `patch.epicId`.
+- **Statuses:**
+  - `color` (PATCH) and `taskCount`;
+  - DELETE takes `{ moveTo }`, and returns 409 `status_in_use` or 409 `last_in_category`.
+- **Labels:** `PATCH` and `DELETE /projects/:id/labels/:labelId`, plus a `taskCount` field.
+- **Members:** 409 `last_admin` on project member PATCH and DELETE.
+- **Trash:**
+  - `GET /workspaces/:slug/trash`, `POST …/trash/restore` and `POST …/trash/purge`;
+  - project and comment deletes become soft deletes;
+  - the server records `deletedBy` and purges after 30 days.
+- **Saved views:**
+  - `GET` and `POST /workspaces/:slug/views`, `PATCH` and `DELETE /views/:id`, `PUT /workspaces/:slug/views/order`;
+  - a server-computed `count` for each view;
+  - `TaskCreate.estimate`.
+- **Audit:**
+  - filters `filter[actor|action|entity|since]` and a `total`;
+  - new fields on `AuditEntry`: `actorName`, `actorKind`, `entityType`, `entityKey`, `source`, `requestId`, `changes[]`.
+- **Notifications:** a `sprint_completed` preference event, and the backend must HTML-escape email merge values.
+
+### Known gaps (bundle 2)
+
+- **Sprint close** takes two calls (bulk move, then complete), so it isn't atomic.
+- **Velocity of completed sprints** ignores carried-over points, which aren't stored.
+- **Pending deletes** (attachments, views) are sent after a 5-second undo window. They are lost if the browser
+  crashes inside that window.
+- **Saved views** each belong to one project.
+- **The audit log's filters** aren't kept in the URL.
+- **The shared `ActivityFeed`** isn't on any screen yet. The overview keeps its compact panel from board 11.

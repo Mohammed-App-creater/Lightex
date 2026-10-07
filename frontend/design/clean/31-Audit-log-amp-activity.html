@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Audit log</title>
+<script src="../assets/69e15c61-641a-4407-b92b-ebbd7275a35a.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--danger-s:rgba(255,122,112,.13);--ok-s:rgba(74,222,128,.12)}.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--danger-s:rgba(255,122,112,.12);--ok-s:rgba(74,222,128,.11)}.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--danger-s:rgba(185,47,38,.08);--ok-s:rgba(21,122,58,.09)}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.fade{animation:fadein 180ms var(--ease)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600;white-space:nowrap}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;border:1px solid var(--line-2);overflow:hidden;background:var(--bg)}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+/* glyphs (from Task panel) */
+.tp-g{width:14px;height:14px;border-radius:50%;flex:none;position:relative;display:inline-block}
+.tp-g.backlog{border:1.5px dashed currentColor}
+.tp-g.todo{border:1.5px solid currentColor}
+.tp-g.progress{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 180deg,transparent 0) content-box}
+.tp-g.review{border:1.5px solid currentColor;padding:2px;background:conic-gradient(currentColor 0 270deg,transparent 0) content-box}
+.tp-g.done{background:currentColor}
+.tp-g.done::after{content:"";position:absolute;left:4px;top:2px;width:3px;height:6px;border:solid var(--bg);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tp-g.cancel{border:1.5px solid currentColor}
+.tp-g.cancel::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:1.5px;background:currentColor;transform:rotate(-45deg)}
+.tp-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:12px;flex:none}
+.tp-bars i{width:3px;border-radius:1px;background:var(--line-2);display:block}
+.tp-bars i:nth-child(1){height:4px}.tp-bars i:nth-child(2){height:7px}.tp-bars i:nth-child(3){height:10px}.tp-bars i:nth-child(4){height:12px}
+.tp-bars.n1 i:nth-child(-n+1),.tp-bars.n2 i:nth-child(-n+2),.tp-bars.n3 i:nth-child(-n+3),.tp-bars.n4 i:nth-child(-n+4){background:currentColor}
+.tp-av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:20px;height:20px;font-size:9px}
+.tp-av.sq{border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:8.5px}
+.tp-av.l{width:26px;height:26px;font-size:10px}
+.tp-av.l.sq{border-radius:7px}
+.tp-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.tp-kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+/* app */
+.app{position:relative;display:flex;height:100%}
+.au{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.au-top{height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 12px 0 18px;border-bottom:1px solid var(--line)}
+.au-h{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;white-space:nowrap}
+.au-h svg{color:var(--text-3)}
+.au-ws{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.au-btn{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;border-radius:7px;font:500 12.5px/1 'Inter',sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;background:transparent;color:var(--text-2);flex:none;transition:background-color 120ms var(--ease),color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.au-btn:hover,.au-btn[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.au-btn:active{transform:scale(.97)}
+.au-btn.sec{background:var(--raised);border-color:var(--line-2);color:var(--text)}
+.au-btn.sec:hover,.au-btn.sec[aria-expanded=true]{border-color:var(--control)}
+.au-btn:disabled{opacity:.45;cursor:default;transform:none;background:transparent}
+.au-btn svg{flex:none}
+.au-fbtn{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;border-radius:7px;border:1px dashed var(--line-2);background:transparent;color:var(--text-2);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;flex:none;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),color 120ms var(--ease)}
+.au-fbtn:hover,.au-fbtn[aria-expanded=true]{border-color:var(--control);color:var(--text);background:var(--hover)}
+.au-fbtn.on{border-style:solid;border-color:var(--line-2);background:var(--surface);color:var(--text)}
+.au-fbtn svg{flex:none;color:var(--text-3)}
+.au-stack{display:inline-flex}
+.au-stack .tp-av{width:18px;height:18px;font-size:8px;box-shadow:0 0 0 2px var(--surface)}
+.au-stack .tp-av+.tp-av{margin-left:-5px}
+.au-ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.au-ib:hover{background:var(--hover);color:var(--text)}
+.au-ib:disabled{opacity:.35;cursor:default;background:transparent}
+.au-link{height:24px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--accent-t);font:500 12.5px/24px 'Inter',sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.au-link:hover{background:var(--accent-s)}
+.au-cnt{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.au-fbar{flex:none;min-height:46px;display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+/* table */
+.au-scroll{position:relative;flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.au-tbl{min-width:600px}
+.au-head{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:var(--cols);align-items:center;height:32px;background:var(--bg);border-bottom:1px solid var(--line);font:500 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.au-head>span{padding:0 8px;white-space:nowrap}
+.au-ev{border-bottom:1px solid var(--line)}
+.au-row{display:grid;grid-template-columns:var(--cols);align-items:center;height:36px;cursor:pointer;transition:background-color 100ms var(--ease)}
+.au-row:hover{background:var(--surface)}
+.au-ev.open>.au-row{background:var(--surface)}
+.au-c{min-width:0;padding:0 8px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden}
+.au-c .t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.au-time{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-2)}
+.au-key{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text);flex:none}
+.au-nm{color:var(--text-2)}
+.au-src{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.au-src.api{color:var(--info)}
+.au-act{display:inline-flex;align-items:center;gap:7px;font-weight:500}
+.au-act svg{flex:none}
+.au-chev{width:24px;height:24px;margin-left:2px;border:0;border-radius:5px;background:transparent;color:var(--text-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.au-chev:hover{background:var(--hover);color:var(--text)}
+.au-chev svg{transition:transform 220ms var(--ease)}
+.au-chev[aria-expanded=true] svg{transform:rotate(90deg);color:var(--accent-t)}
+.au-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 260ms var(--ease)}
+.au-col.open{grid-template-rows:1fr}
+.au-col>div{overflow:hidden;min-height:0;visibility:hidden;opacity:0;transition:opacity 200ms var(--ease),visibility 0s 260ms}
+.au-col.open>div{visibility:visible;opacity:1;transition-delay:0s}
+.au-xp{margin:2px 12px 12px 36px;border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
+.au-dh,.au-dr{display:grid;grid-template-columns:128px minmax(0,1fr) minmax(0,1fr)}
+.au-dh{height:28px;align-items:center;border-bottom:1px solid var(--line);font:500 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.au-dh span{padding:0 10px}
+.au-dr+.au-dr{border-top:1px solid var(--line)}
+.au-df{padding:8px 10px;color:var(--text-3);font-weight:500;font-size:12.5px;line-height:20px}
+.au-dv{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;min-width:0;line-height:20px;border-left:1px solid var(--line)}
+.au-dv .tx{min-width:0;overflow-wrap:anywhere}
+.au-dv .tp-g,.au-dv .tp-bars,.au-dv .tp-av{margin-top:3px}
+.au-dv.old{background:var(--danger-s);color:var(--text-2)}
+.au-dv.old .tx{text-decoration:line-through;text-decoration-color:var(--danger)}
+.au-dv.new{background:var(--ok-s)}
+.au-dv.none{color:var(--text-3)}
+.au-wd{grid-column:span 2;padding:8px 10px;line-height:21px;white-space:pre-wrap;overflow-wrap:anywhere;border-left:1px solid var(--line)}
+.w-del{background:var(--danger-s);color:var(--danger);text-decoration:line-through;border-radius:3px;padding:1px 0}
+.w-ins{background:var(--ok-s);color:var(--ok);border-radius:3px;padding:1px 0}
+.au-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:7px 10px;border-top:1px solid var(--line);background:var(--surface);font-size:12px;color:var(--text-3)}
+.au-meta code{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-2)}
+.au-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--line-2)}
+.au-pg{flex:none;height:44px;display:flex;align-items:center;gap:6px;padding:0 10px 0 16px;border-top:1px solid var(--line)}
+/* states */
+.au-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center}
+.au-state h3{margin:0;font-size:15px;font-weight:600}
+.au-lock{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text-2)}
+.sk{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 45%,var(--raised) 90%);background-size:240% 100%;animation:shim 1.4s linear infinite;flex:none}
+.sk.ci{width:20px;height:20px;border-radius:50%}
+@keyframes shim{from{background-position:120% 0}to{background-position:-120% 0}}
+/* menus + toast */
+.au-catch{position:absolute;inset:0;z-index:55}
+.au-menu{position:absolute;z-index:60;max-height:340px;overflow-y:auto;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:aupop 150ms var(--ease);scrollbar-width:thin}
+@keyframes aupop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.au-mi{display:flex;align-items:center;gap:9px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;white-space:nowrap}
+.au-mi:hover,.au-mi:focus-visible{background:var(--hover)}
+.au-mi.on{background:var(--accent-s)}
+.au-mi.sep{margin-top:5px;position:relative}
+.au-mi.sep::before{content:"";position:absolute;left:-4px;right:-4px;top:-3px;height:1px;background:var(--line)}
+.au-mi svg.ic{flex:none}
+.au-mm{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.au-ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--control);display:grid;place-content:center;flex:none}
+.au-ck.on{background:var(--accent);border-color:var(--accent)}
+.au-ck.on::after{content:"";width:7px;height:3.5px;border:solid #fff;border-width:0 0 1.8px 1.8px;transform:rotate(-45deg);margin-top:-2px}
+.au-toast{position:absolute;bottom:58px;z-index:50;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);height:38px;padding:0 6px 0 12px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;white-space:nowrap;animation:autoast 220ms var(--ease)}
+.au-toast .t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@keyframes autoast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.au-spin{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--line-2);border-top-color:var(--accent-t);animation:auspin 700ms linear infinite;flex:none;display:inline-block}
+@keyframes auspin{to{transform:rotate(360deg)}}
+/* activity feed */
+.af-wrap{position:absolute;inset:0;padding:16px;background:var(--bg);display:flex;flex-direction:column}
+.af{flex:1;min-height:0;display:flex;flex-direction:column;border-radius:12px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.af-h{display:flex;align-items:center;gap:8px;height:48px;padding:0 10px 0 16px;flex:none}
+.af-h h3{margin:0;font-size:13.5px;font-weight:600}
+.af-chips{display:flex;gap:6px;padding:0 14px 12px;border-bottom:1px solid var(--line);flex:none;overflow-x:auto;scrollbar-width:none}
+.af-chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background-color 150ms var(--ease),color 150ms var(--ease),border-color 150ms var(--ease)}
+.af-chip:hover{color:var(--text);border-color:var(--control)}
+.af-chip[aria-pressed=true]{background:var(--accent-s);border-color:transparent;color:var(--accent-t)}
+.af-chip b{font:500 11px/1 'JetBrains Mono',monospace;opacity:.8}
+.af-scroll{flex:1;min-height:0;overflow-y:auto;padding:4px 16px 12px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.af-day{position:sticky;top:-4px;z-index:2;display:flex;align-items:center;gap:8px;padding:12px 0 8px;background:var(--surface);font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.af-day::after{content:"";flex:1;height:1px;background:var(--line)}
+.af-list{list-style:none;margin:0;padding:0;position:relative}
+.af-list::before{content:"";position:absolute;left:12px;top:14px;bottom:14px;width:1px;background:var(--line-2)}
+.af-it{position:relative;display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;padding:6px 0;animation:afin 220ms var(--ease) both}
+@keyframes afin{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.af-it .tp-av{box-shadow:0 0 0 3px var(--surface);position:relative}
+.af-s{font-size:13px;line-height:20px;color:var(--text-2);min-width:0}
+.af-s b{color:var(--text);font-weight:600}
+.af-s .k{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text);padding:2px 5px;border-radius:4px;background:var(--raised);border:1px solid var(--line)}
+.af-s .st{display:inline-flex;align-items:center;gap:5px;color:var(--text);font-weight:500;vertical-align:-2px}
+.af-q{display:block;margin-top:4px;padding:6px 10px;border-radius:7px;border-left:2px solid var(--line-2);background:var(--bg);color:var(--text-2);font-size:12.5px;line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.af-t{font:500 11.5px/20px 'JetBrains Mono',monospace;color:var(--text-3)}
+.af-more{display:flex;justify-content:center;padding:8px 0 4px}
+.af-empty{padding:28px 0;text-align:center;color:var(--text-3)}
+/* phone */
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.ph-sb{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px/1 'Inter',sans-serif}
+.ph-top{height:52px;flex:none;display:flex;align-items:center;gap:2px;padding:0 4px;border-bottom:1px solid var(--line)}
+.ph-ib{width:44px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:var(--text-2);cursor:pointer}
+.ph-ib:hover,.ph-ib[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.ph-chips{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--line);flex:none;scrollbar-width:none}
+.ph-chips .au-fbtn{height:34px;border-radius:17px;padding:0 12px}
+.ph-scroll{flex:1;min-height:0;overflow-y:auto;padding:10px 12px 40px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.ph-card{border-radius:10px;border:1px solid var(--line);background:var(--surface);overflow:hidden;flex:none}
+.ph-cb{display:flex;flex-direction:column;gap:7px;width:100%;padding:11px 12px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.ph-r{display:flex;align-items:center;gap:8px;min-width:0}
+.ph-dl{display:flex;flex-direction:column;gap:6px;padding:0 12px 12px}
+.ph-dl .au-dv{border-left:0;border-radius:6px;padding:6px 8px}
+.ph-dl .au-wd{border-left:0;padding:6px 8px;border-radius:6px;background:var(--bg)}
+.ph-fl{font:500 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-top:4px}
+.ph-home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--text-3);opacity:.5;z-index:60}
+.au-btn:focus-visible,.au-fbtn:focus-visible,.au-ib:focus-visible,.au-link:focus-visible,.au-chev:focus-visible,.au-mi:focus-visible,.af-chip:focus-visible,.ph-ib:focus-visible,.ph-cb:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){
+  .sb-host{display:none!important}
+  .au-tbl{--cols:28px 92px minmax(0,1fr) 120px!important;min-width:0}
+  .au-tbl .c-ent,.au-tbl .c-src{display:none}
+  .au-xp{margin-left:12px}
+  .au-dh,.au-dr{grid-template-columns:92px minmax(0,1fr) minmax(0,1fr)}
+  .au-mi,.au-fbtn{min-height:40px}
+}
+@media (prefers-reduced-motion:reduce){.au *,.af *,.ph *,.au-menu,.au-toast,.au-col,.au-col>div,.sk,.au-spin{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:3200px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.04em">SCREENS · ADMIN</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Audit log</h1>
+    </div>
+    <div style="display:flex;gap:16px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3)"><span>admins only</span><span>field-level diff</span><span>CSV · JSON</span><span>activity feed</span></div>
+  </header>
+
+  <div style="display:flex;flex-direction:column;gap:40px">
+    <sc-for list="{{rows}}" as="rx" hint-placeholder-count="4">
+      <div style="display:flex;gap:40px;align-items:flex-start">
+        <sc-for list="{{rx.cols}}" as="cx" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+            <sc-for list="{{cx.frames}}" as="fx" hint-placeholder-count="1">
+              <figure class="frame">
+                <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+                <div class="dev" style="width:{{fx.w}}px;height:{{fx.h}}px;border-radius:{{fx.r}}px">
+
+                  <sc-if value="{{fx.desk}}" hint-placeholder-val="{{true}}">
+                    <div class="app" sc-camel-on-key-down="{{fx.appKey}}">
+                      <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="1">
+                        <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+                        </div>
+                      </sc-for>
+
+                      <section class="au" aria-label="Audit log">
+                        <div class="au-top">
+                          <span class="au-h"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8l5 2v4c0 3-2.2 5.3-5 6.4-2.8-1.1-5-3.4-5-6.4v-4z"></path></svg>Audit log</span>
+                          <span class="au-ws">Platform team</span>
+                          <span style="flex:1"></span>
+                          <sc-if value="{{fx.showExport}}" hint-placeholder-val="{{true}}">
+                            <button class="au-btn sec" type="button" aria-haspopup="menu" aria-expanded="{{fx.expOpen}}" sc-camel-on-click="{{fx.openExport}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.8 7.5L8 10.7l3.2-3.2M3 13.5h10"></path></svg>Export<svg width="10" height="10" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button>
+                          </sc-if>
+                        </div>
+
+                        <sc-if value="{{fx.noPerm}}" hint-placeholder-val="{{false}}">
+                          <div class="au-state fade">
+                            <span class="au-lock"><svg width="20" height="20" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h8v6.5H4zM5.6 7V5.2a2.4 2.4 0 014.8 0V7"></path></svg></span>
+                            <h3>Admins only</h3>
+                            <span class="au-cnt">audit.read · {{fx.roleLabel}}</span>
+                            <span class="au-stack" aria-label="Workspace admins: Alex Kim, Riley Chen" style="margin-top:4px"><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK</span><span class="tp-av" style="background:oklch(var(--av-l) var(--av-c) 150)">RC</span></span>
+                            <button class="au-btn sec" type="button" sc-camel-on-click="{{fx.requestAccess}}" aria-disabled="{{fx.reqDone}}"><sc-if value="{{fx.reqDone}}" hint-placeholder-val="{{false}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>{{fx.reqLabel}}</button>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{fx.showBar}}" hint-placeholder-val="{{true}}">
+                          <div class="au-fbar" role="group" aria-label="Filters">
+                            <button class="au-fbtn {{fx.fActorCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fActorOpen}}" sc-camel-on-click="{{fx.pickActor}}">
+                              <sc-if value="{{fx.hasActors}}" hint-placeholder-val="{{false}}"><span class="au-stack"><sc-for list="{{fx.actorStack}}" as="sa" hint-placeholder-count="2"><span class="tp-av {{sa.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{sa.hue}})">{{sa.ini}}</span></sc-for></span></sc-if>
+                              <sc-if value="{{fx.noActors}}" hint-placeholder-val="{{true}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 7.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM3 13.5c.6-2.4 2.6-3.8 5-3.8s4.4 1.4 5 3.8"></path></svg></sc-if>
+                              {{fx.actorLabel}}
+                            </button>
+                            <button class="au-fbtn {{fx.fActCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fActOpen}}" sc-camel-on-click="{{fx.pickAction}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{fx.actIcon}}"></path></svg>{{fx.actionLabel}}</button>
+                            <button class="au-fbtn {{fx.fEntCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fEntOpen}}" sc-camel-on-click="{{fx.pickEntity}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{fx.entIcon}}"></path></svg>{{fx.entityLabel}}</button>
+                            <button class="au-fbtn {{fx.fRangeCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fRangeOpen}}" sc-camel-on-click="{{fx.pickRange}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3"></path></svg>{{fx.rangeLabel}}</button>
+                            <sc-if value="{{fx.canReset}}" hint-placeholder-val="{{false}}"><button class="au-link" type="button" sc-camel-on-click="{{fx.reset}}">Reset</button></sc-if>
+                            <span style="flex:1"></span>
+                            <span class="au-cnt" aria-live="polite">{{fx.totalTxt}}</span>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+                          <div class="au-state fade" role="alert">
+                            <svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3zM12 10v4.5M12 17.2v.1"></path></svg>
+                            <h3>Couldn’t load the audit log</h3>
+                            <span class="au-cnt">504 · req_c41e09b7a2</span>
+                            <button class="au-btn sec" type="button" sc-camel-on-click="{{fx.retry}}">Retry</button>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{fx.showTable}}" hint-placeholder-val="{{true}}">
+                          <div class="au-scroll">
+                            <div class="au-tbl {{fx.tblCls}}" role="table" aria-label="Audit events" aria-busy="{{fx.loading}}" style="--cols:{{fx.cols}}">
+                              <div class="au-head" role="row"><span role="columnheader" aria-label="Expand"></span><span role="columnheader">Time</span><span role="columnheader">Actor</span><span role="columnheader">Action</span><span class="c-ent" role="columnheader">Entity</span><sc-if value="{{fx.showSrc}}" hint-placeholder-val="{{true}}"><span class="c-src" role="columnheader">Source</span></sc-if></div>
+
+                              <sc-if value="{{fx.loading}}" hint-placeholder-val="{{false}}">
+                                <sc-for list="{{fx.skRows}}" as="kx" hint-placeholder-count="8">
+                                  <div class="au-row" style="cursor:default;border-bottom:1px solid var(--line)"><span></span><span class="au-c"><span class="sk" style="width:76px"></span></span><span class="au-c"><span class="sk ci"></span><span class="sk" style="width:{{kx.a}}px"></span></span><span class="au-c"><span class="sk" style="width:{{kx.b}}px"></span></span><span class="au-c c-ent"><span class="sk" style="width:{{kx.c}}%"></span></span><sc-if value="{{fx.showSrc}}" hint-placeholder-val="{{true}}"><span class="au-c c-src"><span class="sk" style="width:28px"></span></span></sc-if></div>
+                                </sc-for>
+                              </sc-if>
+
+                              <sc-if value="{{fx.empty}}" hint-placeholder-val="{{false}}">
+                                <div class="au-state fade" style="min-height:220px">
+                                  <svg width="24" height="24" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z"></path></svg>
+                                  <h3>No events match</h3>
+                                  <span class="au-cnt">{{fx.emptyMeta}}</span>
+                                  <button class="au-btn sec" type="button" sc-camel-on-click="{{fx.reset}}">Reset filters</button>
+                                </div>
+                              </sc-if>
+
+                              <sc-for list="{{fx.evs}}" as="ev" hint-placeholder-count="8">
+                                <div class="au-ev {{ev.openCls}}" role="rowgroup">
+                                  <div class="au-row" role="row" sc-camel-on-click="{{ev.toggle}}">
+                                    <span role="cell"><button class="au-chev" type="button" aria-expanded="{{ev.open}}" aria-controls="{{ev.xid}}" aria-label="Show changes for {{ev.aria}}" sc-camel-on-click="{{ev.toggleBtn}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg></button></span>
+                                    <span class="au-c" role="cell"><span class="au-time" title="{{ev.full}}">{{ev.time}}</span></span>
+                                    <span class="au-c" role="cell"><span class="tp-av {{ev.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{ev.hue}})">{{ev.ini}}</span><span class="t">{{ev.actor}}</span></span>
+                                    <span class="au-c" role="cell"><span class="au-act"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="{{ev.actColor}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ev.actIcon}}"></path></svg><span class="t">{{ev.action}}</span></span></span>
+                                    <span class="au-c c-ent" role="cell"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-label="{{ev.etype}}"><path d="{{ev.entIcon}}"></path></svg><sc-if value="{{ev.hasKey}}" hint-placeholder-val="{{true}}"><span class="au-key">{{ev.key}}</span></sc-if><span class="t au-nm">{{ev.name}}</span></span>
+                                    <sc-if value="{{fx.showSrc}}" hint-placeholder-val="{{true}}"><span class="au-c c-src" role="cell"><span class="au-src {{ev.srcCls}}">{{ev.src}}</span></span></sc-if>
+                                  </div>
+                                  <div class="au-col {{ev.openCls}}" id="{{ev.xid}}" role="row"><div role="cell">
+                                    <div class="au-xp">
+                                      <div class="au-dh"><span>Field</span><span>Before</span><span>After</span></div>
+                                      <sc-for list="{{ev.diffs}}" as="df" hint-placeholder-count="2">
+                                        <div class="au-dr">
+                                          <span class="au-df">{{df.field}}</span>
+                                          <sc-if value="{{df.isWord}}" hint-placeholder-val="{{false}}">
+                                            <div class="au-wd" aria-label="{{df.aria}}"><sc-for list="{{df.segs}}" as="sg" hint-placeholder-count="5"><span class="{{sg.cls}}">{{sg.t}}</span></sc-for></div>
+                                          </sc-if>
+                                          <sc-if value="{{df.isPair}}" hint-placeholder-val="{{true}}">
+                                            <div class="au-dv {{df.bCls}}" aria-label="Before: {{df.b.txt}}"><sc-if value="{{df.b.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{df.b.glyph}}" style="color:{{df.b.color}}"></span></sc-if><sc-if value="{{df.b.bb}}" hint-placeholder-val="{{false}}"><span class="tp-bars {{df.b.bars}}" style="color:{{df.b.color}}"><i></i><i></i><i></i><i></i></span></sc-if><sc-if value="{{df.b.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{df.b.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{df.b.hue}})">{{df.b.ini}}</span></sc-if><span class="tx">{{df.b.txt}}</span></div>
+                                            <div class="au-dv {{df.aCls}}" aria-label="After: {{df.a.txt}}"><sc-if value="{{df.a.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{df.a.glyph}}" style="color:{{df.a.color}}"></span></sc-if><sc-if value="{{df.a.bb}}" hint-placeholder-val="{{false}}"><span class="tp-bars {{df.a.bars}}" style="color:{{df.a.color}}"><i></i><i></i><i></i><i></i></span></sc-if><sc-if value="{{df.a.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{df.a.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{df.a.hue}})">{{df.a.ini}}</span></sc-if><span class="tx">{{df.a.txt}}</span></div>
+                                          </sc-if>
+                                        </div>
+                                      </sc-for>
+                                      <div class="au-meta">
+                                        <svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ev.srcIcon}}"></path></svg><span>via {{ev.src}}</span><span class="dot"></span><code>{{ev.req}}</code>
+                                        <button class="au-ib" type="button" aria-label="Copy request id {{ev.req}}" title="Copy" sc-camel-on-click="{{ev.copyReq}}" style="width:22px;height:22px"><svg width="12" height="12" sc-camel-view-box="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"></rect><path d="M2 8V3a1 1 0 011-1h5" stroke-linecap="round"></path></svg></button>
+                                        <span class="dot"></span><code>{{ev.full}}</code>
+                                      </div>
+                                    </div>
+                                  </div></div>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </div>
+                          <div class="au-pg">
+                            <span class="au-cnt">Rows</span>
+                            <button class="au-btn" type="button" aria-haspopup="menu" aria-expanded="{{fx.sizeOpen}}" aria-label="Rows per page: {{fx.size}}" sc-camel-on-click="{{fx.pickSize}}" style="height:26px;padding:0 6px 0 8px;font-family:'JetBrains Mono',monospace">{{fx.size}}<svg width="10" height="10" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg></button>
+                            <span style="flex:1"></span>
+                            <span class="au-cnt" style="color:var(--text-2)">{{fx.pageTxt}}</span>
+                            <button class="au-ib" type="button" aria-label="Previous page" disabled="{{fx.noPrev}}" sc-camel-on-click="{{fx.prev}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 4.5L6 8l3.5 3.5"></path></svg></button>
+                            <button class="au-ib" type="button" aria-label="Next page" disabled="{{fx.noNext}}" sc-camel-on-click="{{fx.next}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg></button>
+                          </div>
+                        </sc-if>
+                      </section>
+
+                      <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+                        <div class="au-toast" role="status" style="left:{{fx.toastX}}px">
+                          <sc-if value="{{fx.toastBusy}}" hint-placeholder-val="{{false}}"><span class="au-spin"></span></sc-if>
+                          <sc-if value="{{fx.toastOk}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                          <span class="t">{{fx.toastText}}</span>
+                          <sc-if value="{{fx.toastDl}}" hint-placeholder-val="{{false}}"><a class="au-link" href="{{fx.dlHref}}" download="{{fx.dlName}}">Download</a></sc-if>
+                          <span style="width:4px"></span>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{fx.popOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="au-catch" sc-camel-on-click="{{fx.closePop}}"></div>
+                        <div class="au-menu" role="menu" aria-label="{{fx.popLabel}}" style="top:{{fx.popTop}}px;left:{{fx.popLeft}}px;width:{{fx.popW}}px" sc-camel-on-key-down="{{fx.popKey}}">
+                          <sc-for list="{{fx.popOpts}}" as="op" hint-placeholder-count="5">
+                            <button class="au-mi {{op.cls}}" type="button" role="{{op.role}}" aria-checked="{{op.ac}}" sc-camel-auto-focus="{{op.first}}" sc-camel-on-click="{{op.pick}}">
+                              <sc-if value="{{op.cb}}" hint-placeholder-val="{{false}}"><span class="au-ck {{op.ckCls}}" aria-hidden="true"></span></sc-if>
+                              <sc-if value="{{op.hasIc}}" hint-placeholder-val="{{false}}"><svg class="ic" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="{{op.icc}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{op.icd}}"></path></svg></sc-if>
+                              <sc-if value="{{op.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{op.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{op.hue}})">{{op.ini}}</span></sc-if>
+                              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{op.label}}</span>
+                              <sc-if value="{{op.hasMeta}}" hint-placeholder-val="{{false}}"><span class="au-mm">{{op.meta}}</span></sc-if>
+                              <sc-if value="{{op.tick}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <span class="sr" role="status" aria-live="polite">{{fx.live}}</span>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{fx.feed}}" hint-placeholder-val="{{false}}">
+                    <div class="af-wrap">
+                      <section class="af" aria-label="Project activity">
+                        <div class="af-h"><span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) 255);color:oklch(var(--pkt-l) var(--pkt-c) 255)">PR</span><h3>Activity</h3><span style="flex:1"></span><span class="au-cnt">{{fx.feedCount}}</span></div>
+                        <div class="af-chips" role="group" aria-label="Show">
+                          <sc-for list="{{fx.fchips}}" as="fc" hint-placeholder-count="4"><button class="af-chip" type="button" aria-pressed="{{fc.on}}" sc-camel-on-click="{{fc.pick}}">{{fc.label}}<b>{{fc.n}}</b></button></sc-for>
+                        </div>
+                        <div class="af-scroll">
+                          <sc-for list="{{fx.days}}" as="dy" hint-placeholder-count="2">
+                            <div>
+                              <div class="af-day">{{dy.label}}</div>
+                              <ul class="af-list">
+                                <sc-for list="{{dy.items}}" as="it" hint-placeholder-count="3">
+                                  <li class="af-it">
+                                    <span class="tp-av l {{it.sq}}" title="{{it.full}}" style="background:oklch(var(--av-l) var(--av-c) {{it.hue}})">{{it.ini}}</span>
+                                    <span class="af-s"><b>{{it.name}}</b> {{it.verb}} <sc-if value="{{it.hasKey}}" hint-placeholder-val="{{true}}"><span class="k">{{it.key}}</span></sc-if><sc-if value="{{it.hasObj}}" hint-placeholder-val="{{false}}"><b>{{it.obj}}</b></sc-if> {{it.mid}} <sc-if value="{{it.hasSt}}" hint-placeholder-val="{{false}}"><span class="st"><span class="tp-g {{it.glyph}}" style="color:{{it.color}}"></span>{{it.stLabel}}</span></sc-if><sc-if value="{{it.hasQuote}}" hint-placeholder-val="{{false}}"><span class="af-q">{{it.quote}}</span></sc-if></span>
+                                    <span class="af-t">{{it.time}}</span>
+                                  </li>
+                                </sc-for>
+                              </ul>
+                            </div>
+                          </sc-for>
+                          <sc-if value="{{fx.feedEmpty}}" hint-placeholder-val="{{false}}"><div class="af-empty">Nothing here yet</div></sc-if>
+                          <sc-if value="{{fx.canMore}}" hint-placeholder-val="{{true}}"><div class="af-more"><button class="au-btn" type="button" sc-camel-on-click="{{fx.more}}">Show older</button></div></sc-if>
+                        </div>
+                      </section>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{fx.phone}}" hint-placeholder-val="{{false}}">
+                    <div class="ph">
+                      <div class="ph-sb"><span>9:41</span><svg width="56" height="12" sc-camel-view-box="0 0 56 12" fill="var(--text)" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="5" width="3" height="7" rx="1"></rect><rect x="10" y="2.5" width="3" height="9.5" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect><rect x="31" y="1" width="22" height="10" rx="3" fill="none" stroke="var(--text)" stroke-width="1"></rect><rect x="33" y="3" width="16" height="6" rx="1.5"></rect></svg></div>
+                      <div class="ph-top">
+                        <button class="ph-ib" type="button" aria-label="Back"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5"></path></svg></button>
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font:600 15px/1 'Inter',sans-serif">Audit log</span><span class="au-cnt" style="font-size:11px">{{fx.totalTxt}}</span></div>
+                        <button class="ph-ib" type="button" aria-label="Export" aria-haspopup="menu" aria-expanded="{{fx.expOpen}}" sc-camel-on-click="{{fx.openExport}}"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.8 7.5L8 10.7l3.2-3.2M3 13.5h10"></path></svg></button>
+                      </div>
+                      <div class="ph-chips" role="group" aria-label="Filters">
+                        <button class="au-fbtn {{fx.fActorCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fActorOpen}}" sc-camel-on-click="{{fx.pickActor}}">{{fx.actorLabel}}</button>
+                        <button class="au-fbtn {{fx.fActCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fActOpen}}" sc-camel-on-click="{{fx.pickAction}}">{{fx.actionLabel}}</button>
+                        <button class="au-fbtn {{fx.fEntCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fEntOpen}}" sc-camel-on-click="{{fx.pickEntity}}">{{fx.entityLabel}}</button>
+                        <button class="au-fbtn {{fx.fRangeCls}}" type="button" aria-haspopup="menu" aria-expanded="{{fx.fRangeOpen}}" sc-camel-on-click="{{fx.pickRange}}">{{fx.rangeLabel}}</button>
+                      </div>
+                      <div class="ph-scroll">
+                        <sc-for list="{{fx.evs}}" as="ev" hint-placeholder-count="5">
+                          <div class="ph-card">
+                            <button class="ph-cb" type="button" aria-expanded="{{ev.open}}" aria-controls="{{ev.xid}}" sc-camel-on-click="{{ev.toggleBtn}}">
+                              <span class="ph-r"><span class="tp-av {{ev.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{ev.hue}})">{{ev.ini}}</span><span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ev.actor}}</span><span class="au-time" style="font-size:11.5px;color:var(--text-3)">{{ev.time}}</span></span>
+                              <span class="ph-r"><span class="au-act"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="{{ev.actColor}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ev.actIcon}}"></path></svg>{{ev.action}}</span><sc-if value="{{ev.hasKey}}" hint-placeholder-val="{{true}}"><span class="au-key">{{ev.key}}</span></sc-if><span class="au-nm" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ev.name}}</span></span>
+                            </button>
+                            <div class="au-col {{ev.openCls}}" id="{{ev.xid}}"><div>
+                              <div class="ph-dl">
+                                <sc-for list="{{ev.diffs}}" as="df" hint-placeholder-count="1">
+                                  <span class="ph-fl">{{df.field}}</span>
+                                  <sc-if value="{{df.isWord}}" hint-placeholder-val="{{false}}"><div class="au-wd"><sc-for list="{{df.segs}}" as="sg" hint-placeholder-count="4"><span class="{{sg.cls}}">{{sg.t}}</span></sc-for></div></sc-if>
+                                  <sc-if value="{{df.isPair}}" hint-placeholder-val="{{true}}">
+                                    <div class="au-dv {{df.bCls}}"><sc-if value="{{df.b.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{df.b.glyph}}" style="color:{{df.b.color}}"></span></sc-if><sc-if value="{{df.b.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{df.b.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{df.b.hue}})">{{df.b.ini}}</span></sc-if><span class="tx">{{df.b.txt}}</span></div>
+                                    <div class="au-dv {{df.aCls}}"><sc-if value="{{df.a.g}}" hint-placeholder-val="{{false}}"><span class="tp-g {{df.a.glyph}}" style="color:{{df.a.color}}"></span></sc-if><sc-if value="{{df.a.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{df.a.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{df.a.hue}})">{{df.a.ini}}</span></sc-if><span class="tx">{{df.a.txt}}</span></div>
+                                  </sc-if>
+                                </sc-for>
+                                <span class="au-cnt" style="margin-top:4px">via {{ev.src}} · {{ev.req}}</span>
+                              </div>
+                            </div></div>
+                          </div>
+                        </sc-for>
+                        <sc-if value="{{fx.empty}}" hint-placeholder-val="{{false}}"><div class="au-state"><h3>No events match</h3><button class="au-btn sec" type="button" sc-camel-on-click="{{fx.reset}}">Reset filters</button></div></sc-if>
+                        <sc-if value="{{fx.canLoadMore}}" hint-placeholder-val="{{true}}"><button class="au-btn sec" type="button" sc-camel-on-click="{{fx.loadMore}}" style="height:44px;justify-content:center;flex:none">Load more<span class="au-cnt">{{fx.shownTxt}}</span></button></sc-if>
+                      </div>
+                      <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+                        <div class="au-toast" role="status" style="left:12px;bottom:28px"><sc-if value="{{fx.toastOk}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if><sc-if value="{{fx.toastBusy}}" hint-placeholder-val="{{false}}"><span class="au-spin"></span></sc-if><span class="t">{{fx.toastText}}</span><sc-if value="{{fx.toastDl}}" hint-placeholder-val="{{false}}"><a class="au-link" href="{{fx.dlHref}}" download="{{fx.dlName}}">Download</a></sc-if><span style="width:4px"></span></div>
+                      </sc-if>
+                      <sc-if value="{{fx.popOpen}}" hint-placeholder-val="{{false}}">
+                        <div class="au-catch" sc-camel-on-click="{{fx.closePop}}"></div>
+                        <div class="au-menu" role="menu" aria-label="{{fx.popLabel}}" style="top:{{fx.popTop}}px;left:{{fx.popLeft}}px;width:{{fx.popW}}px" sc-camel-on-key-down="{{fx.popKey}}">
+                          <sc-for list="{{fx.popOpts}}" as="op" hint-placeholder-count="5">
+                            <button class="au-mi {{op.cls}}" type="button" role="{{op.role}}" aria-checked="{{op.ac}}" sc-camel-auto-focus="{{op.first}}" sc-camel-on-click="{{op.pick}}" style="height:40px">
+                              <sc-if value="{{op.cb}}" hint-placeholder-val="{{false}}"><span class="au-ck {{op.ckCls}}" aria-hidden="true"></span></sc-if>
+                              <sc-if value="{{op.hasIc}}" hint-placeholder-val="{{false}}"><svg class="ic" width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="{{op.icc}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{op.icd}}"></path></svg></sc-if>
+                              <sc-if value="{{op.av}}" hint-placeholder-val="{{false}}"><span class="tp-av {{op.sq}}" style="background:oklch(var(--av-l) var(--av-c) {{op.hue}})">{{op.ini}}</span></sc-if>
+                              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{op.label}}</span>
+                              <sc-if value="{{op.hasMeta}}" hint-placeholder-val="{{false}}"><span class="au-mm">{{op.meta}}</span></sc-if>
+                              <sc-if value="{{op.tick}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <span class="ph-home" aria-hidden="true"></span>
+                    </div>
+                  </sc-if>
+                </div>
+              </figure>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:3200}}">
+class Component extends DCLogic {
+  state = { sb: {}, fr: {} };
+  //SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  K() {
+    if (this._K) return this._K;
+    const IC = {
+      plus: 'M8 3v10M3 8h10', pencil: 'M10.5 2.8l2.7 2.7-7.4 7.4H3.1v-2.7z', circle: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5',
+      user: 'M8 7.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM3 13.5c.6-2.4 2.6-3.8 5-3.8s4.4 1.4 5 3.8', bubble: 'M2.5 3.5h11v7.5H7l-3 2.5V11H2.5z',
+      trash: 'M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5', shield: 'M8 1.8l5 2v4c0 3-2.2 5.3-5 6.4-2.8-1.1-5-3.4-5-6.4v-4z', mail: 'M2.5 4h11v8.5h-11zM2.5 4.5L8 9l5.5-4.5',
+      bolt: 'M9 2L3.5 9H8l-1 5 5.5-7H8z', task: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4', project: 'M2.5 4.5h4l1.2 1.5h5.8v7h-11z',
+      sprint: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8', view: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z', any: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      globe: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM2.5 8h11M8 2.5c1.6 1.6 2.3 3.4 2.3 5.5S9.6 11.9 8 13.5C6.4 11.9 5.7 10.1 5.7 8S6.4 4.1 8 2.5z', code: 'M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5'
+    };
+    const PEOPLE = [['AK', 'Alex Kim', 285], ['JL', 'Jordan Lee', 200], ['SP', 'Sam Patel', 20], ['RC', 'Riley Chen', 150], ['MD', 'Morgan Diaz', 60], ['TN', 'Taylor Ng', 330]].map(([id, name, hue]) => ({ id, ini: id, name, hue, sq: '', first: name.split(' ')[0] }));
+    PEOPLE.push({ id: 'BOT', ini: 'CI', name: 'ci-bot', hue: 250, sq: 'sq', first: 'ci-bot' }, { id: 'AUTO', ini: 'AU', name: 'Automation', hue: 75, sq: 'sq', first: 'Automation' });
+    const PBY = {}; PEOPLE.forEach((p) => { PBY[p.id] = p; });
+    this._K = {
+      IC, PEOPLE, PBY,
+      ACT: { created: ['Created', 'var(--ok)', IC.plus], updated: ['Updated', 'var(--accent-t)', IC.pencil], status: ['Status changed', 'var(--warn)', IC.circle], assigned: ['Assigned', 'var(--info)', IC.user], commented: ['Commented', 'var(--text-2)', IC.bubble], deleted: ['Deleted', 'var(--danger)', IC.trash], role: ['Role changed', 'var(--orange)', IC.shield], invited: ['Invited', 'var(--low)', IC.mail] },
+      ACT_ORDER: ['created', 'updated', 'status', 'assigned', 'commented', 'deleted', 'role', 'invited'],
+      ENT: { task: ['Task', IC.task], project: ['Project', IC.project], sprint: ['Sprint', IC.sprint], comment: ['Comment', IC.bubble], member: ['Member', IC.user], view: ['View', IC.view] },
+      ENT_ORDER: ['task', 'project', 'sprint', 'comment', 'member', 'view'],
+      RANGES: [['1d', 'Last 24 hours', 1440], ['7d', 'Last 7 days', 10080], ['30d', 'Last 30 days', 43200], ['90d', 'Last 90 days', 129600]],
+      ST: { backlog: ['Backlog', 'backlog', 'var(--text-3)'], todo: ['Todo', 'todo', 'var(--todo)'], progress: ['In progress', 'progress', 'var(--warn)'], review: ['In review', 'review', 'var(--info)'], done: ['Done', 'done', 'var(--ok)'] },
+      PRI: { 4: ['Urgent', 'n4', 'var(--danger)'], 3: ['High', 'n3', 'var(--orange)'], 2: ['Medium', 'n2', 'var(--warn)'], 1: ['Low', 'n1', 'var(--low)'], 0: ['No priority', '', 'var(--text-3)'] },
+      MON: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    };
+    return this._K;
+  }
+  events() {
+    if (this._ev) return this._ev;
+    let seed = 20261007;
+    const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+    const wpick = (pairs) => { const tot = pairs.reduce((a, p) => a + p[1], 0); let r = rnd() * tot; for (const p of pairs) { r -= p[1]; if (r <= 0) return p[0]; } return pairs[0][0]; };
+    const hex = (n) => { let s = ''; for (let i = 0; i < n; i++) s += '0123456789abcdef'[Math.floor(rnd() * 16)]; return s; };
+    const H = [
+      { actor: 'AK', action: 'updated', etype: 'task', key: 'PRJ-42', name: 'Fix flaky board reflow on column resize', src: 'web', req: 'req_7f3a9c21e4', t: 8, diffs: [{ f: 'Title', k: 'text', b: 'Fix flaky board reflow on resize', a: 'Fix flaky board reflow on column resize' }, { f: 'Priority', k: 'pri', b: 2, a: 3 }] },
+      { actor: 'JL', action: 'status', etype: 'task', key: 'PRJ-44', name: 'Debounce reflow on sidebar toggle', src: 'web', req: 'req_19bd04e7aa', t: 35, diffs: [{ f: 'Status', k: 'status', b: 'progress', a: 'review' }] },
+      { actor: 'BOT', action: 'status', etype: 'task', key: 'PRJ-59', name: 'Stripe webhook retries', src: 'API', req: 'req_c2e8817f30', t: 49, diffs: [{ f: 'Status', k: 'status', b: 'review', a: 'done' }, { f: 'Linked commit', k: 'val', b: null, a: 'a41c9e2' }] },
+      { actor: 'MD', action: 'updated', etype: 'task', key: 'PRJ-50', name: 'Carry-over prompt at sprint close', src: 'web', req: 'req_5d07a3bb19', t: 142, diffs: [{ f: 'Description', k: 'text', b: 'Prompt owners to move unfinished tasks when a sprint closes.', a: 'Prompt owners to carry over or return unfinished tasks when a sprint closes.' }, { f: 'Due date', k: 'val', b: 'Oct 4', a: 'Oct 6' }] },
+      { actor: 'AK', action: 'role', etype: 'member', key: '', name: 'Riley Chen', src: 'web', req: 'req_0e4f6a9d28', t: 180, diffs: [{ f: 'Role', k: 'val', b: 'Member', a: 'Admin' }] },
+      { actor: 'SP', action: 'deleted', etype: 'view', key: '', name: 'Old triage', src: 'web', req: 'req_b8a1c3e702', t: 268, diffs: [{ f: 'Name', k: 'val', b: 'Old triage', a: null }, { f: 'Filters', k: 'val', b: 'Status is Backlog', a: null }, { f: 'Visibility', k: 'val', b: 'Project', a: null }] },
+      { actor: 'TN', action: 'assigned', etype: 'task', key: 'PRJ-57', name: 'Proration on plan change', src: 'web', req: 'req_4c92de10f6', t: 310, diffs: [{ f: 'Assignee', k: 'person', b: null, a: 'TN' }] },
+      { actor: 'AK', action: 'invited', etype: 'member', key: '', name: 'priya@team.dev', src: 'web', req: 'req_e71b25a0c4', t: 338, diffs: [{ f: 'Email', k: 'val', b: null, a: 'priya@team.dev' }, { f: 'Role', k: 'val', b: null, a: 'Member' }] },
+      { actor: 'RC', action: 'created', etype: 'sprint', key: '', name: 'Sprint 15', src: 'web', req: 'req_93f0b6d4e1', t: 1196, diffs: [{ f: 'Name', k: 'val', b: null, a: 'Sprint 15' }, { f: 'Dates', k: 'val', b: null, a: 'Oct 15 – Oct 28' }] },
+      { actor: 'JL', action: 'commented', etype: 'comment', key: 'PRJ-33', name: 'SSO login with Okta', src: 'web', req: 'req_2a6c8e0f57', t: 1340, diffs: [{ f: 'Comment', k: 'text', b: '', a: 'Okta sandbox is ready, testing SAML today.' }] },
+      { actor: 'AK', action: 'updated', etype: 'project', key: 'PR', name: 'Platform Rebuild', src: 'web', req: 'req_d4b7193ac8', t: 1417, diffs: [{ f: 'Target date', k: 'val', b: 'Dec 2', a: 'Dec 9' }, { f: 'Lead', k: 'person', b: 'JL', a: 'AK' }] },
+      { actor: 'AUTO', action: 'updated', etype: 'task', key: 'PRJ-53', name: 'Burndown off by one day', src: 'API', req: 'req_6f18e2c9b3', t: 1633, diffs: [{ f: 'Priority', k: 'pri', b: 3, a: 4 }] }
+    ];
+    const TASKS = [['PRJ-31', 'Rotate refresh tokens on reuse'], ['PRJ-33', 'SSO login with Okta'], ['PRJ-34', 'Session timeout modal'], ['PRJ-36', 'Audit log for sign-ins'], ['PRJ-38', 'Passkey enrollment flow'], ['PRJ-42', 'Fix flaky board reflow on column resize'], ['PRJ-44', 'Debounce reflow on sidebar toggle'], ['PRJ-45', 'Drag latency regression test'], ['PRJ-47', 'Cache card thumbnails'], ['PRJ-50', 'Carry-over prompt at sprint close'], ['PRJ-52', 'Velocity chart by assignee'], ['PRJ-53', 'Burndown off by one day'], ['PRJ-57', 'Proration on plan change'], ['PRJ-58', 'Invoice PDF redesign'], ['PRJ-59', 'Stripe webhook retries']];
+    const RENAMES = [['Session timeout modal', 'Session timeout warning modal'], ['Passkey enrollment', 'Passkey enrollment flow'], ['Cache thumbnails', 'Cache card thumbnails'], ['Velocity chart', 'Velocity chart by assignee'], ['Invoice PDF', 'Invoice PDF redesign'], ['Drag latency test', 'Drag latency regression test']];
+    const COMMENTS = ['Repro on Safari only.', 'Ready for review.', 'Blocked on the Okta sandbox.', 'Moved to next sprint.', 'Added a test for this.', 'Can we split this into two tasks?', 'Mockups attached.'];
+    const DUES = ['Oct 9', 'Oct 10', 'Oct 13', 'Oct 14', 'Oct 16', 'Oct 21'];
+    const FLOW = ['backlog', 'todo', 'progress', 'review', 'done'];
+    const out = H.map((e, i) => ({ id: 'e' + (i + 1), ...e }));
+    for (let i = 12; i < 400; i++) {
+      const t = i < 312 ? 8 + i * 137 + Math.floor(rnd() * 60) : 43200 + (i - 312) * 980 + Math.floor(rnd() * 300);
+      const actor = wpick([['AK', 3], ['JL', 3], ['SP', 2], ['RC', 2], ['MD', 2], ['TN', 2], ['BOT', 1], ['AUTO', 1]]);
+      const action = wpick([['status', 5], ['updated', 4], ['assigned', 3], ['commented', 3], ['created', 3], ['deleted', 1], ['role', 0.3], ['invited', 0.3]]);
+      const tk = pick(TASKS);
+      let etype = 'task', key = tk[0], name = tk[1], diffs;
+      if (action === 'status') { const s = Math.floor(rnd() * 4); diffs = [{ f: 'Status', k: 'status', b: FLOW[s], a: FLOW[s + 1] }]; }
+      else if (action === 'assigned') { const p = pick(['AK', 'JL', 'SP', 'RC', 'MD', 'TN']); diffs = [{ f: 'Assignee', k: 'person', b: rnd() < 0.5 ? null : pick(['AK', 'JL', 'SP']), a: p }]; }
+      else if (action === 'commented') { etype = 'comment'; diffs = [{ f: 'Comment', k: 'text', b: '', a: pick(COMMENTS) }]; }
+      else if (action === 'created') {
+        const r = rnd();
+        if (r < 0.8) diffs = [{ f: 'Title', k: 'text', b: '', a: name }, { f: 'Status', k: 'status', b: null, a: 'todo' }];
+        else { etype = 'view'; key = ''; name = pick(['Bugs this sprint', 'My reviews', 'Unassigned']); diffs = [{ f: 'Name', k: 'val', b: null, a: name }]; }
+      } else if (action === 'deleted') {
+        if (rnd() < 0.6) diffs = [{ f: 'Title', k: 'val', b: name, a: null }];
+        else { etype = 'comment'; diffs = [{ f: 'Comment', k: 'val', b: pick(COMMENTS), a: null }]; }
+      } else if (action === 'role') { etype = 'member'; key = ''; const p = pick(['SP', 'MD', 'TN']); name = this.K().PBY[p].name; diffs = [{ f: 'Role', k: 'val', b: 'Viewer', a: 'Member' }]; }
+      else if (action === 'invited') { etype = 'member'; key = ''; name = pick(['dana', 'lee.w', 'omar', 'kim.s']) + '@team.dev'; diffs = [{ f: 'Email', k: 'val', b: null, a: name }, { f: 'Role', k: 'val', b: null, a: 'Member' }]; }
+      else {
+        const r = rnd();
+        if (r < 0.35) { const p = Math.floor(rnd() * 3) + 1; diffs = [{ f: 'Priority', k: 'pri', b: p, a: p + 1 }]; }
+        else if (r < 0.65) { const a = Math.floor(rnd() * 5); diffs = [{ f: 'Due date', k: 'val', b: DUES[a], a: DUES[a + 1] }]; }
+        else if (r < 0.85) { const rn = pick(RENAMES); name = rn[1]; diffs = [{ f: 'Title', k: 'text', b: rn[0], a: rn[1] }]; }
+        else { etype = 'project'; key = 'PR'; name = 'Platform Rebuild'; diffs = [{ f: 'Description', k: 'text', b: 'Rebuild the board and sprint engine.', a: 'Rebuild the board, sprint engine and billing.' }]; }
+      }
+      const src = actor === 'BOT' || actor === 'AUTO' || rnd() < 0.08 ? 'API' : 'web';
+      out.push({ id: 'e' + (i + 1), actor, action, etype, key, name, src, req: 'req_' + hex(10), t, diffs });
+    }
+    this._ev = out;
+    return out;
+  }
+  fmt(t) {
+    const K = this.K();
+    const d = new Date(Date.UTC(2026, 9, 7, 14, 40, 0) - t * 60000 + ((t * 7) % 53) * 1000);
+    const p2 = (n) => (n < 10 ? '0' : '') + n;
+    const hm = p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes());
+    return { cell: K.MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ' ' + hm, full: d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + ' ' + hm + ':' + p2(d.getUTCSeconds()) + ' UTC' };
+  }
+  dv(k, v) {
+    const K = this.K();
+    const base = { txt: '—', g: false, glyph: '', color: '', bb: false, bars: '', av: false, ini: '', hue: 0, sq: '', none: true };
+    if (v === null || v === undefined || v === '') return base;
+    if (k === 'status') { const s = K.ST[v]; return { ...base, none: false, txt: s[0], g: true, glyph: s[1], color: s[2] }; }
+    if (k === 'pri') { const p = K.PRI[v]; return { ...base, none: false, txt: p[0], bb: true, bars: p[1], color: p[2] }; }
+    if (k === 'person') { const p = K.PBY[v]; return { ...base, none: false, txt: p.name, av: true, ini: p.ini, hue: p.hue, sq: p.sq }; }
+    return { ...base, none: false, txt: String(v) };
+  }
+  wdiff(a, b) {
+    const A = a.split(/\s+/).filter(Boolean), B = b.split(/\s+/).filter(Boolean);
+    const n = A.length, m = B.length;
+    const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const ops = [];
+    let i = 0, j = 0;
+    while (i < n && j < m) {
+      if (A[i] === B[j]) { ops.push(['eq', A[i]]); i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) { ops.push(['del', A[i]]); i++; }
+      else { ops.push(['ins', B[j]]); j++; }
+    }
+    while (i < n) ops.push(['del', A[i++]]);
+    while (j < m) ops.push(['ins', B[j++]]);
+    const segs = [];
+    ops.forEach(([ty, w]) => { const last = segs[segs.length - 1]; if (last && last.ty === ty) last.w.push(w); else segs.push({ ty, w: [w] }); });
+    return segs.map((s, idx) => ({ t: s.w.join(' ') + (idx < segs.length - 1 ? ' ' : ''), cls: s.ty === 'eq' ? '' : s.ty === 'del' ? 'w-del' : 'w-ins' }));
+  }
+  diffView(df) {
+    const word = df.k === 'text' && !!df.b && !!df.a;
+    const b = this.dv(df.k, df.b), a = this.dv(df.k, df.a);
+    return {
+      field: df.f, isWord: word, isPair: !word, segs: word ? this.wdiff(df.b, df.a) : [],
+      aria: word ? 'Changed from: ' + df.b + ' to: ' + df.a : '',
+      b, a, bCls: b.none ? 'none' : 'old', aCls: a.none ? 'none' : 'new'
+    };
+  }
+  fGet(id) { return (this.state.fr && this.state.fr[id]) || {}; }
+  fSet(id, patch) { const all = { ...(this.state.fr || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ fr: all }); }
+  toastP(fid, toast, ms) {
+    this._tt = this._tt || {};
+    clearTimeout(this._tt[fid]);
+    this._tt[fid] = setTimeout(() => this.fSet(fid, { toast: null }), ms || 3000);
+    return { toast };
+  }
+  opt(o) { return { cls: '', role: 'menuitem', ac: undefined, first: false, cb: false, ckCls: '', hasIc: false, icd: '', icc: 'var(--text-3)', av: false, ini: '', hue: 0, sq: '', label: '', meta: '', tick: false, pick: () => {}, ...o, hasMeta: !!o.meta }; }
+  radio(on, o) { return this.opt({ role: 'menuitemradio', ac: on ? 'true' : 'false', tick: on, cls: on ? 'on' : '', ...o }); }
+  check(on, o) { return this.opt({ role: 'menuitemcheckbox', ac: on ? 'true' : 'false', cb: true, ckCls: on ? 'on' : '', ...o }); }
+  openPop(fid, spec, e, n, w, alignRight) {
+    const cur = this.fGet(fid).pop;
+    if (cur && cur.kind === spec.kind) { this.fSet(fid, { pop: null }); return; }
+    let top = 60, left = 60;
+    const el = e && e.currentTarget;
+    const estH = Math.min(340, n * 30 + 10);
+    try {
+      const host = el && el.closest ? el.closest('.app, .ph') : null;
+      if (host) {
+        const hr = host.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        const k = (hr.width / (host.offsetWidth || hr.width)) || 1;
+        const H = host.offsetHeight, W = host.offsetWidth;
+        const below = (r.bottom - hr.top) / k + 4;
+        const above = (r.top - hr.top) / k - 4 - estH;
+        top = below + estH > H - 8 && above > 8 ? above : below;
+        left = alignRight ? (r.right - hr.left) / k - w : (r.left - hr.left) / k;
+        left = Math.max(8, Math.min(left, W - w - 8));
+      }
+    } catch (err) {}
+    this._trig = el || null;
+    this.fSet(fid, { pop: { ...spec, top: Math.round(top), left: Math.round(left), w } });
+  }
+  popKey(fid) {
+    return (e) => {
+      if (e.key === 'Escape' || e.key === 'Tab') {
+        e.preventDefault(); e.stopPropagation(); this.fSet(fid, { pop: null });
+        const el = this._trig; setTimeout(() => { try { if (el && el.focus) el.focus({ preventScroll: true }); } catch (err) {} }, 20);
+        return;
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
+      e.preventDefault();
+      try {
+        const items = Array.prototype.slice.call(e.currentTarget.querySelectorAll('.au-mi'));
+        const i = items.indexOf(e.target), n = items.length;
+        const j = e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : e.key === 'ArrowDown' ? (i + 1) % n : (i - 1 + n) % n;
+        if (items[j]) items[j].focus();
+      } catch (err) {}
+    };
+  }
+  core(fid, cfg) {
+    const self = this, K = this.K();
+    const u = { ...(cfg.init || {}), ...this.fGet(fid) };
+    const set = (p) => self.fSet(fid, p);
+    const actors = u.actors || [];
+    const action = u.action || 'any', entity = u.entity || 'any', range = u.range || '30d';
+    const rg = K.RANGES.find((r) => r[0] === range) || K.RANGES[2];
+    const all = this.events();
+    const list = all.filter((e) => e.t <= rg[2] && (!actors.length || actors.indexOf(e.actor) >= 0) && (action === 'any' || e.action === action) && (entity === 'any' || e.etype === entity));
+    const pop = u.pop || null, pk = pop ? pop.kind : '';
+    const close = (p) => { set({ ...(p || {}), pop: null }); const el = self._trig; setTimeout(() => { try { if (el && el.focus) el.focus({ preventScroll: true }); } catch (err) {} }, 20); };
+    const nonDefault = actors.length > 0 || action !== 'any' || entity !== 'any' || range !== '30d';
+    let opts = [], label = '';
+    const exportAs = (fmt) => {
+      const ex = { fmt, n: list.length, ids: list.map((e) => e.id) };
+      if (self._tt) clearTimeout(self._tt[fid]);
+      set({ pop: null, toast: { busy: true, text: 'Preparing ' + list.length + ' events', ex: null }, live: 'Export started' });
+      setTimeout(() => self.fSet(fid, { ...self.toastP(fid, { busy: false, ok: true, text: list.length + ' events · ' + fmt.toUpperCase(), ex }, 8000), live: 'Export ready' }), 900);
+    };
+    if (pk === 'actor') {
+      label = 'Actor';
+      opts = K.PEOPLE.map((p) => { const on = actors.indexOf(p.id) >= 0; return self.check(on, { label: p.name, av: true, ini: p.ini, hue: p.hue, sq: p.sq, meta: p.sq ? 'API' : '', pick: () => set({ actors: on ? actors.filter((x) => x !== p.id) : actors.concat(p.id), page: 0 }) }); });
+      if (actors.length) opts.push(self.opt({ label: 'Clear', cls: 'sep', pick: () => close({ actors: [], page: 0 }) }));
+    } else if (pk === 'action') {
+      label = 'Action type';
+      opts = [self.radio(action === 'any', { label: 'Any action', hasIc: true, icd: K.IC.any, pick: () => close({ action: 'any', page: 0 }) })].concat(K.ACT_ORDER.map((a) => self.radio(action === a, { label: K.ACT[a][0], hasIc: true, icd: K.ACT[a][2], icc: K.ACT[a][1], pick: () => close({ action: a, page: 0 }) })));
+    } else if (pk === 'entity') {
+      label = 'Entity type';
+      opts = [self.radio(entity === 'any', { label: 'Any entity', hasIc: true, icd: K.IC.any, pick: () => close({ entity: 'any', page: 0 }) })].concat(K.ENT_ORDER.map((x) => self.radio(entity === x, { label: K.ENT[x][0], hasIc: true, icd: K.ENT[x][1], pick: () => close({ entity: x, page: 0 }) })));
+    } else if (pk === 'range') {
+      label = 'Date range';
+      opts = K.RANGES.map(([id, name]) => self.radio(range === id, { label: name, pick: () => close({ range: id, page: 0 }) }));
+    } else if (pk === 'size') {
+      label = 'Rows per page';
+      opts = [25, 50, 100].map((n) => self.radio((u.size || 25) === n, { label: String(n), pick: () => close({ size: n, page: 0 }) }));
+    } else if (pk === 'export') {
+      label = 'Export';
+      opts = [self.opt({ label: 'CSV', meta: '.csv', hasIc: true, icd: 'M3.5 2.5h6l3 3v8h-9zM9.5 2.5v3h3', pick: () => exportAs('csv') }), self.opt({ label: 'JSON', meta: '.json', hasIc: true, icd: K.IC.code, pick: () => exportAs('json') })];
+    }
+    opts = opts.map((o, i) => ({ ...o, first: i === 0 }));
+    const popOpen = opts.length > 0;
+    const actorP = actors.map((id) => K.PBY[id]).filter(Boolean);
+    const t = u.toast || null;
+    let dlHref = '', dlName = '';
+    if (t && t.ex) {
+      const S = {}; t.ex.ids.forEach((id) => { S[id] = true; });
+      const rows = all.filter((e) => S[e.id]);
+      dlName = 'audit-log-2026-10-07.' + t.ex.fmt;
+      if (t.ex.fmt === 'csv') {
+        const q = (x) => '"' + String(x).replace(/"/g, '""') + '"';
+        const body = ['time,actor,action,entity_type,entity,source,request_id'].concat(rows.map((e) => [self.fmt(e.t).full, K.PBY[e.actor].name, K.ACT[e.action][0], e.etype, (e.key ? e.key + ' ' : '') + e.name, e.src, e.req].map(q).join(','))).join('\n');
+        dlHref = 'data:text/csv;charset=utf-8,' + encodeURIComponent(body);
+      } else {
+        dlHref = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(rows.map((e) => ({ time: self.fmt(e.t).full, actor: K.PBY[e.actor].name, action: e.action, entity_type: e.etype, entity: e.name, key: e.key || null, source: e.src, request_id: e.req, changes: e.diffs.map((d) => ({ field: d.f, before: d.b, after: d.a })) })), null, 1));
+      }
+    }
+    const exp = u.exp || {};
+    const evView = (e) => {
+      const p = K.PBY[e.actor], a = K.ACT[e.action], tm = self.fmt(e.t);
+      const open = !!exp[e.id];
+      const toggle = () => set({ exp: { ...exp, [e.id]: !open } });
+      return {
+        id: e.id, xid: fid + '-' + e.id, time: tm.cell, full: tm.full,
+        actor: p.name, ini: p.ini, hue: p.hue, sq: p.sq,
+        action: a[0], actColor: a[1], actIcon: a[2],
+        etype: K.ENT[e.etype][0], entIcon: K.ENT[e.etype][1], hasKey: !!e.key, key: e.key, name: e.name,
+        src: e.src, srcCls: e.src === 'API' ? 'api' : '', srcIcon: e.src === 'API' ? K.IC.code : K.IC.globe, req: e.req,
+        aria: p.name + ' ' + a[0].toLowerCase() + ' ' + (e.key || e.name),
+        open, openCls: open ? 'open' : '',
+        toggle, toggleBtn: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); toggle(); },
+        diffs: e.diffs.map((d) => self.diffView(d)),
+        copyReq: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); try { if (navigator.clipboard) navigator.clipboard.writeText(e.req); } catch (err) {} set({ ...self.toastP(fid, { ok: true, text: 'Copied ' + e.req }), live: 'Request id copied' }); }
+      };
+    };
+    return {
+      u, set, list, all, actors, popOpen, pk, nonDefault, evView,
+      vals: {
+        actorLabel: actorP.length === 0 ? 'Actor' : actorP.length === 1 ? actorP[0].name : actorP.length + ' actors',
+        hasActors: actorP.length > 0, noActors: actorP.length === 0,
+        actorStack: actorP.slice(0, 3).map((p) => ({ ini: p.ini, hue: p.hue, sq: p.sq })),
+        fActorCls: actorP.length ? 'on' : '', fActorOpen: pk === 'actor',
+        actionLabel: action === 'any' ? 'Action' : K.ACT[action][0], actIcon: action === 'any' ? K.IC.bolt : K.ACT[action][2], fActCls: action === 'any' ? '' : 'on', fActOpen: pk === 'action',
+        entityLabel: entity === 'any' ? 'Entity' : K.ENT[entity][0], entIcon: entity === 'any' ? K.IC.project : K.ENT[entity][1], fEntCls: entity === 'any' ? '' : 'on', fEntOpen: pk === 'entity',
+        rangeLabel: rg[1], fRangeCls: range === '30d' ? '' : 'on', fRangeOpen: pk === 'range',
+        pickActor: (e) => self.openPop(fid, { kind: 'actor' }, e, 9, 220),
+        pickAction: (e) => self.openPop(fid, { kind: 'action' }, e, 9, 210),
+        pickEntity: (e) => self.openPop(fid, { kind: 'entity' }, e, 7, 190),
+        pickRange: (e) => self.openPop(fid, { kind: 'range' }, e, 4, 180),
+        canReset: nonDefault,
+        reset: () => set({ actors: [], action: 'any', entity: 'any', range: '30d', page: 0, live: 'Filters reset' }),
+        expOpen: pk === 'export', openExport: (e) => self.openPop(fid, { kind: 'export' }, e, 2, 170, true),
+        popOpen, popOpts: opts, popLabel: label,
+        popTop: popOpen ? pop.top : 0, popLeft: popOpen ? pop.left : 0, popW: popOpen ? pop.w : 200,
+        closePop: () => set({ pop: null }), popKey: self.popKey(fid),
+        toastOn: !!t, toastText: t ? t.text : '', toastOk: !!t && !!t.ok, toastBusy: !!t && !!t.busy, toastDl: !!t && !!t.ex, dlHref, dlName,
+        live: u.live || '',
+        emptyMeta: rg[1] + (actorP.length ? ' · ' + actorP.map((p) => p.first).join(', ') : '') + (action !== 'any' ? ' · ' + K.ACT[action][0] : '') + (entity !== 'any' ? ' · ' + K.ENT[entity][0] : '')
+      }
+    };
+  }
+  build(fid, cfg) {
+    const self = this;
+    const role = cfg.role;
+    const admin = role === 'admin';
+    const c = this.core(fid, cfg);
+    const u = c.u, set = c.set;
+    const st = cfg.state || 'ready';
+    const loading = admin && st === 'loading' && u.retried !== st;
+    const isError = admin && st === 'error' && u.retried !== st;
+    const size = u.size || 25;
+    const total = c.list.length;
+    const pages = Math.max(1, Math.ceil(total / size));
+    const page = Math.min(u.page || 0, pages - 1);
+    const slice = c.list.slice(page * size, page * size + size);
+    const ready = admin && !loading && !isError;
+    const sbFrames = cfg.sb ? [this.sbFrame(fid, { role, collapsible: true, active: 'PR', sub: 'none' })] : [];
+    const sbNow = sbFrames.length ? sbFrames[0].sbW : 0;
+    return {
+      ...c.vals,
+      desk: true, feed: false, phone: false, sbFrames,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      noPerm: !admin, showExport: ready,
+      reqDone: !!u.req, reqLabel: u.req ? 'Requested' : 'Request access',
+      requestAccess: () => { if (u.req) return; set({ req: true, ...self.toastP(fid, { ok: true, text: 'Request sent to admins' }), live: 'Access requested' }); },
+      showBar: admin && !isError, isError, loading,
+      retry: () => set({ retried: st }),
+      showTable: admin && !isError,
+      cols: cfg.cols || '28px 118px 170px 160px minmax(0,1fr) 72px', showSrc: !cfg.noSrc, tblCls: '',
+      skRows: [70, 52, 84, 60, 76, 48, 66, 80, 58, 72].map((w, i) => ({ a: w, b: 50 + ((i * 17) % 40), c: 30 + ((i * 23) % 45) })),
+      empty: ready && total === 0,
+      evs: ready ? slice.map(c.evView) : [],
+      totalTxt: loading ? '—' : total + (total === 1 ? ' event' : ' events'),
+      size, sizeOpen: c.pk === 'size', pickSize: (e) => self.openPop(fid, { kind: 'size' }, e, 3, 120),
+      pageTxt: loading ? '—' : total === 0 ? '0 of 0' : (page * size + 1) + '–' + Math.min(total, page * size + size) + ' of ' + total,
+      noPrev: page <= 0 || !ready, noNext: page >= pages - 1 || !ready,
+      prev: () => set({ page: Math.max(0, page - 1) }), next: () => set({ page: Math.min(pages - 1, page + 1) }),
+      toastX: sbNow + 16,
+      appKey: (e) => { if (e.key === 'Escape' && self.fGet(fid).pop) set({ pop: null }); }
+    };
+  }
+  buildPhone(fid, cfg) {
+    const c = this.core(fid, cfg);
+    const u = c.u, set = c.set;
+    const shown = u.shown || 6;
+    const total = c.list.length;
+    return {
+      ...c.vals,
+      desk: false, feed: false, phone: true,
+      evs: c.list.slice(0, shown).map(c.evView),
+      totalTxt: total + ' events · ' + c.vals.rangeLabel.replace('Last ', ''),
+      empty: total === 0, canLoadMore: shown < total, shownTxt: Math.min(shown, total) + ' of ' + total,
+      loadMore: () => set({ shown: shown + 10 })
+    };
+  }
+  buildFeed(fid, cfg) {
+    const self = this, K = this.K();
+    const u = { ...(cfg.init || {}), ...this.fGet(fid) };
+    const set = (p) => self.fSet(fid, p);
+    const I = (who, cat, verb, o) => ({ who, cat, verb, key: '', obj: '', mid: '', st: '', quote: '', time: '', ...o });
+    const DAYS = [
+      ['Today', [
+        I('AK', 'other', 'renamed', { key: 'PRJ-42', time: '14:32' }),
+        I('JL', 'status', 'moved', { key: 'PRJ-44', mid: 'to', st: 'review', time: '14:05' }),
+        I('BOT', 'status', 'moved', { key: 'PRJ-59', mid: 'to', st: 'done', time: '13:51' }),
+        I('MD', 'comment', 'commented on', { key: 'PRJ-50', quote: 'Carry-over should skip canceled tasks.', time: '12:44' }),
+        I('AK', 'member', 'made', { obj: 'Riley', mid: 'an admin', time: '11:40' }),
+        I('TN', 'other', 'took', { key: 'PRJ-57', time: '09:30' }),
+        I('AK', 'member', 'invited', { obj: 'priya@team.dev', time: '09:02' })
+      ]],
+      ['Yesterday', [
+        I('RC', 'other', 'created', { obj: 'Sprint 15', time: '18:44' }),
+        I('JL', 'comment', 'commented on', { key: 'PRJ-33', quote: 'Okta sandbox is ready, testing SAML today.', time: '16:20' }),
+        I('SP', 'status', 'moved', { key: 'PRJ-58', mid: 'to', st: 'review', time: '15:12' }),
+        I('RC', 'member', 'added', { obj: 'Morgan', mid: 'to the project', time: '10:02' })
+      ]],
+      ['Mon, Oct 5', [
+        I('MD', 'status', 'moved', { key: 'PRJ-50', mid: 'to', st: 'progress', time: '17:30' }),
+        I('AK', 'comment', 'commented on', { key: 'PRJ-42', quote: 'Repro: resize the Todo column twice.', time: '11:15' }),
+        I('TN', 'status', 'moved', { key: 'PRJ-57', mid: 'to', st: 'progress', time: '10:02' })
+      ]],
+      ['Fri, Oct 2', [
+        I('JL', 'status', 'moved', { key: 'PRJ-59', mid: 'to', st: 'review', time: '16:48' }),
+        I('SP', 'comment', 'commented on', { key: 'PRJ-58', quote: 'Mockups attached.', time: '14:21' }),
+        I('AK', 'status', 'moved', { key: 'PRJ-40', mid: 'to', st: 'done', time: '11:03' })
+      ]]
+    ];
+    const cat = u.cat || 'all';
+    const nDays = u.days || 3;
+    const CH = [['all', 'All'], ['status', 'Status'], ['comment', 'Comments'], ['member', 'Members']];
+    const visDays = DAYS.slice(0, nDays);
+    const count = (k) => visDays.reduce((a, d) => a + d[1].filter((it) => k === 'all' || it.cat === k).length, 0);
+    const days = visDays.map(([label, items]) => ({
+      label,
+      items: items.filter((it) => cat === 'all' || it.cat === cat).map((it) => {
+        const p = K.PBY[it.who];
+        const s = it.st ? K.ST[it.st] : null;
+        return { name: p.first, full: p.name, ini: p.ini, hue: p.hue, sq: p.sq, verb: it.verb, hasKey: !!it.key, key: it.key, hasObj: !!it.obj, obj: it.obj, mid: it.mid, hasSt: !!s, glyph: s ? s[1] : '', color: s ? s[2] : '', stLabel: s ? s[0] : '', hasQuote: !!it.quote, quote: it.quote, time: it.time };
+      })
+    })).filter((d) => d.items.length > 0);
+    return {
+      desk: false, feed: true, phone: false,
+      fchips: CH.map(([k, l]) => ({ label: l, n: count(k), on: cat === k, pick: () => set({ cat: k }) })),
+      days, feedEmpty: days.length === 0, feedCount: count('all') + ' events',
+      canMore: nDays < DAYS.length, more: () => set({ days: nDays + 1 })
+    };
+  }
+  renderVals() {
+    const role = this.props.role || 'admin';
+    const theme = this.props.theme || 'navy';
+    const rows = [
+      { cols: [{ frames: [{ ...this.build('A', { role, sb: true, init: { exp: { e1: true } } }), label: 'Audit log', meta: 'filter · expand a row · export', w: 1280, h: 860, r: 14 }] }] },
+      { cols: [
+        { frames: [{ ...this.build('B', { role: 'admin', cols: '28px 104px 144px 140px minmax(0,1fr) 56px', init: { actors: ['MD'], exp: { e4: true } } }), label: 'Expanded diff row', meta: 'field · before · after · word diff', w: 760, h: 600, r: 12 }] },
+        { frames: [{ ...this.buildFeed('C', { role }), label: 'Project activity', meta: 'by day · All / Status / Comments / Members', w: 480, h: 600, r: 12 }] }
+      ] },
+      { cols: [
+        { frames: [{ ...this.build('D', { role: 'admin', noSrc: true, cols: '28px 104px 140px 136px minmax(0,1fr)', init: { actors: ['TN'], action: 'role' } }), label: 'No results', meta: 'empty filter', w: 620, h: 380, r: 12 }] },
+        { frames: [{ ...this.build('E', { role: 'admin', noSrc: true, state: 'loading', cols: '28px 104px 140px 136px minmax(0,1fr)' }), label: 'Loading', meta: 'skeleton rows', w: 620, h: 380, r: 12 }] }
+      ] },
+      { cols: [
+        { frames: [{ ...this.buildPhone('F', { role: 'admin', init: { exp: { e2: true } } }), label: 'Mobile', meta: 'cards · tap to expand', w: 390, h: 800, r: 36 }] },
+        { frames: [
+          { ...this.build('G', { role: 'member' }), label: 'No permission', meta: 'member · hidden, not disabled', w: 850, h: 370, r: 12 },
+          { ...this.build('H', { role: 'admin', state: 'error' }), label: 'Load error', meta: 'retry', w: 850, h: 370, r: 12 }
+        ] }
+      ] }
+    ];
+    return { themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy', rows };
+  }
+}
+</script>
+
+
+</body></html>

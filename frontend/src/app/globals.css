@@ -634,6 +634,174 @@
     transform: translateX(250%);
   }
 }
+
+/* ── Board 35: loader hold + splash icon, reduced-motion fade, illustration idle motion ── */
+/* Bolt "hold" loop (1200ms+, 1 → .55 → 1) while the app is still loading. */
+.lx-play .lx-bolt.lx-hold {
+  animation:
+    lx-strike 320ms var(--spring) 140ms both,
+    lx-hold 1200ms ease-in-out 1200ms infinite;
+}
+.lx-play .lx-icon-in {
+  animation: lx-icon-in 300ms var(--spring) both;
+}
+@keyframes lx-hold {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes lx-icon-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lx-rm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Reduced: everything appears with one 150ms linear fade; no strike, flash or loop. */
+  .lx-play .lx-bar,
+  .lx-play .lx-bolt,
+  .lx-play .lx-x,
+  .lx-play .lx-word,
+  .lx-play .lx-icon-in,
+  .lx-play .lx-bolt.lx-hold {
+    animation: none !important;
+  }
+  .lx-play .lx-flash {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .lx-play {
+    animation: lx-rm-fade 150ms linear both !important;
+  }
+}
+
+.il-bob {
+  animation: il-bob 3.2s ease-in-out infinite;
+}
+.il-breathe {
+  animation: il-breathe 2.8s ease-in-out infinite;
+}
+.il-sway {
+  animation: il-sway 4s ease-in-out infinite;
+}
+.il-swing {
+  transform-box: view-box;
+  transform-origin: 80px 38px;
+  animation: il-swing 3.6s ease-in-out infinite;
+}
+.il-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: il-twinkle 2.4s ease-in-out infinite;
+}
+.il-lift {
+  animation: il-lift 3s ease-in-out infinite;
+}
+.il-blink {
+  animation: il-blink 2.6s ease-in-out infinite;
+}
+.il-drift {
+  animation: il-drift 5s ease-in-out infinite;
+}
+.il-still :is(.il-bob, .il-breathe, .il-sway, .il-swing, .il-twinkle, .il-lift, .il-blink, .il-drift) {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .illustration :is(.il-bob, .il-breathe, .il-sway, .il-swing, .il-twinkle, .il-lift, .il-blink, .il-drift) {
+    animation: none !important;
+  }
+}
+@keyframes il-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+@keyframes il-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes il-sway {
+  0%,
+  100% {
+    transform: translate(-2px, 0);
+  }
+  50% {
+    transform: translate(3px, 1px);
+  }
+}
+@keyframes il-swing {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+@keyframes il-twinkle {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.55);
+    opacity: 0.5;
+  }
+}
+@keyframes il-lift {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0);
+  }
+  82% {
+    transform: translateY(-2.5px);
+  }
+}
+@keyframes il-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes il-drift {
+  0%,
+  100% {
+    transform: translateX(-2.5px);
+  }
+  50% {
+    transform: translateX(2.5px);
+  }
+}
 @keyframes menu-in {
   from {
     opacity: 0;
@@ -790,3 +958,24 @@
     animation: none;
   }
 }
+
+/* ── Board 27: epic colour tokens (8 hues; swatch and tinted tile readable in every theme) ── */
+:root,
+[data-theme="dark"],
+[data-theme="black"] {
+  --ep-l: 0.72;
+  --ep-c: 0.13;
+  --ep-tl: 0.32;
+  --ep-tc: 0.07;
+}
+[data-theme="black"] {
+  --ep-tl: 0.3;
+  --ep-tc: 0.06;
+}
+[data-theme="light"] {
+  --ep-l: 0.58;
+  --ep-c: 0.15;
+  --ep-tl: 0.94;
+  --ep-tc: 0.04;
+}
+/* ── end board 27 ── */

@@ -99,11 +99,11 @@ export const TaskCard = memo(function TaskCard({
               onClick={() => onToggleDone?.(task)}
               className="-m-1 inline-flex size-[22px] flex-none items-center justify-center rounded-sm hover:bg-hover"
             >
-              <StatusGlyph kind={status?.glyph ?? "todo"} spark={spark} />
+              <StatusGlyph kind={status?.glyph ?? "todo"} color={status?.color ?? undefined} spark={spark} />
             </button>
           </Tooltip>
         ) : (
-          <StatusGlyph kind={status?.glyph ?? "todo"} label={status?.name} />
+          <StatusGlyph kind={status?.glyph ?? "todo"} color={status?.color ?? undefined} label={status?.name} />
         )}
         <PriorityIcon level={task.priority} label={task.priority ? undefined : undefined} bars />
         {task.estimate !== null && <span className="whitespace-nowrap font-mono text-[11px] text-fg-3">{task.estimate} pts</span>}

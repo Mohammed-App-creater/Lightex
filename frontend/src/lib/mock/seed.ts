@@ -703,6 +703,28 @@ export function createSeed(): MockDB {
     { userId: AK, kind: "task", id: "p_prj-t51", at: ago(90) },
   );
 
+  /* ── Board 27 (epics): owners, target milestones, one archived epic ── */
+  {
+    const epicMeta: Record<string, { ownerId: string; milestoneId: string | null }> = {
+      ep_auth: { ownerId: AK, milestoneId: "ms_beta" },
+      ep_board: { ownerId: JL, milestoneId: "ms_beta" },
+      ep_sprint: { ownerId: RC, milestoneId: "ms_rc" },
+      ep_bill: { ownerId: SP, milestoneId: "ms_ga" },
+    };
+    db.epics.forEach((e) => Object.assign(e, { ownerId: null, milestoneId: null, archivedAt: null }, epicMeta[e.id] ?? {}));
+    db.epics.push({
+      id: "ep_legacy",
+      projectId: "p_prj",
+      name: "Legacy importer",
+      description: "Import from Jira and Trello.",
+      hue: 25,
+      ownerId: MD,
+      milestoneId: "ms_alpha",
+      archivedAt: T("2026-09-14", 10),
+    });
+  }
+  /* ── end board 27 ── */
+
   db.prefs = db.users.map((u) => ({ userId: u.id, prefs: defaultPrefs() }));
   return db;
 }

@@ -25,6 +25,9 @@ import { toast } from "@/components/ui/toast";
 import { shell } from "@/components/shell/shell-state";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { useMe } from "@/features/auth/session";
+import { applyFilters, completeRules } from "@/features/filters/filter-model";
+import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
+import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
 import { useDeleteTask, useUpdateTask } from "@/features/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
@@ -40,7 +43,7 @@ import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/lib/
 import { routes, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, dueTone, shortDate, todayISO } from "@/lib/utils/dates";
-import { COLUMNS, clampWidth, filterTasks, groupTasks, labelSlots, sortTasks, type ColumnId, type Ctx, type Group, type GroupBy, type QuickFilter, type SortState } from "./list-model";
+import { COLUMNS, clampWidth, groupTasks, labelSlots, sortTasks, type ColumnId, type Ctx, type Group, type GroupBy, type SortState } from "./list-model";
 
 type Row = { kind: "group"; group: Group } | { kind: "task"; task: Task; groupId: string } | { kind: "empty"; group: Group };
 
@@ -65,7 +68,9 @@ export function ListScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const epicFilter = search.get("epic");
+  // Field · operator · value filters live in the URL (?f=…); a legacy ?epic= link becomes "Epic is …" (board 30).
+  const { rules, setRules, viewId } = useUrlFilters();
+  const filterOpts = useFilterOptions(project.id);
   const mobile = useIsMobile();
   const qc = useQueryClient();
 
@@ -86,7 +91,6 @@ export function ListScreen() {
     }
   }, [prefs, project.id]);
   const [sort, setSort] = useState<SortState>(null);
-  const [filters, setFilters] = useState<Set<QuickFilter>>(new Set());
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -115,7 +119,7 @@ export function ListScreen() {
   const template = `${selW}px ${visibleCols.map((c) => `${prefs.widths[c.id]}px`).join(" ")} minmax(0,1fr)`;
   const minWidth = selW + visibleCols.reduce((a, c) => a + prefs.widths[c.id], 0) + 120;
 
-  const filtered = useMemo(() => filterTasks(tasksQ.data ?? [], filters, ctx, epicFilter), [tasksQ.data, filters, ctx, epicFilter]);
+  const filtered = useMemo(() => applyFilters(tasksQ.data ?? [], rules, filterOpts.ctx), [tasksQ.data, rules, filterOpts.ctx]);
   const groups = useMemo(() => groupTasks(filtered, prefs.groupBy, ctx).map((g) => ({ ...g, tasks: sortTasks(g.tasks, sort, ctx) })), [filtered, prefs.groupBy, ctx, sort]);
   const rows = useMemo(() => {
     const out: Row[] = [];
@@ -211,16 +215,18 @@ export function ListScreen() {
 
   /* ───── toolbar ───── */
   const toolbar = (
-    <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-4 py-2 max-[760px]:px-3">
-      {epicFilter && (
-        <span className="mr-1 inline-flex h-7 items-center gap-1.5 rounded-sm bg-accent-s pl-2 pr-1 text-[12px] font-medium text-accent-t">
-          Epic: {epics.find((e) => e.id === epicFilter)?.name ?? "…"}
-          <button type="button" aria-label="Clear epic filter" onClick={() => router.push(pathname)} className="flex size-5 items-center justify-center rounded-xs hover:bg-accent-s">
-            <X size={11} aria-hidden />
-          </button>
-        </span>
-      )}
-      <span className="flex-1" />
+    <ProjectFilterBar
+      slug={ws.slug}
+      project={project}
+      layout="list"
+      rules={rules}
+      setRules={setRules}
+      viewId={viewId}
+      opts={filterOpts}
+      count={tasksQ.isPending ? null : filtered.length}
+      className="px-4 max-[760px]:px-3"
+      trailing={
+        <>
       <Menu>
         <MenuTrigger asChild>
           <Button size="sm" variant="ghost">
@@ -236,43 +242,6 @@ export function ListScreen() {
             <MenuRadioItem value="sprint">Sprint</MenuRadioItem>
             <MenuRadioItem value="assignee">Assignee</MenuRadioItem>
           </MenuRadioGroup>
-        </MenuContent>
-      </Menu>
-      <Menu>
-        <MenuTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <Filter size={13} aria-hidden /> Filter
-            {filters.size > 0 && <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-s px-1 font-mono text-[10.5px] font-semibold text-accent-t">{filters.size}</span>}
-          </Button>
-        </MenuTrigger>
-        <MenuContent align="end" width={200}>
-          {(
-            [
-              ["mine", "Assigned to me"],
-              ["week", "Due this week"],
-              ["urgent", "Urgent & high"],
-            ] as [QuickFilter, string][]
-          ).map(([k, label]) => (
-            <MenuCheckboxItem
-              key={k}
-              checked={filters.has(k)}
-              onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(c) => setFilters((s) => {
-                const nx = new Set(s);
-                if (c) nx.add(k);
-                else nx.delete(k);
-                return nx;
-              })}
-            >
-              {label}
-            </MenuCheckboxItem>
-          ))}
-          {filters.size > 0 && (
-            <>
-              <MenuSeparator />
-              <MenuItem onSelect={() => setFilters(new Set())}>Clear filters</MenuItem>
-            </>
-          )}
         </MenuContent>
       </Menu>
       <Menu>
@@ -299,7 +268,9 @@ export function ListScreen() {
           <MenuItem onSelect={() => setPrefs((p) => ({ ...p, widths: Object.fromEntries(COLUMNS.map((c) => [c.id, c.width])) as Record<ColumnId, number> }))}>Reset widths</MenuItem>
         </MenuContent>
       </Menu>
-    </div>
+        </>
+      }
+    />
   );
 
   const createButton = canCreate && (
@@ -331,12 +302,13 @@ export function ListScreen() {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         {createButton}
+        {toolbar}
         <MobileList groups={groups} groupBy={prefs.groupBy} setGroupBy={(g) => setPrefs((p) => ({ ...p, groupBy: g }))} ctx={ctx} onOpen={openTask} />
       </div>
     );
   }
 
-  const noMatch = filtered.length === 0 && (filters.size > 0 || Boolean(epicFilter));
+  const noMatch = filtered.length === 0 && completeRules(rules).length > 0;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col" onKeyDown={(e) => e.key === "Escape" && selected.size && setSelected(new Set())}>
@@ -344,7 +316,7 @@ export function ListScreen() {
       {toolbar}
       {noMatch ? (
         <div className="flex flex-1 items-start justify-center py-16">
-          <EmptyState align="center" icon={<Filter size={20} aria-hidden />} title="No tasks match" body="Nothing in this project matches the current filters." actions={<Button onClick={() => { setFilters(new Set()); if (epicFilter) router.push(pathname); }}>Clear filters</Button>} />
+          <EmptyState align="center" icon={<Filter size={20} aria-hidden />} title="No tasks match" body="Nothing in this project matches the current filters." actions={<Button kbd="⇧F" onClick={() => setRules([])}>Clear filters</Button>} />
         </div>
       ) : (tasksQ.data ?? []).length === 0 ? (
         <div className="flex flex-1 items-start justify-center py-16">

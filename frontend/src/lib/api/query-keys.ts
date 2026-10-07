@@ -9,8 +9,12 @@ export const qk = {
   catalogue: () => ["permissions"] as const,
   wsActivity: (slug: string) => ["workspace", slug, "activity"] as const,
   myTasks: (slug: string) => ["workspace", slug, "my-tasks"] as const,
+  wsAccessRequest: (slug: string) => ["workspace", slug, "access-request"] as const,
   audit: (slug: string) => ["workspace", slug, "audit"] as const,
   directory: (slug: string) => ["workspace", slug, "directory"] as const,
+  /** Saved views + my pins (board 30). */
+  views: (slug: string) => ["workspace", slug, "views"] as const,
+  trash: (slug: string) => ["workspace", slug, "trash"] as const,
   search: (slug: string, q: string, types?: string) => ["workspace", slug, "search", q, types ?? "all"] as const,
   recents: () => ["recents"] as const,
 

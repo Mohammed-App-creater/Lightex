@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Lightex · Trash</title>
+<script src="../assets/a39d3629-9f8e-40f8-b081-bd97ba01a20d.javascript"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek-ext */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+/* cyrillic-ext */
+
+/* cyrillic */
+
+/* greek */
+
+/* vietnamese */
+
+/* latin-ext */
+
+/* latin */
+
+</style>
+<style>
+body{margin:0}
+.t-navy{--bg:#060B18;--surface:#0C1326;--raised:#131C34;--hover:#1B2644;--line:#1C2845;--line-2:#2B3A5E;--control:#5F6F96;--text:#EAF0FF;--text-2:#A5B2D1;--text-3:#8794B6;--accent:#2B67F5;--accent-h:#2F6DF6;--accent-t:#8AB0FF;--accent-s:rgba(43,103,245,.2);--ring:rgba(90,150,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4CBE0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.5);--shadow-modal:0 24px 64px rgba(0,0,0,.6);--av-l:.40;--av-c:.10}
+.t-dark{--bg:#0B0B0F;--surface:#121217;--raised:#1A1A21;--hover:#22222B;--line:#24242E;--line-2:#34343F;--control:#6A6A7C;--text:#ECECF1;--text-2:#A3A3B1;--text-3:#8E8E9D;--accent:#2662EE;--accent-h:#2B67F5;--accent-t:#7FA8FF;--accent-s:rgba(38,98,238,.18);--ring:rgba(79,140,255,.5);--spark:#5BE0FF;--low:#2DD4BF;--todo:#C4C4D0;--ok:#4ADE80;--warn:#F5B73B;--danger:#FF7A70;--info:#B79CFF;--orange:#FF9A4D;--shadow-pop:0 8px 24px rgba(0,0,0,.45);--shadow-modal:0 24px 64px rgba(0,0,0,.55);--av-l:.40;--av-c:.10}
+.t-light{--bg:#FAFAFB;--surface:#FFFFFF;--raised:#F3F3F6;--hover:#EAEAEF;--line:#E4E4EA;--line-2:#D0D0D9;--control:#8A8A9B;--text:#121217;--text-2:#55556A;--text-3:#5F5F70;--accent:#1D4ED8;--accent-h:#2563EB;--accent-t:#1D4ED8;--accent-s:rgba(29,78,216,.10);--ring:rgba(29,78,216,.35);--spark:#0891B2;--low:#0F766E;--todo:#3E3E50;--ok:#157A3A;--warn:#8A5A00;--danger:#B92F26;--info:#6B3FD4;--orange:#A84A0A;--shadow-pop:0 8px 24px rgba(18,18,23,.10);--shadow-modal:0 24px 64px rgba(18,18,23,.18);--av-l:.90;--av-c:.06}
+.ds{--ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.ds *{box-sizing:border-box}
+.t-navy{--pk-l:.32;--pk-c:.07;--pkt-l:.88;--pkt-c:.09;--logo:#3B7BFF;--danger-solid:#C23A30}
+.t-dark{--pk-l:.32;--pk-c:.06;--pkt-l:.88;--pkt-c:.08;--logo:#3B7BFF;--danger-solid:#C23A30}
+.t-light{--pk-l:.93;--pk-c:.04;--pkt-l:.42;--pkt-c:.12;--logo:#1D4ED8;--danger-solid:#B92F26}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.frame{margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame figcaption{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600}
+.frame figcaption span{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.dev{position:relative;display:flex;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/*SB-CSS-START*/
+.kbd{font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;min-width:18px;height:18px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;background:var(--raised);color:var(--text-2)}
+.sbw{position:relative;flex:none;height:100%;background:var(--surface);border-right:1px solid var(--line);transition:width 220ms var(--ease);overflow:hidden;z-index:3}
+.sbw.israil{overflow:visible}
+.sb{display:flex;flex-direction:column;height:100%;width:100%;min-width:0}
+.sb-ib{width:16px;height:16px;flex:none}
+.sb-ws{position:relative;display:flex;align-items:center;gap:4px;padding:10px 10px 8px}
+.sb-wsb{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-wsb:hover,.sb-wsb[aria-expanded=true]{background:var(--hover)}
+.sb-xt{width:24px;height:24px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sb-icb{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--text-3);cursor:pointer;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-icb:hover{background:var(--hover);color:var(--text)}
+.sb-icb.sm{width:22px;height:22px;border-radius:5px}
+.sb-search{position:relative;margin:0 10px}
+.sb-search svg{position:absolute;left:10px;top:50%;margin-top:-8px;color:var(--text-3);pointer-events:none}
+.sb-search .kbd{position:absolute;right:8px;top:50%;margin-top:-9px;pointer-events:none}
+.sb-sinp{width:100%;height:34px;padding:0 44px 0 32px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font:400 13px/1 'Inter',system-ui,sans-serif;transition:border-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.sb-sinp::placeholder{color:var(--text-3)}
+.sb-sinp:hover{border-color:var(--control)}
+.sb-sinp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s),0 0 18px 2px var(--accent-s)}
+.sb-new{display:flex;align-items:center;gap:8px;height:32px;margin:8px 10px 4px;padding:0 8px 0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--raised);color:var(--text);font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
+.sb-new:hover{background:var(--hover);border-color:var(--control)}
+.sb-new:active{transform:scale(.98)}
+.sb-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-scroll.masked{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 28px),transparent 100%)}
+.sb-it{display:flex;align-items:center;gap:10px;height:30px;padding:0 8px;border-radius:7px;color:var(--text-2);font-weight:500;text-decoration:none;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-it:hover{background:var(--hover);color:var(--text)}
+.sb-it.on{background:var(--hover);color:var(--text)}
+.sb-it .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.sb-unread{min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-s);color:var(--accent-t);font:600 11px/1 'JetBrains Mono',monospace}
+.sb-sec{display:flex;align-items:center;gap:4px;height:28px;margin-top:14px;padding:0 4px 0 8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.sb-sec.sticky{position:sticky;top:-4px;background:var(--surface);z-index:2}
+.sb-sect{flex:1;display:flex;align-items:center;gap:6px;height:100%;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0}
+.sb-sect svg{transition:transform 180ms var(--ease)}
+.sb-sect[aria-expanded=false] svg{transform:rotate(-90deg)}
+.sb-col{display:grid;grid-template-rows:0fr;transition:grid-template-rows 220ms var(--ease)}
+.sb-col.open{grid-template-rows:1fr}
+.sb-col>div{overflow:hidden;min-height:0}
+.sb-pk{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:600 9px/1 'JetBrains Mono',monospace;flex:none}
+.sb-chev{flex:none;color:var(--text-3);transition:transform 200ms var(--ease)}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-subs{position:relative;margin:2px 0 6px 16px;padding-left:10px;border-left:1px solid var(--line)}
+.sb-ind{position:absolute;left:10px;right:0;top:0;height:30px;border-radius:7px;background:var(--accent-s);transition:transform 220ms var(--spring),opacity 150ms var(--ease);pointer-events:none}
+.sb-si{position:relative;z-index:1;display:flex;align-items:center;gap:9px;height:30px;margin-bottom:2px;padding:0 8px;border-radius:7px;color:var(--text-2);text-decoration:none;font-weight:500;border:0;background:transparent;width:100%;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;transition:color 120ms var(--ease),background-color 120ms var(--ease)}
+.sb-si:hover{color:var(--text);background:rgba(128,140,170,.08)}
+.sb-si.on{color:var(--text)}
+.sb-si.on svg{color:var(--accent-t)}
+.sb-filter{width:100%;height:28px;margin:2px 0 6px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:400 12px/1 'Inter',sans-serif}
+.sb-filter::placeholder{color:var(--text-3)}
+.sb-filter:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.sb-foot{padding:8px 10px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.sb-spr{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color 120ms var(--ease),background-color 120ms var(--ease),transform 150ms var(--spring)}
+.sb-spr:hover{border-color:var(--line-2);background:var(--raised);transform:translateY(-1px)}
+.sb-rg{transition:stroke-dashoffset 800ms var(--ease)}
+.sb-row{display:flex;align-items:center;gap:2px}
+.sb-prof{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:background-color 120ms var(--ease)}
+.sb-prof:hover,.sb-prof[aria-expanded=true]{background:var(--hover)}
+.sb-av{position:relative;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none;width:30px;height:30px;font-size:11px}
+.sb-pres{position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--surface)}
+.sb-menu{position:absolute;z-index:30;padding:4px;border-radius:10px;border:1px solid var(--line-2);background:var(--raised);box-shadow:var(--shadow-pop);animation:sbpop 160ms var(--ease)}
+@keyframes sbpop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.sb-menu.up{animation-name:sbpopup}
+@keyframes sbpopup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sb-mi{display:flex;align-items:center;gap:10px;width:100%;height:30px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1 'Inter',sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.sb-mi:hover{background:var(--hover)}
+.sb-sep{height:1px;background:var(--line);margin:4px -4px}
+.sb-wsb:focus-visible,.sb-icb:focus-visible,.sb-new:focus-visible,.sb-it:focus-visible,.sb-si:focus-visible,.sb-sect:focus-visible,.sb-spr:focus-visible,.sb-prof:focus-visible,.sb-mi:focus-visible,.sb-ri:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+/* rail */
+.sb-rail{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;padding:10px 0;width:100%}
+.sb-tw{position:relative;display:flex;justify-content:center}
+.sb-ri{position:relative;width:40px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none;transition:background-color 120ms var(--ease),color 120ms var(--ease)}
+.sb-ri:hover,.sb-ri.on{background:var(--hover);color:var(--text)}
+.sb-dot{position:absolute;right:8px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent-t);box-shadow:0 0 0 2px var(--surface)}
+.sb-tip{position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:40}
+.sb-tw:hover .sb-tip,.sb-tw:focus-within .sb-tip,.sb-tip.show{opacity:1;transform:translate(0,-50%);transition-delay:150ms}
+.sb-tip.show{transition-delay:0ms}
+.sb-rsep{width:28px;height:1px;background:var(--line);margin:6px 0}
+/* touch */
+.touch .sb-it,.touch .sb-si,.touch .sb-mi{height:42px}
+.touch .sb-ind{height:42px}
+.touch .sb-new{height:44px}
+.touch .sb-sinp{height:44px}
+@media (prefers-reduced-motion:reduce){.sbw,.sb-col,.sb-ind,.sb-chev,.sb-sect svg,.sb-rg,.sb-spr,.sb-menu,.sb-tip{transition:none!important;animation:none!important}}
+/*SB-CSS-END*/
+@media (max-width:760px){.sb-host{display:none!important}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 12px;border-radius:6px;font:500 13px/1 'Inter',system-ui,sans-serif;border:1px solid transparent;cursor:pointer;white-space:nowrap;text-decoration:none;background:transparent;color:var(--text-2);transition:background-color 120ms var(--ease),border-color 120ms var(--ease),box-shadow 120ms var(--ease),transform 120ms var(--ease),color 120ms var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-sec{background:var(--raised);border-color:var(--control);color:var(--text)}
+.btn-sec:hover{background:var(--hover)}
+.btn-ghost:hover{background:var(--hover);color:var(--text)}
+.btn-dg{color:var(--danger)}
+.btn-dg:hover{background:color-mix(in srgb,var(--danger) 12%,transparent)}
+.btn-danger{background:var(--danger-solid);color:#fff}
+.btn-danger:hover{box-shadow:0 0 0 4px rgba(255,122,112,.18)}
+.btn.sm{height:28px;padding:0 10px;font-size:12.5px}
+.touch .btn.sm{height:40px;padding:0 14px;font-size:14px}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);flex:none}
+.sk{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--raised) 0%,var(--hover) 50%,var(--raised) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;flex:none}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--text-2);animation:spin .7s linear infinite;flex:none}
+.spin.w{border-color:rgba(255,255,255,.35);border-top-color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tp-cb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--control);border-radius:4px;background:transparent;display:grid;place-content:center;cursor:pointer;flex:none;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.tp-cb::after{content:"";width:8px;height:4px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform 150ms var(--spring)}
+.tp-cb:checked{background:var(--accent);border-color:var(--accent)}
+.tp-cb:checked::after{transform:rotate(-45deg) scale(1)}
+.tp-cb[aria-checked=mixed]{background:var(--accent);border-color:var(--accent)}
+.tp-cb[aria-checked=mixed]::after{width:8px;height:2px;border:0;background:#fff;border-radius:1px;transform:none;margin:0}
+.tp-cb[aria-checked=true]{background:var(--accent);border-color:var(--accent)}
+.tp-cb[aria-checked=true]::after{transform:rotate(-45deg) scale(1)}
+button.tp-cb{padding:0}
+.touch .tp-cb{width:22px;height:22px;border-radius:6px}
+/* shell */
+.tr{position:relative;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;background:var(--bg)}
+.tr-top{height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--line)}
+.tr-top h2{margin:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tr-note{display:inline-flex;align-items:center;gap:6px;font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);white-space:nowrap}
+.tr-chip{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line);font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-2);white-space:nowrap}
+.tr-ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:6px;background:transparent;color:var(--text-3);cursor:pointer;text-decoration:none}
+.tr-ib:hover{background:var(--hover);color:var(--text)}
+.tr-ib.dng:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
+.touch .tr-ib{width:44px;height:44px}
+.ps-tabs{position:relative;display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--line);flex:none}
+.ps-tab{height:42px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0;border:0;background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;transition:color 150ms var(--ease)}
+.ps-tab:hover,.ps-tab[aria-selected=true]{color:var(--text)}
+.ps-tab .n{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.ps-ind{position:absolute;left:0;bottom:0;height:2px;border-radius:2px 2px 0 0;background:var(--accent-t);transition:transform 260ms var(--spring),width 220ms var(--ease);pointer-events:none}
+.tr-scroll{position:relative;flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+/* table */
+.tr-tbl{padding-bottom:88px;min-width:760px}
+.tr-hd,.tr-row{display:grid;grid-template-columns:44px minmax(0,1fr) 150px 140px 76px 112px 116px;align-items:center}
+.tr-hd{position:sticky;top:0;z-index:3;height:34px;background:var(--bg);border-bottom:1px solid var(--line);font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.tr-row{position:relative;height:52px;border-bottom:1px solid var(--line);transition:background-color 100ms var(--ease)}
+.tr-row:hover,.tr-row:focus-within{background:var(--surface)}
+.tr-row.sel{background:var(--accent-s)}
+.tr-row.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+.tr-row.out,.tc-card.out{animation:rowout 260ms var(--ease) forwards;pointer-events:none}
+@keyframes rowout{0%{opacity:1;transform:none}40%{opacity:0;transform:translateX(18px)}100%{opacity:0;transform:translateX(18px);height:0;min-height:0;border-bottom-width:0;margin:0;padding-top:0;padding-bottom:0}}
+.tc-card.out{animation-name:cardout}
+@keyframes cardout{0%{opacity:1;transform:none;max-height:180px}40%{opacity:0;transform:translateX(18px);max-height:180px}100%{opacity:0;transform:translateX(18px);max-height:0;padding-top:0;padding-bottom:0;margin-top:-8px;border-width:0}}
+.tr-row.back,.tc-card.back{animation:rowin 280ms var(--ease)}
+@keyframes rowin{from{opacity:0;transform:translateX(-12px);background:var(--accent-s)}to{opacity:1;transform:none}}
+.tr-c{display:flex;align-items:center;gap:8px;min-width:0;padding:0 8px;white-space:nowrap}
+.tr-c.cb{justify-content:center;padding:0}
+.tr-ti{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--raised);border:1px solid var(--line);color:var(--text-2)}
+.tr-pk{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;flex:none;font:600 10px/1 'JetBrains Mono',monospace;background:oklch(var(--pk-l) var(--pk-c) var(--h));color:oklch(var(--pkt-l) var(--pkt-c) var(--h))}
+.tr-pks{width:18px;height:18px;border-radius:5px;font-size:8.5px}
+.tr-nm{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tr-nm .t{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-nm .t .k{font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3);margin-right:8px}
+.tr-nm .s{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);overflow:hidden;text-overflow:ellipsis}
+.tr-mut{color:var(--text-2);font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
+.tr-left{display:inline-flex;align-items:center;gap:5px;font:500 11.5px/1 'JetBrains Mono',monospace;color:var(--text-3)}
+.tr-left.warn{color:var(--warn)}
+.tr-acts{justify-content:flex-end;gap:2px;padding-right:12px}
+.tr-tw{position:relative;display:inline-flex}
+.tr-tip{position:absolute;right:0;bottom:calc(100% + 6px);padding:5px 8px;border-radius:6px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;opacity:0;transform:translateY(3px);pointer-events:none;transition:opacity 120ms var(--ease),transform 150ms var(--ease);z-index:8}
+.tr-tw:hover .tr-tip,.tr-tw:focus-within .tr-tip{opacity:1;transform:none;transition-delay:200ms}
+/* states */
+.tr-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:56px 20px;text-align:center;animation:fadein 200ms var(--ease)}
+.tr-state.fill{flex:1}
+.tr-state h3{margin:4px 0 0;font-size:15px;font-weight:600}
+.tr-ico{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:var(--raised);border:1px solid var(--line);color:var(--text-2)}
+.tr-ico.dng{color:var(--danger)}
+.tr-ico.ok{color:var(--ok)}
+.tr-skr{display:grid;grid-template-columns:44px minmax(0,1fr) 150px 140px 76px 112px 116px;align-items:center;height:52px;border-bottom:1px solid var(--line)}
+.tr-skr>span{display:flex;align-items:center;gap:8px;padding:0 8px}
+/* bulk + toast */
+.tr-bulk{position:absolute;left:50%;bottom:16px;z-index:20;display:flex;align-items:center;gap:4px;height:46px;padding:0 6px 0 8px;border-radius:12px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-modal);transform:translate(-50%,calc(100% + 28px));opacity:0;visibility:hidden;transition:transform 260ms var(--spring),opacity 160ms var(--ease),visibility 0s 260ms;white-space:nowrap}
+.tr-bulk.on{transform:translate(-50%,0);opacity:1;visibility:visible;transition-delay:0s}
+.tr-bn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 10px;margin-right:4px;border-radius:8px;background:var(--accent-s);color:var(--accent-t);font:600 12.5px/1 'Inter',sans-serif}
+.tr-bn b{font:600 12.5px/1 'JetBrains Mono',monospace}
+.tr-bn button{width:22px;height:22px;border:0;border-radius:5px;background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tr-bn button:hover{background:var(--accent-s)}
+.touch .tr-bulk{left:12px;right:12px;bottom:24px;transform:translateY(calc(100% + 40px));height:56px;justify-content:space-between}
+.touch .tr-bulk.on{transform:none}
+.tr-toast{position:absolute;left:16px;z-index:22;display:flex;align-items:center;gap:10px;height:38px;max-width:calc(100% - 32px);padding:0 6px 0 14px;border-radius:10px;background:var(--raised);border:1px solid var(--line-2);box-shadow:var(--shadow-pop);font-weight:500;white-space:nowrap;animation:toastin 220ms var(--ease);transition:bottom 240ms var(--ease)}
+.tr-toast .t{overflow:hidden;text-overflow:ellipsis}
+@keyframes toastin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tr-link{height:26px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--accent-t);font:500 12.5px/1 'Inter',sans-serif;cursor:pointer}
+.tr-link:hover{background:var(--accent-s)}
+/* dialog */
+.st-scrim{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,5,14,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadein 200ms var(--ease)}
+.st-dlg{width:400px;max-width:100%;display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--shadow-modal);animation:dlgin 240ms var(--spring)}
+@keyframes dlgin{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:none}}
+.st-dlg h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.st-acts{display:flex;justify-content:flex-end;gap:8px}
+.touch .st-acts .btn{height:44px;flex:1}
+.dl-list{display:flex;flex-direction:column;gap:4px}
+.dl-it{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;background:var(--bg);border:1px solid var(--line);min-width:0}
+.dl-it .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.dl-more{font:500 11px/1 'JetBrains Mono',monospace;color:var(--text-3);padding-left:4px}
+.ps-warn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:color-mix(in srgb,var(--danger) 10%,transparent);border:1px solid color-mix(in srgb,var(--danger) 35%,transparent);font-size:12.5px}
+.ps-warn svg{color:var(--danger);flex:none}
+/* phone */
+.ph-chips{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--line);flex:none;scrollbar-width:none}
+.ph-chip{height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);font:500 13px/1 'Inter',sans-serif;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:background-color 150ms var(--ease),color 150ms var(--ease),border-color 150ms var(--ease)}
+.ph-chip .n{font:500 11px/1 'JetBrains Mono',monospace;opacity:.75}
+.ph-chip[aria-pressed=true]{background:var(--accent-s);border-color:transparent;color:var(--accent-t)}
+.tc-list{display:flex;flex-direction:column;gap:8px;padding:10px 12px 110px}
+.tc-card{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.tc-card.sel{border-color:var(--accent);background:var(--accent-s)}
+.tc-top{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.tc-main{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.tc-nm{font:500 14px/20px 'Inter',sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tc-nm .k{font:500 12px/1 'JetBrains Mono',monospace;color:var(--text-3);margin-right:6px}
+.tc-meta{font-size:12.5px;color:var(--text-3)}
+.tc-bot{display:flex;align-items:center;gap:6px}
+.tc-cbw{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;flex:none;margin:-2px 0 0 -4px}
+.tr-lnk{height:36px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--accent-t);font:500 14px/1 'Inter',sans-serif;cursor:pointer}
+.tr-lnk:hover{background:var(--accent-s)}
+.btn:focus-visible,.tr-ib:focus-visible,.ps-tab:focus-visible,.tp-cb:focus-visible,.tr-bn button:focus-visible,.tr-link:focus-visible,.ph-chip:focus-visible,.tr-lnk:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--ring)}
+@media (max-width:760px){.tr-top{padding:0 6px 0 12px}.tr-note.wide{display:none}.ps-tabs{padding:0 12px;overflow-x:auto}}
+@media (prefers-reduced-motion:reduce){.ds *,.ds *::before,.ds *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}.sk{animation:none}}
+</style>
+</helmet>
+<div class="ds {{themeCls}}" style="width:1440px;height:2960px;padding:64px 80px;display:flex;flex-direction:column;gap:36px;overflow:hidden">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="mono" style="font-size:12px;color:var(--text-3);letter-spacing:.04em">SCREENS · WORKSPACE</span>
+      <h1 style="margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em">Trash</h1>
+    </div>
+    <div class="mono" style="display:flex;gap:16px;font-size:12px;color:var(--text-3)"><span>Tasks</span><span>Comments</span><span>Projects</span><span>30-day retention</span><span>admin / member / viewer</span></div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;align-items:start">
+    <sc-for list="{{frames}}" as="fx" hint-placeholder-count="6">
+      <figure class="frame" style="grid-column:{{fx.gc}};grid-row:{{fx.gr}}">
+        <figcaption>{{fx.label}}<span>{{fx.meta}}</span></figcaption>
+        <div class="dev" style="width:{{fx.w}}px;height:{{fx.h}}px;border-radius:{{fx.r}}px">
+          <sc-for list="{{fx.sbFrames}}" as="fr" hint-placeholder-count="0">
+            <div class="sbw sb-host {{fr.sbwCls}}" style="width:{{fr.sbW}}px">
+<!--SB-START-->
+            <sc-if value="{{fr.full}}" hint-placeholder-val="{{true}}">
+              <nav class="sb {{fr.touchCls}} fade" aria-label="Main navigation">
+                <div class="sb-ws">
+                  <button class="sb-wsb" type="button" aria-haspopup="menu" aria-expanded="{{fr.wsOpen}}" sc-camel-on-click="{{fr.toggleWs}}">
+                    <span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span>
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{fr.wsName}}</span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+                  </button>
+                  <sc-if value="{{fr.collapsible}}" hint-placeholder-val="{{true}}">
+                    <span class="sb-tw"><button class="sb-icb" type="button" aria-label="Collapse sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M10.5 6.5L9 8l1.5 1.5"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Collapse <span class="kbd">⌘B</span></span></span>
+                  </sc-if>
+                  <sc-if value="{{fr.closable}}" hint-placeholder-val="{{false}}">
+                    <button class="sb-icb" type="button" aria-label="Close navigation" sc-camel-on-click="{{fr.closeDrawer}}" style="width:44px;height:44px"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                  </sc-if>
+                  <sc-if value="{{fr.wsOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="sb-menu" role="menu" aria-label="Workspaces" style="top:48px;left:10px;right:10px">
+                      <sc-for list="{{fr.workspaces}}" as="w" hint-placeholder-count="3">
+                        <button class="sb-mi" type="button" role="menuitemradio" aria-checked="{{w.cur}}" sc-camel-on-click="{{w.pick}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{w.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{w.hue}})">{{w.badge}}</span>
+                          <span style="flex:1">{{w.name}}</span>
+                          <sc-if value="{{w.cur}}" hint-placeholder-val="{{false}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--accent-t)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                        </button>
+                      </sc-for>
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <div class="sb-sep"></div>
+                        <button class="sb-mi" type="button" role="menuitem">Workspace settings</button>
+                        <button class="sb-mi" type="button" role="menuitem">Create workspace</button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <label class="sb-search">
+                  <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+                  <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg>
+                  <input class="sb-sinp" type="search" placeholder="Search or jump…" autocomplete="off">
+                  <span class="kbd">⌘K</span>
+                </label>
+
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}">
+                  <button class="sb-new" type="button"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span style="flex:1;text-align:left">New task</span><span class="kbd">C</span></button>
+                </sc-if>
+
+                <div class="sb-scroll {{fr.maskCls}}">
+                  <a class="sb-it" href="#inbox"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="lab">Inbox</span><span class="sb-unread" aria-label="{{fr.inbox}} unread">{{fr.inbox}}</span></a>
+                  <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}">
+                    <a class="sb-it" href="#mine"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg><span class="lab">My tasks</span><span class="sb-count">7</span></a>
+                  </sc-if>
+
+                  <div class="sb-sec"><button class="sb-sect" type="button" aria-expanded="{{fr.pinOpen}}" sc-camel-on-click="{{fr.togglePin}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Pinned views</button></div>
+                  <div class="sb-col {{fr.pinCls}}"><div>
+                    <sc-for list="{{fr.pins}}" as="p" hint-placeholder-count="3">
+                      <a class="sb-it" href="#view"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.d}}"></path></svg><span class="lab">{{p.name}}</span><span class="sb-count">{{p.n}}</span></a>
+                    </sc-for>
+                  </div></div>
+
+                  <div class="sb-sec {{fr.secCls}}">
+                    <button class="sb-sect" type="button" aria-expanded="{{fr.projOpen}}" sc-camel-on-click="{{fr.toggleProjSec}}"><svg width="10" height="10" sc-camel-view-box="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5L5 6l2.5-2.5"></path></svg>Projects<span style="color:var(--text-3);letter-spacing:0">{{fr.projCount}}</span></button>
+                    <sc-if value="{{fr.canProj}}" hint-placeholder-val="{{true}}">
+                      <span class="sb-tw"><button class="sb-icb sm" type="button" aria-label="New project"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New project</span></span>
+                    </sc-if>
+                  </div>
+                  <div class="sb-col {{fr.projSecCls}}"><div>
+                    <sc-if value="{{fr.showFilter}}" hint-placeholder-val="{{false}}">
+                      <input class="sb-filter" type="text" placeholder="Filter projects…" aria-label="Filter projects" value="{{fr.filter}}" sc-camel-on-change="{{fr.onFilter}}">
+                    </sc-if>
+                    <sc-for list="{{fr.projects}}" as="pj" hint-placeholder-count="5">
+                      <div>
+                        <button class="sb-it {{pj.on}}" type="button" aria-expanded="{{pj.open}}" sc-camel-on-click="{{pj.toggle}}">
+                          <span class="sb-pk" style="background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span>
+                          <span class="lab">{{pj.name}}</span>
+                          <svg class="sb-chev {{pj.chev}}" width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                        </button>
+                        <div class="sb-col {{pj.colCls}}"><div>
+                          <div class="sb-subs" role="list">
+                            <span class="sb-ind" style="transform:translateY({{pj.indY}}px);opacity:{{pj.indO}}"></span>
+                            <sc-for list="{{pj.subs}}" as="s" hint-placeholder-count="6">
+                              <button class="sb-si {{s.on}}" type="button" role="listitem" aria-current="{{s.cur}}" sc-camel-on-click="{{s.pick}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.d}}"></path></svg>{{s.name}}</button>
+                            </sc-for>
+                          </div>
+                        </div></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{fr.noMatch}}" hint-placeholder-val="{{false}}"><p style="margin:6px 8px;font-size:12px;color:var(--text-3)">No projects match.</p></sc-if>
+                  </div></div>
+                </div>
+
+                <div class="sb-foot">
+                  <button class="sb-spr" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent, 7 days left. Open board">
+                    <svg width="30" height="30" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="3.5"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:13px;line-height:16px">Sprint 14</span><span class="mono" style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.sprPct}}% · 7d left</span></span>
+                    <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M6.5 4.5L10 8l-3.5 3.5"></path></svg>
+                  </button>
+                  <div class="sb-row">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <sc-if value="{{fr.canAdmin}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#members"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7.5a2.3 2.3 0 100-4.6 2.3 2.3 0 000 4.6zM2 13c.5-2.2 2-3.5 4-3.5s3.5 1.3 4 3.5M10.5 3.2a2.2 2.2 0 010 4.2M12 9.8c1 .5 1.7 1.6 2 3.2"></path></svg><span class="lab">Members &amp; roles</span></a>
+                      </sc-if>
+                      <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}">
+                        <a class="sb-it" href="#settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg><span class="lab">Settings</span><span class="sb-count">⌘,</span></a>
+                      </sc-if>
+                    </div>
+                    <span class="sb-tw" style="align-self:flex-end"><button class="sb-icb" type="button" aria-label="Keyboard shortcuts"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM6.4 6.4a1.7 1.7 0 113 1.1c-.6.4-1.4.8-1.4 1.6M8 11.1v.1"></path></svg></button><span class="sb-tip" role="tooltip" style="left:auto;right:calc(100% + 8px)">Shortcuts <span class="kbd">?</span></span></span>
+                  </div>
+                  <div style="position:relative" sc-camel-on-key-down="{{fr.profKey}}">
+                    <sc-if value="{{fr.profOpen}}" hint-placeholder-val="{{false}}">
+                      <div class="sb-menu up" role="menu" aria-label="Account" style="left:0;right:0;bottom:calc(100% + 6px)">
+                        <div style="padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alex Kim</span><span style="font-size:12px;color:var(--text-3)">alex@team.dev</span></div>
+                        <a class="sb-mi" role="menuitem" href="#profile"><span style="flex:1">Profile</span><span class="kbd">G P</span></a>
+                        <a class="sb-mi" role="menuitem" href="#prefs"><span style="flex:1">Preferences</span></a>
+                        <div class="sb-sep"></div>
+                        <a class="sb-mi" role="menuitem" href="#signout">Sign out</a>
+                      </div>
+                    </sc-if>
+                    <button class="sb-prof" type="button" aria-haspopup="menu" aria-expanded="{{fr.profOpen}}" aria-label="Account: Alex Kim" sc-camel-on-click="{{fr.toggleProf}}">
+                      <span class="sb-av" style="background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:13px;line-height:16px">Alex Kim</span><span style="font-size:11px;line-height:14px;color:var(--text-3)">{{fr.roleLabel}} · {{fr.wsName}}</span></span>
+                      <svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true"><path d="M4.5 6L8 2.8 11.5 6M4.5 10L8 13.2l3.5-3.2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+            </sc-if>
+
+            <sc-if value="{{fr.rail}}" hint-placeholder-val="{{false}}">
+              <nav class="sb-rail fade" aria-label="Main navigation (collapsed)">
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Workspace: {{fr.wsName}}" sc-camel-on-click="{{fr.toggleRail}}"><span class="sb-xt" aria-hidden="true"><svg width="15" height="13" sc-camel-view-box="0 0 46 39" overflow="visible"><path d="M-4 -4L50 43" stroke="var(--text)" stroke-width="10" fill="none"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--surface)" stroke-width="17" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path><path d="M50 -5L26 18H39L-4 44" stroke="var(--logo)" stroke-width="10" fill="none" stroke-linejoin="miter" stroke-miterlimit="10"></path></svg></span></button><span class="sb-tip" role="tooltip">{{fr.wsName}}</span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Search"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 2.8a4.2 4.2 0 110 8.4 4.2 4.2 0 010-8.4zM10.2 10.2l3.3 3.3"></path></svg></button><span class="sb-tip" role="tooltip">Search <span class="kbd">⌘K</span></span></span>
+                <sc-if value="{{fr.canTask}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><button class="sb-ri" type="button" aria-label="New task" style="border:1px solid var(--line-2);background:var(--raised)"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button><span class="sb-tip" role="tooltip">New task <span class="kbd">C</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <span class="sb-tw"><a class="sb-ri" href="#inbox" aria-label="Inbox, {{fr.inbox}} unread"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l1.6-5.2A1 1 0 015.1 3.5h5.8a1 1 0 011 .8l1.6 5.2V12a1 1 0 01-1 1h-9a1 1 0 01-1-1zM2.5 9.5h3l1 1.5h3l1-1.5h3"></path></svg><span class="sb-dot"></span></a><span class="sb-tip {{fr.tipDemo}}" role="tooltip">Inbox <span class="mono" style="color:var(--accent-t)">{{fr.inbox}}</span><span class="kbd">G I</span></span></span>
+                <sc-if value="{{fr.showMine}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#mine" aria-label="My tasks"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4"></path></svg></a><span class="sb-tip" role="tooltip">My tasks <span class="kbd">G M</span></span></span></sc-if>
+                <div class="sb-rsep"></div>
+                <sc-for list="{{fr.railProjects}}" as="pj" hint-placeholder-count="4">
+                  <span class="sb-tw"><button class="sb-ri {{pj.on}}" type="button" aria-label="{{pj.name}}" sc-camel-on-click="{{pj.toggle}}"><span class="sb-pk" style="width:22px;height:22px;font-size:10px;background:oklch(var(--pk-l) var(--pk-c) {{pj.hue}});color:oklch(var(--pkt-l) var(--pkt-c) {{pj.hue}})">{{pj.badge}}</span></button><span class="sb-tip" role="tooltip">{{pj.name}}</span></span>
+                </sc-for>
+                <div style="flex:1"></div>
+                <span class="sb-tw"><button class="sb-ri" type="button" sc-camel-on-click="{{fr.openBoard}}" aria-label="Sprint 14, {{fr.sprPct}} percent"><svg width="24" height="24" sc-camel-view-box="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="11.5" stroke="var(--raised)" stroke-width="4"></circle><circle class="sb-rg" cx="15" cy="15" r="11.5" stroke="var(--accent-t)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72.3" style="stroke-dashoffset:{{fr.sprOff}}" transform="rotate(-90 15 15)"></circle></svg></button><span class="sb-tip" role="tooltip">Sprint 14 · {{fr.sprPct}}% · 7d left</span></span>
+                <sc-if value="{{fr.canSettings}}" hint-placeholder-val="{{true}}"><span class="sb-tw"><a class="sb-ri" href="#settings" aria-label="Settings"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"></path></svg></a><span class="sb-tip" role="tooltip">Settings <span class="kbd">⌘,</span></span></span></sc-if>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Expand sidebar" sc-camel-on-click="{{fr.toggleRail}}"><svg class="sb-ib" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h11v10h-11zM6 3v10M9 6.5L10.5 8 9 9.5"></path></svg></button><span class="sb-tip" role="tooltip">Expand <span class="kbd">⌘B</span></span></span>
+                <span class="sb-tw"><button class="sb-ri" type="button" aria-label="Account: Alex Kim" style="height:40px"><span class="sb-av" style="width:28px;height:28px;font-size:10px;background:oklch(var(--av-l) var(--av-c) 285)">AK<span class="sb-pres"></span></span></button><span class="sb-tip" role="tooltip">Alex Kim · {{fr.roleLabel}}</span></span>
+              </nav>
+            </sc-if>
+<!--SB-END-->
+            </div>
+          </sc-for>
+
+          <div class="tr {{fx.layCls}}" sc-camel-on-key-down="{{fx.rootKey}}">
+            <div class="tr-top">
+              <sc-if value="{{fx.narrow}}" hint-placeholder-val="{{false}}">
+                <button class="tr-ib" type="button" aria-label="Back" style="margin-left:-8px"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"></path></svg></button>
+              </sc-if>
+              <h2><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg>Trash<sc-if value="{{fx.showTotal}}" hint-placeholder-val="{{true}}"><span class="mono" style="font-size:11px;font-weight:500;color:var(--text-3)">{{fx.total}}</span></sc-if></h2>
+              <sc-if value="{{fx.scopeChip}}" hint-placeholder-val="{{false}}"><span class="tr-chip">Only yours</span></sc-if>
+              <span style="flex:1"></span>
+              <sc-if value="{{fx.wideNote}}" hint-placeholder-val="{{true}}">
+                <span class="tr-note wide"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3l2 1.5"></path></svg>Auto-deleted after 30 days</span>
+              </sc-if>
+              <sc-if value="{{fx.phSelectBtn}}" hint-placeholder-val="{{false}}">
+                <button class="tr-lnk" type="button" aria-pressed="{{fx.selecting}}" sc-camel-on-click="{{fx.toggleSelecting}}">{{fx.selectLabel}}</button>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{fx.isDenied}}" hint-placeholder-val="{{false}}">
+              <div class="tr-state fill" role="region" aria-label="Permission denied">
+                <span class="tr-ico"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></span>
+                <h3>No access to Trash</h3>
+                <span class="mono" style="font-size:11px;color:var(--text-3)">Viewer · members and admins only</span>
+                <a class="btn btn-sec sm" href="List-View.dc.html" style="margin-top:6px">Back to project</a>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{fx.isError}}" hint-placeholder-val="{{false}}">
+              <div class="tr-state fill" role="alert">
+                <span class="tr-ico dng"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3.5M8 10.8v.1"></path></svg></span>
+                <h3>Couldn’t load Trash</h3>
+                <span class="mono" style="font-size:11px;color:var(--text-3)">503 · request timed out</span>
+                <button class="btn btn-sec sm" type="button" sc-camel-on-click="{{fx.retry}}" style="margin-top:6px">Retry</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{fx.showBody}}" hint-placeholder-val="{{true}}">
+              <sc-if value="{{fx.wide}}" hint-placeholder-val="{{true}}">
+                <div class="ps-tabs" role="tablist" aria-label="Filter by type">
+                  <sc-for list="{{fx.tabs}}" as="tb" hint-placeholder-count="4">
+                    <button class="ps-tab" type="button" role="tab" id="{{tb.tid}}" aria-selected="{{tb.sel}}" aria-controls="{{fx.id}}-list" sc-camel-tab-index="{{tb.ti}}" style="width:{{tb.w}}px" sc-camel-on-click="{{tb.pick}}" sc-camel-on-key-down="{{tb.key}}">{{tb.name}}<span class="n">{{tb.n}}</span></button>
+                  </sc-for>
+                  <span class="ps-ind" style="width:{{fx.indW}}px;transform:translateX({{fx.indX}}px)"></span>
+                </div>
+              </sc-if>
+              <sc-if value="{{fx.narrow}}" hint-placeholder-val="{{false}}">
+                <div class="ph-chips" role="group" aria-label="Filter by type">
+                  <sc-for list="{{fx.tabs}}" as="tb" hint-placeholder-count="4">
+                    <button class="ph-chip" type="button" aria-pressed="{{tb.sel}}" sc-camel-on-click="{{tb.pick}}">{{tb.name}}<span class="n">{{tb.n}}</span></button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <div class="tr-scroll" id="{{fx.id}}-list" role="tabpanel">
+                <sc-if value="{{fx.isLoading}}" hint-placeholder-val="{{false}}">
+                  <sc-if value="{{fx.wide}}" hint-placeholder-val="{{true}}">
+                    <div class="tr-tbl" aria-busy="true" aria-label="Loading">
+                      <div class="tr-hd"><span></span><span style="padding:0 8px">Item</span><span style="padding:0 8px">Project</span><span style="padding:0 8px">Deleted by</span><span style="padding:0 8px">When</span><span style="padding:0 8px">Removal</span><span></span></div>
+                      <sc-for list="{{fx.skRows}}" as="sk" hint-placeholder-count="6">
+                        <div class="tr-skr">
+                          <span style="justify-content:center"><span class="sk" style="width:16px;height:16px;border-radius:4px"></span></span>
+                          <span><span class="sk" style="width:26px;height:26px;border-radius:7px"></span><span style="display:flex;flex-direction:column;gap:7px;flex:1"><span class="sk" style="width:{{sk.a}}%"></span><span class="sk" style="width:{{sk.b}}%;height:7px"></span></span></span>
+                          <span><span class="sk" style="width:18px;height:18px"></span><span class="sk" style="width:{{sk.c}}px"></span></span>
+                          <span><span class="sk" style="width:20px;height:20px;border-radius:50%"></span><span class="sk" style="width:{{sk.d}}px"></span></span>
+                          <span><span class="sk" style="width:44px"></span></span>
+                          <span><span class="sk" style="width:{{sk.e}}px"></span></span>
+                          <span style="justify-content:flex-end;padding-right:12px"><span class="sk" style="width:62px;height:26px;border-radius:6px"></span></span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{fx.narrow}}" hint-placeholder-val="{{false}}">
+                    <div class="tc-list" aria-busy="true" aria-label="Loading">
+                      <sc-for list="{{fx.skRows}}" as="sk" hint-placeholder-count="4">
+                        <div class="tc-card"><div class="tc-top"><span class="sk" style="width:26px;height:26px;border-radius:7px"></span><span style="display:flex;flex-direction:column;gap:8px;flex:1"><span class="sk" style="width:{{sk.a}}%"></span><span class="sk" style="width:{{sk.b}}%;height:7px"></span></span></div><div class="tc-bot"><span class="sk" style="width:{{sk.e}}px"></span><span style="flex:1"></span><span class="sk" style="width:76px;height:36px;border-radius:8px"></span></div></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </sc-if>
+
+                <sc-if value="{{fx.isEmpty}}" hint-placeholder-val="{{false}}">
+                  <div class="tr-state">
+                    <span class="tr-ico {{fx.emptyIcoCls}}"><svg width="18" height="18" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{fx.emptyIcon}}"></path></svg></span>
+                    <h3>{{fx.emptyTitle}}</h3>
+                    <span class="mono" style="font-size:11px;color:var(--text-3)">{{fx.emptyMeta}}</span>
+                    <sc-if value="{{fx.emptyShowAll}}" hint-placeholder-val="{{false}}"><button class="btn btn-sec sm" type="button" sc-camel-on-click="{{fx.showAll}}" style="margin-top:6px">Show all</button></sc-if>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.showTable}}" hint-placeholder-val="{{true}}">
+                  <div class="tr-tbl" role="table" aria-label="Deleted items">
+                    <div class="tr-hd" role="row">
+                      <span class="tr-c cb" role="columnheader"><button class="tp-cb" type="button" role="checkbox" aria-checked="{{fx.allState}}" aria-label="Select all" sc-camel-on-click="{{fx.toggleAll}}"></button></span>
+                      <span class="tr-c" role="columnheader">Item</span><span class="tr-c" role="columnheader">Project</span><span class="tr-c" role="columnheader">Deleted by</span><span class="tr-c" role="columnheader">When</span><span class="tr-c" role="columnheader">Removal</span><span class="tr-c" role="columnheader"><span class="sr">Actions</span></span>
+                    </div>
+                    <sc-for list="{{fx.rows}}" as="it" hint-placeholder-count="8">
+                      <div class="tr-row {{it.rowCls}}" role="row">
+                        <span class="tr-c cb" role="cell"><input class="tp-cb" type="checkbox" checked="{{it.sel}}" sc-camel-on-change="{{it.toggle}}" aria-label="Select {{it.label}}"></span>
+                        <span class="tr-c" role="cell">
+                          <sc-if value="{{it.isProject}}" hint-placeholder-val="{{false}}"><span class="tr-pk" style="--h:{{it.hue}}" aria-hidden="true">{{it.key}}</span></sc-if>
+                          <sc-if value="{{it.notProject}}" hint-placeholder-val="{{true}}"><span class="tr-ti" aria-hidden="true"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{it.icon}}"></path></svg></span></sc-if>
+                          <span class="tr-nm"><span class="t"><sc-if value="{{it.isTask}}" hint-placeholder-val="{{true}}"><span class="k">{{it.key}}</span></sc-if>{{it.name}}</span><span class="s">{{it.sub}}</span></span>
+                        </span>
+                        <span class="tr-c" role="cell">
+                          <sc-if value="{{it.hasProj}}" hint-placeholder-val="{{true}}"><span class="tr-pk tr-pks" style="--h:{{it.pHue}}" aria-hidden="true">{{it.pKey}}</span><span class="tr-mut">{{it.pName}}</span></sc-if>
+                          <sc-if value="{{it.noProj}}" hint-placeholder-val="{{false}}"><span class="tr-mut" style="color:var(--text-3)">Workspace</span></sc-if>
+                        </span>
+                        <span class="tr-c" role="cell"><span class="av" style="width:20px;height:20px;font-size:9px;background:oklch(var(--av-l) var(--av-c) {{it.byHue}})">{{it.byIni}}</span><span class="tr-mut">{{it.byName}}</span></span>
+                        <span class="tr-c" role="cell"><span class="tr-mut">{{it.ago}}</span></span>
+                        <span class="tr-c" role="cell"><span class="tr-left {{it.leftCls}}"><sc-if value="{{it.warn}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3l2 1.5"></path></svg></sc-if>{{it.leftText}}</span></span>
+                        <span class="tr-c tr-acts" role="cell">
+                          <button class="btn btn-ghost sm" type="button" sc-camel-on-click="{{it.restore}}" aria-label="Restore {{it.label}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 9a5 5 0 101.3-4.6L2.5 6.3M2.5 3v3.3h3.3"></path></svg>Restore</button>
+                          <span class="tr-tw"><button class="tr-ib dng" type="button" aria-label="Delete forever: {{it.label}}" sc-camel-on-click="{{it.askDel}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg></button><span class="tr-tip" role="tooltip">Delete forever</span></span>
+                        </span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{fx.showCards}}" hint-placeholder-val="{{false}}">
+                  <div class="tc-list" role="list" aria-label="Deleted items">
+                    <div class="tr-note" style="padding:2px 2px 4px"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3l2 1.5"></path></svg>Auto-deleted after 30 days</div>
+                    <sc-for list="{{fx.rows}}" as="it" hint-placeholder-count="5">
+                      <div class="tc-card {{it.rowCls}}" role="listitem">
+                        <div class="tc-top">
+                          <sc-if value="{{it.selecting}}" hint-placeholder-val="{{false}}"><span class="tc-cbw"><input class="tp-cb" type="checkbox" checked="{{it.sel}}" sc-camel-on-change="{{it.toggle}}" aria-label="Select {{it.label}}"></span></sc-if>
+                          <sc-if value="{{it.isProject}}" hint-placeholder-val="{{false}}"><span class="tr-pk" style="--h:{{it.hue}}" aria-hidden="true">{{it.key}}</span></sc-if>
+                          <sc-if value="{{it.notProject}}" hint-placeholder-val="{{true}}"><span class="tr-ti" aria-hidden="true"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{it.icon}}"></path></svg></span></sc-if>
+                          <span class="tc-main"><span class="tc-nm"><sc-if value="{{it.isTask}}" hint-placeholder-val="{{true}}"><span class="k">{{it.key}}</span></sc-if>{{it.name}}</span><span class="tc-meta">{{it.byName}} · {{it.ago}}</span></span>
+                        </div>
+                        <div class="tc-bot">
+                          <span class="tr-left {{it.leftCls}}"><sc-if value="{{it.warn}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5v3l2 1.5"></path></svg></sc-if>{{it.leftText}}</span>
+                          <span style="flex:1"></span>
+                          <sc-if value="{{it.notSelecting}}" hint-placeholder-val="{{true}}">
+                            <button class="btn btn-sec sm" type="button" sc-camel-on-click="{{it.restore}}" aria-label="Restore {{it.label}}">Restore</button>
+                            <button class="tr-ib dng" type="button" aria-label="Delete forever: {{it.label}}" sc-camel-on-click="{{it.askDel}}"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"></path></svg></button>
+                          </sc-if>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div class="tr-bulk {{fx.bulkCls}}" role="toolbar" aria-label="Bulk actions" aria-hidden="{{fx.bulkHidden}}">
+                <span class="tr-bn"><b>{{fx.nSel}}</b>selected<button type="button" aria-label="Clear selection" sc-camel-on-click="{{fx.clearSel}}"><svg width="12" height="12" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button></span>
+                <span style="display:flex;gap:4px">
+                  <button class="btn btn-sec sm" type="button" sc-camel-on-click="{{fx.bulkRestore}}"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 9a5 5 0 101.3-4.6L2.5 6.3M2.5 3v3.3h3.3"></path></svg>Restore</button>
+                  <button class="btn btn-dg sm" type="button" sc-camel-on-click="{{fx.bulkDel}}">Delete forever</button>
+                </span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{fx.toastOn}}" hint-placeholder-val="{{false}}">
+              <div class="tr-toast" role="status" style="bottom:{{fx.toastY}}px"><sc-if value="{{fx.toastOk}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if><span class="t">{{fx.toastText}}</span><sc-if value="{{fx.toastUndo}}" hint-placeholder-val="{{false}}"><button class="tr-link" type="button" sc-camel-on-click="{{fx.undo}}">Undo</button></sc-if><span style="width:8px"></span></div>
+            </sc-if>
+            <span class="sr" role="status" aria-live="polite">{{fx.live}}</span>
+          </div>
+
+          <sc-if value="{{fx.dlgOpen}}" hint-placeholder-val="{{false}}">
+            <div class="st-scrim {{fx.layCls}}" sc-camel-on-click="{{fx.scrimClick}}">
+              <div class="st-dlg" role="alertdialog" aria-modal="true" aria-labelledby="{{fx.id}}-dt" aria-describedby="{{fx.id}}-dw" sc-camel-on-key-down="{{fx.dlgKey}}">
+                <h3 id="{{fx.id}}-dt">{{fx.dlgTitle}}</h3>
+                <div class="dl-list">
+                  <sc-for list="{{fx.dlgItems}}" as="di" hint-placeholder-count="1">
+                    <div class="dl-it">
+                      <sc-if value="{{di.isProject}}" hint-placeholder-val="{{false}}"><span class="tr-pk tr-pks" style="--h:{{di.hue}}" aria-hidden="true">{{di.key}}</span></sc-if>
+                      <sc-if value="{{di.notProject}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="var(--text-3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{di.icon}}"></path></svg></sc-if>
+                      <span class="t">{{di.label}}</span>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{fx.dlgMore}}" hint-placeholder-val="{{false}}"><span class="dl-more">+{{fx.dlgMoreN}} more</span></sc-if>
+                </div>
+                <div class="ps-warn" id="{{fx.id}}-dw"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5l6 10.5H2zM8 6.5v3M8 11.3v.1"></path></svg>{{fx.dlgWarn}}</div>
+                <div class="st-acts">
+                  <button class="btn btn-ghost" type="button" sc-camel-on-click="{{fx.closeDlg}}">Cancel</button>
+                  <button class="btn btn-danger" type="button" sc-camel-auto-focus="{{fx.dlgAf}}" sc-camel-on-click="{{fx.confirmDel}}"><sc-if value="{{fx.dlgBusy}}" hint-placeholder-val="{{false}}"><span class="spin w"></span></sc-if>Delete forever</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </figure>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;navy&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;member&quot;,&quot;viewer&quot;],&quot;default&quot;:&quot;admin&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:2960}}">
+class Component extends DCLogic {
+  state = { f: {}, sb: {} };
+  componentWillUnmount() { this.dead = true; (this.timers || []).forEach(clearTimeout); }
+  later(fn, ms) { const t = setTimeout(() => { if (!this.dead) fn(); }, ms); (this.timers = this.timers || []).push(t); return t; }
+  fGet(id, init) { return { ...(init || {}), ...((this.state.f && this.state.f[id]) || {}) }; }
+  fSet(id, patch) { const all = { ...(this.state.f || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ f: all }); }
+  focusSoon(elId) { this.later(() => { try { const el = document.getElementById(elId); if (el) el.focus(); } catch (e) {} }, 40); }
+  K() {
+    if (this._K) return this._K;
+    this._K = {
+      PEOPLE: { AK: ['Alex Kim', 285], JL: ['Jordan Lee', 200], SP: ['Sam Patel', 20], RC: ['Riley Chen', 150], MD: ['Morgan Diaz', 60], TN: ['Taylor Ng', 330] },
+      PROJ: { PR: ['Platform Rebuild', 255, 'PR'], MO: ['Mobile App', 175, 'MO'], IN: ['Infra', 75, 'IN'] },
+      ICON: {
+        task: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM5.6 8.1l1.7 1.7 3.2-3.4',
+        comment: 'M2.5 3.5h11v7.5H7l-3 2.5V11H2.5z',
+        project: 'M2.5 4.5h4l1 1.5h6v6.5h-11z'
+      },
+      IT: [
+        { id: 't1', type: 'task', key: 'PRJ-88', name: 'Remove legacy session cookies', proj: 'PR', by: 'AK', ago: '2h ago', left: 30 },
+        { id: 'c1', type: 'comment', name: 'Can we pin this to 2.4 until the fix lands?', on: 'PRJ-112', proj: 'PR', by: 'JL', ago: '1d ago', left: 29 },
+        { id: 't2', type: 'task', key: 'PRJ-61', name: 'Spike: WebSocket fallback', proj: 'PR', by: 'SP', ago: '3d ago', left: 27 },
+        { id: 't3', type: 'task', key: 'MO-23', name: 'Dark mode toggle in onboarding', proj: 'MO', by: 'AK', ago: '6d ago', left: 24 },
+        { id: 'p1', type: 'project', key: 'LA', name: 'Legacy API', hue: 25, meta: 'Archived · 48 tasks', by: 'AK', ago: '9d ago', left: 21 },
+        { id: 'c2', type: 'comment', name: 'Duplicate of PRJ-90, closing.', on: 'PRJ-93', proj: 'PR', by: 'AK', ago: '12d ago', left: 18 },
+        { id: 'p2', type: 'project', key: 'HW', name: 'Hack week', hue: 335, meta: 'Archived · 17 tasks', by: 'TN', ago: '15d ago', left: 15 },
+        { id: 't4', type: 'task', key: 'PRJ-47', name: 'Old board virtualization prototype', proj: 'PR', by: 'AK', ago: '27d ago', left: 3 },
+        { id: 't5', type: 'task', key: 'IN-14', name: 'Rotate staging certificates', proj: 'IN', by: 'RC', ago: '28d ago', left: 2 },
+        { id: 'c3', type: 'comment', name: 'Benchmarks attached in the thread.', on: 'IN-9', proj: 'IN', by: 'MD', ago: '29d ago', left: 1 }
+      ]
+    };
+    return this._K;
+  }
+//SB-JS-START
+  sbGet(id) { return (this.state.sb && this.state.sb[id]) || {}; }
+  sbSet(id, patch) { const all = { ...(this.state.sb || {}) }; all[id] = { ...(all[id] || {}), ...patch }; this.setState({ sb: all }); }
+  sbFrame(id, cfg) {
+    const self = this;
+    const u = this.sbGet(id);
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer';
+    const ICON = {
+      board: 'M2.5 3h3v10h-3zM6.5 3h3v7h-3zM10.5 3h3v5h-3z',
+      backlog: 'M2.5 4h11M2.5 8h11M2.5 12h7',
+      sprints: 'M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8',
+      objectives: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z',
+      milestones: 'M4 14V2.5h7.5L10 5.5l1.5 3H4',
+      reports: 'M3 13V8M6.5 13V4M10 13V9.5M13.5 13V6'
+    };
+    const SUBS = [['board', 'Board'], ['backlog', 'Backlog'], ['sprints', 'Sprints'], ['objectives', 'Objectives'], ['milestones', 'Milestones'], ['reports', 'Reports']]
+      .filter((s) => !viewer || ['board', 'backlog', 'objectives', 'milestones'].indexOf(s[0]) >= 0);
+    const ALL = [
+      ['PR', 'Platform Rebuild', 255], ['MO', 'Mobile App', 175], ['IN', 'Infra', 75], ['DS', 'Design System', 300], ['AP', 'Public API', 25],
+      ['BI', 'Billing', 140], ['SE', 'Search', 215], ['ON', 'Onboarding', 335], ['DA', 'Data Pipeline', 100], ['QA', 'QA Automation', 50],
+      ['SC', 'Security', 5], ['DO', 'Docs', 230], ['GR', 'Growth', 155], ['MK', 'Marketing Site', 285], ['PE', 'Performance', 195], ['AN', 'Analytics', 60]
+    ];
+    const list = cfg.many ? ALL : (viewer ? ALL.slice(0, 3) : ALL.slice(0, 5));
+    const active = u.active || cfg.active || 'PR';
+    const openKey = u.open === undefined ? active : u.open;
+    const sub = u.sub || cfg.sub || 'board';
+    const filter = u.filter || '';
+    const q = filter.trim().toLowerCase();
+    const shown = list.filter((p) => !q || p[1].toLowerCase().indexOf(q) >= 0 || p[0].toLowerCase() === q);
+    const projects = shown.map(([badge, name, hue]) => {
+      const isOpen = openKey === badge;
+      const subs = SUBS.map(([k, label], i) => ({
+        name: label, d: ICON[k], on: active === badge && sub === k ? 'on' : '', cur: active === badge && sub === k ? 'page' : 'false',
+        pick: () => self.sbSet(id, { active: badge, sub: k, open: badge })
+      }));
+      const idx = SUBS.findIndex((s) => s[0] === sub);
+      const step = cfg.touch ? 44 : 32;
+      return {
+        badge, name, hue, open: isOpen, on: active === badge && !isOpen ? 'on' : '',
+        chev: isOpen ? 'open' : '', colCls: isOpen ? 'open' : '', subs,
+        indY: Math.max(0, idx) * step, indO: active === badge && idx >= 0 ? 1 : 0,
+        toggle: () => self.sbSet(id, { open: isOpen ? null : badge })
+      };
+    });
+    const railProjects = list.slice(0, 6).map(([badge, name, hue]) => ({
+      badge, name, hue, on: active === badge ? 'on' : '',
+      toggle: () => self.sbSet(id, { active: badge, open: badge })
+    }));
+    const pinOpen = u.pinOpen === undefined ? true : u.pinOpen;
+    const projOpen = u.projOpen === undefined ? true : u.projOpen;
+    const pct = 65;
+    const C = 72.3;
+    const WS = [['PT', 'Platform team', 255], ['DG', 'Design guild', 300], ['PE', 'Personal', 155]];
+    const wsName = u.ws || 'Platform team';
+    const collapsed = u.rail === undefined ? !!cfg.rail : u.rail;
+    const curProj = list.find((p) => p[0] === active) || list[0];
+    const curSub = SUBS.find((s) => s[0] === sub) || SUBS[0];
+    return {
+      full: !collapsed, rail: collapsed,
+      sbW: collapsed ? 64 : (cfg.width || 264),
+      sbwCls: collapsed ? 'israil' : '',
+      touchCls: cfg.touch ? 'touch' : '',
+      collapsible: !!cfg.collapsible, closable: !!cfg.closable,
+      wsName, wsOpen: !!u.wsOpen,
+      toggleWs: () => self.sbSet(id, { wsOpen: !u.wsOpen, profOpen: false }),
+      workspaces: WS.map(([b, n, h]) => ({ badge: b, name: n, hue: h, cur: n === wsName, pick: () => self.sbSet(id, { ws: n, wsOpen: false }) })),
+      canTask: !viewer, showMine: !viewer, canProj: role === 'admin', canAdmin: role === 'admin', canSettings: !viewer,
+      roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+      inbox: viewer ? 1 : 3,
+      pins: [
+        { name: 'My open bugs', n: 4, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1v-5z' },
+        { name: 'Due this week', n: 9, d: 'M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3' },
+        { name: 'Blocked', n: 2, d: 'M8 2.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM4.1 4.1l7.8 7.8' }
+      ],
+      pinOpen, pinCls: pinOpen ? 'open' : '', togglePin: () => self.sbSet(id, { pinOpen: !pinOpen }),
+      projOpen, projSecCls: projOpen ? 'open' : '', toggleProjSec: () => self.sbSet(id, { projOpen: !projOpen }),
+      projects, railProjects, projCount: list.length,
+      showFilter: !!cfg.many, filter, onFilter: (e) => self.sbSet(id, { filter: e.target.value.slice(0, 60) }), noMatch: shown.length === 0,
+      maskCls: cfg.many ? 'masked' : '', secCls: cfg.many ? 'sticky' : '',
+      sprPct: pct, sprOff: (C * (1 - pct / 100)).toFixed(1),
+      openBoard: () => self.sbSet(id, { active: 'PR', sub: 'board', open: 'PR' }),
+      profOpen: !!u.profOpen,
+      toggleProf: () => self.sbSet(id, { profOpen: !u.profOpen, wsOpen: false }),
+      profKey: (e) => { if (e.key === 'Escape') self.sbSet(id, { profOpen: false, wsOpen: false }); },
+      toggleRail: () => self.sbSet(id, { rail: !collapsed, wsOpen: false, profOpen: false }),
+      projName: curProj[1], subLabel: curSub[1],
+      tipDemo: cfg.tipDemo ? 'show' : ''
+    };
+  }
+//SB-JS-END
+  frame(id, cfg) {
+    const self = this;
+    const K = this.K();
+    const init = cfg.init || {};
+    const g = () => self.fGet(id, init);
+    const set = (p) => self.fSet(id, p);
+    const u = g();
+    const narrow = !!cfg.narrow, touch = !!cfg.touch;
+    const role = cfg.role || 'admin';
+    const viewer = role === 'viewer', member = role === 'member';
+    const phase = viewer ? 'denied' : (u.phase || cfg.phase || 'ready');
+    const ready = phase === 'ready';
+    const gone = u.gone || {}, leaving = u.leaving || {}, back = u.back || {};
+    const sel = u.sel || {};
+    const selecting = !narrow || !!u.selecting;
+    const all = (cfg.empty ? [] : K.IT).filter((x) => !member || (x.by === 'AK' && x.type !== 'project'));
+    const alive = all.filter((x) => !gone[x.id]);
+    const TYPES = [['all', 'All', 62], ['task', 'Tasks', 74], ['comment', 'Comments', 104], ['project', 'Projects', 94]].filter((t) => !(member && t[0] === 'project'));
+    const tab = TYPES.some((t) => t[0] === u.tab) ? u.tab : 'all';
+    const count = (k) => alive.filter((x) => k === 'all' || x.type === k).length;
+    let tx = 24;
+    const tabs = TYPES.map(([k, name, w], i) => {
+      const t = { k, name, w, n: count(k), sel: tab === k, ti: tab === k ? 0 : -1, tid: id + '-t-' + k, x: tx };
+      tx += w + 4;
+      t.pick = () => set({ tab: k });
+      t.key = (e) => {
+        let j = -1;
+        if (e.key === 'ArrowRight') j = (i + 1) % TYPES.length; else if (e.key === 'ArrowLeft') j = (i + TYPES.length - 1) % TYPES.length; else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = TYPES.length - 1;
+        if (j < 0) return;
+        e.preventDefault(); set({ tab: TYPES[j][0] }); self.focusSoon(id + '-t-' + TYPES[j][0]);
+      };
+      return t;
+    });
+    const curTab = tabs.find((t) => t.sel) || tabs[0];
+    const visible = alive.filter((x) => tab === 'all' || x.type === tab);
+    const selIds = visible.filter((x) => sel[x.id] && !leaving[x.id]).map((x) => x.id);
+    const selectable = visible.filter((x) => !leaving[x.id]);
+    const labelOf = (x) => (x.type === 'task' ? x.key + ' ' + x.name : x.type === 'comment' ? 'comment on ' + x.on : x.name);
+    const toast = (text, undo, ok) => {
+      const tok = Math.random();
+      self.later(() => { const t = self.fGet(id, init).toast; if (t && t.tok === tok) self.fSet(id, { toast: null }); }, undo ? 5000 : 2600);
+      return { toast: { text, undo: undo || null, ok: !!ok, tok } };
+    };
+    const animateOut = (ids, kind, msg) => {
+      const v = g();
+      const lv = { ...(v.leaving || {}) }; const sl = { ...(v.sel || {}) };
+      ids.forEach((x) => { lv[x] = kind; sl[x] = false; });
+      set({ leaving: lv, sel: sl, dlg: null, ...toast(msg, kind === 'restored' ? ids : null, kind === 'restored'), live: msg });
+      self.later(() => {
+        const n = self.fGet(id, init);
+        const L = { ...(n.leaving || {}) }; const G = { ...(n.gone || {}) };
+        ids.forEach((x) => { if (L[x]) { G[x] = L[x]; delete L[x]; } });
+        self.fSet(id, { leaving: L, gone: G });
+      }, 270);
+    };
+    const restore = (ids) => {
+      const items = all.filter((x) => ids.indexOf(x.id) >= 0);
+      animateOut(ids, 'restored', ids.length === 1 ? 'Restored ' + (items[0].type === 'task' ? items[0].key : items[0].type === 'comment' ? 'comment' : items[0].name) : 'Restored ' + ids.length + ' items');
+    };
+    const undo = () => {
+      const v = g(); const t = v.toast; if (!t || !t.undo) return;
+      const G = { ...(v.gone || {}) }; const L = { ...(v.leaving || {}) }; const B = {};
+      t.undo.forEach((x) => { delete G[x]; delete L[x]; B[x] = true; });
+      set({ gone: G, leaving: L, back: B, toast: null, live: 'Undone' });
+      self.later(() => self.fSet(id, { back: {} }), 400);
+    };
+    const askDel = (ids) => set({ dlg: { ids } });
+    const dlg = u.dlg || null;
+    const dItems = dlg ? all.filter((x) => dlg.ids.indexOf(x.id) >= 0) : [];
+    const confirmDel = () => {
+      const v = g(); const d = v.dlg; if (!d || d.busy) return;
+      set({ dlg: { ...d, busy: true } });
+      self.later(() => { const ids = (self.fGet(id, init).dlg || d).ids; animateOut(ids, 'deleted', ids.length === 1 ? 'Deleted forever' : 'Deleted ' + ids.length + ' items forever'); }, 600);
+    };
+    const closeDlg = () => { const d = g().dlg; if (d && d.busy) return; set({ dlg: null }); };
+    const rows = visible.map((x) => {
+      const p = x.proj ? K.PROJ[x.proj] : null;
+      const by = K.PEOPLE[x.by] || ['Unknown', 0];
+      const warn = x.left <= 3;
+      const isSel = !!sel[x.id] && !leaving[x.id];
+      return {
+        id: x.id, type: x.type, key: x.key || '', hue: x.hue || 0,
+        name: x.type === 'comment' ? '“' + x.name + '”' : x.name,
+        sub: x.type === 'comment' ? 'on ' + x.on : x.type === 'project' ? x.meta : 'Task',
+        label: labelOf(x), icon: K.ICON[x.type],
+        isTask: x.type === 'task', isProject: x.type === 'project', notProject: x.type !== 'project',
+        hasProj: !!p, noProj: !p, pKey: p ? p[2] : '', pHue: p ? p[1] : 0, pName: p ? p[0] : '',
+        byIni: x.by, byHue: by[1], byName: by[0], ago: x.ago,
+        warn, leftCls: warn ? 'warn' : '', leftText: x.left === 1 ? '1 day left' : x.left + ' days left',
+        sel: isSel, selecting: narrow && selecting, notSelecting: !(narrow && selecting),
+        rowCls: (isSel ? 'sel' : '') + (leaving[x.id] ? ' out' : '') + (back[x.id] ? ' back' : ''),
+        toggle: () => { const s2 = { ...(g().sel || {}) }; s2[x.id] = !s2[x.id]; set({ sel: s2 }); },
+        restore: () => restore([x.id]),
+        askDel: () => askDel([x.id])
+      };
+    });
+    const nSel = selIds.length;
+    const allState = !nSel ? 'false' : nSel === selectable.length ? 'true' : 'mixed';
+    const bulkOn = ready && nSel > 0 && selecting;
+    const toastOn = !!u.toast;
+    const TYPE_NAME = { task: 'tasks', comment: 'comments', project: 'projects' };
+    const isEmpty = ready && visible.length === 0;
+    const emptyAll = alive.length === 0;
+    const skRows = [[62, 34, 92, 64, 72], [48, 28, 70, 58, 80], [70, 40, 84, 70, 66], [55, 30, 64, 52, 76], [66, 26, 90, 60, 70], [44, 36, 76, 66, 80], [58, 32, 82, 56, 72]].slice(0, narrow ? 5 : 7).map((r) => ({ a: r[0], b: r[1], c: r[2], d: r[3], e: r[4] }));
+    const sbFrames = cfg.sb ? [this.sbFrame(id, { role, collapsible: true, active: 'PR', sub: 'none' })] : [];
+    return {
+      id, label: cfg.label, meta: cfg.meta, gc: cfg.gc, gr: cfg.gr, w: cfg.w, h: cfg.h, r: cfg.r || 14,
+      sbFrames, narrow, wide: !narrow, layCls: (narrow ? 'narrow' : 'wide') + (touch ? ' touch' : ''),
+      total: alive.length, showTotal: ready && alive.length > 0,
+      scopeChip: member && phase !== 'denied', wideNote: !narrow && phase !== 'denied',
+      phSelectBtn: narrow && ready && alive.length > 0, selecting: narrow && selecting ? 'true' : 'false', selectLabel: narrow && selecting ? 'Done' : 'Select',
+      toggleSelecting: () => { const v = g(); set({ selecting: !v.selecting, sel: v.selecting ? {} : v.sel }); },
+      isDenied: phase === 'denied', isError: phase === 'error', isLoading: phase === 'loading',
+      showBody: phase === 'ready' || phase === 'loading',
+      retry: () => { set({ phase: 'loading' }); self.later(() => self.fSet(id, { phase: 'ready' }), 900); },
+      tabs, indX: curTab.x + 8, indW: curTab.w - 16,
+      skRows,
+      isEmpty, emptyTitle: emptyAll ? 'Trash is empty' : 'No deleted ' + TYPE_NAME[tab],
+      emptyMeta: emptyAll ? 'Deleted items stay 30 days' : alive.length + ' in other types',
+      emptyIcon: emptyAll ? 'M3.5 8.5l3 3 6-7' : 'M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5', emptyIcoCls: emptyAll ? 'ok' : '',
+      emptyShowAll: !emptyAll && tab !== 'all', showAll: () => set({ tab: 'all' }),
+      showTable: ready && !narrow && visible.length > 0, showCards: ready && narrow && visible.length > 0,
+      rows, allState,
+      toggleAll: () => { const s2 = { ...(g().sel || {}) }; const on = allState !== 'true'; selectable.forEach((x) => { s2[x.id] = on; }); set({ sel: s2 }); },
+      nSel, bulkCls: bulkOn ? 'on' : '', bulkHidden: bulkOn ? 'false' : 'true',
+      clearSel: () => set({ sel: {} }),
+      bulkRestore: () => { if (selIds.length) restore(selIds.slice()); },
+      bulkDel: () => { if (selIds.length) askDel(selIds.slice()); },
+      toastOn, toastText: toastOn ? u.toast.text : '', toastUndo: toastOn && !!u.toast.undo, toastOk: toastOn && !!u.toast.ok, toastY: bulkOn ? (touch ? 92 : 74) : 16,
+      undo, live: u.live || '',
+      rootKey: (e) => { if (e.key === 'Escape' && !g().dlg && Object.keys(g().sel || {}).some((k) => g().sel[k])) { e.preventDefault(); set({ sel: {} }); } },
+      dlgOpen: !!dlg && dItems.length > 0,
+      dlgTitle: dItems.length > 1 ? 'Delete ' + dItems.length + ' items forever?' : 'Delete forever?',
+      dlgItems: dItems.slice(0, 3).map((x) => ({ label: x.type === 'comment' ? '“' + x.name + '”' : labelOf(x), icon: K.ICON[x.type], isProject: x.type === 'project', notProject: x.type !== 'project', key: x.key || '', hue: x.hue || 0 })),
+      dlgMore: dItems.length > 3, dlgMoreN: Math.max(0, dItems.length - 3),
+      dlgWarn: dItems.some((x) => x.type === 'project') ? 'Can’t be undone · includes its tasks' : 'Can’t be undone',
+      dlgAf: !!dlg && !dlg.seed, dlgBusy: !!dlg && !!dlg.busy,
+      closeDlg, confirmDel,
+      scrimClick: (e) => { if (e && e.target === e.currentTarget) closeDlg(); },
+      dlgKey: (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeDlg(); } }
+    };
+  }
+  renderVals() {
+    const theme = this.props.theme || 'navy';
+    const role = this.props.role || 'admin';
+    const frames = [
+      this.frame('main', { label: 'Trash', meta: 'role tweak · restore has undo', gc: '1 / 4', gr: '1', w: 1280, h: 860, sb: true, role }),
+      this.frame('bulk', { label: 'Bulk selected', meta: 'restore or delete 3', gc: '1 / 3', gr: '2', w: 840, h: 600, init: { sel: { t2: true, t4: true, c3: true } } }),
+      this.frame('cfm', { label: 'Delete forever', meta: 'confirm', gc: '3', gr: '2', w: 400, h: 600, narrow: true, init: { dlg: { ids: ['t5'], seed: true } } }),
+      this.frame('empty', { label: 'Empty trash', meta: 'nothing deleted', gc: '1 / 3', gr: '3', w: 840, h: 460, empty: true }),
+      this.frame('mob', { label: 'Mobile', meta: '390 · Select for bulk', gc: '3', gr: '3 / 5', w: 390, h: 844, r: 28, narrow: true, touch: true }),
+      this.frame('load', { label: 'Loading', meta: 'skeleton rows', gc: '1 / 3', gr: '4', w: 840, h: 460, phase: 'loading' }),
+      this.frame('deny', { label: 'Permission denied', meta: 'viewer', gc: '1 / 3', gr: '5', w: 840, h: 420, role: 'viewer' }),
+      this.frame('err', { label: 'Error', meta: 'retry', gc: '3', gr: '5', w: 400, h: 420, narrow: true, phase: 'error' })
+    ];
+    return {
+      themeCls: theme === 'light' ? 't-light' : theme === 'dark' ? 't-dark' : 't-navy',
+      frames
+    };
+  }
+}
+</script>
+
+
+</body></html>

@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Radio } from "@/components/ui/choice";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { toast } from "@/components/ui/toast";
@@ -74,50 +73,6 @@ export function StartSprintDialog({ sprint, open, onOpenChange }: { sprint: Spri
   );
 }
 
-/** Complete sprint (board 05): choose where open tasks go. */
-export function CompleteSprintDialog({
-  sprint,
-  next,
-  openCount,
-  open,
-  onOpenChange,
-}: {
-  sprint: Sprint;
-  next: Sprint | undefined;
-  openCount: number;
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-}) {
-  const invalidate = useInvalidateSprints(sprint.projectId);
-  const [target, setTarget] = useState<string>(next?.id ?? "backlog");
-  return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={`Complete ${sprint.name}?`}
-      description={openCount ? `${openCount} ${openCount === 1 ? "task is" : "tasks are"} still open. Choose where they go.` : "Every task is done. Nice."}
-      confirmLabel="Complete sprint"
-      onConfirm={async () => {
-        try {
-          await api.planning.completeSprint(sprint.id, target);
-          invalidate();
-          toast({ tone: "spark", title: `${sprint.name} completed`, body: openCount ? `${openCount} open ${openCount === 1 ? "task" : "tasks"} moved to ${target === "backlog" ? "the backlog" : next?.name}` : undefined });
-        } catch (e) {
-          toast.error(`Couldn’t complete ${sprint.name}`, { body: errorMessage(e) });
-          throw e;
-        }
-      }}
-    >
-      {openCount > 0 && (
-        <div role="radiogroup" aria-label="Move open tasks to" className="flex flex-col gap-2.5">
-          {next && <Radio name="move-open" label={next.name} checked={target === next.id} onChange={() => setTarget(next.id)} />}
-          <Radio name="move-open" label="Backlog" checked={target === "backlog"} onChange={() => setTarget("backlog")} />
-        </div>
-      )}
-    </ConfirmDialog>
-  );
-}
-
 /** Edit name, goal and dates of a sprint. */
 export function EditSprintDialog({ sprint, open, onOpenChange }: { sprint: Sprint; open: boolean; onOpenChange: (o: boolean) => void }) {
   const invalidate = useInvalidateSprints(sprint.projectId);
@@ -167,5 +122,30 @@ export function EditSprintDialog({ sprint, open, onOpenChange }: { sprint: Sprin
       </Field>
       {error.form && <p role="alert" className="m-0 text-meta text-danger">{error.form}</p>}
     </Modal>
+  );
+}
+
+/** Delete a planned sprint; its tasks return to the backlog. */
+export function DeleteSprintDialog({ sprint, open, onOpenChange }: { sprint: Sprint; open: boolean; onOpenChange: (o: boolean) => void }) {
+  const invalidate = useInvalidateSprints(sprint.projectId);
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Delete ${sprint.name}?`}
+      description={sprint.progress.total ? `${sprint.progress.total} ${sprint.progress.total === 1 ? "task returns" : "tasks return"} to the backlog.` : "The sprint is empty."}
+      confirmLabel="Delete sprint"
+      confirmVariant="danger"
+      onConfirm={async () => {
+        try {
+          await api.planning.removeSprint(sprint.id);
+          invalidate();
+          toast.success(`${sprint.name} deleted`);
+        } catch (e) {
+          toast.error(`Couldn’t delete ${sprint.name}`, { body: errorMessage(e) });
+          throw e;
+        }
+      }}
+    />
   );
 }

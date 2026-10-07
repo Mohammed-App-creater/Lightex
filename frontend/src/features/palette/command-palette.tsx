@@ -310,6 +310,19 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
       else close();
       return;
     }
+    // An exact task key opens that task even while results for a shorter query are still on screen
+    // (search is debounced, so "PRJ-3" results can linger right after typing "PRJ-33").
+    if (e.key === "Enter" && scope === null && !e.nativeEvent.isComposing) {
+      const key = /^([a-z]{2,5})-(\d+)$/i.exec(query.trim());
+      const project = key && projects.find((p) => p.key === key[1]!.toUpperCase());
+      if (key && project && !(active?.kind === "task" && active.task.key === query.trim().toUpperCase())) {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        router.push(`${routes.project(ws.slug, project.key, "board")}?task=${project.key}-${key[2]}`);
+        return;
+      }
+    }
     if (e.key === "Backspace" && !query && scope) {
       e.preventDefault();
       changeScope(null);
