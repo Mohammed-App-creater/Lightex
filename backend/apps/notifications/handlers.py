@@ -81,6 +81,9 @@ def deliver(
     email_template: str = "",
     email_context: dict | None = None,
 ) -> Notification | None:
+    if event.project_id is None:  # in-app rows always belong to a project
+        return None
+    project_id = event.project_id
     prefs = preferences_for(recipient)
     channel = (prefs.events or {}).get(pref, {}) if pref else {"in_app": True, "email": False}
     in_app = bool(channel.get("in_app", True))
@@ -92,7 +95,7 @@ def deliver(
         recipient=recipient,
         defaults={
             "workspace_id": event.workspace_id,
-            "project_id": event.project_id,
+            "project_id": project_id,
             "task": task,
             "type": kind,
             "actor_id": event.actor_id,
