@@ -33,6 +33,32 @@ def TR(name: str):
 
 OUT = ("outsider",)
 
+
+def _planning_rows(kind: str, plural: str, perm: str, create: dict, patch: dict) -> list:
+    item = lambda w: {"item_id": getattr(w, kind).id}  # noqa: E731
+    return [
+        _row(f"project-{plural}", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+        _row(
+            f"project-{plural}",
+            "POST",
+            P,
+            allow=("manager",),
+            deny=("pmember", "viewer", "outsider"),
+            body=lambda w: create,
+        ),
+        _row(f"{kind}-detail", "GET", item, allow=("viewer",), deny=("ws_member", "outsider")),
+        _row(
+            f"{kind}-detail",
+            "PATCH",
+            item,
+            allow=("manager",),
+            deny=("pmember", "viewer", "outsider"),
+            body=lambda w: patch,
+        ),
+        _row(f"{kind}-detail", "DELETE", item, allow=("owner",), deny=("pmember", "viewer", "outsider")),
+    ]
+
+
 ROWS = [
     # ── projects ──
     _row("workspace-projects", "GET", S, allow=("owner", "ws_member"), deny=("outsider", "anon")),
@@ -262,5 +288,28 @@ ROWS = [
         allow=("pmember", "manager"),
         deny=("viewer", "ws_admin", "outsider"),
         body=lambda w: {"position": "V", "version": w.task.version},
+    ),
+    # ── planning ──
+    *_planning_rows(
+        "objective", "objectives", "objective.manage", {"title": "O", "dueDate": "2026-12-01"}, {"title": "O2"}
+    ),
+    *_planning_rows(
+        "milestone", "milestones", "milestone.manage", {"name": "M", "dueDate": "2026-12-01"}, {"name": "M2"}
+    ),
+    *_planning_rows("epic", "epics", "epic.manage", {"name": "E"}, {"name": "E2"}),
+    _row(
+        "objective-tasks",
+        "POST",
+        lambda w: {"item_id": w.objective.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"taskIds": [str(w.task.id)]},
+    ),
+    _row(
+        "objective-task-detail",
+        "DELETE",
+        lambda w: {"item_id": w.objective.id, "task_id": w.task.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
     ),
 ]

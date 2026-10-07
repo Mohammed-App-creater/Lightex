@@ -138,6 +138,65 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/epics/{item_id}:
+    get:
+      operationId: epics_retrieve
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - epics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpicOut'
+          description: ''
+    patch:
+      operationId: epics_partial_update
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - epics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEpicInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpicOut'
+          description: ''
+    delete:
+      operationId: epics_destroy
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - epics
+      responses:
+        '204':
+          description: No response body
   /api/v1/health:
     get:
       operationId: health_retrieve
@@ -231,6 +290,176 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskPageOut'
+          description: ''
+  /api/v1/milestones/{item_id}:
+    get:
+      operationId: milestones_retrieve
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - milestones
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MilestoneOut'
+          description: ''
+    patch:
+      operationId: milestones_partial_update
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - milestones
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestoneInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MilestoneOut'
+          description: ''
+    delete:
+      operationId: milestones_destroy
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - milestones
+      responses:
+        '204':
+          description: No response body
+  /api/v1/objectives/{item_id}:
+    get:
+      operationId: objectives_retrieve
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectiveOut'
+          description: ''
+    patch:
+      operationId: objectives_partial_update
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedObjectiveInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectiveOut'
+          description: ''
+    delete:
+      operationId: objectives_destroy
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      responses:
+        '204':
+          description: No response body
+  /api/v1/objectives/{item_id}/tasks:
+    post:
+      operationId: objectives_tasks_create
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskIdsInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectiveOut'
+          description: ''
+  /api/v1/objectives/{item_id}/tasks/{task_id}:
+    delete:
+      operationId: objectives_tasks_destroy
+      description: Scope = the project of the planning item in the URL.
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectiveOut'
           description: ''
   /api/v1/permissions:
     get:
@@ -496,6 +725,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/Board'
           description: ''
+  /api/v1/projects/{project_id}/epics:
+    get:
+      operationId: projects_epics_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - epics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EpicOut'
+          description: ''
+    post:
+      operationId: projects_epics_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - epics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EpicInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpicOut'
+          description: ''
   /api/v1/projects/{project_id}/labels:
     get:
       operationId: projects_labels_list
@@ -701,6 +978,102 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/projects/{project_id}/milestones:
+    get:
+      operationId: projects_milestones_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - milestones
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MilestoneOut'
+          description: ''
+    post:
+      operationId: projects_milestones_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - milestones
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MilestoneInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MilestoneOut'
+          description: ''
+  /api/v1/projects/{project_id}/objectives:
+    get:
+      operationId: projects_objectives_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObjectiveOut'
+          description: ''
+    post:
+      operationId: projects_objectives_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - objectives
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectiveInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectiveOut'
+          description: ''
   /api/v1/projects/{project_id}/statuses:
     get:
       operationId: projects_statuses_list
@@ -2056,6 +2429,65 @@ components:
       properties:
         email:
           type: string
+    EpicInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        hue:
+          type: integer
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        archived:
+          type: boolean
+    EpicOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        hue:
+          type: integer
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+        progress:
+          $ref: '#/components/schemas/ProgressOut'
+      required:
+      - archivedAt
+      - description
+      - hue
+      - id
+      - milestoneId
+      - name
+      - ownerId
+      - progress
+      - projectId
     GlyphEnum:
       enum:
       - backlog
@@ -2198,6 +2630,95 @@ components:
       required:
       - roleId
       - userId
+    MilestoneInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        startDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        completed:
+          type: boolean
+        taskIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+    MilestoneOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        startDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        taskIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        progress:
+          $ref: '#/components/schemas/MilestoneProgressOut'
+      required:
+      - completedAt
+      - description
+      - dueDate
+      - id
+      - name
+      - ownerId
+      - progress
+      - projectId
+      - startDate
+      - taskIds
+    MilestoneProgressOut:
+      type: object
+      properties:
+        done:
+          type: integer
+        total:
+          type: integer
+        percent:
+          type: integer
+        expected:
+          type: integer
+        atRisk:
+          type: boolean
+      required:
+      - atRisk
+      - done
+      - expected
+      - percent
+      - total
     MyWsAccessRequest:
       type: object
       properties:
@@ -2207,6 +2728,93 @@ components:
           nullable: true
       required:
       - request
+    ObjectiveInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        quarter:
+          type: string
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusF79Enum'
+    ObjectiveOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        quarter:
+          type: string
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusF79Enum'
+        taskIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        progress:
+          $ref: '#/components/schemas/ProgressOut'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - description
+      - dueDate
+      - id
+      - ownerId
+      - progress
+      - projectId
+      - quarter
+      - status
+      - taskIds
+      - title
+    PatchedEpicInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        hue:
+          type: integer
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        milestoneId:
+          type: string
+          format: uuid
+          nullable: true
+        archived:
+          type: boolean
     PatchedLabelInRequest:
       type: object
       properties:
@@ -2225,6 +2833,51 @@ components:
         roleId:
           type: string
           format: uuid
+    PatchedMilestoneInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        startDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        completed:
+          type: boolean
+        taskIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+    PatchedObjectiveInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        quarter:
+          type: string
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusF79Enum'
     PatchedProfileInRequest:
       type: object
       properties:
@@ -2367,6 +3020,19 @@ components:
       - key
       - label
       - scope
+    ProgressOut:
+      type: object
+      properties:
+        done:
+          type: integer
+        total:
+          type: integer
+        percent:
+          type: integer
+      required:
+      - done
+      - percent
+      - total
     Project:
       type: object
       properties:
@@ -2655,6 +3321,12 @@ components:
       - in_progress
       - done
       type: string
+    StatusF79Enum:
+      enum:
+      - active
+      - achieved
+      - dropped
+      type: string
     StatusInCategoryEnum:
       enum:
       - todo
@@ -2805,6 +3477,16 @@ components:
       - type
       - updatedAt
       - version
+    TaskIdsInRequest:
+      type: object
+      properties:
+        taskIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - taskIds
     TaskLabelsInRequest:
       type: object
       properties:
