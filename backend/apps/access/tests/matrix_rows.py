@@ -312,4 +312,24 @@ ROWS = [
         allow=("manager",),
         deny=("pmember", "viewer", "outsider"),
     ),
+    # ── sprints ──
+    *_planning_rows("sprint", "sprints", "sprint.manage", {}, {"name": "Renamed"}),
+    _row(
+        "sprint-start",
+        "POST",
+        lambda w: {"item_id": w.sprint.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {},
+    ),
+    _row(
+        "sprint-complete",
+        "POST",
+        lambda w: {"item_id": w.sprint.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"moveOpenTasksTo": "backlog"},
+    ),
+    _row("sprint-board", "GET", lambda w: {"sprint_id": w.sprint.id}, allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row("project-active-sprint", "GET", P, allow=("viewer",), deny=("ws_member", "outsider")),
 ]

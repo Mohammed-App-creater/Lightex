@@ -102,3 +102,8 @@ def _add_planning(w: World) -> None:
         project=w.project, name="Beta", start_date="2026-10-01", due_date="2026-11-01"
     )
     w.extra["epic"] = Epic.objects.create(project=w.project, name="Billing")
+    from apps.planning.models import Sprint
+
+    w.extra["sprint"] = Sprint.objects.create(
+        project=w.project, name="Sprint 1", number=1, start_date="2026-10-01", end_date="2026-10-14"
+    )

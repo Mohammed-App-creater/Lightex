@@ -1,12 +1,13 @@
-from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.response import Response
 
 from apps.access.permissions import ScopedView
 from apps.common.params import body
 from apps.projects.views import ProjectScopedView
 
-from . import selectors, services
+from . import selectors, services, sprints
 from .serializers import (
     EpicIn,
     EpicOut,
@@ -14,10 +15,13 @@ from .serializers import (
     MilestoneOut,
     ObjectiveIn,
     ObjectiveOut,
+    SprintIn,
+    SprintOut,
     TaskIdsIn,
     epic_data,
     milestone_data,
     objective_data,
+    sprint_data,
 )
 
 
@@ -155,3 +159,73 @@ class EpicDetailView(_ItemView):
     def delete(self, request, item_id):
         services.delete_epic(request.user, self.item)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ───────────────────────── sprints ─────────────────────────
+
+
+class SprintsView(ProjectScopedView):
+    required = {"GET": "project.view", "POST": "sprint.manage"}
+
+    @extend_schema(tags=["sprints"], responses={200: SprintOut(many=True)})
+    def get(self, request, project_id):
+        return Response([sprint_data(s) for s in selectors.sprints_of(self.scope)])
+
+    @extend_schema(tags=["sprints"], request=SprintIn, responses={201: SprintOut})
+    def post(self, request, project_id):
+        sprint = sprints.create_sprint(request.user, self.scope, body(request))
+        return Response(sprint_data(selectors.with_progress(sprint)), status=status.HTTP_201_CREATED)
+
+
+class SprintDetailView(_ItemView):
+    lookup = "sprint"
+    required = {"GET": "project.view", "PATCH": "sprint.manage", "DELETE": "sprint.manage"}
+
+    @extend_schema(tags=["sprints"], responses={200: SprintOut})
+    def get(self, request, item_id):
+        return Response(sprint_data(selectors.with_progress(self.item)))
+
+    @extend_schema(tags=["sprints"], request=SprintIn, responses={200: SprintOut})
+    def patch(self, request, item_id):
+        sprint = sprints.update_sprint(request.user, self.item, body(request))
+        return Response(sprint_data(selectors.with_progress(sprint)))
+
+    @extend_schema(tags=["sprints"], responses={204: None})
+    def delete(self, request, item_id):
+        sprints.delete_sprint(request.user, self.item)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SprintStartView(_ItemView):
+    lookup = "sprint"
+    required = {"POST": "sprint.manage"}
+
+    @extend_schema(tags=["sprints"], request=SprintIn, responses={200: SprintOut})
+    def post(self, request, item_id):
+        sprint = sprints.start_sprint(request.user, self.item, body(request))
+        return Response(sprint_data(selectors.with_progress(sprint)))
+
+
+class SprintCompleteView(_ItemView):
+    lookup = "sprint"
+    required = {"POST": "sprint.manage"}
+
+    @extend_schema(
+        tags=["sprints"],
+        request=inline_serializer("SprintComplete", {"moveOpenTasksTo": serializers.CharField()}),
+        responses={200: SprintOut},
+    )
+    def post(self, request, item_id):
+        sprint = sprints.complete_sprint(request.user, self.item, body(request).get("moveOpenTasksTo"))
+        return Response(sprint_data(selectors.with_progress(sprint)))
+
+
+class ActiveSprintView(ProjectScopedView):
+    required = {"GET": "project.view"}
+
+    @extend_schema(tags=["sprints"], responses={200: SprintOut})
+    def get(self, request, project_id):
+        sprint = selectors.sprints_of(self.scope).filter(state="active").first()
+        if sprint is None:  # JSON null (DRF would send an empty body)
+            return HttpResponse(b"null", content_type="application/json")
+        return Response(sprint_data(sprint))
