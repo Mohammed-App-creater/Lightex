@@ -252,4 +252,15 @@ ROWS = [
     _row("task-detail", "DELETE", TR("task"), allow=("manager",), deny=("pmember", "viewer", "outsider")),
     _row("my-tasks", "GET", allow=("owner", "viewer", "outsider"), deny=("anon",)),
     _row("my-recents", "GET", allow=("owner", "viewer", "outsider"), deny=("anon",)),
+    # ── board ──
+    _row("project-board", "GET", P, allow=("viewer", "owner"), deny=("ws_admin", "ws_member", "outsider")),
+    _row("project-backlog", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "task-move",
+        "POST",
+        T("task"),
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_admin", "outsider"),
+        body=lambda w: {"position": "V", "version": w.task.version},
+    ),
 ]

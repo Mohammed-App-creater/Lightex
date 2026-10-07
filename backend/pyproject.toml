@@ -16,6 +16,7 @@ ignore = [
   "DJ008",  # __str__ is not needed on every model
   "S308",   # mark_safe is not used on user content
   "B904",
+  "SIM108", # if/else blocks are often clearer than ternaries
 ]
 
 [tool.ruff.lint.per-file-ignores]

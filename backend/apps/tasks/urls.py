@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import board_views, views
 
 T = "tasks/<uuid:task_id>"
 
@@ -11,6 +11,9 @@ urlpatterns = [
     path("workspaces/<str:slug>/tasks", views.WorkspaceTasksView.as_view(), name="workspace-tasks"),
     path("workspaces/<str:slug>/tasks/<str:key>", views.WorkspaceTaskByKeyView.as_view(), name="workspace-task-by-key"),
     path("workspaces/<str:slug>/activity", views.WorkspaceActivityView.as_view(), name="workspace-activity"),
+    path("projects/<uuid:project_id>/board", board_views.BoardView.as_view(), name="project-board"),
+    path("projects/<uuid:project_id>/backlog", board_views.BacklogView.as_view(), name="project-backlog"),
+    path(f"{T}/move", board_views.MoveView.as_view(), name="task-move"),
     path(f"{T}/restore", views.TaskRestoreView.as_view(), name="task-restore"),
     path(f"{T}/subtasks", views.SubtasksView.as_view(), name="task-subtasks"),
     path(f"{T}/objectives", views.TaskObjectivesView.as_view(), name="task-objectives"),

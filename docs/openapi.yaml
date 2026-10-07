@@ -449,6 +449,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/Project'
           description: ''
+  /api/v1/projects/{project_id}/backlog:
+    get:
+      operationId: projects_backlog_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - board
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backlog'
+          description: ''
+  /api/v1/projects/{project_id}/board:
+    get:
+      operationId: projects_board_retrieve
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: query
+        name: filter[sprint]
+        schema:
+          type: string
+        description: '`active` (default), `all` or a sprint id'
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - board
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+          description: ''
   /api/v1/projects/{project_id}/labels:
     get:
       operationId: projects_labels_list
@@ -1055,6 +1102,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TaskLabelsInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOut'
+          description: ''
+  /api/v1/tasks/{task_id}/move:
+    post:
+      operationId: tasks_move_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - board
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskMoveRequest'
         required: true
       responses:
         '200':
@@ -1909,6 +1982,52 @@ components:
       required:
       - accessToken
       - user
+    Backlog:
+      type: object
+      properties:
+        sprints:
+          type: array
+          items:
+            $ref: '#/components/schemas/BacklogSprint'
+        backlog:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskOut'
+      required:
+      - backlog
+      - sprints
+    BacklogSprint:
+      type: object
+      properties:
+        sprintId:
+          type: string
+          format: uuid
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskOut'
+      required:
+      - sprintId
+      - tasks
+    Board:
+      type: object
+      properties:
+        statuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Status'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskOut'
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - sprintId
+      - statuses
+      - tasks
     BulkInRequest:
       type: object
       properties:
@@ -2696,6 +2815,24 @@ components:
             format: uuid
       required:
       - labelIds
+    TaskMoveRequest:
+      type: object
+      properties:
+        statusId:
+          type: string
+          format: uuid
+        sprintId:
+          type: string
+          format: uuid
+          nullable: true
+        position:
+          type: string
+          minLength: 1
+        version:
+          type: integer
+      required:
+      - position
+      - version
     TaskObjectivesInRequest:
       type: object
       properties:
