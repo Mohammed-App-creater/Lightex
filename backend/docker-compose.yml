@@ -27,10 +27,12 @@ services:
       CORS_ALLOWED_ORIGINS: http://localhost:3000
       FRONTEND_URL: http://localhost:3000
       REFRESH_COOKIE_SECURE: "false"
-      STORAGE_BACKEND: fake
+      STORAGE_BACKEND: local
+      API_PUBLIC_URL: http://localhost:8000
+      MEDIA_ROOT: /app/media
       REDIS_URL: ${REDIS_URL:-}
     ports: ["8000:8000"]
-    volumes: [".:/app"]
+    volumes: [".:/app", "media:/app/media"]
     depends_on:
       db: { condition: service_healthy }
 
@@ -50,11 +52,14 @@ services:
       DJANGO_SECRET_KEY: dev-only-not-secret
       DATABASE_URL: postgres://postgres:postgres@db:5432/lightex
       REDIS_URL: redis://redis:6379/0
-      STORAGE_BACKEND: fake
-    volumes: [".:/app"]
+      STORAGE_BACKEND: local
+      API_PUBLIC_URL: http://localhost:8000
+      MEDIA_ROOT: /app/media
+    volumes: [".:/app", "media:/app/media"]
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_started }
 
 volumes:
   pgdata:
+  media:

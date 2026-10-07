@@ -15,6 +15,10 @@ SECURE_REFERRER_POLICY = "same-origin"
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = "DENY"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+CSRF_COOKIE_HTTPONLY = True
+ADMIN_ENABLED = env.bool("ADMIN_ENABLED", default=False)
+# Without Redis the cache is per process; throttles then count per gunicorn worker (see README).
 REFRESH_COOKIE_SECURE = True
 # Health checks from the platform must not be redirected.
 SECURE_REDIRECT_EXEMPT = [r"^health$"]

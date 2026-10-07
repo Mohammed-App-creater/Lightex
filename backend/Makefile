@@ -36,7 +36,8 @@ typecheck:
 schema:
 	$(MANAGE) spectacular --file ../docs/openapi.yaml --validate
 
-check: lint typecheck cov schema
+check:
+	PY=$(PY) sh scripts/check.sh
 
 up:
 	docker compose up --build

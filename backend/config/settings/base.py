@@ -231,3 +231,7 @@ LOGGING = {
     "loggers": {"django.db.backends": {"level": "WARNING"}},
 }
 APPEND_SLASH = False
+
+# Django admin (operators only). Off in production unless explicitly enabled.
+ADMIN_ENABLED = env.bool("ADMIN_ENABLED", default=True)
+ADMIN_URL = env("ADMIN_URL", default="admin/")
