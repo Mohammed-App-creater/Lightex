@@ -20,3 +20,10 @@ def send_email_task(self, to: str, template: str, context: dict) -> None:
         logger.warning("Email to %s failed: %s", to, exc)
         if not settings.CELERY_TASK_ALWAYS_EAGER:
             raise self.retry(exc=exc) from exc
+
+
+@shared_task
+def process_event_task(event_id: str) -> None:
+    from .handlers import process_event
+
+    process_event(event_id)

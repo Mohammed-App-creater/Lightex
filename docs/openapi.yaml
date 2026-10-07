@@ -446,6 +446,130 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/notification-preferences:
+    get:
+      operationId: notification_preferences_retrieve
+      tags:
+      - notifications
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+          description: ''
+    put:
+      operationId: notification_preferences_update
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferencesRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+          description: ''
+  /api/v1/notifications:
+    get:
+      operationId: notifications_retrieve
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[tab]
+        schema:
+          type: string
+          enum:
+          - all
+          - assigned
+          - mentions
+      - in: query
+        name: filter[unread]
+        schema:
+          type: boolean
+      - in: query
+        name: filter[workspace]
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      tags:
+      - notifications
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPage'
+          description: ''
+  /api/v1/notifications/{notification_id}/read:
+    post:
+      operationId: notifications_read_create
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkReadRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/read-all:
+    post:
+      operationId: notifications_read_all_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadAllRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadAllOut'
+          description: ''
+  /api/v1/notifications/unread-count:
+    get:
+      operationId: notifications_unread_count_retrieve
+      parameters:
+      - in: query
+        name: filter[workspace]
+        schema:
+          type: string
+      tags:
+      - notifications
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCount'
+          description: ''
   /api/v1/objectives/{item_id}:
     get:
       operationId: objectives_retrieve
@@ -3144,6 +3268,11 @@ components:
           type: string
         password:
           type: string
+    MarkReadRequest:
+      type: object
+      properties:
+        read:
+          type: boolean
     MemberInRequest:
       type: object
       properties:
@@ -3254,6 +3383,107 @@ components:
           nullable: true
       required:
       - request
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/NotificationTypeEnum'
+        actorId:
+          type: string
+          format: uuid
+          nullable: true
+        projectId:
+          type: string
+          format: uuid
+        projectName:
+          type: string
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        taskKey:
+          type: string
+          nullable: true
+        taskTitle:
+          type: string
+          nullable: true
+        payload: {}
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - actorId
+      - createdAt
+      - id
+      - payload
+      - projectId
+      - projectName
+      - readAt
+      - taskId
+      - taskKey
+      - taskTitle
+      - type
+    NotificationPage:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Notification'
+        nextCursor:
+          type: string
+          nullable: true
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - counts
+      - data
+      - nextCursor
+    NotificationPreferences:
+      type: object
+      properties:
+        events:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: boolean
+        emailDelivery:
+          type: string
+      required:
+      - emailDelivery
+      - events
+    NotificationPreferencesRequest:
+      type: object
+      properties:
+        events:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: boolean
+        emailDelivery:
+          type: string
+          minLength: 1
+      required:
+      - emailDelivery
+      - events
+    NotificationTypeEnum:
+      enum:
+      - assigned
+      - mention
+      - status
+      - comment
+      - due
+      - sprint
+      type: string
     ObjectiveInRequest:
       type: object
       properties:
@@ -3492,7 +3722,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/TypeDc0Enum'
         priority:
           type: integer
           maximum: 4
@@ -3712,6 +3942,26 @@ components:
       - kanban
       - bugs
       type: string
+    ReadAllOut:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - ids
+    ReadAllRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        unread:
+          type: boolean
     Recent:
       type: object
       properties:
@@ -3995,7 +4245,7 @@ components:
         title:
           type: string
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/TypeDc0Enum'
         priority:
           type: integer
           maximum: 4
@@ -4173,7 +4423,7 @@ components:
         title:
           type: string
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/TypeDc0Enum'
         priority:
           type: integer
           maximum: 4
@@ -4299,7 +4549,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/TypeDc0Enum'
         priority:
           type: integer
           maximum: 4
@@ -4345,13 +4595,20 @@ components:
           nullable: true
         version:
           type: integer
-    TypeEnum:
+    TypeDc0Enum:
       enum:
       - feature
       - bug
       - chore
       - spike
       type: string
+    UnreadCount:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+      - count
     UploadTicket:
       type: object
       properties:

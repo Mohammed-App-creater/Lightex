@@ -83,6 +83,7 @@ def _add_project(w: World) -> None:
     _add_tasks(w)
     _add_planning(w)
     _add_collaboration(w)
+    _add_notifications(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -125,3 +126,11 @@ def _add_collaboration(w: World) -> None:
         task=w.task, uploader=owner, file_name="b.png", size=10, mime_type="image/png", kind="image",
         storage_key=base + "pending",
     )  # fmt: skip
+
+
+def _add_notifications(w: World) -> None:
+    from apps.notifications.models import Notification
+
+    w.extra["notification"] = Notification.objects.create(
+        recipient=w.users["owner"], workspace=w.ws, project=w.project, task=w.task, type="assigned"
+    )

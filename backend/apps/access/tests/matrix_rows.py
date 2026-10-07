@@ -33,6 +33,7 @@ def TR(name: str):
 
 OUT = ("outsider",)
 PUBLIC = "public"
+ANY_USER = ("owner", "viewer", "outsider")
 
 
 def _planning_rows(kind: str, plural: str, perm: str, create: dict, patch: dict) -> list:
@@ -402,4 +403,24 @@ ROWS = [
     ),
     _row("storage-local-upload", "PUT", lambda w: {"token": "x"}, allow=(PUBLIC,)),
     _row("storage-local-download", "GET", lambda w: {"token": "x"}, allow=(PUBLIC,)),
+    # ── notifications ──
+    _row("notifications", "GET", allow=ANY_USER, deny=("anon",)),
+    _row("notifications-unread-count", "GET", allow=ANY_USER, deny=("anon",)),
+    _row("notifications-read-all", "POST", allow=ANY_USER, deny=("anon",), body=lambda w: {}),
+    _row(
+        "notification-read",
+        "POST",
+        lambda w: {"notification_id": w.notification.id},
+        allow=("owner",),
+        deny=("pmember", "outsider", "anon"),
+        body=lambda w: {"read": True},
+    ),
+    _row("notification-preferences", "GET", allow=ANY_USER, deny=("anon",)),
+    _row(
+        "notification-preferences",
+        "PUT",
+        allow=("viewer",),
+        deny=("anon",),
+        body=lambda w: {"events": {}, "emailDelivery": "instant"},
+    ),
 ]
