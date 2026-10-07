@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: Lightex API
+  version: 1.0.0
+  description: 'Lightex v1: project management for software teams. All paths are under
+    /api/v1.'
+paths:
+  /api/v1/health:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+          description: ''
+  /health:
+    get:
+      operationId: health_retrieve_2
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+          description: ''
+components:
+  schemas:
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+        db:
+          type: string
+      required:
+      - db
+      - status
