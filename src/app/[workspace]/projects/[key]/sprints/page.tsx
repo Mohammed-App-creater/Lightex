@@ -1,5 +1,7 @@
 "use client";
 
-export default function Page() {
-  return <div className="p-8 text-fg-2">sprints</div>;
+import { SprintsScreen } from "@/features/sprints/sprints-screen";
+
+export default function SprintsPage() {
+  return <SprintsScreen />;
 }

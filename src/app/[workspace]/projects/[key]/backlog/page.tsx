@@ -1,5 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import { BacklogScreen } from "@/features/sprints/backlog-screen";
 
-export default function Page() {
-  return <div className="p-8 text-fg-2">backlog</div>;
+export default function BacklogPage() {
+  return (
+    <Suspense>
+      <BacklogScreen />
+    </Suspense>
+  );
 }
