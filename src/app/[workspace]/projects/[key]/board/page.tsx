@@ -1,5 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import { BoardScreen } from "@/features/board/board-screen";
 
-export default function Page() {
-  return <div className="p-8 text-fg-2">board</div>;
+export default function BoardPage() {
+  return (
+    <Suspense>
+      <BoardScreen />
+    </Suspense>
+  );
 }

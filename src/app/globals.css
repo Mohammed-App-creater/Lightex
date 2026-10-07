@@ -138,6 +138,12 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  code,
+  pre,
+  kbd,
+  .font-mono {
+    font-variant-ligatures: none;
+  }
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -433,6 +439,106 @@
   }
   .rd:checked::after {
     transform: scale(1);
+  }
+
+  /* Rich text (task description, comments) — board 14 §2.9 .tp-rt */
+  .rich {
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .rich-compact {
+    font-size: 14px;
+    line-height: 22px;
+  }
+  .rich p {
+    margin: 0 0 10px;
+  }
+  .rich > :last-child,
+  .rich-compact p:last-child {
+    margin-bottom: 0;
+  }
+  .rich h3,
+  .rich h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 12px 0 6px;
+  }
+  .rich ul,
+  .rich ol {
+    padding-left: 20px;
+    margin: 0 0 10px;
+  }
+  .rich ul {
+    list-style: disc;
+  }
+  .rich ol {
+    list-style: decimal;
+  }
+  .rich li p {
+    margin: 0;
+  }
+  .rich a {
+    color: var(--accent-t);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .rich blockquote {
+    border-left: 2px solid var(--line-2);
+    padding-left: 10px;
+    color: var(--text-2);
+    margin: 0 0 10px;
+  }
+  .rich code,
+  .rich-icode {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--raised);
+    border: 1px solid var(--line);
+  }
+  .rich pre {
+    font-variant-ligatures: none;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 20px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 4px 0 10px;
+    overflow-x: auto;
+  }
+  .rich pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .rich-mention {
+    color: var(--accent-t);
+    background: var(--accent-s);
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .rich-editor {
+    min-height: 60px;
+    outline: none;
+  }
+  .rich-editor:focus-visible {
+    box-shadow: none;
+  }
+  .rich-editor p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--text-3);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  .ProseMirror:focus-visible {
+    box-shadow: none;
   }
 
   .sr-only-focusable:not(:focus):not(:focus-within) {

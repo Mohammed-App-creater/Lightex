@@ -20,7 +20,10 @@ export function SidePanel({
   className,
   layoutId,
   closeOnEscape = true,
+  animateIn = true,
 }: {
+  /** Skip the slide-in (e.g. when a card has just morphed into the panel). */
+  animateIn?: boolean;
   open: boolean;
   onClose: () => void;
   label: string;
@@ -73,7 +76,7 @@ export function SidePanel({
       tabIndex={-1}
       aria-label={label}
       layoutId={layoutId}
-      initial={layoutId ? undefined : { opacity: 0, x: 24 }}
+      initial={layoutId || !animateIn ? false : { opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 24, transition: { duration: 0.16 } }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}

@@ -63,3 +63,8 @@ export function dueTone(due: string | null, done: boolean): "late" | "soon" | "m
 export function isToday(iso: string) {
   return iso.slice(0, 10) === todayISO() || new Date(iso).toDateString() === new Date().toDateString();
 }
+
+/** "2h" for recent activity, "Oct 2" once it's older than `days`. */
+export function agoOrDate(iso: string, days = 6) {
+  return Date.now() - new Date(iso).getTime() > days * 86_400_000 ? shortDate(iso.slice(0, 10)) : ago(iso);
+}
