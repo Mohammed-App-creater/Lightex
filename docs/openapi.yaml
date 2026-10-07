@@ -5,6 +5,62 @@ info:
   description: 'Lightex v1: project management for software teams. All paths are under
     /api/v1.'
 paths:
+  /api/v1/attachments/{attachment_id}:
+    delete:
+      operationId: attachments_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: attachment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      responses:
+        '204':
+          description: No response body
+  /api/v1/attachments/{attachment_id}/confirm:
+    post:
+      operationId: attachments_confirm_create
+      description: POST attachments/{id}/confirm (brief's form of the confirm step).
+      parameters:
+      - in: path
+        name: attachment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+  /api/v1/attachments/{attachment_id}/download-url:
+    get:
+      operationId: attachments_download_url_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: attachment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadUrl'
+          description: ''
   /api/v1/auth/forgot-password:
     post:
       operationId: auth_forgot_password_create
@@ -135,6 +191,46 @@ paths:
               $ref: '#/components/schemas/ResetInRequest'
       security:
       - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/comments/{comment_id}:
+    patch:
+      operationId: comments_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCommentInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    delete:
+      operationId: comments_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - comments
       responses:
         '204':
           description: No response body
@@ -1656,6 +1752,124 @@ paths:
                 items:
                   $ref: '#/components/schemas/ActivityOut'
           description: ''
+  /api/v1/tasks/{task_id}/attachments:
+    get:
+      operationId: tasks_attachments_retrieve
+      description: GET the task's files; POST {uploadId} confirms an upload (client
+        contract).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+    post:
+      operationId: tasks_attachments_create
+      description: GET the task's files; POST {uploadId} confirms an upload (client
+        contract).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmUploadRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+  /api/v1/tasks/{task_id}/attachments/upload-url:
+    post:
+      operationId: tasks_attachments_upload_url_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attachments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUrlInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+          description: ''
+  /api/v1/tasks/{task_id}/comments:
+    get:
+      operationId: tasks_comments_retrieve
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - comments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    post:
+      operationId: tasks_comments_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
   /api/v1/tasks/{task_id}/labels:
     put:
       operationId: tasks_labels_update
@@ -2544,6 +2758,48 @@ components:
       - taskKey
       - taskTitle
       - verb
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        uploaderId:
+          type: string
+          format: uuid
+          nullable: true
+        fileName:
+          type: string
+        size:
+          type: integer
+        mimeType:
+          type: string
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        downloadUrl:
+          type: string
+          format: uri
+        previewUrl:
+          type: string
+          format: uri
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - downloadUrl
+      - fileName
+      - id
+      - kind
+      - mimeType
+      - previewUrl
+      - size
+      - taskId
+      - uploaderId
     AuthOut:
       type: object
       properties:
@@ -2623,6 +2879,71 @@ components:
           type: string
         newPassword:
           type: string
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+          nullable: true
+        body: {}
+        mentions:
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        editedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - authorId
+      - body
+      - createdAt
+      - editedAt
+      - id
+      - mentions
+      - taskId
+    CommentInRequest:
+      type: object
+      properties:
+        body: {}
+      required:
+      - body
+    ConfirmUploadRequest:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+      required:
+      - uploadId
+    DownloadUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        previewUrl:
+          type: string
+          format: uri
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - expiresAt
+      - previewUrl
+      - url
     EmailInRequest:
       type: object
       properties:
@@ -2777,6 +3098,12 @@ components:
       required:
       - emails
       - roleId
+    KindEnum:
+      enum:
+      - image
+      - code
+      - text
+      type: string
     Label:
       type: object
       properties:
@@ -2994,6 +3321,10 @@ components:
       - status
       - taskIds
       - title
+    PatchedCommentInRequest:
+      type: object
+      properties:
+        body: {}
     PatchedEpicInRequest:
       type: object
       properties:
@@ -4021,6 +4352,45 @@ components:
       - chore
       - spike
       type: string
+    UploadTicket:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        method:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - expiresAt
+      - headers
+      - method
+      - uploadId
+      - url
+    UploadUrlInRequest:
+      type: object
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+        mimeType:
+          type: string
+          minLength: 1
+      required:
+      - fileName
+      - mimeType
+      - size
     User:
       type: object
       properties:

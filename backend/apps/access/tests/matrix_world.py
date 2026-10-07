@@ -82,6 +82,7 @@ def _add_project(w: World) -> None:
     w.extra["status_ids"] = [str(i) for i in project.statuses.order_by("position").values_list("id", flat=True)]
     _add_tasks(w)
     _add_planning(w)
+    _add_collaboration(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -107,3 +108,20 @@ def _add_planning(w: World) -> None:
     w.extra["sprint"] = Sprint.objects.create(
         project=w.project, name="Sprint 1", number=1, start_date="2026-10-01", end_date="2026-10-14"
     )
+
+
+def _add_collaboration(w: World) -> None:
+    from apps.collaboration.models import Attachment, Comment
+    from apps.common.richtext import plain_doc
+
+    owner = w.users["owner"]
+    w.extra["comment"] = Comment.objects.create(task=w.task, author=owner, body=plain_doc("hi"), body_text="hi")
+    base = f"ws/{w.ws.pk}/p/{w.project.pk}/t/{w.task.pk}/"
+    w.extra["attachment"] = Attachment.objects.create(
+        task=w.task, uploader=owner, file_name="a.png", size=10, mime_type="image/png", kind="image",
+        storage_key=base + "ready", status="ready",
+    )  # fmt: skip
+    w.extra["pending"] = Attachment.objects.create(
+        task=w.task, uploader=owner, file_name="b.png", size=10, mime_type="image/png", kind="image",
+        storage_key=base + "pending",
+    )  # fmt: skip

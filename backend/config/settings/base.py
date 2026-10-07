@@ -205,6 +205,9 @@ R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
 R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
 R2_BUCKET = env("R2_BUCKET", default="")
 R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
+MEDIA_ROOT = Path(env("MEDIA_ROOT", default=str(BASE_DIR / "media")))
+# Public base URL of this API (used for local-storage signed URLs in development).
+API_PUBLIC_URL = env("API_PUBLIC_URL", default="http://localhost:8000").rstrip("/")
 UPLOAD_URL_TTL_SECONDS = env.int("UPLOAD_URL_TTL_SECONDS", default=600)
 DOWNLOAD_URL_TTL_SECONDS = env.int("DOWNLOAD_URL_TTL_SECONDS", default=300)
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024

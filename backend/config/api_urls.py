@@ -12,4 +12,5 @@ urlpatterns = [
     path("", include("apps.projects.urls")),
     path("", include("apps.tasks.urls")),
     path("", include("apps.planning.urls")),
+    path("", include("apps.collaboration.urls")),
 ]

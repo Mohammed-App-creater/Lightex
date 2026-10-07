@@ -32,6 +32,7 @@ def TR(name: str):
 
 
 OUT = ("outsider",)
+PUBLIC = "public"
 
 
 def _planning_rows(kind: str, plural: str, perm: str, create: dict, patch: dict) -> list:
@@ -332,4 +333,73 @@ ROWS = [
     ),
     _row("sprint-board", "GET", lambda w: {"sprint_id": w.sprint.id}, allow=("viewer",), deny=("ws_admin", "outsider")),
     _row("project-active-sprint", "GET", P, allow=("viewer",), deny=("ws_member", "outsider")),
+    # ── collaboration ──
+    _row("task-comments", "GET", T("task"), allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "task-comments",
+        "POST",
+        T("task"),
+        allow=("pmember",),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {
+            "body": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "x"}]}]}
+        },
+    ),
+    _row(
+        "comment-detail",
+        "PATCH",
+        lambda w: {"comment_id": w.comment.id},
+        allow=("owner",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {
+            "body": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "y"}]}]}
+        },
+    ),
+    _row(
+        "comment-detail",
+        "DELETE",
+        lambda w: {"comment_id": w.comment.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row("task-attachments", "GET", T("task"), allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "task-attachments",
+        "POST",
+        T("task"),
+        allow=("pmember",),
+        deny=("viewer", "outsider"),
+        body=lambda w: {"uploadId": "00000000-0000-0000-0000-000000000000"},
+    ),
+    _row(
+        "task-attachment-upload-url",
+        "POST",
+        T("task"),
+        allow=("pmember",),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"fileName": "a.png", "size": 10, "mimeType": "image/png"},
+    ),
+    _row(
+        "attachment-detail",
+        "DELETE",
+        lambda w: {"attachment_id": w.attachment.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row(
+        "attachment-confirm",
+        "POST",
+        lambda w: {"attachment_id": w.pending.id},
+        allow=("owner",),
+        deny=("viewer", "outsider"),
+    ),
+    _row(
+        "attachment-download-url",
+        "GET",
+        lambda w: {"attachment_id": w.attachment.id},
+        allow=("viewer",),
+        deny=("ws_member", "outsider"),
+    ),
+    _row("storage-local-upload", "PUT", lambda w: {"token": "x"}, allow=(PUBLIC,)),
+    _row("storage-local-download", "GET", lambda w: {"token": "x"}, allow=(PUBLIC,)),
 ]
