@@ -84,6 +84,9 @@ export const workspaces = {
   resendInvite: (slug: string, id: string) => http.post<Invite>(`/workspaces/${enc(slug)}/invites/${enc(id)}/resend`),
   activity: (slug: string, query?: ListQuery) => http.get<Paginated<ActivityEntry>>(`/workspaces/${enc(slug)}/activity`, query),
   myTasks: (slug: string) => http.get<Paginated<Task>>(`/workspaces/${enc(slug)}/tasks`, { filter: { assignee: "me" }, limit: 200 }),
+  /** Tasks across visible projects assigned to a user ("me" or a user id). */
+  assignedTasks: (slug: string, assignee: string) =>
+    http.get<Paginated<Task>>(`/workspaces/${enc(slug)}/tasks`, { filter: { assignee }, limit: 200 }),
   projectDirectory: (slug: string) =>
     http.get<(ProjectAccessInfo & { isMember: boolean; status: Project["status"] })[]>(`/workspaces/${enc(slug)}/project-directory`),
 };
