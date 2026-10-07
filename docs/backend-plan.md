@@ -1,6 +1,6 @@
 # Lightex backend plan (v1)
 
-Status: written before any backend code, then kept current. The final report is
+Status: written before any backend code; all phases are now built. The final report is
 `docs/backend-final-report.md`.
 
 ## 0. Sources and precedence
