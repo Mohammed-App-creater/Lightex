@@ -240,7 +240,12 @@ def test_purge_expired_after_30_days(owner, ws, project):
             task=create_task(owner, project, {"title": "Upload"}), uploader=owner, file_name="a.png", size=1,
             mime_type="image/png", kind="image", storage_key="k/stale",
         )  # fmt: skip
-        doomed_ws = Workspace.objects.create(slug="gone", name="Gone", deleted_at=timezone.now())
+        from apps.common.testing import make_workspace
+
+        doomed_ws = make_workspace(owner, name="Gone", slug="gone")
+        doomed_project = make_project(doomed_ws, owner, key="GON")
+        create_task(owner, doomed_project, {"title": "Inside a deleted workspace"})
+        Workspace.objects.filter(pk=doomed_ws.pk).update(deleted_at=timezone.now())
     recent = create_task(owner, project, {"title": "Recent"})
     delete_task(owner, recent)
     with freeze_time("2026-10-07 10:00:00"):

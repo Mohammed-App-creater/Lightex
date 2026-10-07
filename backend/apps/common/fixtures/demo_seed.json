@@ -1,0 +1,3807 @@
+{
+ "schema": 3,
+ "users": [
+  {
+   "id": "u_alex",
+   "name": "Alex Kim",
+   "email": "alex@team.dev",
+   "hue": 285,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_jordan",
+   "name": "Jordan Lee",
+   "email": "jordan@team.dev",
+   "hue": 200,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_sam",
+   "name": "Sam Patel",
+   "email": "sam@team.dev",
+   "hue": 20,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_riley",
+   "name": "Riley Chen",
+   "email": "riley@team.dev",
+   "hue": 150,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_morgan",
+   "name": "Morgan Diaz",
+   "email": "morgan@team.dev",
+   "hue": 60,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_taylor",
+   "name": "Taylor Ng",
+   "email": "taylor@team.dev",
+   "hue": 330,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_casey",
+   "name": "Casey Brooks",
+   "email": "casey@team.dev",
+   "hue": 100,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  },
+  {
+   "id": "u_drew",
+   "name": "Drew Hart",
+   "email": "drew@guild.dev",
+   "hue": 240,
+   "avatarUrl": null,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "password": "password"
+  }
+ ],
+ "workspaces": [
+  {
+   "id": "ws_platform",
+   "slug": "platform",
+   "name": "Platform team",
+   "hue": 255,
+   "createdAt": "2026-03-02T07:15:00.000Z",
+   "deletedAt": null
+  },
+  {
+   "id": "ws_guild",
+   "slug": "design-guild",
+   "name": "Design guild",
+   "hue": 300,
+   "createdAt": "2026-05-11T07:15:00.000Z",
+   "deletedAt": null
+  }
+ ],
+ "wsMembers": [
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_alex",
+   "roleId": "ws_platform-role-owner",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T20:12:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_jordan",
+   "roleId": "ws_platform-role-admin",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T20:02:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_sam",
+   "roleId": "ws_platform-role-member",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T19:34:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_riley",
+   "roleId": "ws_platform-role-member",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T17:14:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_morgan",
+   "roleId": "ws_platform-role-member",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-06T18:14:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_taylor",
+   "roleId": "ws_platform-role-member",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-05T18:14:40.943Z"
+  },
+  {
+   "workspaceId": "ws_platform",
+   "userId": "u_casey",
+   "roleId": "ws_platform-role-admin",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T15:14:40.943Z"
+  },
+  {
+   "workspaceId": "ws_guild",
+   "userId": "u_drew",
+   "roleId": "ws_guild-role-owner",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T19:44:40.943Z"
+  },
+  {
+   "workspaceId": "ws_guild",
+   "userId": "u_alex",
+   "roleId": "ws_guild-role-member",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-04T20:14:40.943Z"
+  },
+  {
+   "workspaceId": "ws_guild",
+   "userId": "u_jordan",
+   "roleId": "ws_guild-role-admin",
+   "status": "active",
+   "joinedAt": "2026-03-02T07:15:00.000Z",
+   "lastActiveAt": "2026-10-07T12:14:40.944Z"
+  }
+ ],
+ "roles": [
+  {
+   "id": "ws_platform-role-owner",
+   "workspaceId": "ws_platform",
+   "key": "owner",
+   "name": "Owner",
+   "description": "Full control, including deleting the workspace. Can’t be assigned.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view",
+    "workspace.update",
+    "workspace.delete",
+    "workspace.manage_members",
+    "workspace.manage_roles",
+    "project.create",
+    "project.assign_admin",
+    "audit.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-admin",
+   "workspaceId": "ws_platform",
+   "key": "admin",
+   "name": "Admin",
+   "description": "Manages members, roles and projects.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view",
+    "workspace.update",
+    "workspace.manage_members",
+    "workspace.manage_roles",
+    "project.create",
+    "project.assign_admin",
+    "audit.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-member",
+   "workspaceId": "ws_platform",
+   "key": "member",
+   "name": "Member",
+   "description": "Sees the workspace and joins projects they’re added to.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-project_admin",
+   "workspaceId": "ws_platform",
+   "key": "project_admin",
+   "name": "Project Admin",
+   "description": "Everything in the project, including members and deletion.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "project.update",
+    "project.archive",
+    "project.delete",
+    "project.manage_members",
+    "objective.manage",
+    "milestone.manage",
+    "epic.manage",
+    "sprint.manage",
+    "status.manage",
+    "task.create",
+    "task.edit_any",
+    "task.edit_own",
+    "task.delete",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "comment.delete_any",
+    "attachment.upload",
+    "attachment.delete_any",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-manager",
+   "workspaceId": "ws_platform",
+   "key": "manager",
+   "name": "Manager",
+   "description": "Plans sprints and goals and edits any task.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "project.update",
+    "objective.manage",
+    "milestone.manage",
+    "epic.manage",
+    "sprint.manage",
+    "status.manage",
+    "task.create",
+    "task.edit_any",
+    "task.edit_own",
+    "task.delete",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "comment.delete_any",
+    "attachment.upload",
+    "attachment.delete_any",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-project_member",
+   "workspaceId": "ws_platform",
+   "key": "project_member",
+   "name": "Member",
+   "description": "Creates tasks, works their own, comments and uploads.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "task.create",
+    "task.edit_own",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "attachment.upload",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-viewer",
+   "workspaceId": "ws_platform",
+   "key": "viewer",
+   "name": "Viewer",
+   "description": "Read-only access to the board, backlog and goals.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-owner",
+   "workspaceId": "ws_guild",
+   "key": "owner",
+   "name": "Owner",
+   "description": "Full control, including deleting the workspace. Can’t be assigned.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view",
+    "workspace.update",
+    "workspace.delete",
+    "workspace.manage_members",
+    "workspace.manage_roles",
+    "project.create",
+    "project.assign_admin",
+    "audit.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-admin",
+   "workspaceId": "ws_guild",
+   "key": "admin",
+   "name": "Admin",
+   "description": "Manages members, roles and projects.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view",
+    "workspace.update",
+    "workspace.manage_members",
+    "workspace.manage_roles",
+    "project.create",
+    "project.assign_admin",
+    "audit.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-member",
+   "workspaceId": "ws_guild",
+   "key": "member",
+   "name": "Member",
+   "description": "Sees the workspace and joins projects they’re added to.",
+   "scope": "workspace",
+   "isSystem": true,
+   "permissions": [
+    "workspace.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-project_admin",
+   "workspaceId": "ws_guild",
+   "key": "project_admin",
+   "name": "Project Admin",
+   "description": "Everything in the project, including members and deletion.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "project.update",
+    "project.archive",
+    "project.delete",
+    "project.manage_members",
+    "objective.manage",
+    "milestone.manage",
+    "epic.manage",
+    "sprint.manage",
+    "status.manage",
+    "task.create",
+    "task.edit_any",
+    "task.edit_own",
+    "task.delete",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "comment.delete_any",
+    "attachment.upload",
+    "attachment.delete_any",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-manager",
+   "workspaceId": "ws_guild",
+   "key": "manager",
+   "name": "Manager",
+   "description": "Plans sprints and goals and edits any task.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "project.update",
+    "objective.manage",
+    "milestone.manage",
+    "epic.manage",
+    "sprint.manage",
+    "status.manage",
+    "task.create",
+    "task.edit_any",
+    "task.edit_own",
+    "task.delete",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "comment.delete_any",
+    "attachment.upload",
+    "attachment.delete_any",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-project_member",
+   "workspaceId": "ws_guild",
+   "key": "project_member",
+   "name": "Member",
+   "description": "Creates tasks, works their own, comments and uploads.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view",
+    "task.create",
+    "task.edit_own",
+    "task.assign",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "attachment.upload",
+    "report.view"
+   ]
+  },
+  {
+   "id": "ws_guild-role-viewer",
+   "workspaceId": "ws_guild",
+   "key": "viewer",
+   "name": "Viewer",
+   "description": "Read-only access to the board, backlog and goals.",
+   "scope": "project",
+   "isSystem": true,
+   "permissions": [
+    "project.view"
+   ]
+  },
+  {
+   "id": "ws_platform-role-release",
+   "workspaceId": "ws_platform",
+   "key": null,
+   "name": "Release captain",
+   "description": "Runs sprints and milestones for a release.",
+   "scope": "project",
+   "isSystem": false,
+   "permissions": [
+    "project.view",
+    "sprint.manage",
+    "milestone.manage",
+    "task.create",
+    "task.edit_any",
+    "task.edit_own",
+    "task.move",
+    "comment.create",
+    "comment.edit_own",
+    "report.view"
+   ]
+  }
+ ],
+ "invites": [
+  {
+   "id": "inv_1",
+   "token": "invite-quinn",
+   "workspaceId": "ws_platform",
+   "email": "quinn@team.dev",
+   "roleId": "ws_platform-role-member",
+   "invitedById": "u_alex",
+   "createdAt": "2026-10-06T18:14:40.944Z",
+   "expiresAt": "2026-10-13T20:14:40.944Z",
+   "status": "pending"
+  },
+  {
+   "id": "inv_2",
+   "token": "invite-avery",
+   "workspaceId": "ws_platform",
+   "email": "avery@contractor.io",
+   "roleId": "ws_platform-role-member",
+   "invitedById": "u_jordan",
+   "createdAt": "2026-10-03T20:14:40.944Z",
+   "expiresAt": "2026-10-10T20:14:40.944Z",
+   "status": "pending"
+  }
+ ],
+ "projects": [
+  {
+   "id": "p_prj",
+   "workspaceId": "ws_platform",
+   "key": "PRJ",
+   "name": "Platform Rebuild",
+   "description": "Rebuild the core platform for speed: new board engine, auth overhaul and billing v2.",
+   "hue": 255,
+   "leadId": "u_alex",
+   "status": "active",
+   "template": "scrum",
+   "createdAt": "2026-06-01T07:15:00.000Z",
+   "taskSeq": 71
+  },
+  {
+   "id": "p_mob",
+   "workspaceId": "ws_platform",
+   "key": "MOB",
+   "name": "Mobile App",
+   "description": "Native iOS and Android apps with offline-first task editing.",
+   "hue": 175,
+   "leadId": "u_morgan",
+   "status": "active",
+   "template": "kanban",
+   "createdAt": "2026-06-01T07:15:00.000Z",
+   "taskSeq": 19
+  },
+  {
+   "id": "p_inf",
+   "workspaceId": "ws_platform",
+   "key": "INF",
+   "name": "Infra",
+   "description": "Clusters, edge cache, observability and the on-call rota.",
+   "hue": 75,
+   "leadId": "u_morgan",
+   "status": "active",
+   "template": "bugs",
+   "createdAt": "2026-06-01T07:15:00.000Z",
+   "taskSeq": 13
+  },
+  {
+   "id": "p_dsn",
+   "workspaceId": "ws_guild",
+   "key": "DSN",
+   "name": "Design System",
+   "description": "Tokens, components and the docs site.",
+   "hue": 300,
+   "leadId": "u_drew",
+   "status": "active",
+   "template": "kanban",
+   "createdAt": "2026-06-01T07:15:00.000Z",
+   "taskSeq": 4
+  }
+ ],
+ "projectMembers": [
+  {
+   "projectId": "p_prj",
+   "userId": "u_alex",
+   "roleId": "ws_platform-role-project_admin",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_prj",
+   "userId": "u_jordan",
+   "roleId": "ws_platform-role-manager",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_prj",
+   "userId": "u_sam",
+   "roleId": "ws_platform-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_prj",
+   "userId": "u_morgan",
+   "roleId": "ws_platform-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_prj",
+   "userId": "u_taylor",
+   "roleId": "ws_platform-role-viewer",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_prj",
+   "userId": "u_riley",
+   "roleId": "ws_platform-role-release",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_mob",
+   "userId": "u_morgan",
+   "roleId": "ws_platform-role-project_admin",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_mob",
+   "userId": "u_alex",
+   "roleId": "ws_platform-role-manager",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_mob",
+   "userId": "u_jordan",
+   "roleId": "ws_platform-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_mob",
+   "userId": "u_sam",
+   "roleId": "ws_platform-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_mob",
+   "userId": "u_taylor",
+   "roleId": "ws_platform-role-viewer",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_inf",
+   "userId": "u_morgan",
+   "roleId": "ws_platform-role-project_admin",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_inf",
+   "userId": "u_riley",
+   "roleId": "ws_platform-role-manager",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_inf",
+   "userId": "u_alex",
+   "roleId": "ws_platform-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_dsn",
+   "userId": "u_drew",
+   "roleId": "ws_guild-role-project_admin",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_dsn",
+   "userId": "u_alex",
+   "roleId": "ws_guild-role-project_member",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  },
+  {
+   "projectId": "p_dsn",
+   "userId": "u_jordan",
+   "roleId": "ws_guild-role-manager",
+   "addedAt": "2026-06-01T07:15:00.000Z"
+  }
+ ],
+ "accessRequests": [],
+ "statuses": [
+  {
+   "id": "p_prj-st-backlog",
+   "projectId": "p_prj",
+   "name": "Backlog",
+   "category": "todo",
+   "glyph": "backlog",
+   "position": 0
+  },
+  {
+   "id": "p_prj-st-todo",
+   "projectId": "p_prj",
+   "name": "Todo",
+   "category": "todo",
+   "glyph": "todo",
+   "position": 1
+  },
+  {
+   "id": "p_prj-st-progress",
+   "projectId": "p_prj",
+   "name": "In progress",
+   "category": "in_progress",
+   "glyph": "progress",
+   "position": 2
+  },
+  {
+   "id": "p_prj-st-review",
+   "projectId": "p_prj",
+   "name": "In review",
+   "category": "in_progress",
+   "glyph": "review",
+   "position": 3
+  },
+  {
+   "id": "p_prj-st-done",
+   "projectId": "p_prj",
+   "name": "Done",
+   "category": "done",
+   "glyph": "done",
+   "position": 4
+  },
+  {
+   "id": "p_prj-st-canceled",
+   "projectId": "p_prj",
+   "name": "Canceled",
+   "category": "done",
+   "glyph": "canceled",
+   "position": 5
+  },
+  {
+   "id": "p_mob-st-backlog",
+   "projectId": "p_mob",
+   "name": "Backlog",
+   "category": "todo",
+   "glyph": "backlog",
+   "position": 0
+  },
+  {
+   "id": "p_mob-st-todo",
+   "projectId": "p_mob",
+   "name": "Todo",
+   "category": "todo",
+   "glyph": "todo",
+   "position": 1
+  },
+  {
+   "id": "p_mob-st-progress",
+   "projectId": "p_mob",
+   "name": "In progress",
+   "category": "in_progress",
+   "glyph": "progress",
+   "position": 2
+  },
+  {
+   "id": "p_mob-st-review",
+   "projectId": "p_mob",
+   "name": "In review",
+   "category": "in_progress",
+   "glyph": "review",
+   "position": 3
+  },
+  {
+   "id": "p_mob-st-done",
+   "projectId": "p_mob",
+   "name": "Done",
+   "category": "done",
+   "glyph": "done",
+   "position": 4
+  },
+  {
+   "id": "p_mob-st-canceled",
+   "projectId": "p_mob",
+   "name": "Canceled",
+   "category": "done",
+   "glyph": "canceled",
+   "position": 5
+  },
+  {
+   "id": "p_inf-st-backlog",
+   "projectId": "p_inf",
+   "name": "Backlog",
+   "category": "todo",
+   "glyph": "backlog",
+   "position": 0
+  },
+  {
+   "id": "p_inf-st-todo",
+   "projectId": "p_inf",
+   "name": "Todo",
+   "category": "todo",
+   "glyph": "todo",
+   "position": 1
+  },
+  {
+   "id": "p_inf-st-progress",
+   "projectId": "p_inf",
+   "name": "In progress",
+   "category": "in_progress",
+   "glyph": "progress",
+   "position": 2
+  },
+  {
+   "id": "p_inf-st-review",
+   "projectId": "p_inf",
+   "name": "In review",
+   "category": "in_progress",
+   "glyph": "review",
+   "position": 3
+  },
+  {
+   "id": "p_inf-st-done",
+   "projectId": "p_inf",
+   "name": "Done",
+   "category": "done",
+   "glyph": "done",
+   "position": 4
+  },
+  {
+   "id": "p_inf-st-canceled",
+   "projectId": "p_inf",
+   "name": "Canceled",
+   "category": "done",
+   "glyph": "canceled",
+   "position": 5
+  },
+  {
+   "id": "p_dsn-st-backlog",
+   "projectId": "p_dsn",
+   "name": "Backlog",
+   "category": "todo",
+   "glyph": "backlog",
+   "position": 0
+  },
+  {
+   "id": "p_dsn-st-todo",
+   "projectId": "p_dsn",
+   "name": "Todo",
+   "category": "todo",
+   "glyph": "todo",
+   "position": 1
+  },
+  {
+   "id": "p_dsn-st-progress",
+   "projectId": "p_dsn",
+   "name": "In progress",
+   "category": "in_progress",
+   "glyph": "progress",
+   "position": 2
+  },
+  {
+   "id": "p_dsn-st-review",
+   "projectId": "p_dsn",
+   "name": "In review",
+   "category": "in_progress",
+   "glyph": "review",
+   "position": 3
+  },
+  {
+   "id": "p_dsn-st-done",
+   "projectId": "p_dsn",
+   "name": "Done",
+   "category": "done",
+   "glyph": "done",
+   "position": 4
+  },
+  {
+   "id": "p_dsn-st-canceled",
+   "projectId": "p_dsn",
+   "name": "Canceled",
+   "category": "done",
+   "glyph": "canceled",
+   "position": 5
+  }
+ ],
+ "labels": [
+  {
+   "id": "p_prj-lb-frontend",
+   "projectId": "p_prj",
+   "name": "frontend",
+   "color": "var(--low)"
+  },
+  {
+   "id": "p_prj-lb-backend",
+   "projectId": "p_prj",
+   "name": "backend",
+   "color": "var(--accent-t)"
+  },
+  {
+   "id": "p_prj-lb-bug",
+   "projectId": "p_prj",
+   "name": "bug",
+   "color": "var(--danger)"
+  },
+  {
+   "id": "p_prj-lb-perf",
+   "projectId": "p_prj",
+   "name": "perf",
+   "color": "var(--info)"
+  },
+  {
+   "id": "p_prj-lb-infra",
+   "projectId": "p_prj",
+   "name": "infra",
+   "color": "var(--orange)"
+  },
+  {
+   "id": "p_prj-lb-design",
+   "projectId": "p_prj",
+   "name": "design",
+   "color": "var(--warn)"
+  },
+  {
+   "id": "p_mob-lb-frontend",
+   "projectId": "p_mob",
+   "name": "frontend",
+   "color": "var(--low)"
+  },
+  {
+   "id": "p_mob-lb-backend",
+   "projectId": "p_mob",
+   "name": "backend",
+   "color": "var(--accent-t)"
+  },
+  {
+   "id": "p_mob-lb-bug",
+   "projectId": "p_mob",
+   "name": "bug",
+   "color": "var(--danger)"
+  },
+  {
+   "id": "p_mob-lb-perf",
+   "projectId": "p_mob",
+   "name": "perf",
+   "color": "var(--info)"
+  },
+  {
+   "id": "p_mob-lb-infra",
+   "projectId": "p_mob",
+   "name": "infra",
+   "color": "var(--orange)"
+  },
+  {
+   "id": "p_mob-lb-design",
+   "projectId": "p_mob",
+   "name": "design",
+   "color": "var(--warn)"
+  },
+  {
+   "id": "p_inf-lb-frontend",
+   "projectId": "p_inf",
+   "name": "frontend",
+   "color": "var(--low)"
+  },
+  {
+   "id": "p_inf-lb-backend",
+   "projectId": "p_inf",
+   "name": "backend",
+   "color": "var(--accent-t)"
+  },
+  {
+   "id": "p_inf-lb-bug",
+   "projectId": "p_inf",
+   "name": "bug",
+   "color": "var(--danger)"
+  },
+  {
+   "id": "p_inf-lb-perf",
+   "projectId": "p_inf",
+   "name": "perf",
+   "color": "var(--info)"
+  },
+  {
+   "id": "p_inf-lb-infra",
+   "projectId": "p_inf",
+   "name": "infra",
+   "color": "var(--orange)"
+  },
+  {
+   "id": "p_inf-lb-design",
+   "projectId": "p_inf",
+   "name": "design",
+   "color": "var(--warn)"
+  },
+  {
+   "id": "p_dsn-lb-frontend",
+   "projectId": "p_dsn",
+   "name": "frontend",
+   "color": "var(--low)"
+  },
+  {
+   "id": "p_dsn-lb-backend",
+   "projectId": "p_dsn",
+   "name": "backend",
+   "color": "var(--accent-t)"
+  },
+  {
+   "id": "p_dsn-lb-bug",
+   "projectId": "p_dsn",
+   "name": "bug",
+   "color": "var(--danger)"
+  },
+  {
+   "id": "p_dsn-lb-perf",
+   "projectId": "p_dsn",
+   "name": "perf",
+   "color": "var(--info)"
+  },
+  {
+   "id": "p_dsn-lb-infra",
+   "projectId": "p_dsn",
+   "name": "infra",
+   "color": "var(--orange)"
+  },
+  {
+   "id": "p_dsn-lb-design",
+   "projectId": "p_dsn",
+   "name": "design",
+   "color": "var(--warn)"
+  }
+ ],
+ "objectives": [
+  {
+   "id": "ob_latency",
+   "projectId": "p_prj",
+   "title": "Cut p95 latency to 200ms",
+   "description": "Board load and task open, measured at the edge.",
+   "ownerId": "u_riley",
+   "quarter": "Q4",
+   "dueDate": "2026-12-15",
+   "status": "active",
+   "createdAt": "2026-09-01T07:15:00.000Z"
+  },
+  {
+   "id": "ob_beta",
+   "projectId": "p_prj",
+   "title": "Ship beta on time",
+   "description": "Beta to 50 teams by Oct 21.",
+   "ownerId": "u_alex",
+   "quarter": "Q4",
+   "dueDate": "2026-10-21",
+   "status": "active",
+   "createdAt": "2026-09-01T07:15:00.000Z"
+  },
+  {
+   "id": "ob_p1",
+   "projectId": "p_prj",
+   "title": "Zero P1 incidents in Q4",
+   "description": "",
+   "ownerId": "u_morgan",
+   "quarter": "Q4",
+   "dueDate": "2026-12-31",
+   "status": "active",
+   "createdAt": "2026-09-01T07:15:00.000Z"
+  },
+  {
+   "id": "ob_onboard",
+   "projectId": "p_prj",
+   "title": "Onboarding under 5 minutes",
+   "description": "From sign-up to first task moved.",
+   "ownerId": "u_taylor",
+   "quarter": "Q4",
+   "dueDate": "2026-11-30",
+   "status": "active",
+   "createdAt": "2026-09-01T07:15:00.000Z"
+  },
+  {
+   "id": "ob_mob_offline",
+   "projectId": "p_mob",
+   "title": "Offline edits never lost",
+   "description": "",
+   "ownerId": "u_morgan",
+   "quarter": "Q4",
+   "dueDate": "2026-11-30",
+   "status": "active",
+   "createdAt": "2026-09-05T07:15:00.000Z"
+  }
+ ],
+ "milestones": [
+  {
+   "id": "ms_alpha",
+   "projectId": "p_prj",
+   "name": "Alpha",
+   "description": "Internal dogfood build.",
+   "ownerId": "u_sam",
+   "startDate": "2026-08-10",
+   "dueDate": "2026-09-12",
+   "completedAt": "2026-09-12T13:15:00.000Z"
+  },
+  {
+   "id": "ms_beta",
+   "projectId": "p_prj",
+   "name": "Beta launch",
+   "description": "Invite-only beta for 50 teams.",
+   "ownerId": "u_alex",
+   "startDate": "2026-09-12",
+   "dueDate": "2026-10-21",
+   "completedAt": null
+  },
+  {
+   "id": "ms_rc",
+   "projectId": "p_prj",
+   "name": "Release candidate",
+   "description": "Feature-complete, bug bash.",
+   "ownerId": "u_jordan",
+   "startDate": "2026-09-28",
+   "dueDate": "2026-11-18",
+   "completedAt": null
+  },
+  {
+   "id": "ms_ga",
+   "projectId": "p_prj",
+   "name": "General availability",
+   "description": "Public launch.",
+   "ownerId": "u_alex",
+   "startDate": "2026-10-21",
+   "dueDate": "2026-12-09",
+   "completedAt": null
+  },
+  {
+   "id": "ms_mob_store",
+   "projectId": "p_mob",
+   "name": "App Store submission",
+   "description": "",
+   "ownerId": "u_morgan",
+   "startDate": "2026-09-20",
+   "dueDate": "2026-11-02",
+   "completedAt": null
+  }
+ ],
+ "epics": [
+  {
+   "id": "ep_auth",
+   "projectId": "p_prj",
+   "name": "Auth overhaul",
+   "description": "SSO, passkeys and session hardening.",
+   "hue": 255,
+   "ownerId": "u_alex",
+   "milestoneId": "ms_beta",
+   "archivedAt": null
+  },
+  {
+   "id": "ep_board",
+   "projectId": "p_prj",
+   "name": "Board performance",
+   "description": "60fps boards at 1,000 cards.",
+   "hue": 200,
+   "ownerId": "u_jordan",
+   "milestoneId": "ms_beta",
+   "archivedAt": null
+  },
+  {
+   "id": "ep_sprint",
+   "projectId": "p_prj",
+   "name": "Sprint engine",
+   "description": "Rollover, carry-over and reports.",
+   "hue": 150,
+   "ownerId": "u_riley",
+   "milestoneId": "ms_rc",
+   "archivedAt": null
+  },
+  {
+   "id": "ep_bill",
+   "projectId": "p_prj",
+   "name": "Billing v2",
+   "description": "Proration, invoices and tax.",
+   "hue": 60,
+   "ownerId": "u_sam",
+   "milestoneId": "ms_ga",
+   "archivedAt": null
+  },
+  {
+   "id": "ep_mob_off",
+   "projectId": "p_mob",
+   "name": "Offline mode",
+   "description": "Queue edits while offline.",
+   "hue": 175,
+   "ownerId": null,
+   "milestoneId": null,
+   "archivedAt": null
+  },
+  {
+   "id": "ep_inf_edge",
+   "projectId": "p_inf",
+   "name": "Edge cache",
+   "description": "Serve reads from the edge.",
+   "hue": 75,
+   "ownerId": null,
+   "milestoneId": null,
+   "archivedAt": null
+  },
+  {
+   "id": "ep_legacy",
+   "projectId": "p_prj",
+   "name": "Legacy importer",
+   "description": "Import from Jira and Trello.",
+   "hue": 25,
+   "ownerId": "u_morgan",
+   "milestoneId": "ms_alpha",
+   "archivedAt": "2026-09-14T07:15:00.000Z"
+  }
+ ],
+ "sprints": [
+  {
+   "id": "sp_12",
+   "projectId": "p_prj",
+   "name": "Sprint 12",
+   "number": 12,
+   "goal": "Alpha out the door.",
+   "startDate": "2026-09-03",
+   "endDate": "2026-09-16",
+   "state": "completed",
+   "completedAt": "2026-09-16T14:15:00.000Z"
+  },
+  {
+   "id": "sp_13",
+   "projectId": "p_prj",
+   "name": "Sprint 13",
+   "number": 13,
+   "goal": "Board virtualization and tax IDs.",
+   "startDate": "2026-09-17",
+   "endDate": "2026-09-30",
+   "state": "completed",
+   "completedAt": "2026-09-30T14:15:00.000Z"
+  },
+  {
+   "id": "sp_14",
+   "projectId": "p_prj",
+   "name": "Sprint 14",
+   "number": 14,
+   "goal": "Beta blockers: SSO, reflow, carry-over.",
+   "startDate": "2026-10-01",
+   "endDate": "2026-10-14",
+   "state": "active",
+   "completedAt": null
+  },
+  {
+   "id": "sp_15",
+   "projectId": "p_prj",
+   "name": "Sprint 15",
+   "number": 15,
+   "goal": "",
+   "startDate": "2026-10-15",
+   "endDate": "2026-10-28",
+   "state": "planned",
+   "completedAt": null
+  },
+  {
+   "id": "sp_mob_7",
+   "projectId": "p_mob",
+   "name": "Sprint 7",
+   "number": 7,
+   "goal": "Offline queue.",
+   "startDate": "2026-09-30",
+   "endDate": "2026-10-13",
+   "state": "active",
+   "completedAt": null
+  },
+  {
+   "id": "sp_inf_3",
+   "projectId": "p_inf",
+   "name": "Sprint 3",
+   "number": 3,
+   "goal": "Edge cache rollout.",
+   "startDate": "2026-10-01",
+   "endDate": "2026-10-14",
+   "state": "active",
+   "completedAt": null
+  },
+  {
+   "id": "sp_dsn_2",
+   "projectId": "p_dsn",
+   "name": "Sprint 2",
+   "number": 2,
+   "goal": "",
+   "startDate": "2026-10-01",
+   "endDate": "2026-10-14",
+   "state": "active",
+   "completedAt": null
+  }
+ ],
+ "tasks": [
+  {
+   "id": "p_prj-t31",
+   "projectId": "p_prj",
+   "key": "PRJ-31",
+   "number": 31,
+   "title": "Rotate refresh tokens on reuse",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 3,
+   "dueDate": "2026-09-30",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": "2026-09-26T08:15:00.000Z",
+   "completedAt": "2026-09-29T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t33",
+   "projectId": "p_prj",
+   "key": "PRJ-33",
+   "number": 33,
+   "title": "SSO login with Okta",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": "2026-10-14",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend",
+    "p_prj-lb-frontend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t34",
+   "projectId": "p_prj",
+   "key": "PRJ-34",
+   "number": 34,
+   "title": "Session timeout modal",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-10",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend",
+    "p_prj-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t36",
+   "projectId": "p_prj",
+   "key": "PRJ-36",
+   "number": 36,
+   "title": "Audit log for sign-ins",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_prj-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": null,
+   "epicId": "ep_auth",
+   "milestoneId": "ms_rc",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t38",
+   "projectId": "p_prj",
+   "key": "PRJ-38",
+   "number": 38,
+   "title": "Passkey enrollment flow",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-16",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_onboard"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t40",
+   "projectId": "p_prj",
+   "key": "PRJ-40",
+   "number": 40,
+   "title": "Virtualize board columns",
+   "type": "feature",
+   "priority": 4,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 5,
+   "dueDate": "2026-10-02",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_latency"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend",
+    "p_prj-lb-perf"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": "2026-09-23T08:15:00.000Z",
+   "completedAt": "2026-09-26T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t42",
+   "projectId": "p_prj",
+   "key": "PRJ-42",
+   "number": 42,
+   "title": "Fix flaky board reflow on column resize",
+   "type": "bug",
+   "priority": 3,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 3,
+   "dueDate": "2026-10-21",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_latency",
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend",
+    "p_prj-lb-bug"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-10-02T06:15:00.000Z",
+   "updatedAt": "2026-10-02T06:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Columns jump when the sidebar collapses mid-drag. Reproduce by resizing the window while a card is held."
+       }
+      ]
+     },
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": "typescript"
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "// keep columns in sync\nconst ro = new ResizeObserver(() => {\n  requestAnimationFrame(() => reflow(columns));\n});"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "p_prj-t43",
+   "projectId": "p_prj",
+   "key": "PRJ-43",
+   "number": 43,
+   "title": "Add ResizeObserver to the board",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": "ep_board",
+   "milestoneId": null,
+   "sprintId": "sp_14",
+   "parentId": "p_prj-t42",
+   "objectiveIds": [],
+   "labelIds": [],
+   "position": "t",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": "2026-10-02T08:15:00.000Z",
+   "completedAt": "2026-10-05T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t44",
+   "projectId": "p_prj",
+   "key": "PRJ-44",
+   "number": 44,
+   "title": "Debounce reflow on sidebar toggle",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": "2026-10-08",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": "p_prj-t42",
+   "objectiveIds": [
+    "ob_latency"
+   ],
+   "labelIds": [
+    "p_prj-lb-perf"
+   ],
+   "position": "t",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t45",
+   "projectId": "p_prj",
+   "key": "PRJ-45",
+   "number": 45,
+   "title": "Regression test: drag while resizing",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": "ep_board",
+   "milestoneId": null,
+   "sprintId": "sp_14",
+   "parentId": "p_prj-t42",
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-perf"
+   ],
+   "position": "t",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t46",
+   "projectId": "p_prj",
+   "key": "PRJ-46",
+   "number": 46,
+   "title": "Beta invite emails",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-12",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "x",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t47",
+   "projectId": "p_prj",
+   "key": "PRJ-47",
+   "number": 47,
+   "title": "Cache card thumbnails",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_prj-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": null,
+   "epicId": "ep_board",
+   "milestoneId": "ms_ga",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [
+    "ob_latency"
+   ],
+   "labelIds": [
+    "p_prj-lb-perf"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t48",
+   "projectId": "p_prj",
+   "key": "PRJ-48",
+   "number": 48,
+   "title": "Token refresh race on cold start",
+   "type": "bug",
+   "priority": 3,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 2,
+   "dueDate": "2026-10-09",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-backend",
+    "p_prj-lb-bug"
+   ],
+   "position": "z",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t49",
+   "projectId": "p_prj",
+   "key": "PRJ-49",
+   "number": 49,
+   "title": "Sprint rollover job",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-09-10",
+   "epicId": "ep_sprint",
+   "milestoneId": "ms_alpha",
+   "sprintId": "sp_12",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "x",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-09-06T08:15:00.000Z",
+   "completedAt": "2026-09-09T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t50",
+   "projectId": "p_prj",
+   "key": "PRJ-50",
+   "number": 50,
+   "title": "Carry-over prompt at sprint close",
+   "type": "feature",
+   "priority": 4,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-06",
+   "epicId": "ep_sprint",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "zV",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t51",
+   "projectId": "p_prj",
+   "key": "PRJ-51",
+   "number": 51,
+   "title": "Keyboard shortcut sheet",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-review",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-11",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-frontend",
+    "p_prj-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t52",
+   "projectId": "p_prj",
+   "key": "PRJ-52",
+   "number": 52,
+   "title": "Velocity chart by assignee",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_riley",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-20",
+   "epicId": "ep_sprint",
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "x",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t53",
+   "projectId": "p_prj",
+   "key": "PRJ-53",
+   "number": 53,
+   "title": "Burndown off by one day",
+   "type": "bug",
+   "priority": 3,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": "2026-09-29",
+   "epicId": "ep_sprint",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_p1"
+   ],
+   "labelIds": [
+    "p_prj-lb-bug"
+   ],
+   "position": "z",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": "2026-09-25T08:15:00.000Z",
+   "completedAt": "2026-09-28T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t54",
+   "projectId": "p_prj",
+   "key": "PRJ-54",
+   "number": 54,
+   "title": "Rate-limit login attempts",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 2,
+   "dueDate": "2026-10-14",
+   "epicId": "ep_auth",
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "z",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t55",
+   "projectId": "p_prj",
+   "key": "PRJ-55",
+   "number": 55,
+   "title": "Capacity planning per sprint",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": null,
+   "epicId": "ep_sprint",
+   "milestoneId": "ms_ga",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-design"
+   ],
+   "position": "t",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t56",
+   "projectId": "p_prj",
+   "key": "PRJ-56",
+   "number": 56,
+   "title": "Persist saved filters per project",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-review",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-13",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t57",
+   "projectId": "p_prj",
+   "key": "PRJ-57",
+   "number": 57,
+   "title": "Proration on plan change",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": "2026-10-15",
+   "epicId": "ep_bill",
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "zl",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t58",
+   "projectId": "p_prj",
+   "key": "PRJ-58",
+   "number": 58,
+   "title": "Invoice PDF redesign",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-17",
+   "epicId": "ep_bill",
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-design",
+    "p_prj-lb-frontend"
+   ],
+   "position": "zV",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t60",
+   "projectId": "p_prj",
+   "key": "PRJ-60",
+   "number": 60,
+   "title": "Stripe webhook retries",
+   "type": "feature",
+   "priority": 4,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-09-08",
+   "epicId": "ep_bill",
+   "milestoneId": "ms_alpha",
+   "sprintId": "sp_12",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-backend",
+    "p_prj-lb-infra"
+   ],
+   "position": "zV",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": "2026-09-04T08:15:00.000Z",
+   "completedAt": "2026-09-07T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t61",
+   "projectId": "p_prj",
+   "key": "PRJ-61",
+   "number": 61,
+   "title": "Tax IDs for EU customers",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-01",
+   "epicId": "ep_bill",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_beta"
+   ],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "zl",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": "2026-09-27T08:15:00.000Z",
+   "completedAt": "2026-09-30T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t62",
+   "projectId": "p_prj",
+   "key": "PRJ-62",
+   "number": 62,
+   "title": "Command palette v1",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 5,
+   "dueDate": "2026-09-28",
+   "epicId": "ep_board",
+   "milestoneId": "ms_beta",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-frontend"
+   ],
+   "position": "zt",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": "2026-09-22T08:15:00.000Z",
+   "completedAt": "2026-09-25T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t63",
+   "projectId": "p_prj",
+   "key": "PRJ-63",
+   "number": 63,
+   "title": "Legacy coupon migration",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_prj-st-canceled",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": null,
+   "epicId": "ep_bill",
+   "milestoneId": null,
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_prj-lb-infra"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t64",
+   "projectId": "p_prj",
+   "key": "PRJ-64",
+   "number": 64,
+   "title": "Public status page",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-09-25",
+   "epicId": null,
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_13",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_p1"
+   ],
+   "labelIds": [
+    "p_prj-lb-infra"
+   ],
+   "position": "zx",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": "2026-09-21T08:15:00.000Z",
+   "completedAt": "2026-09-24T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t65",
+   "projectId": "p_prj",
+   "key": "PRJ-65",
+   "number": 65,
+   "title": "Migrate audit log",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-done",
+   "assigneeId": "u_riley",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-05",
+   "epicId": null,
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_latency"
+   ],
+   "labelIds": [
+    "p_prj-lb-backend"
+   ],
+   "position": "zz",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-10-02T08:15:00.000Z",
+   "completedAt": "2026-10-05T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t66",
+   "projectId": "p_prj",
+   "key": "PRJ-66",
+   "number": 66,
+   "title": "On-call runbook",
+   "type": "chore",
+   "priority": 2,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-18",
+   "epicId": null,
+   "milestoneId": "ms_rc",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_p1"
+   ],
+   "labelIds": [
+    "p_prj-lb-infra"
+   ],
+   "position": "zt",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t67",
+   "projectId": "p_prj",
+   "key": "PRJ-67",
+   "number": 67,
+   "title": "Alert on error budget",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-26",
+   "epicId": null,
+   "milestoneId": "ms_ga",
+   "sprintId": "sp_15",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_p1"
+   ],
+   "labelIds": [
+    "p_prj-lb-infra"
+   ],
+   "position": "zl",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t68",
+   "projectId": "p_prj",
+   "key": "PRJ-68",
+   "number": 68,
+   "title": "Load test 10k tasks",
+   "type": "spike",
+   "priority": 2,
+   "statusId": "p_prj-st-backlog",
+   "assigneeId": "u_riley",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": null,
+   "epicId": "ep_board",
+   "milestoneId": "ms_ga",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [
+    "ob_latency"
+   ],
+   "labelIds": [
+    "p_prj-lb-perf"
+   ],
+   "position": "x",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t69",
+   "projectId": "p_prj",
+   "key": "PRJ-69",
+   "number": 69,
+   "title": "Empty state for new workspaces",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": "2026-10-24",
+   "epicId": null,
+   "milestoneId": "ms_ga",
+   "sprintId": "sp_15",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_onboard"
+   ],
+   "labelIds": [
+    "p_prj-lb-design"
+   ],
+   "position": "zt",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t70",
+   "projectId": "p_prj",
+   "key": "PRJ-70",
+   "number": 70,
+   "title": "Write release notes for 2.4",
+   "type": "chore",
+   "priority": 0,
+   "statusId": "p_prj-st-todo",
+   "assigneeId": null,
+   "reporterId": "u_jordan",
+   "estimate": null,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_15",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_onboard"
+   ],
+   "labelIds": [],
+   "position": "zx",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_prj-t71",
+   "projectId": "p_prj",
+   "key": "PRJ-71",
+   "number": 71,
+   "title": "Guided first project",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_prj-st-progress",
+   "assigneeId": "u_taylor",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-19",
+   "epicId": null,
+   "milestoneId": "ms_ga",
+   "sprintId": "sp_14",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_onboard"
+   ],
+   "labelIds": [
+    "p_prj-lb-frontend",
+    "p_prj-lb-design"
+   ],
+   "position": "zx",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t9",
+   "projectId": "p_mob",
+   "key": "MOB-9",
+   "number": 9,
+   "title": "Offline queue for task edits",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_mob-st-done",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": null,
+   "epicId": "ep_mob_off",
+   "milestoneId": "ms_mob_store",
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_mob_offline"
+   ],
+   "labelIds": [
+    "p_mob-lb-frontend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-09-30T08:15:00.000Z",
+   "completedAt": "2026-10-03T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t12",
+   "projectId": "p_mob",
+   "key": "MOB-12",
+   "number": 12,
+   "title": "Queue task edits while offline",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_mob-st-progress",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-11",
+   "epicId": "ep_mob_off",
+   "milestoneId": "ms_mob_store",
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_mob_offline"
+   ],
+   "labelIds": [
+    "p_mob-lb-frontend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t13",
+   "projectId": "p_mob",
+   "key": "MOB-13",
+   "number": 13,
+   "title": "Conflict banner after reconnect",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_mob-st-review",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 2,
+   "dueDate": "2026-10-09",
+   "epicId": "ep_mob_off",
+   "milestoneId": "ms_mob_store",
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [
+    "ob_mob_offline"
+   ],
+   "labelIds": [
+    "p_mob-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t14",
+   "projectId": "p_mob",
+   "key": "MOB-14",
+   "number": 14,
+   "title": "Push notification opt-in screen",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_mob-st-todo",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": "2026-10-13",
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T12:15:00.000Z",
+   "updatedAt": "2026-09-20T12:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t15",
+   "projectId": "p_mob",
+   "key": "MOB-15",
+   "number": 15,
+   "title": "Crash on rotate in task detail",
+   "type": "bug",
+   "priority": 4,
+   "statusId": "p_mob-st-progress",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 2,
+   "dueDate": "2026-10-08",
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-bug"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t16",
+   "projectId": "p_mob",
+   "key": "MOB-16",
+   "number": 16,
+   "title": "Haptics on drag",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_mob-st-todo",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-frontend"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t17",
+   "projectId": "p_mob",
+   "key": "MOB-17",
+   "number": 17,
+   "title": "Biometric unlock",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_mob-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": "ms_mob_store",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-backend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t18",
+   "projectId": "p_mob",
+   "key": "MOB-18",
+   "number": 18,
+   "title": "Dark launch screen",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_mob-st-done",
+   "assigneeId": "u_sam",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_mob_7",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-design"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": "2026-09-29T08:15:00.000Z",
+   "completedAt": "2026-10-02T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_mob-t19",
+   "projectId": "p_mob",
+   "key": "MOB-19",
+   "number": 19,
+   "title": "App Store screenshots",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_mob-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": null,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": "ms_mob_store",
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_mob-lb-design"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t7",
+   "projectId": "p_inf",
+   "key": "INF-7",
+   "number": 7,
+   "title": "Cache board queries at the edge",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_inf-st-progress",
+   "assigneeId": "u_riley",
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": "2026-10-12",
+   "epicId": "ep_inf_edge",
+   "milestoneId": null,
+   "sprintId": "sp_inf_3",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-infra",
+    "p_inf-lb-perf"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T13:15:00.000Z",
+   "updatedAt": "2026-09-20T13:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t8",
+   "projectId": "p_inf",
+   "key": "INF-8",
+   "number": 8,
+   "title": "Rotate TLS certificates",
+   "type": "feature",
+   "priority": 4,
+   "statusId": "p_inf-st-done",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_inf_3",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-infra"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T06:15:00.000Z",
+   "updatedAt": "2026-09-20T06:15:00.000Z",
+   "startedAt": "2026-09-29T08:15:00.000Z",
+   "completedAt": "2026-10-02T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t9",
+   "projectId": "p_inf",
+   "key": "INF-9",
+   "number": 9,
+   "title": "Postgres connection pooling",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_inf-st-review",
+   "assigneeId": "u_riley",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": "2026-10-09",
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_inf_3",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-backend",
+    "p_inf-lb-infra"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t10",
+   "projectId": "p_inf",
+   "key": "INF-10",
+   "number": 10,
+   "title": "Error budget dashboard",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_inf-st-todo",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 2,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_inf_3",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-infra"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t11",
+   "projectId": "p_inf",
+   "key": "INF-11",
+   "number": 11,
+   "title": "Paging rota for Q4",
+   "type": "chore",
+   "priority": 1,
+   "statusId": "p_inf-st-todo",
+   "assigneeId": "u_morgan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_inf_3",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t12",
+   "projectId": "p_inf",
+   "key": "INF-12",
+   "number": 12,
+   "title": "Upgrade Kubernetes to 1.34",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_inf-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": 5,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-infra"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_inf-t13",
+   "projectId": "p_inf",
+   "key": "INF-13",
+   "number": 13,
+   "title": "Log retention policy",
+   "type": "chore",
+   "priority": 1,
+   "statusId": "p_inf-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": null,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_inf-lb-infra"
+   ],
+   "position": "l",
+   "version": 1,
+   "createdAt": "2026-09-20T11:15:00.000Z",
+   "updatedAt": "2026-09-20T11:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_dsn-t1",
+   "projectId": "p_dsn",
+   "key": "DSN-1",
+   "number": 1,
+   "title": "Token export for iOS",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_dsn-st-progress",
+   "assigneeId": "u_drew",
+   "reporterId": "u_alex",
+   "estimate": 3,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_dsn_2",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_dsn-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T07:15:00.000Z",
+   "updatedAt": "2026-09-20T07:15:00.000Z",
+   "startedAt": "2026-10-03T08:15:00.000Z",
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_dsn-t2",
+   "projectId": "p_dsn",
+   "key": "DSN-2",
+   "number": 2,
+   "title": "Focus ring audit",
+   "type": "feature",
+   "priority": 3,
+   "statusId": "p_dsn-st-todo",
+   "assigneeId": "u_alex",
+   "reporterId": "u_jordan",
+   "estimate": 2,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_dsn_2",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_dsn-lb-design",
+    "p_dsn-lb-frontend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T08:15:00.000Z",
+   "updatedAt": "2026-09-20T08:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_dsn-t3",
+   "projectId": "p_dsn",
+   "key": "DSN-3",
+   "number": 3,
+   "title": "Docs site search",
+   "type": "feature",
+   "priority": 1,
+   "statusId": "p_dsn-st-backlog",
+   "assigneeId": null,
+   "reporterId": "u_alex",
+   "estimate": null,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": null,
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_dsn-lb-frontend"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T09:15:00.000Z",
+   "updatedAt": "2026-09-20T09:15:00.000Z",
+   "startedAt": null,
+   "completedAt": null,
+   "deletedAt": null,
+   "description": null
+  },
+  {
+   "id": "p_dsn-t4",
+   "projectId": "p_dsn",
+   "key": "DSN-4",
+   "number": 4,
+   "title": "Button density variants",
+   "type": "feature",
+   "priority": 2,
+   "statusId": "p_dsn-st-done",
+   "assigneeId": "u_jordan",
+   "reporterId": "u_alex",
+   "estimate": 1,
+   "dueDate": null,
+   "epicId": null,
+   "milestoneId": null,
+   "sprintId": "sp_dsn_2",
+   "parentId": null,
+   "objectiveIds": [],
+   "labelIds": [
+    "p_dsn-lb-design"
+   ],
+   "position": "V",
+   "version": 1,
+   "createdAt": "2026-09-20T10:15:00.000Z",
+   "updatedAt": "2026-09-20T10:15:00.000Z",
+   "startedAt": "2026-09-30T08:15:00.000Z",
+   "completedAt": "2026-10-03T12:15:00.000Z",
+   "deletedAt": null,
+   "description": null
+  }
+ ],
+ "comments": [
+  {
+   "id": "c1",
+   "taskId": "p_prj-t42",
+   "authorId": "u_jordan",
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Repro’d on Safari too. "
+       },
+       {
+        "type": "mention",
+        "attrs": {
+         "id": "u_alex",
+         "label": "Alex Kim"
+        }
+       },
+       {
+        "type": "text",
+        "text": " is "
+       },
+       {
+        "type": "text",
+        "text": "will-change",
+        "marks": [
+         {
+          "type": "code"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": " the culprit?"
+       }
+      ]
+     }
+    ]
+   },
+   "mentions": [
+    "u_alex"
+   ],
+   "createdAt": "2026-10-07T18:14:40.949Z",
+   "editedAt": null
+  },
+  {
+   "id": "c2",
+   "taskId": "p_prj-t42",
+   "authorId": "u_alex",
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Yes. Fix is behind the "
+       },
+       {
+        "type": "text",
+        "text": "board-reflow",
+        "marks": [
+         {
+          "type": "code"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": " flag."
+       }
+      ]
+     }
+    ]
+   },
+   "mentions": [],
+   "createdAt": "2026-10-07T19:14:40.949Z",
+   "editedAt": null
+  },
+  {
+   "id": "c3",
+   "taskId": "p_prj-t48",
+   "authorId": "u_sam",
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "mention",
+        "attrs": {
+         "id": "u_alex",
+         "label": "Alex Kim"
+        }
+       },
+       {
+        "type": "text",
+        "text": " can you check the retry path before the beta cut?"
+       }
+      ]
+     }
+    ]
+   },
+   "mentions": [
+    "u_alex"
+   ],
+   "createdAt": "2026-10-07T20:02:40.949Z",
+   "editedAt": null
+  }
+ ],
+ "attachments": [
+  {
+   "id": "at1",
+   "taskId": "p_prj-t42",
+   "uploaderId": "u_jordan",
+   "fileName": "drag-glitch.png",
+   "size": 1258291,
+   "mimeType": "image/png",
+   "kind": "image",
+   "downloadUrl": "",
+   "previewUrl": null,
+   "createdAt": "2026-10-07T00:14:40.949Z"
+  },
+  {
+   "id": "at2",
+   "taskId": "p_prj-t42",
+   "uploaderId": "u_alex",
+   "fileName": "reflow.ts",
+   "size": 4096,
+   "mimeType": "text/typescript",
+   "kind": "code",
+   "downloadUrl": "",
+   "previewUrl": null,
+   "createdAt": "2026-10-07T17:14:40.949Z",
+   "content": "export function reflow(\n  cols: Column[],\n) {\n  cols.forEach(m);\n}\n"
+  }
+ ],
+ "notifications": [
+  {
+   "id": "n1",
+   "recipientId": "u_alex",
+   "type": "mention",
+   "actorId": "u_sam",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t48",
+   "taskKey": "PRJ-48",
+   "taskTitle": "Token refresh race on cold start",
+   "payload": {
+    "quote": "can you check the retry path before the beta cut?"
+   },
+   "createdAt": "2026-10-07T20:02:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n2",
+   "recipientId": "u_alex",
+   "type": "assigned",
+   "actorId": "u_jordan",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t54",
+   "taskKey": "PRJ-54",
+   "taskTitle": "Rate-limit login attempts",
+   "payload": {},
+   "createdAt": "2026-10-07T19:36:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n3",
+   "recipientId": "u_alex",
+   "type": "status",
+   "actorId": "u_riley",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t56",
+   "taskKey": "PRJ-56",
+   "taskTitle": "Persist saved filters per project",
+   "payload": {
+    "fromStatus": "In progress",
+    "toStatus": "In review"
+   },
+   "createdAt": "2026-10-07T19:14:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n4",
+   "recipientId": "u_alex",
+   "type": "comment",
+   "actorId": "u_morgan",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t50",
+   "taskKey": "PRJ-50",
+   "taskTitle": "Carry-over prompt at sprint close",
+   "payload": {
+    "quote": "Repro’d on Safari only. Timezone offset?"
+   },
+   "createdAt": "2026-10-07T18:14:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n5",
+   "recipientId": "u_alex",
+   "type": "due",
+   "actorId": null,
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t44",
+   "taskKey": "PRJ-44",
+   "taskTitle": "Debounce reflow on sidebar toggle",
+   "payload": {
+    "dueDate": "2026-10-08"
+   },
+   "createdAt": "2026-10-07T17:14:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n6",
+   "recipientId": "u_alex",
+   "type": "status",
+   "actorId": "u_taylor",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t62",
+   "taskKey": "PRJ-62",
+   "taskTitle": "Command palette v1",
+   "payload": {
+    "fromStatus": "In review",
+    "toStatus": "Done"
+   },
+   "createdAt": "2026-10-06T20:14:40.949Z",
+   "readAt": "2026-10-06T20:15:40.949Z"
+  },
+  {
+   "id": "n7",
+   "recipientId": "u_alex",
+   "type": "assigned",
+   "actorId": "u_sam",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t42",
+   "taskKey": "PRJ-42",
+   "taskTitle": "Fix flaky board reflow on column resize",
+   "payload": {},
+   "createdAt": "2026-10-06T18:14:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n8",
+   "recipientId": "u_alex",
+   "type": "mention",
+   "actorId": "u_riley",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t40",
+   "taskKey": "PRJ-40",
+   "taskTitle": "Virtualize board columns",
+   "payload": {
+    "quote": "numbers after virtualization: 240ms p95."
+   },
+   "createdAt": "2026-10-05T20:14:40.949Z",
+   "readAt": "2026-10-05T20:15:40.949Z"
+  },
+  {
+   "id": "n9",
+   "recipientId": "u_alex",
+   "type": "comment",
+   "actorId": "u_jordan",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t31",
+   "taskKey": "PRJ-31",
+   "taskTitle": "Rotate refresh tokens on reuse",
+   "payload": {
+    "quote": "Scope list looks right to me."
+   },
+   "createdAt": "2026-10-04T20:14:40.949Z",
+   "readAt": "2026-10-04T20:15:40.949Z"
+  },
+  {
+   "id": "n10",
+   "recipientId": "u_alex",
+   "type": "sprint",
+   "actorId": "u_jordan",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t33",
+   "taskKey": "PRJ-33",
+   "taskTitle": "SSO login with Okta",
+   "payload": {
+    "sprintName": "Sprint 14"
+   },
+   "createdAt": "2026-10-01T20:14:40.949Z",
+   "readAt": "2026-10-01T20:15:40.949Z"
+  },
+  {
+   "id": "n11",
+   "recipientId": "u_sam",
+   "type": "assigned",
+   "actorId": "u_alex",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t34",
+   "taskKey": "PRJ-34",
+   "taskTitle": "Session timeout modal",
+   "payload": {},
+   "createdAt": "2026-10-07T19:29:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n12",
+   "recipientId": "u_sam",
+   "type": "mention",
+   "actorId": "u_jordan",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t42",
+   "taskKey": "PRJ-42",
+   "taskTitle": "Fix flaky board reflow on column resize",
+   "payload": {
+    "quote": "can you pair on the regression test?"
+   },
+   "createdAt": "2026-10-07T18:44:40.949Z",
+   "readAt": null
+  },
+  {
+   "id": "n13",
+   "recipientId": "u_sam",
+   "type": "status",
+   "actorId": "u_alex",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t51",
+   "taskKey": "PRJ-51",
+   "taskTitle": "Keyboard shortcut sheet",
+   "payload": {
+    "fromStatus": "In progress",
+    "toStatus": "In review"
+   },
+   "createdAt": "2026-10-07T16:54:40.949Z",
+   "readAt": "2026-10-07T16:55:40.949Z"
+  },
+  {
+   "id": "n14",
+   "recipientId": "u_jordan",
+   "type": "assigned",
+   "actorId": "u_alex",
+   "projectId": "p_prj",
+   "projectName": "Platform Rebuild",
+   "taskId": "p_prj-t44",
+   "taskKey": "PRJ-44",
+   "taskTitle": "Debounce reflow on sidebar toggle",
+   "payload": {},
+   "createdAt": "2026-10-07T15:14:40.949Z",
+   "readAt": null
+  }
+ ],
+ "prefs": [
+  {
+   "userId": "u_alex",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_jordan",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_sam",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_riley",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_morgan",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_taylor",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_casey",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  },
+  {
+   "userId": "u_drew",
+   "prefs": {
+    "events": {
+     "assigned": {
+      "in_app": true,
+      "email": true
+     },
+     "mentioned": {
+      "in_app": true,
+      "email": true
+     },
+     "status_change": {
+      "in_app": true,
+      "email": false
+     },
+     "comment": {
+      "in_app": true,
+      "email": false
+     },
+     "due_soon": {
+      "in_app": true,
+      "email": true
+     },
+     "sprint_started": {
+      "in_app": true,
+      "email": false
+     }
+    },
+    "emailDelivery": "instant"
+   }
+  }
+ ],
+ "activity": [
+  {
+   "id": "a1",
+   "actorId": "u_alex",
+   "verb": "status_changed",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t42",
+   "taskKey": "PRJ-42",
+   "taskTitle": "Fix flaky board reflow on column resize",
+   "data": {
+    "to": "In progress"
+   },
+   "createdAt": "2026-10-07T19:14:40.950Z"
+  },
+  {
+   "id": "a2",
+   "actorId": "u_jordan",
+   "verb": "linked_objective",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t42",
+   "taskKey": "PRJ-42",
+   "taskTitle": "Fix flaky board reflow on column resize",
+   "data": {
+    "objective": "Cut p95 latency to 200ms"
+   },
+   "createdAt": "2026-10-07T17:14:40.951Z"
+  },
+  {
+   "id": "a3",
+   "actorId": "u_jordan",
+   "verb": "created",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t42",
+   "taskKey": "PRJ-42",
+   "taskTitle": "Fix flaky board reflow on column resize",
+   "data": {},
+   "createdAt": "2026-10-02T20:14:40.951Z"
+  },
+  {
+   "id": "a4",
+   "actorId": "u_riley",
+   "verb": "status_changed",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t65",
+   "taskKey": "PRJ-65",
+   "taskTitle": "Migrate audit log",
+   "data": {
+    "to": "Done"
+   },
+   "createdAt": "2026-10-06T14:14:40.951Z"
+  },
+  {
+   "id": "a5",
+   "actorId": "u_sam",
+   "verb": "commented",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t48",
+   "taskKey": "PRJ-48",
+   "taskTitle": "Token refresh race on cold start",
+   "data": {},
+   "createdAt": "2026-10-07T20:02:40.951Z"
+  },
+  {
+   "id": "a6",
+   "actorId": "u_jordan",
+   "verb": "status_changed",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t56",
+   "taskKey": "PRJ-56",
+   "taskTitle": "Persist saved filters per project",
+   "data": {
+    "to": "In review"
+   },
+   "createdAt": "2026-10-07T19:14:40.951Z"
+  },
+  {
+   "id": "a7",
+   "actorId": "u_morgan",
+   "verb": "commented",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t50",
+   "taskKey": "PRJ-50",
+   "taskTitle": "Carry-over prompt at sprint close",
+   "data": {},
+   "createdAt": "2026-10-07T18:14:40.951Z"
+  },
+  {
+   "id": "a8",
+   "actorId": "u_jordan",
+   "verb": "sprint_started",
+   "projectId": "p_prj",
+   "taskId": null,
+   "taskKey": null,
+   "taskTitle": null,
+   "data": {
+    "sprint": "Sprint 14"
+   },
+   "createdAt": "2026-10-01T20:14:40.951Z"
+  },
+  {
+   "id": "a9",
+   "actorId": "u_alex",
+   "verb": "assigned",
+   "projectId": "p_prj",
+   "taskId": "p_prj-t54",
+   "taskKey": "PRJ-54",
+   "taskTitle": "Rate-limit login attempts",
+   "data": {
+    "assignee": "Alex Kim"
+   },
+   "createdAt": "2026-10-07T19:36:40.951Z"
+  },
+  {
+   "id": "a10",
+   "actorId": "u_morgan",
+   "verb": "status_changed",
+   "projectId": "p_mob",
+   "taskId": "p_mob-t12",
+   "taskKey": "MOB-12",
+   "taskTitle": "Queue task edits while offline",
+   "data": {
+    "to": "In progress"
+   },
+   "createdAt": "2026-10-07T18:44:40.951Z"
+  },
+  {
+   "id": "a11",
+   "actorId": "u_riley",
+   "verb": "status_changed",
+   "projectId": "p_inf",
+   "taskId": "p_inf-t9",
+   "taskKey": "INF-9",
+   "taskTitle": "Postgres connection pooling",
+   "data": {
+    "to": "In review"
+   },
+   "createdAt": "2026-10-07T16:54:40.951Z"
+  }
+ ],
+ "audit": [
+  {
+   "id": "au1",
+   "workspaceId": "ws_platform",
+   "actorId": "u_alex",
+   "action": "role.updated",
+   "target": "Release captain",
+   "createdAt": "2026-10-06T14:14:40.951Z"
+  },
+  {
+   "id": "au2",
+   "workspaceId": "ws_platform",
+   "actorId": "u_jordan",
+   "action": "member.invited",
+   "target": "avery@contractor.io",
+   "createdAt": "2026-10-03T20:14:40.951Z"
+  },
+  {
+   "id": "au3",
+   "workspaceId": "ws_platform",
+   "actorId": "u_alex",
+   "action": "project.created",
+   "target": "Infra",
+   "createdAt": "2026-09-17T20:14:40.951Z"
+  }
+ ],
+ "resetTokens": [],
+ "recents": [
+  {
+   "userId": "u_alex",
+   "kind": "task",
+   "id": "p_prj-t42",
+   "at": "2026-10-07T20:09:40.951Z"
+  },
+  {
+   "userId": "u_alex",
+   "kind": "project",
+   "id": "p_mob",
+   "at": "2026-10-07T19:44:40.951Z"
+  },
+  {
+   "userId": "u_alex",
+   "kind": "task",
+   "id": "p_prj-t51",
+   "at": "2026-10-07T18:44:40.951Z"
+  }
+ ]
+}

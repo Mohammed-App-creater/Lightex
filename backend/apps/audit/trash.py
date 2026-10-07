@@ -211,9 +211,26 @@ def purge_task(task: Task) -> None:
 
 
 def purge_project(project: Project) -> None:
+    from apps.projects.models import ProjectMember
+
     _delete_files(Attachment.all_objects.filter(task__project=project))
+    Task.all_objects.filter(project=project, parent__isnull=False).delete()
     Task.all_objects.filter(project=project).delete()
+    ProjectMember.objects.filter(project=project).delete()  # role FKs are PROTECT
     project.delete()
+
+
+def purge_workspace(ws: Any) -> None:
+    """Hard-deletes a workspace in dependency order (roles are protected while in use)."""
+    from apps.access.models import Role
+    from apps.workspaces.models import Invitation, WorkspaceMember
+
+    for project in Project.all_objects.filter(workspace=ws):
+        purge_project(project)
+    WorkspaceMember.objects.filter(workspace=ws).delete()
+    Invitation.objects.filter(workspace=ws).delete()
+    Role.objects.filter(workspace=ws).delete()
+    ws.delete()
 
 
 @transaction.atomic
@@ -281,9 +298,7 @@ def purge_expired(now: dt.datetime | None = None) -> dict[str, int]:
             purge_project(project)
             counts["projects"] += 1
         for ws in Workspace.all_objects.filter(deleted_at__lt=cutoff):
-            for project in Project.all_objects.filter(workspace=ws):
-                purge_project(project)
-            ws.delete()
+            purge_workspace(ws)
             counts["workspaces"] += 1
         counts["events"] = DomainEvent.objects.filter(processed_at__lt=cutoff).delete()[0]
     return counts
