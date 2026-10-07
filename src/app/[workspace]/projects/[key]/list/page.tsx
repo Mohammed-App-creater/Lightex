@@ -1,5 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import { ListScreen } from "@/features/list/list-screen";
 
-export default function Page() {
-  return <div className="p-8 text-fg-2">list</div>;
+export default function ListPage() {
+  return (
+    <Suspense>
+      <ListScreen />
+    </Suspense>
+  );
 }

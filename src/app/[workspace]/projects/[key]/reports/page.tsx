@@ -1,5 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
+import { ReportsScreen } from "@/features/reports/reports-screen";
+
 export default function Page() {
-  return <div className="p-8 text-fg-2">reports</div>;
+  return (
+    <Suspense fallback={null}>
+      <ReportsScreen />
+    </Suspense>
+  );
 }

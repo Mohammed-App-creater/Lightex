@@ -59,8 +59,8 @@ export function ProjectShell({ projectKey, children }: { projectKey: string; chi
   // Board and list are full-bleed work surfaces; the tab strip stays compact above them.
   return (
     <ProjectScope project={project}>
-      <div className="flex min-h-full flex-col">
-        <div className="sticky top-0 z-[5] border-b border-line bg-bg/95 px-8 backdrop-blur-[6px] max-[760px]:px-3">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="z-[5] flex-none border-b border-line bg-bg px-8 max-[760px]:px-3">
           <NavTabs
             label="Project views"
             className="border-b-0"
@@ -76,7 +76,8 @@ export function ProjectShell({ projectKey, children }: { projectKey: string; chi
             This project is archived. It’s read-only until a project admin restores it.
           </div>
         )}
-        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        {/* Each view scrolls inside this area; board and list manage their own inner scroll. */}
+        <div data-project-scroll className="flex min-h-0 flex-1 flex-col overflow-auto">{children}</div>
       </div>
       <Suspense fallback={null}>
         <TaskPanelHost />
