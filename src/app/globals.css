@@ -1,26 +1,686 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Tailwind v4 has no tailwind.config.js: this block is the theme config.
+   Every value maps to a CSS variable from tokens.css, so themes switch at runtime. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="black"], [data-theme="black"] *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-hover: var(--hover);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-control: var(--control);
+  --color-fg: var(--text);
+  --color-fg-2: var(--text-2);
+  --color-fg-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-h: var(--accent-h);
+  --color-accent-p: var(--accent-p);
+  --color-accent-t: var(--accent-t);
+  --color-accent-s: var(--accent-s);
+  --color-ring: var(--ring);
+  --color-spark: var(--spark);
+  --color-low: var(--low);
+  --color-todo: var(--todo);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-orange: var(--orange);
+  --color-danger-solid: var(--danger-solid);
+  --color-ok-s: var(--ok-s);
+  --color-warn-s: var(--warn-s);
+  --color-danger-s: var(--danger-s);
+  --color-logo: var(--logo);
+  --color-c1: var(--c1);
+  --color-c2: var(--c2);
+  --color-c1-t: var(--c1-t);
+  --color-cref: var(--cref);
+  --color-scrim: var(--scrim);
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale (board 02). */
+  --text-display: 48px;
+  --text-display--line-height: 52px;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 600;
+  --text-h1: 32px;
+  --text-h1--line-height: 40px;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 600;
+  --text-h2: 24px;
+  --text-h2--line-height: 32px;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 600;
+  --text-h3: 20px;
+  --text-h3--line-height: 28px;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+  --text-title: 16px;
+  --text-title--line-height: 24px;
+  --text-title--font-weight: 600;
+  --text-body: 14px;
+  --text-body--line-height: 22px;
+  --text-ui: 13px;
+  --text-ui--line-height: 20px;
+  --text-meta: 12px;
+  --text-meta--line-height: 16px;
+  --text-caption: 11px;
+  --text-caption--line-height: 16px;
+  --text-caption--letter-spacing: 0.06em;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-pop: var(--shadow-pop);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-edge: var(--edge);
+  --shadow-focus: var(--focus-ring);
+
+  --ease-out: var(--ease);
+  --ease-in-out: var(--ease-in-out);
+  --ease-spring: var(--spring);
+
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-spin: spin 0.7s linear infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: var(--accent-s);
+  }
+  /* One focus ring everywhere (design: 1px accent + 4px ring). */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-3);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* Keycap (board 03 .kbd). */
+  .kbd {
+    font: 500 11px/1 var(--font-mono);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-2);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--raised);
+    color: var(--text-2);
+    flex: none;
+  }
+  .on-accent .kbd {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+  }
+
+  /* Status glyphs: always glyph + colour (board 01 footer). */
+  .glyph {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex: none;
+    position: relative;
+    display: inline-block;
+  }
+  .glyph-backlog {
+    border: 1.5px dashed currentColor;
+  }
+  .glyph-todo {
+    border: 1.5px solid currentColor;
+  }
+  .glyph-progress {
+    border: 1.5px solid currentColor;
+    padding: 2px;
+    background: conic-gradient(currentColor 0 180deg, transparent 0) content-box;
+  }
+  .glyph-review {
+    border: 1.5px solid currentColor;
+    padding: 2px;
+    background: conic-gradient(currentColor 0 270deg, transparent 0) content-box;
+  }
+  .glyph-done {
+    background: currentColor;
+  }
+  .glyph-done::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    width: 3px;
+    height: 6px;
+    border: solid var(--bg);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+  .glyph-canceled {
+    border: 1.5px solid currentColor;
+  }
+  .glyph-canceled::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 5px;
+    width: 7px;
+    height: 1.5px;
+    background: currentColor;
+    transform: rotate(-45deg);
+  }
+  .glyph-error {
+    background: currentColor;
+  }
+  .glyph-error::after {
+    content: "!";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 10px/1 var(--font-sans);
+    color: var(--bg);
+  }
+
+  /* Spark: the signature completion animation (board 04/06; 420ms). */
+  .glyph-done.spark {
+    animation: checkpop 220ms var(--spring);
+  }
+  .glyph-done.spark::after {
+    animation: draw 180ms var(--ease) 60ms both;
+  }
+  .glyph-done.spark::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: var(--spark);
+    box-shadow:
+      0 -11px 0 var(--spark),
+      10px -5px 0 var(--spark),
+      10px 6px 0 var(--spark),
+      0 11px 0 var(--spark),
+      -10px 6px 0 var(--spark),
+      -10px -5px 0 var(--spark);
+    animation: spark 420ms var(--ease) both;
+    pointer-events: none;
+  }
+
+  /* Priority signal bars (board 03 .pr). */
+  .prio {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 12px;
+    flex: none;
+  }
+  .prio i {
+    width: 3px;
+    border-radius: 1px;
+    background: var(--line-2);
+    display: block;
+  }
+  .prio i:nth-child(1) {
+    height: 4px;
+  }
+  .prio i:nth-child(2) {
+    height: 7px;
+  }
+  .prio i:nth-child(3) {
+    height: 10px;
+  }
+  .prio i:nth-child(4) {
+    height: 12px;
+  }
+  .prio[data-level="1"] i:nth-child(-n + 1),
+  .prio[data-level="2"] i:nth-child(-n + 2),
+  .prio[data-level="3"] i:nth-child(-n + 3),
+  .prio[data-level="4"] i:nth-child(-n + 4) {
+    background: currentColor;
+  }
+
+  /* Skeleton shimmer (board 06; 1400ms loop). */
+  .skeleton {
+    display: block;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--raised) 0%, var(--hover) 50%, var(--raised) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  /* Collapsible rows (grid 0fr→1fr, 220ms) used by sidebar sections, planning, list groups. */
+  .collapse-rows {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms var(--ease);
+  }
+  .collapse-rows[data-open="true"] {
+    grid-template-rows: 1fr;
+  }
+  .collapse-rows > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Checkbox, switch, radio (board 03). Native inputs keep keyboard + form semantics. */
+  .cb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    flex: none;
+    border: 1.5px solid var(--control);
+    border-radius: 4px;
+    background: transparent;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition:
+      background-color 120ms var(--ease),
+      border-color 120ms var(--ease);
+  }
+  .cb::after {
+    content: "";
+    width: 8px;
+    height: 4px;
+    border: solid #fff;
+    border-width: 0 0 2px 2px;
+    transform: rotate(-45deg) scale(0);
+    margin-top: -2px;
+    transition: transform 150ms var(--spring);
+  }
+  .cb:checked,
+  .cb:indeterminate {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .cb:checked::after {
+    transform: rotate(-45deg) scale(1);
+  }
+  .cb:indeterminate::after {
+    width: 8px;
+    height: 0;
+    border-width: 0 0 2px 0;
+    transform: none;
+    margin-top: 0;
+  }
+  .cb:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .tg {
+    appearance: none;
+    width: 32px;
+    height: 18px;
+    margin: 0;
+    flex: none;
+    border-radius: 9px;
+    border: 1px solid var(--control);
+    background: var(--raised);
+    position: relative;
+    cursor: pointer;
+    transition:
+      background-color 150ms var(--ease),
+      border-color 150ms var(--ease);
+  }
+  .tg::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-2);
+    transition:
+      transform 180ms var(--spring),
+      background-color 150ms var(--ease);
+  }
+  .tg:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .tg:checked::after {
+    transform: translateX(14px);
+    background: #fff;
+  }
+  .tg:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .rd {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    flex: none;
+    border: 1.5px solid var(--control);
+    border-radius: 50%;
+    background: transparent;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: border-color 120ms var(--ease);
+  }
+  .rd::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 150ms var(--spring);
+  }
+  .rd:checked {
+    border-color: var(--accent);
+  }
+  .rd:checked::after {
+    transform: scale(1);
+  }
+
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* App loader (logo §7). */
+.lx-play .lx-bar {
+  animation: lx-bar-in 260ms var(--ease) both;
+}
+.lx-play .lx-bolt {
+  animation: lx-strike 320ms var(--spring) 140ms both;
+}
+.lx-play .lx-flash {
+  animation: lx-flash 460ms var(--ease) 300ms both;
+}
+.lx-play .lx-x {
+  animation: lx-settle 260ms var(--ease) 460ms both;
+}
+.lx-play .lx-word {
+  display: inline-block;
+  animation: lx-word-in 300ms var(--ease) 520ms both;
+}
+.lx-track {
+  animation: lx-word-in 300ms var(--ease) 700ms both;
+}
+.lx-track-bar {
+  animation: lx-bar-run 1.1s var(--ease) infinite;
+}
+@keyframes lx-bar-in {
+  from {
+    clip-path: inset(0 100% 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes lx-strike {
+  from {
+    opacity: 0;
+    transform: translate(14px, -18px) scale(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lx-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+@keyframes lx-settle {
+  0% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes lx-word-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lx-bar-run {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes checkpop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes draw {
+  from {
+    clip-path: inset(0 100% 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes spark {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes boltflash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(-6px);
+  }
+}
+@keyframes boltpulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reduced motion: no tilt, scale or shimmer; 100ms fades; final values (board 02). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton {
+    animation: none;
+  }
 }

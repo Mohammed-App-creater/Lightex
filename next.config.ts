@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   poweredByHeader: false,
   turbopack: {
+    // A stray package-lock.json in the user's home directory confuses root detection.
+    root: process.cwd(),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

@@ -1,0 +1,161 @@
+/*
+ * Lightex design tokens. Source: design/clean/01–06 (foundations) and design/notes/*.md.
+ * Themes: data-theme="dark" (Deep navy, default) · "black" (Near-black) · "light".
+ * Never hard-code a colour in a component: use these variables (or the Tailwind
+ * utilities mapped from them in globals.css).
+ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #060b18;
+  --surface: #0c1326;
+  --raised: #131c34;
+  --hover: #1b2644;
+  --line: #1c2845;
+  --line-2: #2b3a5e;
+  --control: #5f6f96;
+  --text: #eaf0ff;
+  --text-2: #a5b2d1;
+  --text-3: #8794b6;
+  --accent: #2b67f5;
+  --accent-h: #2f6df6;
+  --accent-p: #2358db;
+  --accent-t: #8ab0ff;
+  --accent-s: rgba(43, 103, 245, 0.2);
+  --ring: rgba(90, 150, 255, 0.5);
+  --spark: #5be0ff;
+  --low: #2dd4bf;
+  --todo: #c4cbe0;
+  --ok: #4ade80;
+  --warn: #f5b73b;
+  --danger: #ff7a70;
+  --info: #b79cff;
+  --orange: #ff9a4d;
+  --danger-solid: #c23a30;
+  --ok-s: rgba(74, 222, 128, 0.12);
+  --warn-s: rgba(245, 183, 59, 0.12);
+  --danger-s: rgba(255, 122, 112, 0.12);
+  --logo: #3b7bff;
+  --c1: #c564ab;
+  --c2: #a39335;
+  --c1-t: #44243b;
+  --cref: #8794b6;
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --edge: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --scrim: rgba(2, 5, 14, 0.6);
+  --av-l: 0.4;
+  --av-c: 0.1;
+  --pk-l: 0.32;
+  --pk-c: 0.07;
+  --pkt-l: 0.88;
+  --pkt-c: 0.09;
+}
+
+[data-theme="black"] {
+  color-scheme: dark;
+  --bg: #0b0b0f;
+  --surface: #121217;
+  --raised: #1a1a21;
+  --hover: #22222b;
+  --line: #24242e;
+  --line-2: #34343f;
+  --control: #6a6a7c;
+  --text: #ececf1;
+  --text-2: #a3a3b1;
+  --text-3: #8e8e9d;
+  --accent: #2662ee;
+  --accent-h: #2b67f5;
+  --accent-p: #1f52d6;
+  --accent-t: #7fa8ff;
+  --accent-s: rgba(38, 98, 238, 0.18);
+  --ring: rgba(79, 140, 255, 0.5);
+  --spark: #5be0ff;
+  --low: #2dd4bf;
+  --todo: #c4c4d0;
+  --ok: #4ade80;
+  --warn: #f5b73b;
+  --danger: #ff7a70;
+  --info: #b79cff;
+  --orange: #ff9a4d;
+  --danger-solid: #c23a30;
+  --ok-s: rgba(74, 222, 128, 0.12);
+  --warn-s: rgba(245, 183, 59, 0.12);
+  --danger-s: rgba(255, 122, 112, 0.12);
+  --logo: #3b7bff;
+  --c1: #c564ab;
+  --c2: #a39335;
+  --c1-t: #3e2437;
+  --cref: #8e8e9d;
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --edge: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --scrim: rgba(5, 5, 8, 0.55);
+  --av-l: 0.4;
+  --av-c: 0.1;
+  --pk-l: 0.32;
+  --pk-c: 0.06;
+  --pkt-l: 0.88;
+  --pkt-c: 0.08;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fafafb;
+  --surface: #ffffff;
+  --raised: #f3f3f6;
+  --hover: #eaeaef;
+  --line: #e4e4ea;
+  --line-2: #d0d0d9;
+  --control: #8a8a9b;
+  --text: #121217;
+  --text-2: #55556a;
+  --text-3: #5f5f70;
+  --accent: #1d4ed8;
+  --accent-h: #2563eb;
+  --accent-p: #1e40af;
+  --accent-t: #1d4ed8;
+  --accent-s: rgba(29, 78, 216, 0.1);
+  --ring: rgba(29, 78, 216, 0.35);
+  --spark: #0891b2;
+  --low: #0f766e;
+  --todo: #3e3e50;
+  --ok: #157a3a;
+  --warn: #8a5a00;
+  --danger: #b92f26;
+  --info: #6b3fd4;
+  --orange: #a84a0a;
+  --danger-solid: #b92f26;
+  --ok-s: #e7f6ec;
+  --warn-s: #fff6e0;
+  --danger-s: #fdecea;
+  --logo: #1d4ed8;
+  --c1: #b04496;
+  --c2: #848e2d;
+  --c1-t: #f8dff0;
+  --cref: #5f5f70;
+  --shadow-pop: 0 8px 24px rgba(18, 18, 23, 0.1);
+  --shadow-modal: 0 24px 64px rgba(18, 18, 23, 0.18);
+  --edge: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --scrim: rgba(18, 18, 23, 0.25);
+  --av-l: 0.9;
+  --av-c: 0.06;
+  --pk-l: 0.93;
+  --pk-c: 0.04;
+  --pkt-l: 0.42;
+  --pkt-c: 0.12;
+}
+
+:root {
+  /* Motion (board 02). */
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 250ms;
+  --dur-data: 700ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Focus ring used by every interactive element. */
+  --focus-ring: 0 0 0 1px var(--accent), 0 0 0 4px var(--ring);
+}
