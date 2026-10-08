@@ -81,6 +81,35 @@ export function useUpdateTask() {
 
 type MoveVars = { task: Task; move: Omit<TaskMove, "version"> };
 
+type BacklogData = { sprints: { sprintId: string; tasks: Task[] }[]; backlog: Task[] };
+
+/** Insert keeping the list ordered by fractional position (plain string compare, as the server does). */
+function insertByPosition(list: Task[], task: Task): Task[] {
+  const i = list.findIndex((t) => t.position > task.position);
+  return i === -1 ? [...list, task] : [...list.slice(0, i), task, ...list.slice(i)];
+}
+
+/**
+ * Moves a task between the backlog's sections (sprint ↔ backlog, or a reorder) so a drop stays where
+ * it landed. patchTasks only edits a task in place, which would leave it in its old section.
+ */
+export function moveInBacklog(data: BacklogData, taskId: string, move: Omit<TaskMove, "version">): BacklogData {
+  const current = data.backlog.find((t) => t.id === taskId) ?? data.sprints.flatMap((s) => s.tasks).find((t) => t.id === taskId);
+  if (!current) return data;
+  const sprintId = move.sprintId !== undefined ? move.sprintId : current.sprintId;
+  const moved: Task = { ...current, position: move.position, sprintId, ...(move.statusId ? { statusId: move.statusId } : {}) };
+  const without = (list: Task[]) => list.filter((t) => t.id !== taskId);
+  return {
+    ...data,
+    sprints: data.sprints.map((s) => {
+      const rest = without(s.tasks);
+      return { ...s, tasks: s.sprintId === sprintId ? insertByPosition(rest, moved) : rest };
+    }),
+    // A sprint the cache doesn't list (e.g. completed) can't show the task; it just leaves the backlog.
+    backlog: sprintId ? without(data.backlog) : insertByPosition(without(data.backlog), moved),
+  };
+}
+
 /** Board / backlog move: status, sprint and fractional position, with version. */
 export function useMoveTask() {
   const qc = useQueryClient();
@@ -101,6 +130,8 @@ export function useMoveTask() {
             : t,
         task.projectId,
       );
+      // The snapshot above already holds the backlog (it lives under ["p", projectId]), so restore() rolls this back too.
+      qc.setQueryData<BacklogData>(qk.backlog(task.projectId), (old) => (old ? moveInBacklog(old, task.id, move) : old));
       return { snap };
     },
     onError: (e, vars, ctx) => {
@@ -110,6 +141,7 @@ export function useMoveTask() {
     },
     onSuccess: (server) => commitTask(qc, server),
     onSettled: (_d, _e, vars) => {
+      void qc.invalidateQueries({ queryKey: qk.backlog(vars.task.projectId) });
       void qc.invalidateQueries({ queryKey: qk.sprints(vars.task.projectId) });
       void qc.invalidateQueries({ queryKey: qk.summary(vars.task.projectId) });
     },

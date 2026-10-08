@@ -457,6 +457,8 @@ function NoAccess() {
   });
   const adminRoles = new Map(roles.filter((r) => r.scope === "workspace" && r.permissions.includes("workspace.manage_members")).map((r) => [r.id, r.name]));
   const admins = members.filter((m) => m.status === "active" && adminRoles.has(m.roleId)).slice(0, 4);
+  // Both mutations flip the UI optimistically, so the button on screen belongs to whichever is in flight.
+  const busy = request.isPending || withdraw.isPending;
 
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-line-2 px-6 pb-12 pt-11 text-center">
@@ -490,12 +492,12 @@ function NoAccess() {
           <span className="inline-flex h-10 items-center gap-2 rounded-md bg-ok-s px-4 text-[13px] font-medium text-ok">
             <Check size={14} strokeWidth={1.8} aria-hidden /> Request sent
           </span>
-          <Button variant="ghost" onClick={() => withdraw.mutate()} className="text-accent-t">
+          <Button variant="ghost" loading={busy} onClick={() => withdraw.mutate()} className="text-accent-t">
             Withdraw
           </Button>
         </div>
       ) : (
-        <Button variant="primary" size="lg" onClick={() => request.mutate()}>
+        <Button variant="primary" size="lg" loading={busy} onClick={() => request.mutate()}>
           Request access
         </Button>
       )}

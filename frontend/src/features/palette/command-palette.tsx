@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/feedback";
 import { PriorityIcon, StatusGlyph, priorityMeta } from "@/components/ui/glyphs";
 import { Kbd } from "@/components/ui/kbd";
 import { toast } from "@/components/ui/toast";
+import { cycleTheme } from "@/components/shell/global-hotkeys";
 import { shell, useShell, type PaletteScope } from "@/components/shell/shell-state";
 import { useSession } from "@/features/auth/session";
 import { useProjects, useWsMembers, useRoles } from "@/features/workspace/queries";
@@ -35,7 +36,7 @@ type Action = {
   label: string;
   keys: string[];
   icon: ReactNode;
-  run: () => void;
+  run: () => void | Promise<void>;
   /** Hidden unless allowed (permission-gated actions are absent, not disabled). */
   allowed: boolean;
 };
@@ -143,11 +144,7 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         label: "Switch theme",
         keys: ["⌘", "⇧", "L"],
         icon: <Moon size={12} aria-hidden />,
-        run: () => {
-          const next = theme === "light" ? "dark" : "light";
-          setTheme(next);
-          toast.info(`Theme: ${next === "light" ? "Light" : "Navy"}`);
-        },
+        run: () => cycleTheme(theme, setTheme),
         allowed: true,
       },
       { id: "sprints", label: "Go to sprints", keys: ["G", "S"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("sprints"), allowed: projects.length > 0 },
@@ -158,11 +155,16 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
       {
         id: "link",
         label: "Copy link",
-        keys: ["⌘", "L"],
+        keys: [],
         icon: <Link2 size={12} aria-hidden />,
-        run: () => {
-          void navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
-          toast.success("Link copied");
+        run: async () => {
+          try {
+            if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+            await navigator.clipboard.writeText(window.location.href);
+            toast.success("Link copied");
+          } catch {
+            toast.error("Couldn’t copy the link. Copy it from the address bar.");
+          }
         },
         allowed: true,
       },

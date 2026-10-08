@@ -101,6 +101,7 @@ function PanelForm({
   const owner = members.find((m) => m.userId === ownerId);
 
   const submit = async () => {
+    if (save.isPending) return; // ⌘↵ while a save is in flight would send it twice
     setShown(true);
     if (localErr) {
       titleRef.current?.focus();

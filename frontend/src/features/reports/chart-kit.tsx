@@ -198,7 +198,8 @@ export function XTick({
 export const Y_AXIS = { width: 28, tickSize: 0, tickMargin: 8, axisLine: false, tickLine: false, allowDecimals: false } as const;
 export const X_AXIS = { height: 20, tickSize: 0, tickMargin: 7, axisLine: false, tickLine: false } as const;
 export const MARGIN = { top: 8, right: 6, bottom: 0, left: 0 };
-export const HOVER_FILL = "rgba(128,140,170,.07)";
+/** Cursor band behind hovered bars: the row-hover token, so it follows the theme. */
+export const HOVER_FILL = "var(--hover)";
 /** Hovered bar brightens (darkens in the light theme). */
 export const ACTIVE_BAR_CLASS = "[filter:brightness(1.18)] [[data-theme=light]_&]:[filter:brightness(.88)]";
 

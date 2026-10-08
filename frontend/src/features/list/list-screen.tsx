@@ -25,11 +25,12 @@ import { toast } from "@/components/ui/toast";
 import { shell } from "@/components/shell/shell-state";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { useMe } from "@/features/auth/session";
+import { epicSwatch } from "@/features/epics/epic-model";
 import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
 import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
-import { useDeleteTask, useUpdateTask } from "@/features/tasks/mutations";
+import { useCreateTask, useDeleteTask, useUpdateTask } from "@/features/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
 import { useSparking } from "@/features/tasks/task-bits";
 import { api } from "@/lib/api/endpoints";
@@ -418,6 +419,9 @@ export function ListScreen() {
         statuses={statuses}
         labels={labels}
         canAssign={can("task.assign", perms)}
+        // Mirrors the server's patch rule: a status-only change needs task.move (or edit rights); any other field needs edit rights.
+        canMove={can("task.move", perms) || can("task.edit_any", perms)}
+        canLabel={can("task.edit_any", perms)}
         canDelete={can("task.delete", perms)}
         onClear={() => setSelected(new Set())}
         onAssign={(u) => bulk.mutate({ ids: selectedIds, patch: { assigneeId: u?.id ?? null } }, { onSuccess: () => toast.success(`Assigned ${plural(n)} to ${u?.name.split(" ")[0] ?? "nobody"}`) })}
@@ -551,7 +555,7 @@ function GroupHeader({
 }) {
   let glyph: ReactNode = null;
   if (groupBy === "status" && group.glyph) glyph = <StatusGlyph kind={group.glyph} />;
-  else if (groupBy === "epic") glyph = <span aria-hidden className="size-2.5 rounded-[3px]" style={{ background: group.hue !== undefined ? `oklch(.66 .13 ${group.hue})` : "var(--line-2)" }} />;
+  else if (groupBy === "epic") glyph = <span aria-hidden className="size-2.5 rounded-[3px]" style={{ background: group.hue !== undefined ? epicSwatch(group.hue) : "var(--line-2)" }} />;
   else if (groupBy === "assignee") glyph = group.user ? <Avatar name={group.user.name} hue={group.user.hue} size={20} decorative /> : <UnassignedAvatar size={20} />;
   return (
     <div role="row" style={style} className="group/gh z-[3] flex items-center gap-1.5 border-b border-line bg-surface pr-2.5">
@@ -628,6 +632,7 @@ const TaskRow = memo(function TaskRow({
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const del = useDeleteTask();
+  const create = useCreateTask();
   const spark = useSparking(task.id);
   const [editingTitle, setEditingTitle] = useState(false);
   const [draft, setDraft] = useState(task.title);
@@ -862,7 +867,6 @@ const TaskRow = memo(function TaskRow({
             </MenuTrigger>
             <MenuContent align="end" width={200}>
               <MenuItem
-                keys={["⌘", "L"]}
                 onSelect={() => {
                   void navigator.clipboard?.writeText(`${window.location.origin}${routes.task(wsSlug, task.key)}`).catch(() => undefined);
                   toast.success(`Link to ${task.key} copied`);
@@ -873,14 +877,21 @@ const TaskRow = memo(function TaskRow({
               <MenuItem onSelect={() => window.open(routes.task(wsSlug, task.key), "_self")}>Open full page</MenuItem>
               {canCreate && (
                 <MenuItem
-                  keys={["⌘", "D"]}
-                  onSelect={async () => {
-                    try {
-                      const t = await api.tasks.create(task.projectId, { title: `${task.title} (copy)`.slice(0, 200), statusId: task.statusId, priority: task.priority, epicId: task.epicId, sprintId: task.sprintId, milestoneId: task.milestoneId, dueDate: task.dueDate, labelIds: task.labelIds });
-                      toast({ tone: "spark", title: `Duplicated as ${t.key}` });
-                    } catch (e) {
-                      toast.error("Couldn’t duplicate", { body: errorMessage(e) });
-                    }
+                  disabled={create.isPending}
+                  onSelect={() => {
+                    if (create.isPending) return;
+                    // A completed sprint can't take new tasks (the server answers 422), so the copy goes to the backlog.
+                    const sprintId = sprint?.state === "completed" ? null : task.sprintId;
+                    create.mutate(
+                      {
+                        projectId: task.projectId,
+                        body: { title: `${task.title} (copy)`.slice(0, 200), statusId: task.statusId, priority: task.priority, epicId: task.epicId, sprintId, milestoneId: task.milestoneId, dueDate: task.dueDate, labelIds: task.labelIds, parentId: task.parentId },
+                      },
+                      {
+                        onSuccess: (t) => toast({ tone: "spark", title: `Duplicated as ${t.key}` }),
+                        onError: (e) => toast.error("Couldn’t duplicate", { body: errorMessage(e) }),
+                      },
+                    );
                   }}
                 >
                   Duplicate
@@ -889,7 +900,7 @@ const TaskRow = memo(function TaskRow({
               {canDelete && (
                 <>
                   <MenuSeparator />
-                  <MenuItem danger keys={["⌫"]} onSelect={() => del.mutate(task)}>
+                  <MenuItem danger onSelect={() => del.mutate(task)}>
                     Delete
                   </MenuItem>
                 </>
@@ -934,6 +945,8 @@ function BulkBar({
   statuses,
   labels,
   canAssign,
+  canMove,
+  canLabel,
   canDelete,
   onClear,
   onAssign,
@@ -946,6 +959,8 @@ function BulkBar({
   statuses: Status[];
   labels: Label[];
   canAssign: boolean;
+  canMove: boolean;
+  canLabel: boolean;
   canDelete: boolean;
   onClear: () => void;
   onAssign: (u: User | null) => void;
@@ -991,34 +1006,38 @@ function BulkBar({
           </MenuContent>
         </Menu>
       )}
-      <Menu>
-        <MenuTrigger asChild>
-          <Button size="sm" variant="ghost" tabIndex={on ? 0 : -1}>
-            <MoveRight size={13} aria-hidden /> Move
-          </Button>
-        </MenuTrigger>
-        <MenuContent side="top" width={200}>
-          {statuses.map((s) => (
-            <MenuItem key={s.id} icon={<StatusGlyph kind={s.glyph} />} onSelect={() => onMove(s)}>
-              {s.name}
-            </MenuItem>
-          ))}
-        </MenuContent>
-      </Menu>
-      <Menu>
-        <MenuTrigger asChild>
-          <Button size="sm" variant="ghost" tabIndex={on ? 0 : -1}>
-            <Tag size={13} aria-hidden /> Label
-          </Button>
-        </MenuTrigger>
-        <MenuContent side="top" width={190}>
-          {labels.map((l) => (
-            <MenuItem key={l.id} icon={<span className="size-[7px] rounded-full" style={{ background: l.color }} />} onSelect={() => onLabel(l)}>
-              {l.name}
-            </MenuItem>
-          ))}
-        </MenuContent>
-      </Menu>
+      {canMove && (
+        <Menu>
+          <MenuTrigger asChild>
+            <Button size="sm" variant="ghost" tabIndex={on ? 0 : -1}>
+              <MoveRight size={13} aria-hidden /> Move
+            </Button>
+          </MenuTrigger>
+          <MenuContent side="top" width={200}>
+            {statuses.map((s) => (
+              <MenuItem key={s.id} icon={<StatusGlyph kind={s.glyph} />} onSelect={() => onMove(s)}>
+                {s.name}
+              </MenuItem>
+            ))}
+          </MenuContent>
+        </Menu>
+      )}
+      {canLabel && (
+        <Menu>
+          <MenuTrigger asChild>
+            <Button size="sm" variant="ghost" tabIndex={on ? 0 : -1}>
+              <Tag size={13} aria-hidden /> Label
+            </Button>
+          </MenuTrigger>
+          <MenuContent side="top" width={190}>
+            {labels.map((l) => (
+              <MenuItem key={l.id} icon={<span className="size-[7px] rounded-full" style={{ background: l.color }} />} onSelect={() => onLabel(l)}>
+                {l.name}
+              </MenuItem>
+            ))}
+          </MenuContent>
+        </Menu>
+      )}
       {canDelete && (
         <>
           <span aria-hidden className="mx-1 h-5 w-px bg-line" />

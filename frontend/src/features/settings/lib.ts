@@ -2,13 +2,16 @@
 
 /* ───────────────────────── Workspace ───────────────────────── */
 
-export const WS_NAME_MAX = 48;
+/** Matches the backend (workspaces.services.update_workspace): 2–40 characters after trimming. */
+export const WS_NAME_MIN = 2;
+export const WS_NAME_MAX = 40;
 export const SLUG_MIN = 3;
 export const SLUG_MAX = 32;
 export const URL_HOST = "lightex.app/";
 
 export function workspaceNameError(name: string): string | null {
   if (!name.trim()) return "Required";
+  if (name.trim().length < WS_NAME_MIN) return `Use at least ${WS_NAME_MIN} characters`;
   if (name.trim().length > WS_NAME_MAX) return `Max ${WS_NAME_MAX} characters`;
   return null;
 }

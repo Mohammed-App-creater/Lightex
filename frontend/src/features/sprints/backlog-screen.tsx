@@ -39,7 +39,7 @@ import { pushUrl, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { keyBetween } from "@/lib/utils/fractional-index";
-import { EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";
+import { DeleteSprintDialog, EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";
 import { CompleteSprintDialog } from "./sprint-review";
 
 const BACKLOG = "backlog";
@@ -271,20 +271,11 @@ function Section({
   projectId: string;
   isTarget: boolean;
 }) {
-  const qc = useQueryClient();
   const { setNodeRef } = useDroppable({ id: `sec:${id}`, disabled: !canMove });
-  const [dialog, setDialog] = useState<"start" | "complete" | "edit" | null>(null);
+  const [dialog, setDialog] = useState<"start" | "complete" | "edit" | "delete" | null>(null);
   const tasks = ids.map((x) => taskById.get(x)).filter((t): t is Task => Boolean(t));
   const points = tasks.reduce((a, t) => a + (t.estimate ?? 0), 0);
   const openCount = tasks.filter((t) => statusById.get(t.statusId)?.category !== "done").length;
-  const remove = useMutation({
-    mutationFn: () => api.planning.removeSprint(sprint!.id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: qk.scope(projectId) });
-      toast.info(`${sprint!.name} deleted`, { body: "Its tasks moved to the backlog." });
-    },
-    onError: (e) => toast.error("Couldn’t delete the sprint", { body: errorMessage(e) }),
-  });
 
   const startReason = !sprint || sprint.state !== "planned" ? undefined : hasActive ? "Complete the active sprint first" : tasks.length === 0 ? "Add tasks to the sprint before starting it" : undefined;
 
@@ -332,7 +323,7 @@ function Section({
               <MenuContent align="end" width={190}>
                 <MenuItem onSelect={() => setDialog("edit")}>Edit sprint</MenuItem>
                 {sprint.state === "planned" && (
-                  <MenuItem danger onSelect={() => remove.mutate()}>
+                  <MenuItem danger onSelect={() => setDialog("delete")}>
                     Delete sprint
                   </MenuItem>
                 )}
@@ -363,6 +354,7 @@ function Section({
       {sprint && dialog === "start" && <StartSprintDialog sprint={sprint} open onOpenChange={(o) => !o && setDialog(null)} />}
       {sprint && dialog === "complete" && <CompleteSprintDialog sprint={sprint} next={nextSprint} openCount={openCount} open onOpenChange={(o) => !o && setDialog(null)} />}
       {sprint && dialog === "edit" && <EditSprintDialog sprint={sprint} open onOpenChange={(o) => !o && setDialog(null)} />}
+      {sprint && dialog === "delete" && <DeleteSprintDialog sprint={sprint} open onOpenChange={(o) => !o && setDialog(null)} />}
     </section>
   );
 }

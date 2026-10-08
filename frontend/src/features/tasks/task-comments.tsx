@@ -98,9 +98,7 @@ function Comments({ task, comments, loading, deleted }: { task: TaskDetail; comm
           people={people}
           me={me}
           sending={send.isPending}
-          onSend={async (doc) => {
-            send.mutate(doc);
-          }}
+          onSend={(doc) => send.mutateAsync(doc)}
         />
       )}
     </div>

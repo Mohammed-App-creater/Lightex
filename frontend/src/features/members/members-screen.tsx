@@ -62,6 +62,15 @@ export function MembersScreen() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removing, setRemoving] = useState<WorkspaceMember | null>(null);
   const [sent, setSent] = useState<Record<string, boolean>>({});
+  /** Invite actions in flight, by invite id: blocks a second click (two resend emails) and shows a spinner. */
+  const [busyInvites, setBusyInvites] = useState<Record<string, "resend" | "revoke">>({});
+  const setBusy = (id: string, kind: "resend" | "revoke" | null) =>
+    setBusyInvites((b) => {
+      const next = { ...b };
+      if (kind) next[id] = kind;
+      else delete next[id];
+      return next;
+    });
 
   const wsRoles = useMemo(() => rolesFor(roles.data ?? [], "workspace"), [roles.data]);
   const pickable = useMemo(() => assignableRoles(roles.data ?? [], "workspace"), [roles.data]);
@@ -85,8 +94,14 @@ export function MembersScreen() {
       qc.invalidateQueries({ queryKey: qk.roles(ws.slug) }),
     ]);
 
+  // Optimistic: the picker shows the new role at once and rolls back if the server refuses.
   const changeRole = async (m: WorkspaceMember, roleId: string, undo = false) => {
     const prev = m.roleId;
+    if (roleId === prev) return;
+    const key = qk.wsMembers(ws.slug);
+    await qc.cancelQueries({ queryKey: key });
+    const snapshot = qc.getQueryData<WorkspaceMember[]>(key);
+    qc.setQueryData<WorkspaceMember[]>(key, (list) => list?.map((x) => (x.userId === m.userId ? { ...x, roleId } : x)));
     try {
       await api.workspaces.updateMember(ws.slug, m.userId, roleId);
       await refresh();
@@ -95,6 +110,8 @@ export function MembersScreen() {
         action: { label: "Undo", key: "Z", onClick: () => void changeRole({ ...m, roleId }, prev, true) },
       });
     } catch (e) {
+      if (snapshot) qc.setQueryData(key, snapshot);
+      void refresh();
       toast.error("Couldn’t change role", { body: errorMessage(e) });
     }
   };
@@ -110,16 +127,22 @@ export function MembersScreen() {
   };
 
   const resend = async (inv: Invite) => {
+    if (busyInvites[inv.id]) return;
+    setBusy(inv.id, "resend");
     try {
       await api.workspaces.resendInvite(ws.slug, inv.id);
       setSent((s) => ({ ...s, [inv.id]: true }));
       setTimeout(() => setSent((s) => ({ ...s, [inv.id]: false })), 2200);
     } catch (e) {
       toast.error("Couldn’t resend invite", { body: errorMessage(e) });
+    } finally {
+      setBusy(inv.id, null);
     }
   };
 
   const revoke = async (inv: Invite) => {
+    if (busyInvites[inv.id]) return;
+    setBusy(inv.id, "revoke");
     try {
       await api.workspaces.revokeInvite(ws.slug, inv.id);
       await qc.invalidateQueries({ queryKey: qk.invites(ws.slug) });
@@ -139,6 +162,8 @@ export function MembersScreen() {
       });
     } catch (e) {
       toast.error("Couldn’t revoke invite", { body: errorMessage(e) });
+    } finally {
+      setBusy(inv.id, null);
     }
   };
 
@@ -243,7 +268,14 @@ export function MembersScreen() {
           );
         })}
         {shownInvites.map((inv) => (
-          <InviteRow key={inv.id} invite={inv} mobile={mobile} onResend={() => void resend(inv)} onRevoke={() => void revoke(inv)} />
+          <InviteRow
+            key={inv.id}
+            invite={inv}
+            mobile={mobile}
+            busy={busyInvites[inv.id] ?? null}
+            onResend={() => void resend(inv)}
+            onRevoke={() => void revoke(inv)}
+          />
         ))}
       </>
     );
@@ -328,11 +360,21 @@ export function MembersScreen() {
                         <Check size={12} aria-hidden /> Sent
                       </span>
                     ) : (
-                      <Button variant="ghost" onClick={() => void resend(inv)} aria-label={`Resend invite to ${inv.email}`}>
+                      <Button
+                        variant="ghost"
+                        loading={busyInvites[inv.id] === "resend"}
+                        onClick={() => void resend(inv)}
+                        aria-label={`Resend invite to ${inv.email}`}
+                      >
                         Resend
                       </Button>
                     )}
-                    <Button variant="danger-ghost" onClick={() => void revoke(inv)} aria-label={`Revoke invite to ${inv.email}`}>
+                    <Button
+                      variant="danger-ghost"
+                      loading={busyInvites[inv.id] === "revoke"}
+                      onClick={() => void revoke(inv)}
+                      aria-label={`Revoke invite to ${inv.email}`}
+                    >
                       Revoke
                     </Button>
                   </span>
@@ -486,11 +528,14 @@ function MemberRow({
 function InviteRow({
   invite,
   mobile,
+  busy,
   onResend,
   onRevoke,
 }: {
   invite: Invite;
   mobile: boolean;
+  /** The action in flight for this invite, if any. */
+  busy: "resend" | "revoke" | null;
   onResend: () => void;
   onRevoke: () => void;
 }) {
@@ -502,10 +547,12 @@ function InviteRow({
         </Button>
       </MenuTrigger>
       <MenuContent align="end" width={200}>
-        <MenuItem onSelect={onResend}>Resend invite</MenuItem>
+        <MenuItem disabled={busy !== null} onSelect={onResend}>
+          {busy === "resend" ? "Resending…" : "Resend invite"}
+        </MenuItem>
         <MenuSeparator />
-        <MenuItem danger onSelect={onRevoke}>
-          Revoke invite
+        <MenuItem danger disabled={busy !== null} onSelect={onRevoke}>
+          {busy === "revoke" ? "Revoking…" : "Revoke invite"}
         </MenuItem>
       </MenuContent>
     </Menu>

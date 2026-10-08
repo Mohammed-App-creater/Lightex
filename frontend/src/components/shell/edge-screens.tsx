@@ -47,7 +47,23 @@ function IconTile({ children, danger }: { children: ReactNode; danger?: boolean 
 
 const h2 = "m-0 max-w-[420px] text-[20px] font-semibold leading-7 tracking-[-0.015em]";
 
-export function NotFoundScreen({ path, home = "/", bare, title = "Page not found" }: { path?: string; home?: string; bare?: boolean; title?: string }) {
+/**
+ * `search` shows the "Search ⌘K" button. It needs the command palette, which only the workspace shell
+ * mounts, so it defaults to `bare` (bare screens render inside the shell; full-page ones don't).
+ */
+export function NotFoundScreen({
+  path,
+  home = "/",
+  bare,
+  title = "Page not found",
+  search = bare,
+}: {
+  path?: string;
+  home?: string;
+  bare?: boolean;
+  title?: string;
+  search?: boolean;
+}) {
   return (
     <EdgeLayout bare={bare}>
       <div aria-hidden className="flex items-center text-[64px] font-semibold leading-none tracking-[-0.05em] text-fg-3">
@@ -60,10 +76,12 @@ export function NotFoundScreen({ path, home = "/", bare, title = "Page not found
         <Button variant="primary" asChild>
           <Link href={home}>Go to My work</Link>
         </Button>
-        <Button onClick={() => shell.openPalette()}>
-          Search <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </Button>
+        {search && (
+          <Button onClick={() => shell.openPalette()}>
+            Search <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </Button>
+        )}
       </div>
     </EdgeLayout>
   );

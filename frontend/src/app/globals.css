@@ -94,9 +94,23 @@
 }
 
 @layer base {
+  :root {
+    /* Native controls (range, progress, any stray checkbox) pick up the theme accent. */
+    accent-color: var(--accent);
+  }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+  }
+  /* Number inputs: no OS spin buttons (they crowd narrow fields and ignore the theme). */
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
   body {
     background: var(--bg);

@@ -6,6 +6,7 @@ import { useCallback, useMemo, type ReactNode } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
 import { useMe } from "@/features/auth/session";
+import { epicSwatch } from "@/features/epics/epic-model";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
 import type { FilterField, FilterRule } from "@/lib/api/types";
 import { shortDate, todayISO } from "@/lib/utils/dates";
@@ -62,7 +63,7 @@ export function useFilterOptions(projectId: string) {
             .sort((a, b) => b.number - a.number)
             .map((s) => ({ id: s.id, label: s.name, meta: s.state === "active" ? "Active" : s.state === "planned" ? "Planned" : shortDate(s.endDate) }));
         case "epic":
-          return epics.map((e) => ({ id: e.id, label: e.name, icon: <span aria-hidden className="size-2 rounded-[3px]" style={{ background: `oklch(.66 .13 ${e.hue})` }} /> }));
+          return epics.map((e) => ({ id: e.id, label: e.name, icon: <span aria-hidden className="size-2 rounded-[3px]" style={{ background: epicSwatch(e.hue) }} /> }));
         case "due": {
           const out: ValueOption[] = [
             { id: "today", label: "Today", meta: shortDate(ctx.today) },

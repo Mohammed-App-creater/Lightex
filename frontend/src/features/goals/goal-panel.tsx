@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/choice";
+import { DatePicker } from "@/components/ui/date-picker";
 import { StatusGlyph } from "@/components/ui/glyphs";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
@@ -142,15 +143,23 @@ function PanelForm({
   });
 
   // ⌘/Ctrl+Enter saves from anywhere while the panel is open (focus may sit on the panel itself).
+  // Skipped while a save is in flight, so a held or repeated ⌘↵ can't create duplicates.
   const submitRef = useRef(submit);
+  const savingRef = useRef(saving);
+  const inFlight = useRef(false);
   useEffect(() => {
     submitRef.current = submit;
+    savingRef.current = saving;
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        void submitRef.current();
+        if (e.repeat || inFlight.current || savingRef.current) return;
+        inFlight.current = true;
+        void submitRef.current().finally(() => {
+          inFlight.current = false;
+        });
       }
     };
     window.addEventListener("keydown", onKey);
@@ -203,9 +212,21 @@ function PanelForm({
               />
             )}
           />
-          <Field label={isMilestone ? "Date" : "Target date"} error={errors.dueDate?.message}>
-            <Input type="date" mono min="2026-01-01" max="2027-12-31" {...form.register("dueDate")} />
-          </Field>
+          <Controller
+            control={form.control}
+            name="dueDate"
+            render={({ field }) => (
+              <Field label={isMilestone ? "Date" : "Target date"} error={errors.dueDate?.message}>
+                <DatePicker
+                  ref={field.ref}
+                  name={field.name}
+                  value={field.value}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  onBlur={field.onBlur}
+                />
+              </Field>
+            )}
+          />
         </div>
         <Field label="Description" error={errors.description?.message}>
           <Textarea

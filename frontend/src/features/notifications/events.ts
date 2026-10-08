@@ -52,6 +52,12 @@ export const EVENTS: Record<NotificationType, EventMeta> = {
     color: "var(--accent-t)",
     path: "M12.5 6.5A4.8 4.8 0 004 5M3.5 9.5A4.8 4.8 0 0012 11M3.8 2.8v2.4h2.4M12.2 13.2v-2.4H9.8",
   },
+  access: {
+    pref: "Access requests",
+    verb: "requested access",
+    color: "var(--warn)",
+    path: "M5 7.5V5.5a3 3 0 016 0v2M3.5 7.5h9v6h-9zM8 10v1.5",
+  },
 };
 
 /** Preferences matrix rows, in design order, mapped to the inbox type that carries the icon. */

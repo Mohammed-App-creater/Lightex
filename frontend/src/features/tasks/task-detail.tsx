@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, Maximize2, Minimize2, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/choice";
 import { ErrorGlyph, StatusGlyph } from "@/components/ui/glyphs";
 import { Skeleton } from "@/components/ui/feedback";
 import { InlineEditText } from "@/components/ui/inline-edit";
@@ -14,7 +15,7 @@ import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/compo
 import { toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useMe } from "@/features/auth/session";
-import { useProjectMembers, useStatuses } from "@/features/projects/queries";
+import { useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage, isNotFound, isApiError } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
@@ -74,6 +75,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const router = useRouter();
   const qc = useQueryClient();
   const { data: statuses = [] } = useStatuses(task.projectId);
+  const { data: sprints = [] } = useSprints(task.projectId);
   const update = useUpdateTask();
   const del = useDeleteTask();
   const create = useCreateTask();
@@ -90,7 +92,12 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const [planOpen, setPlanOpen] = useState(false);
   const [forced, setForced] = useState<Set<string>>(new Set());
   const [editingDesc, setEditingDesc] = useState(false);
+  const [addingSub, setAddingSub] = useState(false);
   const full = mode === "full";
+  // Sub-tasks can't have sub-tasks (the server rejects it), so a sub-task gets no composer.
+  const canAddSub = canCreate && !deleted && !task.parentId;
+  // New tasks can't go into a completed sprint (the server answers 422); copies and sub-tasks fall back to the backlog.
+  const openSprintId = task.sprintId && sprints.find((s) => s.id === task.sprintId)?.state !== "completed" ? task.sprintId : null;
 
   const patch = (p: TaskPatch) => {
     if (p.statusId) {
@@ -106,11 +113,17 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   };
 
   const link = typeof window !== "undefined" ? `${window.location.origin}${routes.task(ws.slug, task.key)}` : "";
-  const copyLink = () => {
-    void navigator.clipboard?.writeText(link).catch(() => undefined);
-    toast.success(`Link to ${task.key} copied`);
+  const copyLink = async () => {
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(link);
+      toast.success(`Link to ${task.key} copied`);
+    } catch {
+      toast.error(`Couldn’t copy the link to ${task.key}`, { body: "Your browser blocked clipboard access." });
+    }
   };
   const duplicate = async () => {
+    if (create.isPending) return;
     try {
       const t = await create.mutateAsync({
         projectId: task.projectId,
@@ -120,7 +133,8 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
           priority: task.priority,
           type: task.type,
           assigneeId: can("task.assign", perms) ? task.assigneeId : null,
-          sprintId: task.sprintId,
+          sprintId: openSprintId,
+          parentId: task.parentId,
           epicId: task.epicId,
           milestoneId: task.milestoneId,
           dueDate: task.dueDate,
@@ -133,18 +147,17 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
       toast.error("Couldn’t duplicate the task", { body: errorMessage(e) });
     }
   };
-  const restore = async () => {
-    try {
-      await api.tasks.restore(task.id);
+  const restore = useMutation({
+    mutationFn: () => api.tasks.restore(task.id),
+    onSuccess: () => {
       toast.success(`Restored ${task.key}`);
       void qc.invalidateQueries({ queryKey: qk.scope(task.projectId) });
       void qc.invalidateQueries({ queryKey: ["task"] });
-    } catch (e) {
-      toast.error(`Couldn’t restore ${task.key}`, { body: errorMessage(e) });
-    }
-  };
+    },
+    onError: (e) => toast.error(`Couldn’t restore ${task.key}`, { body: errorMessage(e) }),
+  });
 
-  // Panel-scoped keys: 1–6 status, ⌘⇧D done, ⌘⇧F expand, ⌘L copy link, ⌘D duplicate.
+  // Panel-scoped keys: 1–6 status, ⌘⇧D done, ⌘⇧F expand, ⌘L copy link, ⌘D duplicate, ⇧C add sub-task.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (isTypingTarget(e.target) || (e.target as HTMLElement).closest("[role=menu],[role=listbox],.ProseMirror")) return;
     const mod = e.metaKey || e.ctrlKey;
@@ -162,10 +175,13 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
       onToggleFull();
     } else if (mod && !e.shiftKey && e.key.toLowerCase() === "l") {
       e.preventDefault();
-      copyLink();
+      void copyLink();
     } else if (mod && !e.shiftKey && e.key.toLowerCase() === "d" && canCreate && !deleted) {
       e.preventDefault();
       void duplicate();
+    } else if (!mod && !e.altKey && e.shiftKey && e.key.toLowerCase() === "c" && canAddSub) {
+      e.preventDefault();
+      setAddingSub(true);
     }
   };
 
@@ -204,11 +220,11 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
             </Button>
           </MenuTrigger>
           <MenuContent align="end" width={220}>
-            <MenuItem keys={["⌘", "L"]} onSelect={copyLink}>
+            <MenuItem keys={["⌘", "L"]} onSelect={() => void copyLink()}>
               Copy link
             </MenuItem>
             {canCreate && !deleted && (
-              <MenuItem keys={["⌘", "D"]} onSelect={() => void duplicate()}>
+              <MenuItem keys={["⌘", "D"]} disabled={create.isPending} onSelect={() => void duplicate()}>
                 Duplicate
               </MenuItem>
             )}
@@ -237,7 +253,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               Deleted <span className="font-normal text-fg-3">· restorable for 30 days</span>
             </span>
             {canDelete && (
-              <Button size="sm" onClick={() => void restore()}>
+              <Button size="sm" loading={restore.isPending} onClick={() => !restore.isPending && restore.mutate()}>
                 Restore
               </Button>
             )}
@@ -337,7 +353,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               ) : null}
             </section>
 
-            <Subtasks task={task} statuses={statuses} canCreate={canCreate && !deleted} />
+            <Subtasks task={task} statuses={statuses} canCreate={canAddSub} sprintId={openSprintId} adding={addingSub} onAddingChange={setAddingSub} />
             <TaskAttachments task={task} canUpload={can("attachment.upload", perms)} deleted={deleted} />
             <TaskConversation task={task} deleted={deleted} />
           </div>
@@ -371,14 +387,27 @@ function CopyKeyButton({ value }: { value: string }) {
   );
 }
 
-function Subtasks({ task, statuses, canCreate }: { task: TaskDetail; statuses: Status[]; canCreate: boolean }) {
+function Subtasks({
+  task,
+  statuses,
+  canCreate,
+  sprintId,
+  adding,
+  onAddingChange: setAdding,
+}: {
+  task: TaskDetail;
+  statuses: Status[];
+  canCreate: boolean;
+  sprintId: string | null;
+  adding: boolean;
+  onAddingChange: (adding: boolean) => void;
+}) {
   const me = useMe();
   const router = useRouter();
   const ws = useCurrentWorkspace()!;
   const { data: members = [] } = useProjectMembers(task.projectId);
   const update = useUpdateTask();
   const create = useCreateTask();
-  const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
   const perms = task.project.my_permissions;
   const done = statuses.find((s) => s.glyph === "done");
@@ -396,7 +425,7 @@ function Subtasks({ task, statuses, canCreate }: { task: TaskDetail; statuses: S
     }
     setDraft("");
     try {
-      await create.mutateAsync({ projectId: task.projectId, body: { title, parentId: task.id, statusId: todo?.id } });
+      await create.mutateAsync({ projectId: task.projectId, body: { title, parentId: task.id, statusId: todo?.id, sprintId } });
     } catch (e) {
       toast.error("Couldn’t add the sub-task", { body: errorMessage(e) });
     }
@@ -425,9 +454,7 @@ function Subtasks({ task, statuses, canCreate }: { task: TaskDetail; statuses: S
           return (
             <li key={s.id} className="-mx-2 flex min-h-[34px] items-center gap-2.5 rounded-sm px-2 hover:bg-hover">
               {canToggle ? (
-                <input
-                  type="checkbox"
-                  className="cb"
+                <Checkbox
                   checked={d}
                   aria-label={`Complete ${s.key}`}
                   onChange={() => {

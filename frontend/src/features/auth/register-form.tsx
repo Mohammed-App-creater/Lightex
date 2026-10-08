@@ -73,9 +73,8 @@ export function RegisterForm() {
                 aria-describedby={errors.terms ? termsErrId : undefined}
                 className={errors.terms ? "border-danger" : undefined}
               />
-              <span>
-                I agree to the <span className="font-medium text-fg">Terms</span>
-              </span>
+              {/* Plain text on purpose: there is no terms page to link to yet, so don't style it like a link. */}
+              <span>I accept the terms of use</span>
             </label>
             {errors.terms?.message && <FieldError id={termsErrId}>{errors.terms.message}</FieldError>}
           </div>

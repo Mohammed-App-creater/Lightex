@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronLeft, ChevronRight, Copy, Lock, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, Lock, Plus, Trash2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AvatarStack } from "@/components/ui/avatar";
@@ -60,7 +60,8 @@ export function RolesScreen() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [deleting, setDeleting] = useState<Role | null>(null);
-  const [requested, setRequested] = useState(false);
+  /** Which role action is in flight: guards double submits and drives the button spinners. */
+  const [pending, setPending] = useState<"create" | "duplicate" | "delete" | null>(null);
 
   const list = useMemo(() => rolesFor(roles.data ?? [], scope), [roles.data, scope]);
   const current = list.find((r) => r.id === selected[scope]) ?? list.find((r) => !isOwnerRole(r)) ?? list[0];
@@ -74,6 +75,10 @@ export function RolesScreen() {
   useLeaveGuard(dirty, nudge);
 
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
+  // People whose role grants role management (from the role's permissions, never its name).
+  const roleAdmins = (members.data ?? []).filter(
+    (m) => m.status === "active" && roles.data?.find((r) => r.id === m.roleId)?.permissions.includes("workspace.manage_roles"),
+  );
   const refresh = () => qc.invalidateQueries({ queryKey: qk.roles(ws.slug) });
 
   const select = (id: string) =>
@@ -132,8 +137,10 @@ export function RolesScreen() {
     }
   };
 
-  const create = (base: Pick<Role, "name" | "description" | "permissions">) =>
+  const create = (base: Pick<Role, "name" | "description" | "permissions">, kind: "create" | "duplicate") =>
     guard(async () => {
+      if (pending) return;
+      setPending(kind);
       try {
         const r = await api.roles.create(ws.slug, { ...base, scope });
         await refresh();
@@ -156,11 +163,15 @@ export function RolesScreen() {
         });
       } catch (e) {
         toast.error("Couldn’t create role", { body: errorMessage(e) });
+      } finally {
+        setPending(null);
       }
     });
 
   const remove = async (role: Role) => {
     if (role.memberCount > 0) return setDeleting(role);
+    if (pending) return;
+    setPending("delete");
     try {
       await api.roles.remove(role.id);
       await refresh();
@@ -185,6 +196,8 @@ export function RolesScreen() {
       // 409 role_in_use: someone holds it (e.g. on a project): ask where to move them.
       if (isApiError(e) && e.code === "role_in_use") setDeleting(role);
       else toast.error("Couldn’t delete role", { body: errorMessage(e) });
+    } finally {
+      setPending(null);
     }
   };
 
@@ -254,7 +267,8 @@ export function RolesScreen() {
               <Button
                 variant="ghost"
                 className="mt-2 justify-start max-[760px]:h-11"
-                onClick={() => create({ name: uniqueName("New role", list.map((r) => r.name)), description: "", permissions: [] })}
+                loading={pending === "create"}
+                onClick={() => create({ name: uniqueName("New role", list.map((r) => r.name)), description: "", permissions: [] }, "create")}
               >
                 <Plus size={13} aria-hidden /> New role
               </Button>
@@ -295,8 +309,12 @@ export function RolesScreen() {
               {canManage && (
                 <Button
                   variant="secondary"
+                  loading={pending === "duplicate"}
                   onClick={() =>
-                    create({ name: copyName(current.name, list.map((r) => r.name)), description: current.description, permissions: current.permissions })
+                    create(
+                      { name: copyName(current.name, list.map((r) => r.name)), description: current.description, permissions: current.permissions },
+                      "duplicate",
+                    )
                   }
                   aria-label="Duplicate role"
                   tooltip={mobile ? "Duplicate role" : undefined}
@@ -306,7 +324,15 @@ export function RolesScreen() {
                 </Button>
               )}
               {editable && (
-                <Button variant="ghost" icon aria-label="Delete role" tooltip="Delete role" className="hover:text-danger" onClick={() => void remove(current)}>
+                <Button
+                  variant="ghost"
+                  icon
+                  aria-label="Delete role"
+                  tooltip="Delete role"
+                  className="hover:text-danger"
+                  loading={pending === "delete"}
+                  onClick={() => void remove(current)}
+                >
                   <Trash2 size={15} aria-hidden />
                 </Button>
               )}
@@ -384,22 +410,11 @@ export function RolesScreen() {
             </span>
             <h2 className="m-0 text-[16px] font-semibold">You can’t manage roles</h2>
             <span className="text-[12px] text-fg-3">Admins only · you’re {myRole ? `a ${myRole.name.toLowerCase()}` : "not an admin"}</span>
-            {requested ? (
-              <span role="status" className="mt-3.5 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ok">
-                <Check size={13} aria-hidden /> Requested · admins notified
-              </span>
-            ) : (
-              <Button
-                variant="primary"
-                className="mt-2"
-                onClick={() => {
-                  setRequested(true);
-                  toast.info("Access requested", { body: "Workspace admins were notified." });
-                }}
-              >
-                Request access
-              </Button>
-            )}
+            {/* No "request access" endpoint exists for workspace roles, so point at the people who can help. */}
+            <p className="m-0 mt-1.5 max-w-[420px] text-[12.5px] text-fg-2">
+              Ask a workspace admin to change your role
+              {roleAdmins.length > 0 && <>: {roleAdmins.slice(0, 3).map((m) => m.user.name).join(", ")}{roleAdmins.length > 3 ? ` and ${roleAdmins.length - 3} more` : ""}</>}.
+            </p>
           </div>
         )}
         {body}

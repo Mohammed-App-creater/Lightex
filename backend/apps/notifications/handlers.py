@@ -85,7 +85,7 @@ def deliver(
         return None
     project_id = event.project_id
     prefs = preferences_for(recipient)
-    channel = (prefs.events or {}).get(pref, {}) if pref else {"in_app": True, "email": False}
+    channel = (prefs.events or {}).get(pref, {}) if pref else {"in_app": True, "email": True}
     in_app = bool(channel.get("in_app", True))
     email = bool(email_template) and bool(channel.get("email", False))
     if not in_app and not email:
@@ -259,19 +259,76 @@ def on_sprint_completed(event: DomainEvent) -> None:
             queue_email(user.email, "sprint_completed", context)
 
 
+def _access_request_context(req: Any, *, project: Any, workspace: Any) -> dict[str, Any]:
+    scope = project.name if project is not None else f"a project in {workspace.name}"
+    cta = (
+        f"{settings.FRONTEND_URL}/{workspace.slug}/projects/{project.key}/settings?tab=members"
+        if project is not None
+        else f"{settings.FRONTEND_URL}/{workspace.slug}/settings/members"
+    )
+    return {
+        **base_context(workspace.slug),
+        "cta_url": cta,
+        "requester_name": req.user.name,
+        "requester_email": req.user.email,
+        "project_name": scope,
+        "scope_label": "Project" if project is not None else "Wants",
+        "workspace_name": workspace.name,
+        "message": getattr(req, "message", "") or "",
+    }
+
+
 def on_access_request(event: DomainEvent) -> None:
+    """Tells the people who can let the requester in: the project's member managers and its lead."""
     from apps.projects.models import AccessRequest
 
-    req = AccessRequest.objects.select_related("user", "project").filter(pk=event.payload.get("requestId")).first()
+    req = (
+        AccessRequest.objects.select_related("user", "project", "project__workspace")
+        .filter(pk=event.payload.get("requestId"))
+        .first()
+    )
+    if req is None or req.status != "pending":
+        return
+    project = req.project
+    admins = list(
+        ProjectMember.objects.filter(project=project, role__permissions__code=PROJECT_ADMIN_PERMISSION).values_list(
+            "user_id", flat=True
+        )
+    )
+    if project.lead_id:
+        admins.append(project.lead_id)
+    context = _access_request_context(req, project=project, workspace=project.workspace)
+    for user in _recipients(event, admins):
+        deliver(
+            event,
+            user,
+            kind="access",
+            pref=None,
+            payload={"projectKey": project.key, **({"quote": req.message} if req.message else {})},
+            email_template="access_request",
+            email_context=context,
+        )
+
+
+def on_workspace_access_request(event: DomainEvent) -> None:
+    """Emails the workspace's member managers (in-app rows always belong to a project, so email only)."""
+    from apps.access import services as access
+    from apps.workspaces.models import WorkspaceAccessRequest, WorkspaceMember
+
+    req = (
+        WorkspaceAccessRequest.objects.select_related("user", "workspace")
+        .filter(pk=event.payload.get("requestId"))
+        .first()
+    )
     if req is None:
         return
-    admins = ProjectMember.objects.filter(
-        project=req.project, role__permissions__code=PROJECT_ADMIN_PERMISSION
-    ).values_list("user_id", flat=True)
-    quote = f"{req.user.name} requested access to {req.project.name}"
-    for user in _recipients(event, admins):
-        # Rendered by the client as an "assigned"-style row with the quote (same as the mock API).
-        deliver(event, user, kind="assigned", pref=None, payload={"quote": quote})
+    ws = req.workspace
+    context = _access_request_context(req, project=None, workspace=ws)
+    members = WorkspaceMember.objects.filter(workspace=ws, status="active", user__is_active=True).select_related("user")
+    for m in members:
+        if m.user_id == event.actor_id or not access.can(m.user, "workspace.manage_members", ws):
+            continue
+        queue_email(m.user.email, "access_request", context)
 
 
 def on_due_soon(event: DomainEvent) -> None:
@@ -299,6 +356,7 @@ HANDLERS: dict[str, Callable[[DomainEvent], None]] = {
     "sprint_started": on_sprint_started,
     "sprint_completed": on_sprint_completed,
     "access_request": on_access_request,
+    "workspace_access_request": on_workspace_access_request,
     "due_soon": on_due_soon,
     # Recorded for the outbox trail; the email itself is sent by the service (it carries a token).
     "invitation": lambda event: None,

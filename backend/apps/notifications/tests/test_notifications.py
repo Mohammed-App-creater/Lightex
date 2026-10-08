@@ -176,11 +176,30 @@ def test_sprint_started_and_completed(owner, project, sam):
     assert "Sprint 14" in mail.outbox[0].subject
 
 
-def test_access_request_notifies_project_admins(owner, ws, project):
+def test_access_request_notifies_project_admins_in_app_and_by_email(owner, ws, project):
     requester = add_member(ws, key="member")
+    mail.outbox.clear()
+    client_for(requester).post(f"/api/v1/projects/{project.id}/access-requests", {"message": "Need it"}, format="json")
+    row = inbox(owner)["data"][0]
+    assert row["type"] == "access"
+    assert row["actorId"] == str(requester.id)
+    assert row["payload"] == {"projectKey": "PRJ", "quote": "Need it"}
+    assert [m.to for m in mail.outbox] == [[owner.email]]
+    assert mail.outbox[0].subject == f"{requester.name} requested access to {project.name}"
+    assert "/projects/PRJ/settings?tab=members" in mail.outbox[0].body
+    # A repeat request while one is pending notifies nobody again.
     client_for(requester).post(f"/api/v1/projects/{project.id}/access-requests", {}, format="json")
-    rows = inbox(owner)["data"]
-    assert rows[0]["payload"]["quote"] == f"{requester.name} requested access to {project.name}"
+    assert len(mail.outbox) == 1
+
+
+def test_workspace_access_request_emails_workspace_admins(owner, ws):
+    requester = add_member(ws, key="member")
+    mail.outbox.clear()
+    client_for(requester).post(f"/api/v1/workspaces/{ws.slug}/access-requests")
+    assert [m.to for m in mail.outbox] == [[owner.email]]
+    assert mail.outbox[0].subject == f"{requester.name} requested access to a project in {ws.name}"
+    client_for(requester).post(f"/api/v1/workspaces/{ws.slug}/access-requests")
+    assert len(mail.outbox) == 1
 
 
 def test_due_soon_command_is_idempotent(owner, project, sam, st):

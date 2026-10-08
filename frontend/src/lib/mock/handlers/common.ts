@@ -24,13 +24,15 @@ export function logActivity(
   if (db.activity.length > 500) db.activity.length = 500;
 }
 
-const EVENT_FOR: Record<NotificationType, NotificationEvent> = {
+/** Preference row per type; access requests have none (they can't be switched off). */
+const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
   assigned: "assigned",
   mention: "mentioned",
   status: "status_change",
   comment: "comment",
   due: "due_soon",
   sprint: "sprint_started",
+  access: null,
 };
 
 /** Creates an in-app notification when the recipient's preferences allow it. Never notifies the actor. */
@@ -45,7 +47,8 @@ export function notify(
 ) {
   if (recipientId === actorId) return;
   const prefs = db.prefs.find((p) => p.userId === recipientId)?.prefs;
-  if (prefs && !prefs.events[EVENT_FOR[type]].in_app) return;
+  const event = EVENT_FOR[type];
+  if (prefs && event && !prefs.events[event].in_app) return;
   const project = db.projects.find((p) => p.id === projectId)!;
   db.notifications.unshift({
     id: uid("n"),

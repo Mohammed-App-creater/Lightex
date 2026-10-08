@@ -5,6 +5,7 @@ import { RefreshCw, WifiOff } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusGlyph } from "@/components/ui/glyphs";
+import { toast } from "@/components/ui/toast";
 
 /*
  * Offline banner (board 23 §2.6). While offline, TanStack Query pauses mutations; their
@@ -43,7 +44,7 @@ export function OfflineBanner() {
       <div
         role="status"
         aria-live="polite"
-        className="flex h-10 flex-none animate-[rise-in_220ms_var(--ease)] items-center gap-2.5 border-b border-[rgba(74,222,128,.3)] bg-ok-s pl-4 pr-2.5 font-medium text-ok"
+        className="flex h-10 flex-none animate-[rise-in_220ms_var(--ease)] items-center gap-2.5 border-b border-ok/30 bg-ok-s pl-4 pr-2.5 font-medium text-ok"
       >
         <StatusGlyph kind="done" />
         Back online
@@ -59,7 +60,7 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="flex h-10 flex-none animate-[rise-in_220ms_var(--ease)] items-center gap-2.5 border-b border-[rgba(245,183,59,.3)] bg-warn-s pl-4 pr-2.5 font-medium text-warn"
+      className="flex h-10 flex-none animate-[rise-in_220ms_var(--ease)] items-center gap-2.5 border-b border-warn/30 bg-warn-s pl-4 pr-2.5 font-medium text-warn"
     >
       <WifiOff size={15} className="animate-pulse motion-reduce:animate-none" aria-hidden />
       Offline
@@ -73,6 +74,14 @@ export function OfflineBanner() {
         className="text-inherit hover:text-inherit"
         onClick={() => {
           if (typeof navigator !== "undefined" && navigator.onLine) onlineManager.setOnline(true);
+          if (!onlineManager.isOnline()) {
+            toast({
+              id: "still-offline",
+              tone: "warning",
+              title: "Still offline",
+              body: "Your changes stay queued and sync when the connection is back.",
+            });
+          }
         }}
       >
         <RefreshCw size={13} aria-hidden /> Retry now

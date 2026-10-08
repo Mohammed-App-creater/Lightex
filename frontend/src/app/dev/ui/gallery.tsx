@@ -32,11 +32,13 @@ import { Field, Input } from "@/components/ui/input";
 import { Shortcut } from "@/components/ui/kbd";
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { DateChip, DatePicker } from "@/components/ui/date-picker";
 import { Select } from "@/components/ui/select";
 import { SidePanel } from "@/components/ui/side-panel";
 import { FilterPills, TabPanel, Tabs } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
+import { addDaysISO, todayISO } from "@/lib/utils/dates";
 
 const GLYPHS: GlyphKind[] = ["backlog", "todo", "progress", "review", "done", "canceled"];
 const PRIORITIES: PriorityLevel[] = [4, 3, 2, 1, 0];
@@ -70,6 +72,8 @@ export function Gallery({ scope }: { scope: string }) {
   const [confirm, setConfirm] = useState(false);
   const [panel, setPanel] = useState(false);
   const [palette, setPalette] = useState(false);
+  const [due, setDue] = useState<string | null>("2026-10-21");
+  const [start, setStart] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -129,6 +133,23 @@ export function Gallery({ scope }: { scope: string }) {
           </Field>
           <Field label="Search">
             <Input placeholder="Search or jump…" leading={<Search size={14} aria-hidden />} />
+          </Field>
+          <Field label="Due date">
+            <DatePicker
+              value={due}
+              onChange={setDue}
+              clearable
+              quick={(pick) => (
+                <>
+                  <DateChip onClick={() => pick(addDaysISO(todayISO(), 1))}>Tomorrow</DateChip>
+                  <DateChip onClick={() => pick(addDaysISO(todayISO(), 7))}>Next week</DateChip>
+                  <DateChip onClick={() => pick(null)}>Clear</DateChip>
+                </>
+              )}
+            />
+          </Field>
+          <Field label="Start (sm, from today)">
+            <DatePicker size="sm" value={start} onChange={setStart} min={todayISO()} placeholder="No start date" />
           </Field>
         </div>
         <Row label="Inline edit: click the title, Enter saves, Esc cancels">

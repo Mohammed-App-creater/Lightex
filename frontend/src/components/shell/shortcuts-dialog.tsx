@@ -40,7 +40,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { label: string; spec: str
       { label: "Set status (task panel)", spec: "1–6" },
       { label: "Mark done", spec: "⌘+⇧+D" },
       { label: "Expand to full page", spec: "⌘+⇧+F" },
-      { label: "Copy link", spec: "⌘+L" },
+      { label: "Copy link (task panel)", spec: "⌘+L" },
       { label: "Duplicate", spec: "⌘+D" },
       { label: "Send comment", spec: "⌘+↵" },
     ],

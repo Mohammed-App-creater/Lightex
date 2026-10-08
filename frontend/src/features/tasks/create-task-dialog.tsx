@@ -6,11 +6,15 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Avatar, ProjectBadge, UnassignedAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/choice";
+import { DateChip, DatePicker } from "@/components/ui/date-picker";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { Textarea } from "@/components/ui/input";
+import { Menu, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/components/ui/menu";
 import { toast } from "@/components/ui/toast";
 import { shell, useShell, type CreateTaskDefaults } from "@/components/shell/shell-state";
 import { useMe } from "@/features/auth/session";
+import { epicSwatch } from "@/features/epics/epic-model";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
 import { useProjects } from "@/features/workspace/queries";
 import { errorMessage, isApiError } from "@/lib/api/errors";
@@ -79,7 +83,6 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const [more, setMore] = useState(false);
   const [another, setAnother] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [customDue, setCustomDue] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const patch = (p: Partial<Draft>) => setD((x) => ({ ...x, ...p }));
 
@@ -113,6 +116,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const close = () => shell.closeCreateTask();
 
   const submit = async () => {
+    if (create.isPending) return;
     const title = d.title.trim();
     if (!title) {
       setErr("Title is required");
@@ -163,14 +167,15 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
-      void submit();
+      // A second ⌘↵ while the first create is in flight would make a duplicate task.
+      if (!create.isPending) void submit();
     } else if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT" && (e.target as HTMLInputElement).type === "text") {
       e.preventDefault();
     }
   };
 
   const shellClass = mobile
-    ? "fixed inset-x-0 bottom-0 z-[61] flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[18px] border-t border-line-2 bg-surface shadow-[0_-16px_48px_rgba(0,0,0,.45)] outline-none data-[state=open]:animate-[sheet-up_280ms_var(--ease)]"
+    ? "fixed inset-x-0 bottom-0 z-[61] flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[18px] border-t border-line-2 bg-surface shadow-pop outline-none data-[state=open]:animate-[sheet-up_280ms_var(--ease)]"
     : "fixed left-1/2 top-[72px] z-[61] flex max-h-[calc(100dvh-96px)] w-[calc(100%-32px)] max-w-[640px] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-line-2 bg-surface shadow-modal outline-none data-[state=open]:animate-[modal-in_200ms_var(--ease)]";
 
   return (
@@ -362,64 +367,42 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
                       <MoreField label="Epic" icon={<Hexagon size={14} strokeWidth={1.5} aria-hidden />} value={epic?.name ?? "None"} empty={!epic}>
                         <MenuRadioGroup value={d.epicId ?? ""} onValueChange={(v) => patch({ epicId: v || null })}>
                           {epics.filter((e) => !e.archivedAt).map((e) => (
-                            <MenuRadioItem key={e.id} value={e.id} icon={<span aria-hidden className="size-2 rounded-[3px]" style={{ background: `oklch(.66 .13 ${e.hue})` }} />}>
+                            <MenuRadioItem key={e.id} value={e.id} icon={<span aria-hidden className="size-2 rounded-[3px]" style={{ background: epicSwatch(e.hue) }} />}>
                               {e.name}
                             </MenuRadioItem>
                           ))}
                           <MenuRadioItem value="">None</MenuRadioItem>
                         </MenuRadioGroup>
                       </MoreField>
-                      {customDue ? (
-                        <div className="grid min-h-8 grid-cols-[84px_minmax(0,1fr)] items-center max-[760px]:min-h-11">
-                          <span className="text-[12px] font-medium text-fg-3">Due date</span>
-                          <input
-                            type="date"
-                            autoFocus
-                            aria-label="Due date"
-                            defaultValue={d.dueDate ?? todayISO()}
-                            onChange={(e) => e.target.value && patch({ dueDate: e.target.value })}
-                            onBlur={() => setCustomDue(false)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === "Escape") {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setCustomDue(false);
-                              }
-                            }}
-                            className="h-7 rounded-sm border border-accent bg-bg px-2 font-mono text-[12px] text-fg shadow-[0_0_0_3px_var(--accent-s)] outline-none"
-                          />
-                        </div>
-                      ) : (
-                        <MoreField label="Due date" icon={<Calendar size={14} strokeWidth={1.5} aria-hidden />} value={d.dueDate ? shortDate(d.dueDate) : "None"} empty={!d.dueDate}>
-                          <MenuItem meta={shortDate(todayISO())} onSelect={() => patch({ dueDate: todayISO() })}>
-                            Today
-                          </MenuItem>
-                          <MenuItem meta={shortDate(addDaysISO(todayISO(), 1))} onSelect={() => patch({ dueDate: addDaysISO(todayISO(), 1) })}>
-                            Tomorrow
-                          </MenuItem>
-                          <MenuItem meta={shortDate(addDaysISO(todayISO(), 7))} onSelect={() => patch({ dueDate: addDaysISO(todayISO(), 7) })}>
-                            Next week
-                          </MenuItem>
-                          {active && (
-                            <MenuItem meta={shortDate(active.endDate)} onSelect={() => patch({ dueDate: active.endDate })}>
-                              Sprint end
-                            </MenuItem>
+                      <div className="grid min-h-8 grid-cols-[84px_minmax(0,1fr)] items-center max-[760px]:min-h-11">
+                        <span className="text-[12px] font-medium text-fg-3">Due date</span>
+                        <DatePicker
+                          value={d.dueDate}
+                          onChange={(v) => patch({ dueDate: v })}
+                          quick={(pick) => (
+                            <>
+                              <DateChip onClick={() => pick(todayISO())}>Today</DateChip>
+                              <DateChip onClick={() => pick(addDaysISO(todayISO(), 1))}>Tomorrow</DateChip>
+                              <DateChip onClick={() => pick(addDaysISO(todayISO(), 7))}>Next week</DateChip>
+                              {active && <DateChip onClick={() => pick(active.endDate)}>Sprint end</DateChip>}
+                              {milestones
+                                .filter((m) => !m.completedAt)
+                                .slice(0, 3)
+                                .map((m) => (
+                                  <DateChip key={m.id} title={`${m.name} · ${shortDate(m.dueDate)}`} onClick={() => pick(m.dueDate)}>
+                                    {m.name}
+                                  </DateChip>
+                                ))}
+                              {d.dueDate && <DateChip onClick={() => pick(null)}>No due date</DateChip>}
+                            </>
                           )}
-                          {milestones
-                            .filter((m) => !m.completedAt)
-                            .slice(0, 3)
-                            .map((m) => (
-                              <MenuItem key={m.id} meta={shortDate(m.dueDate)} onSelect={() => patch({ dueDate: m.dueDate })}>
-                                {m.name}
-                              </MenuItem>
-                            ))}
-                          <MenuSeparator />
-                          <MenuItem icon={<Calendar size={13} aria-hidden />} onSelect={() => setCustomDue(true)}>
-                            Pick a date…
-                          </MenuItem>
-                          {d.dueDate && <MenuItem onSelect={() => patch({ dueDate: null })}>No due date</MenuItem>}
-                        </MoreField>
-                      )}
+                        >
+                          <button type="button" aria-label={`Due date: ${d.dueDate ? shortDate(d.dueDate) : "None"}`} className={cn(moreBtn, !d.dueDate && "text-fg-3")}>
+                            <Calendar size={14} strokeWidth={1.5} aria-hidden />
+                            <span className="truncate">{d.dueDate ? shortDate(d.dueDate) : "None"}</span>
+                          </button>
+                        </DatePicker>
+                      </div>
                       <MoreField
                         label="Labels"
                         icon={<Tag size={14} strokeWidth={1.5} aria-hidden />}
@@ -453,14 +436,14 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
                     <label htmlFor="ct-desc" className="text-[12px] font-medium text-fg-3">
                       Description
                     </label>
-                    <textarea
+                    <Textarea
                       id="ct-desc"
                       rows={3}
                       maxLength={4000}
                       placeholder="Add details…"
                       value={d.description}
                       onChange={(e) => patch({ description: e.target.value })}
-                      className="mt-1.5 block min-h-[72px] w-full resize-y rounded-md border border-line-2 bg-bg px-2.5 py-2 text-[13px] leading-5 text-fg outline-none placeholder:text-fg-3 focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-s)]"
+                      className="mt-1.5 block min-h-[72px] resize-y"
                     />
                   </div>
                 </div>
@@ -468,7 +451,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
 
               <div className="flex flex-none items-center gap-2 border-t border-line py-2.5 pl-4 pr-3 max-[760px]:pb-[max(10px,env(safe-area-inset-bottom))]">
                 <label className="-ml-1.5 flex h-[30px] cursor-pointer items-center gap-[9px] rounded-sm px-1.5 text-[12.5px] font-medium text-fg-2 hover:text-fg max-[760px]:h-11">
-                  <input type="checkbox" role="switch" className="tg" checked={another} onChange={(e) => setAnother(e.target.checked)} />
+                  <Switch checked={another} onChange={(e) => setAnother(e.target.checked)} />
                   {mobile ? "Another" : "Create another"}
                 </label>
                 <span className="flex-1" />
@@ -493,20 +476,16 @@ const chip =
   "inline-flex h-7 flex-none items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-line-2 bg-raised px-2.5 text-[12.5px] font-medium text-fg transition-[border-color,background-color] duration-[var(--dur-fast)] hover:border-control hover:bg-hover data-[state=open]:border-control data-[state=open]:bg-hover disabled:cursor-default disabled:hover:border-line-2 disabled:hover:bg-raised";
 const ghost = "border-dashed bg-transparent text-fg-3";
 
+const moreBtn =
+  "-ml-2 inline-flex h-7 min-w-0 max-w-[calc(100%+8px)] items-center gap-[7px] rounded-sm px-2 text-left text-[13px] font-medium text-fg transition-colors hover:bg-hover data-[state=open]:bg-hover max-[760px]:h-11 [&_svg]:flex-none [&_svg]:text-fg-3";
+
 function MoreField({ label, icon, value, empty, children }: { label: string; icon: ReactNode; value: string; empty: boolean; children: ReactNode }) {
   return (
     <div className="grid min-h-8 grid-cols-[84px_minmax(0,1fr)] items-center max-[760px]:min-h-11">
       <span className="text-[12px] font-medium text-fg-3">{label}</span>
       <Menu>
         <MenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={`${label}: ${value}`}
-            className={cn(
-              "-ml-2 inline-flex h-7 min-w-0 max-w-[calc(100%+8px)] items-center gap-[7px] rounded-sm px-2 text-left text-[13px] font-medium text-fg transition-colors hover:bg-hover data-[state=open]:bg-hover max-[760px]:h-11 [&_svg]:flex-none [&_svg]:text-fg-3",
-              empty && "text-fg-3",
-            )}
-          >
+          <button type="button" aria-label={`${label}: ${value}`} className={cn(moreBtn, empty && "text-fg-3")}>
             {icon}
             <span className="truncate">{value}</span>
           </button>

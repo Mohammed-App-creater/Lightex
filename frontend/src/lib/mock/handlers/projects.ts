@@ -241,8 +241,9 @@ export function registerProjects() {
     if (!req) {
       req = { id: uid("ar"), projectId: p.id, userId, message: (str(ctx.body, "message") ?? "").slice(0, 300), createdAt: nowISO(), status: "pending" };
       ctx.db.accessRequests.push(req);
+      // The backend also emails these admins (and the project lead).
       for (const admin of accessInfo(ctx.db, p, userId).admins) {
-        notify(ctx.db, admin.id, "assigned", userId, null, p.id, { quote: `${ctx.db.users.find((u) => u.id === userId)?.name} requested access to ${p.name}` });
+        notify(ctx.db, admin.id, "access", userId, null, p.id, { projectKey: p.key, ...(req.message ? { quote: req.message } : {}) });
       }
     }
     return req;
@@ -253,6 +254,14 @@ export function registerProjects() {
       .filter((r) => r.projectId === ctx.params.id && r.userId === userId && r.status === "pending")
       .forEach((r) => (r.status = "withdrawn"));
     return undefined;
+  });
+  route("POST", "/projects/:id/access-requests/:requestId/deny", (ctx) => {
+    const p = projectById(ctx, ctx.params.id!);
+    requireProject(ctx, p.id, "project.manage_members");
+    const req = ctx.db.accessRequests.find((r) => r.projectId === p.id && r.id === ctx.params.requestId);
+    if (!req) fail(404, "not_found", "Request not found.");
+    if (req.status === "pending") req.status = "denied";
+    return req;
   });
   route("GET", "/projects/:id/access-requests", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);

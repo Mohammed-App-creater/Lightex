@@ -4,10 +4,12 @@ import * as Popover from "@radix-ui/react-popover";
 import { Bookmark, Calendar, ChevronDown, CircleDashed, Filter, Hexagon, Plus, RefreshCcw, SignalHigh, Tag, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import type { FilterField, FilterRule } from "@/lib/api/types";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { cn } from "@/lib/utils/cn";
+import { shortDate } from "@/lib/utils/dates";
 import { FILTER_FIELDS, MAX_RULES, OP_LABEL, completeRules, fieldLabel, isComplete, isMulti, newRule, opsFor, withOp } from "./filter-model";
 import type { FilterOptions } from "./use-filters";
 
@@ -223,22 +225,19 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
             {r.op === "empty" ? (
               <span />
             ) : r.field === "due" && customDate === i ? (
-              <input
-                type="date"
-                autoFocus
-                aria-label="Due date"
-                defaultValue={/^\d{4}/.test(r.values[0] ?? "") ? r.values[0] : opts.ctx.today}
-                onBlur={() => setCustomDate(null)}
-                onChange={(e) => e.target.value && set(i, { ...r, values: [e.target.value] })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Escape") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCustomDate(null);
-                  }
-                }}
-                className="h-7 min-w-0 rounded-[7px] border border-accent bg-bg px-2 font-mono text-[12px] text-fg shadow-[0_0_0_3px_var(--accent-s)] outline-none max-[760px]:h-9"
-              />
+              <DatePicker
+                defaultOpen
+                value={/^\d{4}/.test(r.values[0] ?? "") ? r.values[0] : opts.ctx.today}
+                onChange={(v) => v && set(i, { ...r, values: [v] })}
+                onOpenChange={(o) => !o && setCustomDate(null)}
+              >
+                <button type="button" aria-label="Due date" className={cn(pickBtn, "justify-start border-accent font-mono")}>
+                  <Calendar size={12} aria-hidden />
+                  <span className="min-w-0 truncate">
+                    {shortDate(/^\d{4}/.test(r.values[0] ?? "") ? r.values[0] : opts.ctx.today)}
+                  </span>
+                </button>
+              </DatePicker>
             ) : (
               <Menu open={openMenu === `v-${i}`} onOpenChange={(o) => setOpenMenu(o ? `v-${i}` : null)}>
                 <MenuTrigger asChild>

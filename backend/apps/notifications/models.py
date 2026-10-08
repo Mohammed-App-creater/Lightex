@@ -37,7 +37,7 @@ class DomainEvent(BaseModel):
 
 
 class Notification(BaseModel):
-    TYPES = [(t, t) for t in ("assigned", "mention", "status", "comment", "due", "sprint")]
+    TYPES = [(t, t) for t in ("assigned", "mention", "status", "comment", "due", "sprint", "access")]
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")

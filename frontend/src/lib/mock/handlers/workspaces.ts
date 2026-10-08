@@ -333,7 +333,7 @@ function searchHandler(ctx: Ctx) {
     const tasks = ctx.db.tasks
       .filter((t) => !t.deletedAt && ids.includes(t.projectId))
       .filter((t) => !q || t.key.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))
-      .slice(0, Number(ctx.query.limit) || 50);
+      .slice(0, Math.min(Number(ctx.query.limit) || 50, 50)); // the backend caps at 50
     for (const t of tasks) {
       const p = ctx.db.projects.find((x) => x.id === t.projectId)!;
       const s = ctx.db.statuses.find((x) => x.id === t.statusId)!;

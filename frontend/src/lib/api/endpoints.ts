@@ -135,6 +135,8 @@ export const projects = {
   requestAccess: (id: string, message?: string) => http.post<AccessRequest>(`/projects/${enc(id)}/access-requests`, { message }),
   withdrawAccessRequest: (id: string) => http.del(`/projects/${enc(id)}/access-requests/mine`),
   accessRequests: (id: string) => http.get<(AccessRequest & { user: User })[]>(`/projects/${enc(id)}/access-requests`),
+  denyAccessRequest: (id: string, requestId: string) =>
+    http.post<AccessRequest>(`/projects/${enc(id)}/access-requests/${enc(requestId)}/deny`),
   statuses: (id: string) => http.get<Status[]>(`/projects/${enc(id)}/statuses`),
   createStatus: (id: string, body: { name: string; category: Status["category"] }) => http.post<Status>(`/projects/${enc(id)}/statuses`, body),
   updateStatus: (id: string, statusId: string, body: { name?: string; position?: number; color?: string | null }) =>

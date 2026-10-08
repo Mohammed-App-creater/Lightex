@@ -5,6 +5,7 @@ import { ChevronRight, Plus, Search, Target, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/choice";
+import { DateChip, DatePicker } from "@/components/ui/date-picker";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
 import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/features/projects/queries";
@@ -220,7 +221,7 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
                     setEditingEst(false);
                   }
                 }}
-                className="h-[26px] w-[72px] rounded-sm border border-accent bg-surface px-2 font-mono text-[13px] font-medium shadow-[0_0_0_3px_var(--accent-s)] outline-none"
+                className="h-[26px] w-14 rounded-sm border border-accent bg-surface px-2 text-right font-mono text-[13px] font-medium tabular shadow-[0_0_0_3px_var(--accent-s)] outline-none max-[760px]:h-9"
               />
               <span className="text-[13px] text-fg-3">pts</span>
             </span>
@@ -251,7 +252,6 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
 }
 
 function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; canEdit: boolean; onPatch: (p: TaskPatch) => void; sprintEnd?: string }) {
-  const [open, setOpen] = useState(false);
   const d = task.dueDate;
   const days = d ? daysUntil(d) : null;
   const soon = days !== null && days >= 0 && days <= 2 && !task.completedAt;
@@ -267,54 +267,28 @@ function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; can
     </>
   );
   if (!canEdit) return <div className={fieldBtn}>{value}</div>;
-  const pick = (v: string | null) => {
-    setOpen(false);
-    onPatch({ dueDate: v });
-  };
   const nextMonday = (() => {
     const t = new Date();
     const add = ((8 - t.getDay()) % 7) || 7;
     return addDaysISO(todayISO(), add);
   })();
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger asChild>
-        <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Due date: ${d ? shortDate(d) : "none"}`}>
-          {value}
-        </button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          align="start"
-          sideOffset={6}
-          className="z-[70] flex w-[250px] flex-col gap-2.5 rounded-[10px] border border-line-2 bg-raised p-2.5 shadow-pop outline-none data-[state=open]:animate-[menu-in_150ms_var(--ease)]"
-        >
-          <label className="flex flex-col gap-1.5 text-meta font-medium text-fg-2">
-            Due date
-            <input
-              type="date"
-              defaultValue={d ?? ""}
-              onChange={(e) => e.target.value && pick(e.target.value)}
-              className="h-8 rounded-sm border border-control bg-surface px-2 font-mono text-[13px] text-fg [color-scheme:inherit] focus:border-accent focus:shadow-[0_0_0_3px_var(--ring)] focus:outline-none"
-            />
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            <QuickChip onClick={() => pick(addDaysISO(todayISO(), 1))}>Tomorrow</QuickChip>
-            <QuickChip onClick={() => pick(nextMonday)}>Next week</QuickChip>
-            {sprintEnd && <QuickChip onClick={() => pick(sprintEnd)}>Sprint end</QuickChip>}
-            {d && <QuickChip onClick={() => pick(null)}>Clear</QuickChip>}
-          </div>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-}
-
-function QuickChip({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="h-6 rounded-sm border border-line bg-surface px-2 text-[12px] font-medium hover:bg-hover">
-      {children}
-    </button>
+    <DatePicker
+      value={d}
+      onChange={(v) => onPatch({ dueDate: v })}
+      quick={(pick) => (
+        <>
+          <DateChip onClick={() => pick(addDaysISO(todayISO(), 1))}>Tomorrow</DateChip>
+          <DateChip onClick={() => pick(nextMonday)}>Next week</DateChip>
+          {sprintEnd && <DateChip onClick={() => pick(sprintEnd)}>Sprint end</DateChip>}
+          {d && <DateChip onClick={() => pick(null)}>Clear</DateChip>}
+        </>
+      )}
+    >
+      <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Due date: ${d ? shortDate(d) : "none"}`}>
+        {value}
+      </button>
+    </DatePicker>
   );
 }
 

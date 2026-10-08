@@ -442,7 +442,8 @@ export interface ActivityEntry {
   createdAt: ISODateTime;
 }
 
-export type NotificationType = "assigned" | "mention" | "status" | "comment" | "due" | "sprint";
+/** "access": someone asked to join a project you manage (no task; payload.projectKey, optional quote). */
+export type NotificationType = "assigned" | "mention" | "status" | "comment" | "due" | "sprint" | "access";
 
 export interface Notification {
   id: ID;
@@ -454,7 +455,7 @@ export interface Notification {
   taskId: ID | null;
   taskKey: string | null;
   taskTitle: string | null;
-  payload: { quote?: string; fromStatus?: string; toStatus?: string; dueDate?: ISODate; sprintName?: string };
+  payload: { quote?: string; fromStatus?: string; toStatus?: string; dueDate?: ISODate; sprintName?: string; projectKey?: string };
   createdAt: ISODateTime;
   readAt: ISODateTime | null;
 }

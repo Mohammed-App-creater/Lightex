@@ -132,6 +132,7 @@ items were needed by the designed screens and go beyond what the brief names. Al
 | GET | `/workspaces/:slug/project-directory` | 403 screen context (project admins), and "assign project admin" |
 | GET | `/projects/:id/access-requests` | Pending requests for project admins |
 | DELETE | `/projects/:id/access-requests/mine` | Withdraw my request |
+| POST | `/projects/:id/access-requests/:requestId/deny` | Decline a request (Members tab); the backend already serves it |
 | GET | `/projects/:id/active-sprint` | Sidebar sprint card, home project cards |
 | GET | `/tasks/:id/attachments` | Attachment list with fresh signed URLs |
 | GET | `/me/recents` | Palette "Recent" section |
@@ -148,7 +149,6 @@ endpoint for avatars (like attachments), so the client can send a URL instead.
 **Needed by the design, with no client call yet** (the related control is hidden, omitted, or shown as
 "Coming soon" until the backend confirms an endpoint):
 
-- Deny a project access request.
 - Restore a deleted workspace during a grace period.
 - Change a pending invite's role.
 - "Request a different role" for read-only users.
@@ -169,6 +169,10 @@ banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 - `Report.completedSprints`.
 - `Invite.{inviterHue, roleDescription, inviteeName}`.
 - `Notification.{glyph, category}`.
+- `Notification.type: "access"` with `payload.projectKey` (+ the request message as `payload.quote`): a project
+  access request, sent in-app and by email (`access_request` template) to the project's member managers and lead.
+  It has no preferences row, so it can't be switched off. Workspace access requests are email-only, because
+  in-app notifications always belong to a project.
 - Search task results include `status { name, glyph }`.
 - Paging beyond 500 items for the board and milestone task lists.
 

@@ -45,6 +45,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { ProgressRing } from "@/components/ui/feedback";
+import { toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useSession } from "@/features/auth/session";
 import { useActiveSprint } from "@/features/projects/queries";
@@ -216,7 +217,13 @@ function AccountMenu({ rail, children, ws }: { rail?: boolean; children: ReactNo
         <MenuSeparator />
         <MenuItem
           onSelect={async () => {
-            await signOut();
+            // The logout request revokes the refresh cookie server-side; it can take a moment in live mode.
+            const id = toast.info("Signing out…", { id: "sign-out", duration: 0 });
+            try {
+              await signOut();
+            } finally {
+              toast.dismiss(id);
+            }
             router.replace(routes.login());
           }}
         >
@@ -291,7 +298,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           <Inbox size={16} strokeWidth={1.6} aria-hidden />
           {unread > 0 && <span aria-hidden className="absolute right-2 top-[7px] size-[7px] rounded-full bg-accent-t shadow-[0_0_0_2px_var(--surface)]" />}
         </RailLink>
-        <RailLink href={routes.myTasks(ws.slug)} label="My tasks" keys={["G", "M"]} active={route.page === "my-tasks"}>
+        <RailLink href={routes.myTasks(ws.slug)} label="My tasks" keys={["G", "T"]} active={route.page === "my-tasks"}>
           <CircleCheck size={16} strokeWidth={1.6} aria-hidden />
         </RailLink>
         <span aria-hidden className="my-1.5 h-px w-7 bg-line" />
@@ -490,7 +497,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
                                 onClick={nav}
                                 aria-current={on ? "page" : undefined}
                                 className={cn(
-                                  "relative z-[1] flex h-[30px] items-center gap-[9px] rounded-[7px] px-2 text-[13px] font-medium text-fg-2 transition-colors hover:bg-[rgba(128,140,170,.08)] hover:text-fg max-[1023px]:h-[42px]",
+                                  "relative z-[1] flex h-[30px] items-center gap-[9px] rounded-[7px] px-2 text-[13px] font-medium text-fg-2 transition-colors hover:bg-hover hover:text-fg max-[1023px]:h-[42px]",
                                   on && "text-fg [&_svg]:text-accent-t",
                                 )}
                               >

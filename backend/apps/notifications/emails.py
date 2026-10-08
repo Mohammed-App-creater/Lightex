@@ -23,6 +23,7 @@ TEMPLATES = {
     "due_soon",
     "sprint_started",
     "sprint_completed",
+    "access_request",
 }
 
 _ANCHOR = re.compile(r'<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S | re.I)

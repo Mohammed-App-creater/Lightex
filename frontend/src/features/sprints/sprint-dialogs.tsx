@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { toast } from "@/components/ui/toast";
@@ -55,10 +56,10 @@ export function StartSprintDialog({ sprint, open, onOpenChange }: { sprint: Spri
     >
       <div className="grid grid-cols-2 gap-3">
         <Field label="Start">
-          <Input type="date" mono value={start} onChange={(e) => setStart(e.target.value)} />
+          <DatePicker value={start} onChange={(v) => v && setStart(v)} />
         </Field>
         <Field label="End">
-          <Input type="date" mono value={end} onChange={(e) => setEnd(e.target.value)} />
+          <DatePicker value={end} min={start || undefined} onChange={(v) => v && setEnd(v)} />
         </Field>
       </div>
       <Field label="Sprint goal" hint="Optional · what does done look like?">
@@ -111,10 +112,10 @@ export function EditSprintDialog({ sprint, open, onOpenChange }: { sprint: Sprin
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Start">
-          <Input type="date" mono value={start} onChange={(e) => setStart(e.target.value)} />
+          <DatePicker value={start} onChange={(v) => v && setStart(v)} />
         </Field>
         <Field label="End" error={error.endDate}>
-          <Input type="date" mono value={end} onChange={(e) => setEnd(e.target.value)} />
+          <DatePicker value={end} min={start || undefined} onChange={(v) => v && setEnd(v)} />
         </Field>
       </div>
       <Field label="Goal">

@@ -2,7 +2,7 @@
 
 import { Eye, Flag, Plus, Target } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/choice";
@@ -11,7 +11,7 @@ import { useMilestones, useObjectives, useProjectMembers, useStatuses } from "@/
 import { errorMessage, isApiError } from "@/lib/api/errors";
 import type { Milestone, Objective } from "@/lib/api/types";
 import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { GoalPanel, type PanelState } from "./goal-panel";
 import { defaultMilestoneId, sortByDue } from "./helpers";
@@ -91,6 +91,20 @@ export function GoalsScreen({ tab }: { tab: GoalsTab }) {
   useEffect(() => () => clearTimeout(flashTimer.current), []);
   const closePanel = useCallback(() => setPanel(null), []);
   const openNew = () => setPanel(tab === "objectives" ? { kind: "objective", item: null } : { kind: "milestone", item: null });
+
+  /* `?new=1` (links from the project overview) opens the create panel once, then leaves the URL. */
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const wantsNew = search.get("new") === "1";
+  useEffect(() => {
+    if (!wantsNew) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot: consume the deep-link param
+    if (canManage) setPanel(tab === "objectives" ? { kind: "objective", item: null } : { kind: "milestone", item: null });
+    const sp = new URLSearchParams(window.location.search);
+    sp.delete("new");
+    const qs = sp.toString();
+    replaceUrl(qs ? `${pathname}?${qs}` : pathname);
+  }, [wantsNew, canManage, tab, pathname]);
   const onSaved = (kind: PanelState["kind"], id: string) => {
     setPanel(null);
     setFlashId(id);

@@ -2,9 +2,10 @@
 
 import * as Popover from "@radix-ui/react-popover";
 import { Calendar, Check, ChevronDown, Download } from "lucide-react";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { ProjectBadge } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { Spinner } from "@/components/ui/spinner";
 import type { Project } from "@/lib/api/types";
@@ -70,6 +71,7 @@ export function RangeSelect({
   const [from, setFrom] = useState(value.from ?? def.from);
   const [to, setTo] = useState(value.to ?? def.to);
   const listRef = useRef<HTMLDivElement>(null);
+  const rid = useId();
 
   const pick = (r: RangeState) => {
     onChange(r);
@@ -79,7 +81,8 @@ export function RangeSelect({
   // Arrow keys move between the options (menu-like roving focus).
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-    if ((e.target as HTMLElement).tagName === "INPUT") return;
+    // The custom-range form (date pickers, Apply) keeps its own keyboard handling.
+    if ((e.target as HTMLElement).closest("form")) return;
     const items = Array.from(listRef.current?.querySelectorAll<HTMLElement>("[data-ri]") ?? []);
     const i = items.indexOf(document.activeElement as HTMLElement);
     const next = items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
@@ -156,26 +159,29 @@ export function RangeSelect({
                   pick({ range: "custom", ...normalizeCustom(from, to, today) });
                 }}
               >
-                <label className="flex items-center justify-between gap-2.5 text-[12px] text-fg-2">
-                  From
-                  <input
-                    type="date"
-                    className="h-7 rounded-sm border border-line-2 bg-bg px-2 font-mono text-[12px] text-fg focus:border-accent"
+                <div className="flex items-center justify-between gap-2.5 text-[12px] text-fg-2">
+                  <span id={`${rid}-from`}>From</span>
+                  <DatePicker
+                    size="sm"
+                    className="w-[132px] max-[1023px]:[&>button]:h-11"
+                    aria-labelledby={`${rid}-from`}
                     max={today}
                     value={from}
-                    onChange={(e) => setFrom(e.target.value)}
+                    onChange={(v) => v && setFrom(v)}
                   />
-                </label>
-                <label className="flex items-center justify-between gap-2.5 text-[12px] text-fg-2">
-                  To
-                  <input
-                    type="date"
-                    className="h-7 rounded-sm border border-line-2 bg-bg px-2 font-mono text-[12px] text-fg focus:border-accent"
+                </div>
+                <div className="flex items-center justify-between gap-2.5 text-[12px] text-fg-2">
+                  <span id={`${rid}-to`}>To</span>
+                  <DatePicker
+                    size="sm"
+                    className="w-[132px] max-[1023px]:[&>button]:h-11"
+                    aria-labelledby={`${rid}-to`}
+                    min={from || undefined}
                     max={today}
                     value={to}
-                    onChange={(e) => setTo(e.target.value)}
+                    onChange={(v) => v && setTo(v)}
                   />
-                </label>
+                </div>
                 <div className="flex justify-end">
                   <Button type="submit" size="sm" variant="secondary">
                     Apply

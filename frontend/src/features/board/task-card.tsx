@@ -88,7 +88,7 @@ export const TaskCard = memo(function TaskCard({
       </p>
       <div className="flex min-w-0 items-center gap-2.5">
         {canToggle ? (
-          <Tooltip content={done ? "Reopen" : "Mark done"} keys={["⌘", "⇧", "D"]}>
+          <Tooltip content={done ? "Reopen" : "Mark done"}>
             <button
               type="button"
               data-card-action

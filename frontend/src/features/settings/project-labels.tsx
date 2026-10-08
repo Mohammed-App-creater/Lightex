@@ -27,6 +27,7 @@ export function LabelsPanel({ project, canEdit }: { project: Project; canEdit: b
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<{ id: string; value: string } | null>(null);
   const [removing, setRemoving] = useState<Label | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [fresh, setFresh] = useState<string | null>(null);
   const key = qk.labels(project.id);
   const list = labels.data ?? [];
@@ -257,7 +258,7 @@ export function LabelsPanel({ project, canEdit }: { project: Project; canEdit: b
 
       <Modal
         open={Boolean(removing)}
-        onOpenChange={(o) => !o && setRemoving(null)}
+        onOpenChange={(o) => !o && !deleting && setRemoving(null)}
         role="alertdialog"
         width={420}
         title={
@@ -271,16 +272,23 @@ export function LabelsPanel({ project, canEdit }: { project: Project; canEdit: b
         }
         footer={
           <>
-            <Button variant="ghost" onClick={() => setRemoving(null)}>
+            <Button variant="ghost" onClick={() => setRemoving(null)} disabled={deleting}>
               Cancel
             </Button>
             <Button
               variant="danger"
               autoFocus
-              onClick={() => {
+              loading={deleting}
+              onClick={async () => {
                 const l = removing;
-                setRemoving(null);
-                if (l) void remove(l);
+                if (!l || deleting) return;
+                setDeleting(true);
+                try {
+                  await remove(l);
+                } finally {
+                  setDeleting(false);
+                  setRemoving(null);
+                }
               }}
             >
               Delete label

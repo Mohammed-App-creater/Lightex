@@ -74,7 +74,7 @@ function Header({ project }: { project: Project }) {
         <AvatarStack people={members.map((m) => ({ id: m.userId, name: m.user.name, hue: m.user.hue }))} max={4} size={28} />
         {can("project.manage_members", project.my_permissions) && (
           <Button size="sm" asChild>
-            <Link href={`${routes.project(ws.slug, project.key, "settings")}#members`}>
+            <Link href={`${routes.project(ws.slug, project.key, "settings")}?tab=members`}>
               <UserPlus size={13} aria-hidden /> Invite
             </Link>
           </Button>
@@ -178,7 +178,7 @@ function ObjectivesPanel({ project }: { project: Project }) {
       ) : objectives.length === 0 ? (
         <SmallEmpty icon={<Target size={18} aria-hidden />} title="No objectives yet" body="Define what success looks like.">
           {canManage && (
-            <Button size="sm" kbd="O" asChild>
+            <Button size="sm" asChild>
               <Link href={`${routes.project(ws.slug, project.key, "objectives")}?new=1`}>Add objective</Link>
             </Button>
           )}
@@ -242,7 +242,7 @@ function MilestonesPanel({ project, milestones }: { project: Project; milestones
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-[13px] text-fg-2">No milestones yet.</span>
           {canManage && (
-            <Button size="sm" kbd="M" asChild>
+            <Button size="sm" asChild>
               <Link href={`${routes.project(ws.slug, project.key, "milestones")}?new=1`}>Add milestone</Link>
             </Button>
           )}
@@ -353,7 +353,7 @@ function SprintPanel({ project, sprintId }: { project: Project; sprintId: string
           <b className="font-semibold">No active sprint</b>
           <span className="text-[13px] text-fg-2">{planned ? `${planned.name} is planned.` : "Add tasks first."}</span>
           {can("sprint.manage", project.my_permissions) && (
-            <Button size="sm" className="w-fit" kbd="S" asChild>
+            <Button size="sm" className="w-fit" asChild>
               <Link href={routes.project(ws.slug, project.key, "sprints")}>Start sprint</Link>
             </Button>
           )}
@@ -453,7 +453,7 @@ function MiniBurndown({ points }: { points: BurndownPoint[] }) {
             onMouseLeave={() => setHover(null)}
             onFocus={() => setHover(i)}
             onBlur={() => setHover(null)}
-            className="flex-1 cursor-crosshair rounded-t-xs hover:bg-[rgba(128,128,150,.08)] focus-visible:bg-[rgba(128,128,150,.08)]"
+            className="flex-1 cursor-crosshair rounded-t-xs hover:bg-hover focus-visible:bg-hover"
           />
         ))}
       </div>
@@ -543,11 +543,11 @@ function SetupChecklist({
   const perms = project.my_permissions;
   const steps = [
     { id: "create", title: "Create the project", desc: `${project.name} · key ${project.key}`, done: true },
-    { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", kbd: "I", allowed: can("project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}#members`) },
-    { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", kbd: "O", allowed: can("objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
-    { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", kbd: "M", allowed: can("milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
+    { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", allowed: can("project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}?tab=members`) },
+    { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", allowed: can("objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
+    { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", allowed: can("milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
     { id: "tasks", title: "Create your first tasks", desc: "Type them in, one per line or one at a time", done: tasks > 0, cta: "New task", kbd: "C", allowed: can("task.create", perms), run: () => shell.openCreateTask({ projectId: project.id }) },
-    { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", kbd: "S", allowed: can("sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
+    { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", allowed: can("sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
   ];
   const doneCount = steps.filter((s) => s.done).length;
   const canDoAny = steps.some((s) => !s.done && s.allowed);

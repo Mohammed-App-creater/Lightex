@@ -41,6 +41,15 @@ export function MembersPanel({ project, canEdit }: { project: Project; canEdit: 
   });
   const [removing, setRemoving] = useState<ProjectMember | null>(null);
   const [declined, setDeclined] = useState<string[]>([]);
+  /** Access request id → the action in flight on it. */
+  const [deciding, setDeciding] = useState<Record<string, "approve" | "decline">>({});
+  const decide = (id: string, action: "approve" | "decline" | null) =>
+    setDeciding((d) => {
+      const next = { ...d };
+      if (action) next[id] = action;
+      else delete next[id];
+      return next;
+    });
   const [fresh, setFresh] = useState<string | null>(null);
   const projectRoles = assignableRoles(roles.data ?? [], "project");
   const newRole = defaultRole(roles.data ?? [], "project");
@@ -123,15 +132,37 @@ export function MembersPanel({ project, canEdit }: { project: Project; canEdit: 
                   <span className="truncate font-medium">{r.user.name}</span>
                   <span className="truncate text-[12px] text-fg-3">{r.message ? `“${r.message}”` : r.user.email}</span>
                 </span>
-                <Button variant="primary" size="sm" disabledReason={newRole ? undefined : "No project Member role"} onClick={() => newRole && void add(r.user, newRole.id, "Approved")}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={deciding[r.id] === "approve"}
+                  disabledReason={!newRole ? "No project Member role" : deciding[r.id] ? "Declining this request" : undefined}
+                  onClick={async () => {
+                    if (!newRole) return;
+                    decide(r.id, "approve");
+                    await add(r.user, newRole.id, "Approved");
+                    decide(r.id, null);
+                  }}
+                >
                   Approve
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setDeclined((d) => [...d, r.id]);
-                    toast.info(`Declined ${r.user.name}’s request`);
+                  loading={deciding[r.id] === "decline"}
+                  disabledReason={deciding[r.id] === "approve" ? "Approving this request" : undefined}
+                  onClick={async () => {
+                    decide(r.id, "decline");
+                    try {
+                      await api.projects.denyAccessRequest(project.id, r.id);
+                      setDeclined((d) => [...d, r.id]);
+                      toast.info(`Declined ${r.user.name}’s request`);
+                      void qc.invalidateQueries({ queryKey: qk.accessRequests(project.id) });
+                    } catch (e) {
+                      toast.error("Couldn’t decline the request", { body: errorMessage(e) });
+                    } finally {
+                      decide(r.id, null);
+                    }
                   }}
                 >
                   Decline

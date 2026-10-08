@@ -77,7 +77,7 @@ function WorkspaceLoader({ slug, children }: { slug: string; children: ReactNode
   if (ws.isPending) return <AppLoader />;
   if (ws.isError) {
     if (isNotFound(ws.error)) return <NotFoundScreen path={`/${slug}`} />;
-    return <ErrorScreen error={ws.error} onRetry={() => void ws.refetch()} />;
+    return <ErrorScreen error={ws.error} onRetry={() => ws.refetch()} />;
   }
   return (
     <WorkspaceScope workspace={ws.data}>

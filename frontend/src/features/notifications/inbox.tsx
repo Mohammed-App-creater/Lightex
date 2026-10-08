@@ -192,7 +192,7 @@ export function Inbox() {
       e.preventDefault();
       closePreview();
     }
-    if (e.key === "Enter" && e.target === e.currentTarget && shown?.taskKey) {
+    if (e.key === "Enter" && e.target === e.currentTarget && (shown?.taskKey || shown?.type === "access")) {
       const btn = e.currentTarget.querySelector<HTMLButtonElement>("[data-open-task]");
       btn?.click();
     }

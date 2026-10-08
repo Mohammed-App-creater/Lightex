@@ -18,6 +18,10 @@ import { dueLabel, glyphForStatusName, isSystem } from "./events";
 import { ArrowRightIcon, CheckIcon, CloseIcon, HollowCircleIcon } from "./icons";
 import { WhoTile } from "./notification-row";
 
+/** Access requests are reviewed on the project's Members settings tab. */
+export const accessHref = (ws: string, n: Pick<Notification, "type" | "payload">) =>
+  n.type === "access" && n.payload.projectKey ? `/${ws}/projects/${n.payload.projectKey.toUpperCase()}/settings?tab=members` : null;
+
 export const taskHref = (ws: string, taskKey: string, projectKey?: string) =>
   `/${ws}/projects/${(projectKey ?? taskKey.split("-")[0] ?? "").toUpperCase()}/board?task=${encodeURIComponent(taskKey)}`;
 
@@ -83,6 +87,7 @@ export function PreviewContent({
   const status = task ? statuses.data?.find((s) => s.id === task.statusId) : undefined;
   const assignee = task?.assigneeId ? members.get(task.assigneeId) ?? null : null;
   const href = n.taskKey && !gone ? taskHref(slug, n.taskKey, task?.project.key) : null;
+  const review = accessHref(slug, n);
   const tone = task ? dueTone(task.dueDate, status?.category === "done") : "none";
   const title = task?.title ?? n.taskTitle ?? n.payload.sprintName ?? n.projectName;
 
@@ -167,7 +172,12 @@ export function PreviewContent({
       </div>
 
       <div className="flex flex-none items-center gap-2 border-t border-line px-[18px] pb-4 pt-3">
-        {href ? (
+        {review ? (
+          <Button variant="primary" data-open-task onClick={() => onOpenTask(review)} className={phone ? "h-11 flex-1" : undefined}>
+            Review request
+            {!phone && <Kbd>↵</Kbd>}
+          </Button>
+        ) : href ? (
           <Button variant="primary" data-open-task onClick={() => onOpenTask(href)} className={phone ? "h-11 flex-1" : undefined}>
             Open task
             {!phone && <Kbd>↵</Kbd>}
@@ -189,7 +199,7 @@ export function PreviewContent({
 
 function EventCard({ n, actor, me }: { n: Notification; actor: User | null; me: User }) {
   const system = isSystem(n) || !actor;
-  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : "commented";
+  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : n.type === "access" ? `requested access to ${n.projectName}` : "commented";
   return (
     <div className="flex flex-col gap-2.5 rounded-[10px] border border-line bg-bg p-3">
       <div className="flex items-center gap-2 text-[12.5px] text-fg-2">

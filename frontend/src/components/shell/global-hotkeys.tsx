@@ -2,12 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { THEMES } from "@/app/providers";
 import { toast } from "@/components/ui/toast";
 import { useProjects } from "@/features/workspace/queries";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { can, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
 import { shell } from "./shell-state";
+
+const THEME_CYCLE = [...THEMES, "system"] as const;
+const THEME_LABELS: Record<(typeof THEME_CYCLE)[number], string> = { dark: "Navy", black: "Near-black", light: "Light", system: "System" };
+
+/** "Switch theme" (⌘⇧L and the palette): steps through every theme, then System, then back to the start. */
+export function cycleTheme(theme: string | undefined, setTheme: (t: string) => void) {
+  const i = THEME_CYCLE.indexOf((theme ?? "dark") as (typeof THEME_CYCLE)[number]);
+  const next = THEME_CYCLE[(i + 1) % THEME_CYCLE.length]!;
+  setTheme(next);
+  toast.info(`Theme: ${THEME_LABELS[next]}`);
+}
 
 /** Global shortcuts (brief + boards 13/22). Shown in tooltips and the "?" sheet. */
 export function GlobalHotkeys() {
@@ -35,11 +47,7 @@ export function GlobalHotkeys() {
       }
       shell.openCreateTask(current && can("task.create", current.my_permissions) ? { projectId: current.id } : {});
     },
-    "mod+shift+l": () => {
-      const next = theme === "light" ? "dark" : "light";
-      setTheme(next);
-      toast.info(`Theme: ${next === "light" ? "Light" : "Navy"}`);
-    },
+    "mod+shift+l": () => cycleTheme(theme, setTheme),
     "g b": go("board"),
     "g l": go("list"),
     "g s": go("sprints"),

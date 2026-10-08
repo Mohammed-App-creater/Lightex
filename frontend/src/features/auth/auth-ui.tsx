@@ -11,7 +11,6 @@ import {
 } from "react";
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api/endpoints";
 import { apiMode } from "@/lib/env";
 import { cn } from "@/lib/utils/cn";
@@ -322,11 +321,9 @@ export function SubmitButton({ busy, busyLabel, children }: { busy: boolean; bus
       type="submit"
       variant="primary"
       size="lg"
-      aria-busy={busy || undefined}
-      className={cn("w-full rounded-md text-[14px] max-[760px]:h-[46px] max-[760px]:text-[15px]", busy && "cursor-progress")}
-      onClick={busy ? (e) => e.preventDefault() : undefined}
+      loading={busy}
+      className="w-full rounded-md text-[14px] max-[760px]:h-[46px] max-[760px]:text-[15px]"
     >
-      {busy && <Spinner className="size-[15px] text-white" />}
       {busy ? busyLabel : children}
     </Button>
   );

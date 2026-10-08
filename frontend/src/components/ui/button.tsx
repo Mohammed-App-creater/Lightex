@@ -1,6 +1,6 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { Slot, Slottable } from "@radix-ui/react-slot";
 import { forwardRef, useId, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Kbd } from "./kbd";
@@ -21,8 +21,17 @@ const variants: Record<ButtonVariant, string> = {
   secondary: "border-control bg-raised text-fg hover:bg-hover",
   ghost: "bg-transparent text-fg-2 hover:bg-hover hover:text-fg",
   danger:
-    "bg-danger-solid text-white hover:shadow-[0_0_0_4px_rgba(255,122,112,.18)]",
+    "bg-danger-solid text-white hover:shadow-[0_0_0_4px_var(--danger-s)]",
   "danger-ghost": "bg-transparent text-danger hover:bg-hover",
+};
+
+/** While loading, hold the resting look: no hover/press feedback, slightly dimmed. */
+const loadingVariants: Record<ButtonVariant, string> = {
+  primary: "hover:bg-accent hover:shadow-none active:bg-accent",
+  secondary: "hover:bg-raised",
+  ghost: "hover:bg-transparent hover:text-fg-2",
+  danger: "hover:shadow-none",
+  "danger-ghost": "hover:bg-transparent",
 };
 
 const sizes: Record<ButtonSize, string> = {
@@ -84,7 +93,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={asChild ? undefined : type}
       aria-busy={loading || undefined}
-      aria-disabled={blocked || undefined}
+      aria-disabled={blocked || loading || undefined}
       aria-describedby={blocked ? reasonId : props["aria-describedby"]}
       onClick={blocked || loading ? (e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault() : onClick}
       className={cn(
@@ -93,16 +102,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         icon ? iconSizes[size] : sizes[size],
         blocked &&
           "border-line bg-raised text-fg-3 shadow-none hover:bg-raised hover:shadow-none active:scale-100",
-        loading && "cursor-progress",
+        loading && cn("cursor-progress opacity-80 active:scale-100", loadingVariants[variant]),
         className,
       )}
       {...props}
     >
+      {loading && <Spinner className={variant === "primary" || variant === "danger" ? "text-white" : undefined} />}
       {asChild ? (
-        children
+        // Slottable: the child element becomes the button and the spinner is prepended inside it.
+        <Slottable>{children}</Slottable>
       ) : (
         <>
-          {loading && <Spinner className={variant === "primary" || variant === "danger" ? "text-white" : undefined} />}
           {children}
           {kbd && <Kbd>{kbd}</Kbd>}
           {blocked && (

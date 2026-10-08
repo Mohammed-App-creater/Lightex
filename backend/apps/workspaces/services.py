@@ -375,7 +375,11 @@ def accept_invitation(raw: str, *, request_user: Any, name: str, password: str) 
 def request_workspace_access(user: User, ws: Workspace) -> WorkspaceAccessRequest:
     if access.can(user, "project.create", ws):
         raise conflict("conflict", "You can create projects yourself.")
-    req, _ = WorkspaceAccessRequest.objects.get_or_create(workspace=ws, user=user)
+    req, created = WorkspaceAccessRequest.objects.get_or_create(workspace=ws, user=user)
+    if created:
+        from apps.notifications.events import emit
+
+        emit("workspace_access_request", workspace=ws, actor=user, payload={"requestId": str(req.pk)})
     return req
 
 

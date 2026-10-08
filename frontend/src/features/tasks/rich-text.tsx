@@ -369,6 +369,7 @@ export function CommentComposer({
   me,
 }: {
   people: () => User[];
+  /** Rejects when the comment wasn't saved, so the composer can restore the draft. */
   onSend: (doc: RichDoc) => Promise<unknown> | void;
   sending?: boolean;
   me: Pick<User, "name" | "hue">;
@@ -379,8 +380,14 @@ export function CommentComposer({
     const json = editor.getJSON() as RichDoc;
     if (richIsEmpty(json)) return;
     if (richToText(json).length > 2000) return;
-    await onSend(json);
+    if (sending) return;
+    // Clear at once (the comment shows optimistically); if the send fails, put the draft back.
     editor.commands.clearContent(true);
+    try {
+      await onSend(json);
+    } catch {
+      if (!editor.isDestroyed && richIsEmpty(editor.getJSON() as RichDoc)) editor.commands.setContent(json, { emitUpdate: true });
+    }
   };
   const editor = useRichEditor({ placeholder: "Comment… @ to mention", people, onSubmit: () => void send(), label: "Write a comment", autofocus: false });
   useEffect(() => {

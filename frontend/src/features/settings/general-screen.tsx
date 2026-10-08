@@ -22,7 +22,7 @@ import { qk } from "@/lib/api/query-keys";
 import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
-import { confirmState, slugError, slugSegments, URL_HOST, workspaceIcon, workspaceNameError } from "./lib";
+import { confirmState, slugError, slugSegments, URL_HOST, WS_NAME_MAX, workspaceIcon, workspaceNameError } from "./lib";
 import { SaveBar, type SaveState } from "./save-bar";
 import { SettingsPage, SettingsSection } from "./settings-shell";
 import { useLeaveGuard } from "./use-leave-guard";
@@ -63,8 +63,9 @@ function WorkspaceForm() {
   const [check, setCheck] = useState<SlugCheck>(null);
   const [phase, setPhase] = useState<"edit" | "saving" | "error" | "saved">("edit");
   const [shake, setShake] = useState(0);
+  const [serverNameErr, setServerNameErr] = useState<{ name: string; message: string } | null>(null);
 
-  const nameErr = workspaceNameError(name);
+  const nameErr = workspaceNameError(name) ?? (serverNameErr?.name === name ? serverNameErr.message : null);
   const localSlugErr = slugError(slug);
   const slugChanged = slug !== ws.slug;
   const taken = slugChanged && check?.slug === slug && check.status === "taken";
@@ -122,6 +123,8 @@ function WorkspaceForm() {
     } catch (e) {
       setPhase("error");
       if (isApiError(e) && e.fieldErrors.slug) setCheck({ slug, status: "taken" });
+      if (isApiError(e) && e.fieldErrors.name) setServerNameErr({ name, message: e.fieldErrors.name });
+      if (!isApiError(e) || (!e.fieldErrors.slug && !e.fieldErrors.name)) toast.error("Couldn’t save workspace", { body: errorMessage(e) });
     }
   };
 
@@ -134,7 +137,7 @@ function WorkspaceForm() {
   let help: { text: string; tone?: "err" | "ok" } = { text: "a–z, 0–9, hyphens" };
   if (slugErr) help = { text: slugErr, tone: "err" };
   else if (checking) help = { text: "Checking…" };
-  else if (slugChanged && check?.status === "available") help = { text: "Available · old URL redirects", tone: "ok" };
+  else if (slugChanged && check?.status === "available") help = { text: "Available · links using the old URL will stop working", tone: "ok" };
 
   return (
     <>
@@ -144,7 +147,7 @@ function WorkspaceForm() {
           <span className="text-[12px] text-fg-3">Icon from name</span>
         </div>
         <Field label="Workspace name" error={nameErr}>
-          <Input value={name} maxLength={60} onChange={(e) => setName(e.target.value)} autoComplete="organization" />
+          <Input value={name} maxLength={WS_NAME_MAX} onChange={(e) => setName(e.target.value)} autoComplete="organization" />
         </Field>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="ws-slug" className="text-meta font-medium text-fg-2">
@@ -278,9 +281,12 @@ function ProjectsSection() {
   const members = useWsMembers(ws.slug);
   const roles = useRoles(ws.slug);
   const adminRole = projectAdminRole(roles.data ?? []);
+  /** Project whose admin assignment is in flight: one at a time, with a spinner on its button. */
+  const [assigning, setAssigning] = useState<string | null>(null);
 
   const assign = async (project: { id: string; key: string; name: string }, user: { id: string; name: string }) => {
-    if (!adminRole) return;
+    if (!adminRole || assigning) return;
+    setAssigning(project.id);
     try {
       await api.projects.addMember(project.id, user.id, adminRole.id);
       await Promise.all([
@@ -292,6 +298,8 @@ function ProjectsSection() {
       toast.success(`${user.id === me.id ? "You are" : `${user.name} is`} now ${adminRole.name} on ${project.name}`);
     } catch (e) {
       toast.error("Couldn’t assign admin", { body: errorMessage(e) });
+    } finally {
+      setAssigning(null);
     }
   };
 
@@ -333,7 +341,13 @@ function ProjectsSection() {
                 {canAssign && adminRole && (
                   <Menu>
                     <MenuTrigger asChild>
-                      <Button variant="secondary" size="sm" className="max-[760px]:h-11">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="max-[760px]:h-11"
+                        loading={assigning === p.id}
+                        disabled={assigning === p.id}
+                      >
                         <UserPlus size={13} aria-hidden /> Assign admin
                       </Button>
                     </MenuTrigger>
@@ -383,7 +397,7 @@ function DangerZone() {
           <div className="min-w-0 flex-1">
             <h3 className="m-0 mb-1 text-[13px] font-semibold">Delete workspace</h3>
             <p className="m-0 font-mono text-[12px] text-fg-3">{counts}</p>
-            <p className="m-0 mt-1 text-[12px] text-fg-3">Soft delete: restorable for 30 days.</p>
+            <p className="m-0 mt-1 text-[12px] text-fg-3">Permanent: it can’t be restored from Lightex.</p>
           </div>
           <Button variant="danger" onClick={() => setOpen(true)} className="max-[760px]:h-11">
             Delete workspace
@@ -410,7 +424,7 @@ function DeleteWorkspaceDialog({ counts, onClose }: { counts: string; onClose: (
     setBusy(true);
     try {
       await api.workspaces.remove(ws.slug, text);
-      toast.success(`${ws.name} scheduled for deletion`, { body: "Restorable for 30 days." });
+      toast.success(`${ws.name} deleted`);
       qc.removeQueries({ queryKey: qk.workspace(ws.slug) });
       await qc.invalidateQueries({ queryKey: qk.workspaces() });
       router.replace("/");
@@ -427,7 +441,7 @@ function DeleteWorkspaceDialog({ counts, onClose }: { counts: string; onClose: (
       role="alertdialog"
       width={420}
       title={`Delete ${ws.name}?`}
-      description="Everyone loses access right away. The workspace and its projects are restorable for 30 days, then removed for good."
+      description="Everyone loses access right away. The workspace and all its projects are deleted, and you can’t restore them from Lightex."
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={busy}>

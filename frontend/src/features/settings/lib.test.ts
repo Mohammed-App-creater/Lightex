@@ -34,7 +34,9 @@ describe("slug rules", () => {
   });
   it("validates the workspace name", () => {
     expect(workspaceNameError(" ")).toBe("Required");
-    expect(workspaceNameError("x".repeat(49))).toBe("Max 48 characters");
+    expect(workspaceNameError("x")).toBe("Use at least 2 characters");
+    expect(workspaceNameError("x".repeat(41))).toBe("Max 40 characters");
+    expect(workspaceNameError("x".repeat(40))).toBeNull();
     expect(workspaceNameError("Platform team")).toBeNull();
   });
 });
