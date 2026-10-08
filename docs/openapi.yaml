@@ -76,6 +76,30 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/auth/google/callback:
+    get:
+      operationId: auth_google_callback_retrieve
+      description: Google redirects here. Sets the refresh cookie and returns to the
+        client, which restores the session.
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
+  /api/v1/auth/google/start:
+    get:
+      operationId: auth_google_start_retrieve
+      description: 'Browser navigation (not fetch): redirects to Google''s consent
+        screen.'
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
   /api/v1/auth/login:
     post:
       operationId: auth_login_create

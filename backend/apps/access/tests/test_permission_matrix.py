@@ -47,6 +47,8 @@ ROWS: list[Row] = [
     Row("auth-logout", "POST", allow=(PUBLIC,)),
     Row("auth-forgot-password", "POST", allow=(PUBLIC,)),
     Row("auth-reset-password", "POST", allow=(PUBLIC,)),
+    Row("auth-google-start", "GET", allow=(PUBLIC,)),
+    Row("auth-google-callback", "GET", allow=(PUBLIC,)),
     Row("invite-public", "GET", lambda w: {"token": w.invite_token}, allow=(PUBLIC,)),
     Row("invite-accept", "POST", lambda w: {"token": w.invite_token}, allow=(PUBLIC,)),
     # ── authenticated, no scope ──

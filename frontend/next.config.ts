@@ -1,9 +1,22 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
-// Origin of signed upload URLs (object storage), e.g. https://uploads.example.com
-const uploadOrigin = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN ?? "";
+// CSP sources are origins only: drop any path or trailing slash ("https://x.com/" -> "https://x.com").
+const toOrigin = (url: string) => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return url;
+  }
+};
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL ? toOrigin(process.env.NEXT_PUBLIC_API_URL) : "";
+// Origins of signed upload/download URLs (object storage, e.g. Cloudflare R2), comma or space separated.
+// R2 presigns on https://<account>.r2.cloudflarestorage.com (path style) or
+// https://<bucket>.<account>.r2.cloudflarestorage.com (virtual-host style), so list both.
+const uploadOrigins = (process.env.NEXT_PUBLIC_UPLOAD_ORIGIN ?? "").split(/[\s,]+/).filter(Boolean).map(toOrigin);
+// The backend serves signed URLs itself when STORAGE_BACKEND=local, and R2 serves them otherwise:
+// both must be allowed for uploads (connect-src) and image previews (img-src).
+const remoteSources = [apiOrigin, ...uploadOrigins].filter(Boolean).join(" ");
 
 // Strict CSP: no third-party scripts. 'unsafe-inline' for scripts is required by the
 // next-themes no-flash script; styles need it for Motion's inline transforms.
@@ -11,9 +24,9 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data:",
+  `img-src 'self' blob: data: ${remoteSources}`.trim(),
   "font-src 'self'",
-  `connect-src 'self' blob: ${apiUrl} ${uploadOrigin} ${isDev ? "ws:" : ""}`.replace(/\s+/g, " ").trim(),
+  `connect-src 'self' blob: ${remoteSources} ${isDev ? "ws:" : ""}`.replace(/\s+/g, " ").trim(),
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

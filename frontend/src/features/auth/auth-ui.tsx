@@ -12,6 +12,8 @@ import {
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { api } from "@/lib/api/endpoints";
+import { apiMode } from "@/lib/env";
 import { cn } from "@/lib/utils/cn";
 import { AuthStyles, authStylesClasses as s } from "./auth-styles";
 import { PASSWORD_RULES, scorePassword, STRENGTH } from "./validation";
@@ -330,22 +332,39 @@ export function SubmitButton({ busy, busyLabel, children }: { busy: boolean; bus
   );
 }
 
-/** Google SSO: not in the API contract yet, so it's visible but marked "Coming soon". */
-export function GoogleButton() {
+/** Google's "G" mark. Its four brand colours are fixed by Google's guidelines, so no theme tokens. */
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden className="shrink-0">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
+
+/**
+ * Sign in with Google. Live mode: a plain link to the API, which runs the OAuth redirect and
+ * comes back to `next` with the session cookie set. The mock has no Google, so it stays disabled.
+ */
+export function GoogleButton({ next = "/" }: { next?: string }) {
+  const cls = "w-full rounded-md border-line-2 text-[14px] max-[760px]:h-[46px]";
   return (
     <>
-      <Button
-        variant="secondary"
-        size="lg"
-        disabledReason="Coming soon"
-        className="w-full rounded-md border-line-2 text-[14px] max-[760px]:h-[46px]"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <circle cx="8" cy="8" r="6.2" stroke="currentColor" strokeWidth="1.6" opacity=".35" />
-          <path d="M13.6 7.1H8.2v2.2h3.1A3.5 3.5 0 1 1 10.4 5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-        Continue with Google
-      </Button>
+      {apiMode === "live" ? (
+        <Button asChild variant="secondary" size="lg" className={cls}>
+          <a href={api.auth.googleStartUrl(next)}>
+            <GoogleMark />
+            Continue with Google
+          </a>
+        </Button>
+      ) : (
+        <Button variant="secondary" size="lg" disabledReason="Available with the live API" className={cls}>
+          <GoogleMark />
+          Continue with Google
+        </Button>
+      )}
       <div aria-hidden className="flex items-center gap-3 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fg-3">
         <span className="h-px flex-1 bg-line" />
         OR

@@ -108,7 +108,8 @@ The rule applied was: docs win for behaviour, design wins for appearance.
 
 - `cacheComponents` (Next 16 Activity route preservation) is **off**. Preserved hidden routes kept their overlays and
   hotkey listeners alive, which broke the panel morph and global shortcuts.
-- **Google SSO** button: shown, but disabled with the reason "Coming soon". It isn't in the contract.
+- **Google SSO** button: works in live mode (see §5). The mock has no Google, so there it is disabled with the reason
+  "Available with the live API".
 - **Onboarding invite step:** only Member and Admin can be chosen. Owner can't be assigned, and project roles are given per project.
 - **Notifications** page: the page header and the inbox toolbar make two stacked bars, where the design merges them.
 - **Reports export:** the PNG and PDF items show as "Coming soon". CSV export works.
@@ -152,7 +153,12 @@ endpoint for avatars (like attachments), so the client can send a URL instead.
 - Change a pending invite's role.
 - "Request a different role" for read-only users.
 - Report PNG/PDF export jobs.
-- Google OAuth.
+
+**Google sign-in (live mode only, added with the backend):** `GET /auth/google/start?next=` is a page navigation,
+not a fetch, so it has no mock implementation; the button is disabled in mock mode instead. The API redirects to
+Google, then back to `next` with the refresh cookie set, and the session restores like on any page load. On
+failure it returns to `/login?error=google|google_cancelled|google_unavailable`, which the login form turns into a
+banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 
 **Fields**
 

@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/env";
 import { enc, http } from "./client";
 import type { ListQuery } from "./transport";
 import type {
@@ -64,6 +65,12 @@ export const auth = {
   updateMe: (body: { name?: string; avatarUrl?: string | null }) => http.patch<User>("/auth/me", body),
   changePassword: (currentPassword: string, newPassword: string) =>
     http.put<void>("/auth/me/password", { currentPassword, newPassword }),
+  /**
+   * Live mode only. A page navigation, not a fetch: the API redirects to Google, then back to `next`
+   * with the refresh cookie set (the session restores as on any page load), or to
+   * `/login?error=google|google_cancelled|google_unavailable`.
+   */
+  googleStartUrl: (next: string) => `${apiUrl}/api/v1/auth/google/start?next=${enc(next)}`,
   invite: (token: string) => http.get<Invite>(`/invites/${enc(token)}`, undefined, { anonymous: true }),
   acceptInvite: (token: string, body: { name?: string; password?: string }) =>
     http.post<AuthResult & { workspaceSlug: string }>(`/invites/${enc(token)}/accept`, body, { anonymous: true }),

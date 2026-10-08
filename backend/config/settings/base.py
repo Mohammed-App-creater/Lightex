@@ -199,6 +199,12 @@ COMPANY_ADDRESS = env("COMPANY_ADDRESS", default="Lightex")
 # Public URL of the web client, used in email links.
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000").rstrip("/")
 
+# Sign in with Google (OAuth "Web application" client). Authorised redirect URI:
+# <API_PUBLIC_URL>/api/v1/auth/google/callback. Without both values, sign-in returns to the client's
+# login page with ?error=google_unavailable.
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+
 # ───────────────────────── Files (Cloudflare R2) ─────────────────────────
 
 STORAGE_BACKEND = env("STORAGE_BACKEND", default="fake")  # "r2" or "fake"

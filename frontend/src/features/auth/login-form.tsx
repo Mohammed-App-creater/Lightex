@@ -20,9 +20,15 @@ import {
 import { useAuthForm } from "./use-auth-form";
 import { loginSchema, safeNext, type LoginValues } from "./validation";
 
-type Banner = { kind: "credentials" } | { kind: "other"; message: string } | null;
+type Banner = { kind: "credentials" } | { kind: "other"; title?: string; message: string } | null;
 
-/** Login (board 21 §2.5): Google (coming soon), email, password, banner on wrong credentials. */
+/** `?error=` set by the API when Google sign-in returns here. A cancel needs no message. */
+const GOOGLE_ERRORS: Record<string, string> = {
+  google: "Google sign-in didn’t complete. Try again, or sign in with your email and password.",
+  google_unavailable: "Google sign-in isn’t set up on this server yet. Sign in with your email and password.",
+};
+
+/** Login (board 21 §2.5): Google, email, password, banner on wrong credentials. */
 export function LoginForm() {
   const titleId = useId();
   const bannerId = useId() + "-banner";
@@ -30,7 +36,10 @@ export function LoginForm() {
   const next = safeNext(params.get("next"));
   const { finish } = useAuthFlow();
   const [busy, setBusy] = useState(false);
-  const [banner, setBanner] = useState<Banner>(null);
+  const [banner, setBanner] = useState<Banner>(() => {
+    const message = GOOGLE_ERRORS[params.get("error") ?? ""];
+    return message ? { kind: "other", title: "Couldn’t sign in with Google", message } : null;
+  });
   const { form, field } = useAuthForm<LoginValues>(
     loginSchema,
     { email: "", password: "" },
@@ -55,7 +64,7 @@ export function LoginForm() {
   return (
     <>
       <AuthCard title="Welcome back" titleId={titleId}>
-        <GoogleButton />
+        <GoogleButton next={next} />
         <form noValidate aria-labelledby={titleId} onSubmit={onSubmit} className="flex flex-col gap-4">
           {banner &&
             (credsBad ? (
@@ -63,7 +72,7 @@ export function LoginForm() {
                 Try again or reset your password.
               </AuthBanner>
             ) : (
-              <AuthBanner id={bannerId} title="Couldn’t sign in">
+              <AuthBanner id={bannerId} title={banner.title ?? "Couldn’t sign in"}>
                 {banner.message}
               </AuthBanner>
             ))}
