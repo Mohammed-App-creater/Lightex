@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
     rules: {
       "*.css": {
+        // Only our own CSS. Without this the loader also runs on Next internals such as the
+        // virtual next/font stylesheets, which breaks `next build` on Linux CI
+        // ("next/font/google queries have exactly one entry").
+        condition: { not: "foreign" },
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
