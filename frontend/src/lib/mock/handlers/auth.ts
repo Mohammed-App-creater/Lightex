@@ -1,7 +1,7 @@
 import type { Invite } from "@/lib/api/types";
 import { mockSession, nowISO, uid } from "../db";
 import type { MockDB } from "../db-types";
-import { toUser } from "../derive";
+import { toMe } from "../derive";
 import { defaultPrefs } from "../seed";
 import { fail, invalid, requireUser, route, str } from "../router";
 
@@ -43,7 +43,7 @@ export function registerAuth() {
         fail(401, "invalid_credentials", "Email or password is incorrect.");
       }
       mockSession.set(user.id);
-      return { accessToken: "mock-access-token", user: toUser(user) };
+      return { accessToken: "mock-access-token", user: toMe(user) };
     },
     { anonymous: true },
   );
@@ -66,7 +66,7 @@ export function registerAuth() {
       db.users.push(user);
       db.prefs.push({ userId: user.id, prefs: defaultPrefs() });
       mockSession.set(user.id);
-      return { accessToken: "mock-access-token", user: toUser(user) };
+      return { accessToken: "mock-access-token", user: toMe(user) };
     },
     { anonymous: true },
   );
@@ -127,7 +127,7 @@ export function registerAuth() {
     const id = requireUser(ctx);
     const u = ctx.db.users.find((x) => x.id === id);
     if (!u) fail(401, "unauthorized", "Not signed in.");
-    return toUser(u);
+    return toMe(u);
   });
 
   route("PATCH", "/auth/me", (ctx) => {
@@ -140,7 +140,7 @@ export function registerAuth() {
     }
     const avatarUrl = (ctx.body as { avatarUrl?: string | null })?.avatarUrl;
     if (avatarUrl !== undefined) u.avatarUrl = avatarUrl;
-    return toUser(u);
+    return toMe(u);
   });
 
   route("PUT", "/auth/me/password", (ctx) => {
@@ -148,7 +148,8 @@ export function registerAuth() {
     const u = ctx.db.users.find((x) => x.id === id)!;
     const current = str(ctx.body, "currentPassword") ?? "";
     const next = str(ctx.body, "newPassword") ?? "";
-    if (current !== u.password) invalid({ currentPassword: "Current password is incorrect" });
+    // An account without a password (Google sign-in) sets one without a current password.
+    if (u.password && current !== u.password) invalid({ currentPassword: "Current password is incorrect" });
     if (next.length < 8 || passwordProblems(next).score < 3) invalid({ newPassword: "Choose a stronger password" });
     u.password = next;
     return undefined;
@@ -191,7 +192,7 @@ export function registerAuth() {
       inv.status = "accepted";
       mockSession.set(user.id);
       const ws = db.workspaces.find((w) => w.id === inv.workspaceId)!;
-      return { accessToken: "mock-access-token", user: toUser(user), workspaceSlug: ws.slug };
+      return { accessToken: "mock-access-token", user: toMe(user), workspaceSlug: ws.slug };
     },
     { anonymous: true },
   );

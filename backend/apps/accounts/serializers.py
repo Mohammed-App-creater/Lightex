@@ -17,6 +17,19 @@ class UserSerializer(serializers.ModelSerializer):
         return iso(obj.created_at)
 
 
+class MeSerializer(UserSerializer):
+    """The signed-in user's own profile. hasPassword is false for accounts made with Google sign-in,
+    which can set a password without knowing a current one."""
+
+    hasPassword = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = [*UserSerializer.Meta.fields, "hasPassword"]
+
+    def get_hasPassword(self, obj) -> bool:
+        return obj.has_usable_password()
+
+
 def user_brief(user) -> dict | None:
     """Pick<User, "id" | "name" | "hue">"""
     if user is None:

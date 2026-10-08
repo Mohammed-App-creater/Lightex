@@ -345,7 +345,7 @@ function GoogleMark() {
  * Sign in with Google. Live mode: a plain link to the API, which runs the OAuth redirect and
  * comes back to `next` with the session cookie set. The mock has no Google, so it stays disabled.
  */
-export function GoogleButton({ next = "/" }: { next?: string }) {
+export function GoogleButton({ next = "/", divider = true }: { next?: string; divider?: boolean }) {
   const cls = "w-full rounded-md border-line-2 text-[14px] max-[760px]:h-[46px]";
   return (
     <>
@@ -362,11 +362,13 @@ export function GoogleButton({ next = "/" }: { next?: string }) {
           Continue with Google
         </Button>
       )}
-      <div aria-hidden className="flex items-center gap-3 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fg-3">
-        <span className="h-px flex-1 bg-line" />
-        OR
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      {divider && (
+        <div aria-hidden className="flex items-center gap-3 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fg-3">
+          <span className="h-px flex-1 bg-line" />
+          OR
+          <span className="h-px flex-1 bg-line" />
+        </div>
+      )}
     </>
   );
 }

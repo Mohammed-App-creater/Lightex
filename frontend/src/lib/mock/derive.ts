@@ -30,6 +30,8 @@ import type {
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
 export const toUser = ({ password: _password, ...u }: UserRec): User => u;
+/** The signed-in user's own profile, which also says whether the account has a password. */
+export const toMe = (u: UserRec): User => ({ ...toUser(u), hasPassword: Boolean(u.password) });
 
 export function wsMembership(db: MockDB, userId: string, workspaceId: string) {
   return db.wsMembers.find((m) => m.userId === userId && m.workspaceId === workspaceId && m.status === "active");

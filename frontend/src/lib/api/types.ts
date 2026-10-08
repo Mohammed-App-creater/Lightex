@@ -84,6 +84,8 @@ export interface User {
   hue: number;
   avatarUrl: string | null;
   createdAt: ISODateTime;
+  /** Only on the signed-in user (`/auth/me`, sign-in responses). False for Google-only accounts. */
+  hasPassword?: boolean;
 }
 
 export interface Workspace {

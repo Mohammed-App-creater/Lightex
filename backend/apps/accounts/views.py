@@ -21,16 +21,16 @@ from .serializers import (
     ChangePasswordIn,
     EmailIn,
     LoginIn,
+    MeSerializer,
     ProfileIn,
     RegisterIn,
     ResetIn,
-    UserSerializer,
 )
 
 
 def session_response(user, *, status_code: int = 200, extra: dict | None = None) -> Response:
     access, refresh = services.issue_tokens(user)
-    response = Response({"accessToken": access, "user": UserSerializer(user).data, **(extra or {})}, status=status_code)
+    response = Response({"accessToken": access, "user": MeSerializer(user).data, **(extra or {})}, status=status_code)
     set_refresh_cookie(response, refresh)
     return response
 
@@ -166,14 +166,14 @@ class GoogleCallbackView(AnonymousView):
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(tags=["auth"], responses={200: UserSerializer})
+    @extend_schema(tags=["auth"], responses={200: MeSerializer})
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        return Response(MeSerializer(request.user).data)
 
-    @extend_schema(tags=["auth"], request=ProfileIn, responses={200: UserSerializer})
+    @extend_schema(tags=["auth"], request=ProfileIn, responses={200: MeSerializer})
     def patch(self, request):
         user = services.update_profile(request.user, body(request))
-        return Response(UserSerializer(user).data)
+        return Response(MeSerializer(user).data)
 
 
 @extend_schema(tags=["auth"], request=ChangePasswordIn, responses={204: None})

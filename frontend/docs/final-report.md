@@ -169,6 +169,9 @@ banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 - `Report.completedSprints`.
 - `Invite.{inviterHue, roleDescription, inviteeName}`.
 - `Notification.{glyph, category}`.
+- `User.hasPassword`, only on the signed-in user (`/auth/me` and sign-in responses). It is false for accounts
+  made with Google sign-in: Profile shows "Set password" (no current password; `PUT /auth/me/password` accepts a
+  missing `currentPassword` for them), and the session-expired dialog offers Google instead of a password field.
 - `Notification.type: "access"` with `payload.projectKey` (+ the request message as `payload.quote`): a project
   access request, sent in-app and by email (`access_request` template) to the project's member managers and lead.
   It has no preferences row, so it can't be switched off. Workspace access requests are email-only, because

@@ -236,6 +236,10 @@ function IdentitySection() {
 }
 
 function PasswordSection() {
+  const me = useMe();
+  const { setUser } = useSession();
+  // Accounts made with Google sign-in have no password yet: they set one without a current password.
+  const hasPassword = me.hasPassword !== false;
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -248,7 +252,7 @@ function PasswordSection() {
   useEffect(() => () => clearTimeout(doneTimer.current), []);
 
   const score = passwordScore(next);
-  const currentErr = serverErr.current ?? (submitted && !current ? "Required" : null);
+  const currentErr = serverErr.current ?? (hasPassword && submitted && !current ? "Required" : null);
   const nextErr = serverErr.next ?? newPasswordError(next, current, submitted);
   const confirmErr = confirm && confirm !== next ? "Doesn’t match" : submitted && !confirm ? "Required" : null;
   const matches = Boolean(confirm) && confirm === next;
@@ -256,10 +260,11 @@ function PasswordSection() {
   const submit = async () => {
     setSubmitted(true);
     setServerErr({});
-    if (!current || !next || !confirm || newPasswordError(next, current, true) || confirm !== next) return;
+    if ((hasPassword && !current) || !next || !confirm || newPasswordError(next, current, true) || confirm !== next) return;
     setBusy(true);
     try {
       await api.auth.changePassword(current, next);
+      if (!hasPassword) setUser({ ...me, hasPassword: true });
       setCurrent("");
       setNext("");
       setConfirm("");
@@ -270,14 +275,17 @@ function PasswordSection() {
     } catch (e) {
       if (isApiError(e) && (e.fieldErrors.currentPassword || e.fieldErrors.newPassword)) {
         setServerErr({ current: e.fieldErrors.currentPassword, next: e.fieldErrors.newPassword });
-      } else toast.error("Couldn’t update password", { body: errorMessage(e) });
+      } else toast.error(hasPassword ? "Couldn’t update password" : "Couldn’t set password", { body: errorMessage(e) });
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <SettingsSection title="Password">
+    <SettingsSection
+      title="Password"
+      description={hasPassword ? undefined : "You sign in with Google. Set a password to also sign in with your email."}
+    >
       <form
         className="flex flex-col gap-3.5"
         onSubmit={(e) => {
@@ -287,17 +295,19 @@ function PasswordSection() {
       >
         {/* Hidden username helps password managers pair the fields. */}
         <input type="text" autoComplete="username" hidden readOnly />
-        <Field label="Current" error={currentErr} className="max-w-[272px] max-[760px]:max-w-none">
-          <Input
-            type="password"
-            autoComplete="current-password"
-            value={current}
-            onChange={(e) => {
-              setCurrent(e.target.value);
-              setServerErr((s) => ({ ...s, current: undefined }));
-            }}
-          />
-        </Field>
+        {hasPassword && (
+          <Field label="Current" error={currentErr} className="max-w-[272px] max-[760px]:max-w-none">
+            <Input
+              type="password"
+              autoComplete="current-password"
+              value={current}
+              onChange={(e) => {
+                setCurrent(e.target.value);
+                setServerErr((s) => ({ ...s, current: undefined }));
+              }}
+            />
+          </Field>
+        )}
         <div className="grid grid-cols-2 gap-3.5 max-[760px]:grid-cols-1">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="pw-new" className="text-meta font-medium text-fg-2">
@@ -370,11 +380,11 @@ function PasswordSection() {
         </div>
         <div className="flex items-center gap-3">
           <Button type="submit" variant="secondary" size="sm" loading={busy}>
-            Update password
+            {hasPassword ? "Update password" : "Set password"}
           </Button>
           {done && (
             <span role="status" className="inline-flex animate-[fade-in_160ms_var(--ease)] items-center gap-1.5 text-[12px] font-medium text-ok">
-              <Check size={13} aria-hidden /> Password updated
+              <Check size={13} aria-hidden /> {hasPassword ? "Password updated" : "Password set"}
             </span>
           )}
         </div>

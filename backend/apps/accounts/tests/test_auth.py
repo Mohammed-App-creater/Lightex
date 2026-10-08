@@ -23,7 +23,8 @@ def test_register_returns_session_and_sets_cookie(api):
     body = res.json()
     assert body["accessToken"]
     assert body["user"]["email"] == "jo@team.dev"
-    assert set(body["user"]) == {"id", "name", "email", "hue", "avatarUrl", "createdAt"}
+    assert set(body["user"]) == {"id", "name", "email", "hue", "avatarUrl", "createdAt", "hasPassword"}
+    assert body["user"]["hasPassword"] is True
     cookie = res.cookies["lx_refresh"]
     assert cookie["httponly"]
     assert cookie["secure"]
@@ -187,6 +188,22 @@ def test_change_password(api):
     assert "lx_refresh" in ok.cookies
     user.refresh_from_db()
     assert user.check_password("N3w!password")
+
+
+def test_google_account_without_password_can_set_one(api):
+    user = UserFactory(email="g@team.dev")
+    user.set_unusable_password()
+    user.save()
+    client = client_for(user)
+    assert client.get("/api/v1/auth/me").json()["hasPassword"] is False
+    ok = client.put("/api/v1/auth/me/password", {"newPassword": "N3w!password"}, format="json")
+    assert ok.status_code == 204
+    user.refresh_from_db()
+    assert user.check_password("N3w!password")
+    assert client.get("/api/v1/auth/me").json()["hasPassword"] is True
+    # Once set, changing it needs the current password again.
+    again = client.put("/api/v1/auth/me/password", {"newPassword": "An0ther!pass"}, format="json")
+    assert again.status_code == 422
 
 
 def test_update_profile_and_avatar_rules(api):

@@ -8,6 +8,8 @@ import { Modal } from "@/components/ui/modal";
 import { toast } from "@/components/ui/toast";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
+import { apiMode } from "@/lib/env";
+import { GoogleButton } from "./auth-ui";
 import { useSession } from "./session";
 
 /**
@@ -21,11 +23,20 @@ export function SessionExpiredModal() {
   const [busy, setBusy] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   if (!expired || !user) return null;
+  // Google-only accounts have no password to type: they re-auth with Google (a full redirect back here).
+  const hasPassword = user.hasPassword !== false;
+  const here = typeof window === "undefined" ? "/" : window.location.pathname + window.location.search;
 
   const error = !tried ? null : !password ? "Enter your password" : password.length < 8 ? "At least 8 characters" : serverError;
 
   return (
-    <Modal open onOpenChange={() => undefined} title="Session expired" description="Your unsaved edits are kept." width={360}>
+    <Modal
+      open
+      onOpenChange={() => undefined}
+      title="Session expired"
+      description={hasPassword ? "Your unsaved edits are kept." : "Sign in with Google to continue. Unsaved edits on this page will be lost."}
+      width={360}
+    >
       <form
         className="flex flex-col gap-3.5"
         noValidate
@@ -54,23 +65,28 @@ export function SessionExpiredModal() {
         <Field label="Email">
           <Input value={user.email} readOnly />
         </Field>
-        <Field label="Password" error={error}>
-          <Input
-            type="password"
-            autoComplete="current-password"
-            autoFocus
-            maxLength={128}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Field>
+        {(apiMode === "live" || !hasPassword) && <GoogleButton next={here} divider={hasPassword} />}
+        {hasPassword && (
+          <Field label="Password" error={error}>
+            <Input
+              type="password"
+              autoComplete="current-password"
+              autoFocus
+              maxLength={128}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Field>
+        )}
         <div className="flex items-center justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={() => void signOut()}>
             Sign out
           </Button>
-          <Button type="submit" variant="primary" kbd="↵" loading={busy}>
-            {busy ? "Signing in" : "Sign in again"}
-          </Button>
+          {hasPassword && (
+            <Button type="submit" variant="primary" kbd="↵" loading={busy}>
+              {busy ? "Signing in" : "Sign in again"}
+            </Button>
+          )}
         </div>
       </form>
     </Modal>

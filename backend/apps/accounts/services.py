@@ -161,7 +161,8 @@ def reset_password(token: str, password: str) -> User:
 
 @transaction.atomic
 def change_password(user: User, current: str, new: str) -> None:
-    if not user.check_password(current or ""):
+    """Changes the password. An account without one (made with Google sign-in) sets it without a current one."""
+    if user.has_usable_password() and not user.check_password(current or ""):
         raise invalid({"currentPassword": "Current password is incorrect"})
     problem = password_problem(new or "", user)
     if problem:
