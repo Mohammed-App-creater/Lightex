@@ -76,6 +76,8 @@ TEMPLATES = [
 DATABASES = {"default": env.db("DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/lightex")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = False
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
+# Behind a transaction-mode pooler (e.g. Neon's "-pooler" host / PgBouncer) server-side cursors break.
+DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = env.bool("DB_POOLED", default=False)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
