@@ -20,7 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useQuery } from "@tanstack/react-query";
 import { Filter, ListTodo, Plus } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
@@ -42,7 +42,7 @@ import { qk } from "@/lib/api/query-keys";
 import type { Label, Status, Task, User } from "@/lib/api/types";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { canEditTask, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
@@ -57,7 +57,6 @@ export function BoardScreen() {
   const project = useCurrentProject()!;
   const ws = useCurrentWorkspace()!;
   const me = useMe();
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
   const openKey = search.get("task")?.toUpperCase() ?? null;
@@ -132,9 +131,9 @@ export function BoardScreen() {
   const openTask = useCallback(
     (task: Task, el: HTMLElement) => {
       rememberOrigin(task.key, el);
-      router.push(withTaskParam(pathname, search.toString(), task.key), { scroll: false });
+      pushUrl(withTaskParam(pathname, search.toString(), task.key));
     },
-    [router, pathname, search],
+    [pathname, search],
   );
 
   const toggleDone = useCallback(

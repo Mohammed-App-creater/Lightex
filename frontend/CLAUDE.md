@@ -36,6 +36,12 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **Next 16 APIs:** route `params` are Promises. `cacheComponents` is deliberately **off**, because Activity route
   preservation kept overlays and hotkeys alive on hidden routes. Read `node_modules/next/dist/docs/` before using
   unfamiliar Next APIs.
+- **Performance rules:** the React Compiler is on (Turbopack's Rust port, no Babel plugin), so write plain
+  hooks-compliant components and let it memoize. Change only the query string (`?task=`, filters, dialog state)
+  with `pushUrl` / `replaceUrl` from `src/lib/routes.ts`, never `router.push`: the router refetches the page for
+  every `router.push`, the History API does not. Heavy, open-on-demand modules (Tiptap, cmdk) stay code-split
+  through `lazyWithPreload` (`src/lib/hooks/lazy-with-preload.tsx`), warmed at idle; route-only ones (Recharts)
+  simply live in their route.
 
 ## Architecture
 

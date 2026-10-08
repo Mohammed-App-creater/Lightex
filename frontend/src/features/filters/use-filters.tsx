@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { replaceUrl } from "@/lib/routes";
 import { useCallback, useMemo, type ReactNode } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
@@ -15,14 +16,13 @@ import { fieldLabel, OP_LABEL, parseRules, withRules, type MatchCtx } from "./fi
 /** Filters live in the URL (?f=…), so a filtered board or list is linkable. */
 export function useUrlFilters() {
   const search = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
   const qs = search.toString();
   const rules = useMemo(() => parseRules(new URLSearchParams(qs)), [qs]);
   const viewId = search.get("view");
   const setRules = useCallback(
-    (next: FilterRule[], nextView: string | null = null) => router.replace(`${pathname}${withRules(qs, next, nextView)}`, { scroll: false }),
-    [router, pathname, qs],
+    (next: FilterRule[], nextView: string | null = null) => replaceUrl(`${pathname}${withRules(qs, next, nextView)}`),
+    [pathname, qs],
   );
   return { rules, setRules, viewId };
 }

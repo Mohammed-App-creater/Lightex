@@ -2,7 +2,8 @@
 
 import { Archive, ArrowLeft, ChevronRight, Flag, Layers, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { pushUrl } from "@/lib/routes";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,6 @@ function EpicsInner() {
   const milestonesQ = useMilestones(project.id);
   const archive = useArchiveEpic(project.id);
   const search = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
   const [panel, setPanel] = useState<PanelState>(null);
   const [fresh, setFresh] = useState<string | null>(null);
@@ -63,9 +63,9 @@ function EpicsInner() {
       else sp.delete("epic");
       sp.delete("task");
       const qs = sp.toString();
-      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      pushUrl(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, pathname],
+    [pathname],
   );
 
   const pending = epicsQ.isPending || tasksQ.isPending || statusesQ.isPending;

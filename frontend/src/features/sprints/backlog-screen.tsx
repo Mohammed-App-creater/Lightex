@@ -16,7 +16,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, GripVertical, MoreHorizontal, Plus } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ import { qk } from "@/lib/api/query-keys";
 import type { Sprint, Status, Task, User } from "@/lib/api/types";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentProject } from "@/lib/permissions/can";
-import { withTaskParam } from "@/lib/routes";
+import { pushUrl, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { keyBetween } from "@/lib/utils/fractional-index";
@@ -48,7 +48,6 @@ type Cols = Record<string, string[]>;
 export function BacklogScreen() {
   const project = useCurrentProject()!;
   const qc = useQueryClient();
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
   const reduced = usePrefersReducedMotion();
@@ -140,7 +139,7 @@ export function BacklogScreen() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const open = (t: Task, el: HTMLElement) => {
     rememberOrigin(t.key, el);
-    router.push(withTaskParam(pathname, search.toString(), t.key), { scroll: false });
+    pushUrl(withTaskParam(pathname, search.toString(), t.key));
   };
 
   const activeSprint = sprints.find((s) => s.state === "active");

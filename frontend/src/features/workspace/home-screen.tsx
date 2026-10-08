@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Avatar, AvatarStack } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import { daysUntil } from "@/lib/domain/progress";
 import { templateDef } from "@/lib/domain/project-templates";
 import { isTypingTarget } from "@/lib/hooks/use-hotkeys";
 import { can, useCan, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { pushUrl, replaceUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { dueLabel, dueSoon, homeStats, longDate } from "./my-work";
@@ -69,7 +69,6 @@ const BODY = "mx-auto flex w-full max-w-[1080px] flex-col gap-7 px-8 pb-12 pt-7 
 export function HomeScreen() {
   const ws = useCurrentWorkspace()!;
   const me = useMe();
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
   const canCreate = useCan("project.create");
@@ -79,7 +78,7 @@ export function HomeScreen() {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
 
   const dialogOpen = search.get("new-project") === "1" && canCreate;
-  const openCreate = () => router.push(`${pathname}?new-project=1`, { scroll: false });
+  const openCreate = () => pushUrl(`${pathname}?new-project=1`);
   useNewProjectKey(openCreate, canCreate && !dialogOpen);
 
   const projects = useMemo(() => {
@@ -163,7 +162,7 @@ export function HomeScreen() {
       )}
       <NewProjectDialog
         open={dialogOpen}
-        onOpenChange={(o) => !o && router.replace(pathname, { scroll: false })}
+        onOpenChange={(o) => !o && replaceUrl(pathname)}
         onCreated={(p) => setCreatedKey(p.key)}
       />
       <TaskPanelHost />

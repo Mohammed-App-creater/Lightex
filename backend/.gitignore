@@ -12,3 +12,6 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 media/
+
+# Database dumps from scripts/move-database.sh
+backups/

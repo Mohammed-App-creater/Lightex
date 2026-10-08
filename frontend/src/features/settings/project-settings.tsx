@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Archive, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
@@ -15,7 +15,7 @@ import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
 import type { Project } from "@/lib/api/types";
 import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/lib/routes";
 import { GeneralPanel } from "./project-general";
 import { LabelsPanel } from "./project-labels";
 import { isAdminRole } from "./project-lib";
@@ -51,7 +51,6 @@ function ProjectSettings() {
 function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () => void }) {
   const ws = useCurrentWorkspace()!;
   const qc = useQueryClient();
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const tabParam = params.get("tab") as Tab | null;
@@ -61,7 +60,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
     if (t === "general") sp.delete("tab");
     else sp.set("tab", t);
     const qs = sp.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    replaceUrl(qs ? `${pathname}?${qs}` : pathname);
   };
 
   const archived = project.status === "archived";

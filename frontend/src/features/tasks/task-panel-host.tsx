@@ -1,19 +1,22 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { SkeletonRows } from "@/components/ui/feedback";
 import { SidePanel } from "@/components/ui/side-panel";
+import { api } from "@/lib/api/endpoints";
+import { qk } from "@/lib/api/query-keys";
+import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { taskOrigin } from "./task-origin";
 
-// Tiptap and the detail view load on first open, not with every project page.
-const TaskDetailView = dynamic(() => import("./task-detail").then((m) => m.TaskDetailView), {
-  ssr: false,
+// Tiptap and the detail view (~460 KB) load on first open, not with every project page. The chunk
+// is warmed at idle so the first open renders synchronously instead of through a Suspense fallback.
+const { Component: TaskDetailView, preload: preloadDetail } = lazyWithPreload(() => import("./task-detail").then((m) => m.TaskDetailView), {
   loading: () => (
     <div className="p-6">
       <SkeletonRows rows={6} label="Loading task" />
@@ -41,6 +44,15 @@ function Host({ taskKey, search }: { taskKey: string | null; search: string }) {
   const reduced = usePrefersReducedMotion();
   const mobile = useIsMobile();
   const origin = useSyncExternalStore(taskOrigin.subscribe, taskOrigin.get, () => null);
+  const qc = useQueryClient();
+  useEffect(() => whenIdle(preloadDetail, 3000), []);
+
+  // Start the task request the moment the key changes, while the card is still morphing into the
+  // panel, so the detail view usually mounts with its data already in the cache.
+  useEffect(() => {
+    if (!taskKey) return;
+    void qc.prefetchQuery({ queryKey: qk.task(ws.slug, taskKey), queryFn: () => api.tasks.get(ws.slug, taskKey), staleTime: 5_000 });
+  }, [qc, ws.slug, taskKey]);
   const [ghostFor, setGhostFor] = useState<string | null>(null);
   const [shownKey, setShownKey] = useState<string | null>(taskKey);
   const [skipEnter, setSkipEnter] = useState(false);
@@ -63,8 +75,8 @@ function Host({ taskKey, search }: { taskKey: string | null; search: string }) {
   }, [ghostFor]);
 
   const close = useCallback(() => {
-    router.push(withTaskParam(pathname, search, null), { scroll: false });
-  }, [router, pathname, search]);
+    pushUrl(withTaskParam(pathname, search, null));
+  }, [pathname, search]);
 
   const toggleFull = useCallback(() => {
     if (taskKey) router.push(routes.task(ws.slug, taskKey));

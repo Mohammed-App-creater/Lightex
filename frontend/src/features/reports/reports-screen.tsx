@@ -12,7 +12,7 @@ import { isApiError } from "@/lib/api/errors";
 import type { Project, Workspace } from "@/lib/api/types";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/lib/routes";
 import { BurndownCard, CycleTimeCard, ThroughputCard, VelocityCard } from "./charts";
 import { ExportMenu, ProjectSelect, RangeSelect } from "./controls";
 import {
@@ -83,7 +83,7 @@ function ReportsBody({ ws, project }: { ws: Workspace; project: Project }) {
   );
   const q = useReportQueries(project.id, range);
 
-  const setRange = (r: RangeState) => router.replace(`${pathname}${rangeSearch(r)}`, { scroll: false });
+  const setRange = (r: RangeState) => replaceUrl(`${pathname}${rangeSearch(r)}`);
   const switchProject = (key: string) => {
     if (key !== project.key) router.push(`${routes.project(ws.slug, key, "reports")}${rangeSearch(range)}`);
   };

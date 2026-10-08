@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
   // See docs/frontend-plan.md §1 and the final report.
   cacheComponents: false,
   poweredByHeader: false,
+  // React Compiler: automatic memoization, so board/list/sidebar re-render only what changed.
+  // The Rust port runs inside Turbopack, so no Babel plugin dependency is needed.
+  reactCompiler: true,
+  experimental: {
+    turbopackRustReactCompiler: true,
+    // Every page is a thin client component rendered from React Query, so its RSC payload never
+    // carries data. Keeping it in the client router cache makes repeat tab switches instant.
+    staleTimes: { dynamic: 300 },
+  },
   turbopack: {
     // A stray package-lock.json in the user's home directory confuses root detection.
     root: process.cwd(),

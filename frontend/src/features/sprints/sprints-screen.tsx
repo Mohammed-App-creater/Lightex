@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, MoreHorizontal, Play, Plus, RefreshCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
@@ -18,7 +18,7 @@ import { qk } from "@/lib/api/query-keys";
 import type { Sprint } from "@/lib/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { pushUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { DeleteSprintDialog, EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";
@@ -45,7 +45,6 @@ function SprintsInner() {
   const project = useCurrentProject()!;
   const q = useSprints(project.id);
   const search = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
   const [dialog, setDialog] = useState<DialogState>(null);
   const sprints = q.data ?? [];
@@ -59,7 +58,7 @@ function SprintsInner() {
     else sp.delete("sprint");
     sp.delete("task");
     const qs = sp.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    pushUrl(qs ? `${pathname}?${qs}` : pathname);
   };
 
   return (

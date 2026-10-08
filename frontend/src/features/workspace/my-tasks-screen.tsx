@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, X } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { replaceUrl } from "@/lib/routes";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Skeleton } from "@/components/ui/feedback";
 import { PriorityIcon, StatusGlyph, glyphColor, glyphLabel, priorityMeta } from "@/components/ui/glyphs";
@@ -38,7 +39,6 @@ const LEAVE_MS = 720;
 export function MyTasksScreen() {
   const ws = useCurrentWorkspace()!;
   const me = useMe();
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
   const reduced = usePrefersReducedMotion();
@@ -64,9 +64,9 @@ export function MyTasksScreen() {
       const sp = new URLSearchParams(search.toString());
       Object.entries(patch).forEach(([k, v]) => (v ? sp.set(k, v) : sp.delete(k)));
       const qs = sp.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      replaceUrl(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, pathname, search],
+    [pathname, search],
   );
 
   /* Closing animation: a row that just closed stays in place, fades, then moves to Completed. */

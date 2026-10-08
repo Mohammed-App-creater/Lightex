@@ -58,3 +58,16 @@ export function useRouteInfo() {
     pathname,
   };
 }
+
+/*
+ * Query-string-only URL changes (task panel, filters, dialogs, tabs within a view) go through the
+ * History API. The Next router syncs these into usePathname/useSearchParams without a server
+ * round trip, whereas router.push/replace refetch the route's RSC payload for every ?task= change.
+ * Neither scrolls, so they replace `router.push(url, { scroll: false })` one for one.
+ */
+export function pushUrl(url: string) {
+  window.history.pushState(null, "", url);
+}
+export function replaceUrl(url: string) {
+  window.history.replaceState(null, "", url);
+}

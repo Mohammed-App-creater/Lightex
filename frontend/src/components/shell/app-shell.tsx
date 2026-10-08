@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 import { AppLoader } from "@/components/brand/app-loader";
@@ -12,6 +11,7 @@ import { useWorkspace } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { isNotFound } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
+import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
 import { WorkspaceScope } from "@/lib/permissions/can";
 import { routes, useRouteInfo } from "@/lib/routes";
@@ -25,9 +25,10 @@ import { Sidebar } from "./sidebar";
 import { TopBar, TopBarSlotProvider } from "./top-bar";
 
 // Overlays open on demand: split out of the shell chunk so first paint doesn't wait for cmdk/Tiptap.
-const CommandPalette = dynamic(() => import("@/features/palette/command-palette").then((m) => m.CommandPalette), { ssr: false });
-const CreateTaskDialog = dynamic(() => import("@/features/tasks/create-task-dialog").then((m) => m.CreateTaskDialog), { ssr: false });
-const ShortcutsDialog = dynamic(() => import("./shortcuts-dialog").then((m) => m.ShortcutsDialog), { ssr: false });
+// They are warmed once the shell is idle, so the first ⌘K / "c" / "?" opens without a Suspense delay.
+const { Component: CommandPalette, preload: preloadPalette } = lazyWithPreload(() => import("@/features/palette/command-palette").then((m) => m.CommandPalette));
+const { Component: CreateTaskDialog, preload: preloadCreateTask } = lazyWithPreload(() => import("@/features/tasks/create-task-dialog").then((m) => m.CreateTaskDialog));
+const { Component: ShortcutsDialog, preload: preloadShortcuts } = lazyWithPreload(() => import("./shortcuts-dialog").then((m) => m.ShortcutsDialog));
 
 /** Redirects anonymous visitors to /login?next=… and shows the loader while the session boots. */
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -89,6 +90,15 @@ function Shell({ children }: { children: ReactNode }) {
   const { collapsed, drawer } = useShell();
   const compact = useIsCompact();
   useEffect(() => shell.hydrate(), []);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        preloadPalette();
+        preloadCreateTask();
+        preloadShortcuts();
+      }),
+    [],
+  );
 
   return (
     <TopBarSlotProvider>

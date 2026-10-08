@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUp, ArrowUpRight, ChevronRight, Columns3, Copy, Filter, Layers, MoreHorizontal, Plus, Tag, Trash2, UserRound, X, MoveRight } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ import type { Label, Status, Task, TaskPatch, User } from "@/lib/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
-import { routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, dueTone, shortDate, todayISO } from "@/lib/utils/dates";
 import { COLUMNS, clampWidth, groupTasks, labelSlots, sortTasks, type ColumnId, type Ctx, type Group, type GroupBy, type SortState } from "./list-model";
@@ -65,7 +65,6 @@ export function ListScreen() {
   const project = useCurrentProject()!;
   const ws = useCurrentWorkspace()!;
   const me = useMe();
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
   // Field · operator · value filters live in the URL (?f=…); a legacy ?epic= link becomes "Epic is …" (board 30).
@@ -143,9 +142,9 @@ export function ListScreen() {
   const openTask = useCallback(
     (t: Task, el?: Element | null) => {
       if (el) rememberOrigin(t.key, el);
-      router.push(withTaskParam(pathname, search.toString(), t.key), { scroll: false });
+      pushUrl(withTaskParam(pathname, search.toString(), t.key));
     },
-    [router, pathname, search],
+    [pathname, search],
   );
 
   const patch = useCallback(

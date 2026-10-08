@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "motion/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { StatusGlyph, type GlyphKind } from "@/components/ui/glyphs";
 import { ProgressRing } from "@/components/ui/feedback";
 import type { Status, Task, User } from "@/lib/api/types";
 import { daysLabel } from "@/lib/domain/progress";
-import { withTaskParam } from "@/lib/routes";
+import { pushUrl, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { groupTasksByStatus } from "./helpers";
 
@@ -18,11 +18,10 @@ export type PeopleMap = Map<string, Pick<User, "id" | "name" | "hue">>;
 
 /** Opens a task in the side panel via ?task=KEY on the current URL. */
 export function useOpenTask() {
-  const router = useRouter();
   const pathname = usePathname();
   return useCallback(
-    (key: string) => router.push(withTaskParam(pathname, window.location.search, key), { scroll: false }),
-    [router, pathname],
+    (key: string) => pushUrl(withTaskParam(pathname, window.location.search, key)),
+    [pathname],
   );
 }
 
