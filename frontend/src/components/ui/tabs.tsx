@@ -1,7 +1,7 @@
 "use client";
 
 import { LayoutGroup, motion } from "motion/react";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 import { t } from "@/lib/motion";
@@ -143,6 +143,7 @@ export function NavTabs({
             )}
           >
             {it.label}
+            <TabPending />
             {it.active && (
               <motion.span
                 layoutId="navtab-indicator"
@@ -154,6 +155,20 @@ export function NavTabs({
         ))}
       </nav>
     </LayoutGroup>
+  );
+}
+
+/** Fixed-size hint under a tab while its route is still loading (slow network, nothing prefetched yet). */
+function TabPending() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-fg-3 opacity-0 transition-opacity delay-150 duration-200",
+        pending && "animate-pulse opacity-60",
+      )}
+    />
   );
 }
 

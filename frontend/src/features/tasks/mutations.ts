@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/toast";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage, isConflict } from "@/lib/api/errors";
-import { commitTask, patchTasks, restore, snapshotTasks } from "@/lib/api/optimistic";
+import { commitTask, insertTask, patchTasks, restore, snapshotTasks } from "@/lib/api/optimistic";
 import { qk } from "@/lib/api/query-keys";
 import type { Status, Task, TaskCreate, TaskMove, TaskPatch } from "@/lib/api/types";
 
@@ -121,7 +121,11 @@ export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ projectId, body }: { projectId: string; body: TaskCreate }) => api.tasks.create(projectId, body),
-    onSuccess: (task) => invalidateTaskViews(qc, task.projectId),
+    onSuccess: (task) => {
+      // Show the task at once; the invalidation below then reloads every list from the server.
+      insertTask(qc, task);
+      invalidateTaskViews(qc, task.projectId);
+    },
   });
 }
 

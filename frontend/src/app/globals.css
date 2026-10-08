@@ -212,17 +212,20 @@
   }
   .glyph-done {
     background: currentColor;
+    container-type: size; /* lets the tick's stroke scale in cqw */
   }
+  /* The tick scales with the glyph (callers resize it with size-*), so it's sized in % of the
+     circle and centred, nudged up because the rotated L's ink sits low. */
   .glyph-done::after {
     content: "";
     position: absolute;
-    left: 4px;
-    top: 2px;
-    width: 3px;
-    height: 6px;
+    left: 50%;
+    top: 45%;
+    width: 22%;
+    height: 44%;
     border: solid var(--bg);
-    border-width: 0 1.5px 1.5px 0;
-    transform: rotate(45deg);
+    border-width: 0 max(1.5px, 10.5cqw) max(1.5px, 10.5cqw) 0;
+    transform: translate(-50%, -50%) rotate(45deg);
   }
   .glyph-canceled {
     border: 1.5px solid currentColor;
