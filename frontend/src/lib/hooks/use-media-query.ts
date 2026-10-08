@@ -22,3 +22,5 @@ export function useMediaQuery(query: string, serverValue = false) {
 export const useIsMobile = () => useMediaQuery("(max-width: 760px)");
 export const useIsCompact = () => useMediaQuery("(max-width: 1023px)");
 export const usePrefersReducedMotion = () => useMediaQuery("(prefers-reduced-motion: reduce)");
+/** Touch-only device (no hover, coarse pointer): keyboard hints make no sense here. */
+export const useIsTouch = () => useMediaQuery("(hover: none) and (pointer: coarse)");

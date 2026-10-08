@@ -130,6 +130,7 @@ export function ShortcutsDialog() {
         <D.Overlay className="fixed inset-0 z-[60] bg-scrim backdrop-blur-[6px] data-[state=open]:animate-[fade-in_180ms_var(--ease)]" />
         <D.Content
           aria-describedby={undefined}
+          data-keys="always"
           className="fixed left-1/2 top-[min(10vh,88px)] z-[61] flex max-h-[calc(100dvh-min(10vh,88px)-16px)] w-[700px] max-w-[calc(100%-32px)] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-line-2 bg-surface shadow-modal outline-none data-[state=open]:animate-[modal-in_180ms_var(--ease)] max-[760px]:top-4 max-[760px]:max-h-[calc(100dvh-32px)]"
         >
           {shortcuts && <Sheet />}

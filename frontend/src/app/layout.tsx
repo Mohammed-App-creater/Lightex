@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { apiMode, apiUrl } from "@/lib/env";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -38,6 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // next-themes writes data-theme before paint; suppressHydrationWarning covers that attribute.
     <html lang="en" data-theme="dark" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh">
+        {/* Live mode: open the DNS/TLS connection to the API while the bundle is still downloading, so
+            the first credentialed request (/auth/refresh) skips the handshake. React hoists it to <head>. */}
+        {apiMode === "live" && apiUrl && <link rel="preconnect" href={apiUrl} crossOrigin="use-credentials" />}
         <Providers>{children}</Providers>
       </body>
     </html>

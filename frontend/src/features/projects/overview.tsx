@@ -12,12 +12,13 @@ import { Panel } from "@/components/ui/card";
 import { CountUp, ErrorState, ProgressBar, ProgressRing, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph } from "@/components/ui/glyphs";
 import { shell } from "@/components/shell/shell-state";
-import { activityText } from "@/features/tasks/task-comments";
+import { activityText } from "@/features/tasks/activity-text";
 import { useEpics, useMilestones, useObjectives, useProjectMembers, useSprints, useStatuses } from "./queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
 import type { BurndownPoint, Milestone, Project, Status, Task } from "@/lib/api/types";
 import { daysUntil, isDoneStatus } from "@/lib/domain/progress";
+import { useIsTouch } from "@/lib/hooks/use-media-query";
 import { can, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
@@ -94,6 +95,7 @@ function Ready({ project, tasks, statuses }: { project: Project; tasks: Task[]; 
   const epics = (useEpics(project.id).data ?? []).filter((e) => !e.archivedAt);
   const { data: sprints = [] } = useSprints(project.id);
   const { data: members = [] } = useProjectMembers(project.id);
+  const touch = useIsTouch();
   const today = todayISO();
   const open = tasks.filter((t) => !isDoneStatus(t.statusId, statuses) && statuses.find((s) => s.id === t.statusId)?.glyph !== "canceled");
   const overdue = open.filter((t) => t.dueDate && t.dueDate < today).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!));
@@ -108,7 +110,7 @@ function Ready({ project, tasks, statuses }: { project: Project; tasks: Task[]; 
       <Header project={project} />
       <SetupChecklist project={project} tasks={tasks.length} objectives={objectives.length} milestones={milestones.length} members={members.length} sprintStarted={sprints.some((s) => s.state !== "planned")} />
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
-        <Stat label="Open tasks" value={open.length} foot={epics.length ? `across ${epics.length} epic${epics.length === 1 ? "" : "s"}` : "Create one with C"} />
+        <Stat label="Open tasks" value={open.length} foot={epics.length ? `across ${epics.length} epic${epics.length === 1 ? "" : "s"}` : touch ? "No epics yet" : "Create one with C"} />
         <Stat
           label="Overdue"
           value={overdue.length}

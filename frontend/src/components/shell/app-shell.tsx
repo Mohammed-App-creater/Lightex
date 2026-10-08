@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
@@ -8,10 +9,12 @@ import { Drawer } from "@/components/ui/modal";
 import { useSession } from "@/features/auth/session";
 import { SessionExpiredModal } from "@/features/auth/session-expired";
 import { useWorkspace } from "@/features/workspace/queries";
+import { api } from "@/lib/api/endpoints";
 import { isNotFound } from "@/lib/api/errors";
+import { qk } from "@/lib/api/query-keys";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
 import { WorkspaceScope } from "@/lib/permissions/can";
-import { routes } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { ErrorScreen, NotFoundScreen } from "./edge-screens";
 import { DevTools } from "./dev-tools";
@@ -40,10 +43,32 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 export function WorkspaceShell({ slug, children }: { slug: string; children: ReactNode }) {
   return (
-    <AuthGate>
-      <WorkspaceLoader slug={slug}>{children}</WorkspaceLoader>
-    </AuthGate>
+    <>
+      <RoutePrefetch slug={slug} />
+      <AuthGate>
+        <WorkspaceLoader slug={slug}>{children}</WorkspaceLoader>
+      </AuthGate>
+    </>
   );
+}
+
+/**
+ * Starts the workspace, project-list and current-project requests as soon as the transport can
+ * send them, in parallel with /auth/me, instead of one after another once the gate opens.
+ * The gated screens below use the same query keys, so they pick up these in-flight requests.
+ */
+function RoutePrefetch({ slug }: { slug: string }) {
+  const { ready, status } = useSession();
+  const { projectKey } = useRouteInfo();
+  const enabled = ready && status !== "anonymous";
+  useQuery({ queryKey: qk.workspace(slug), queryFn: () => api.workspaces.get(slug), enabled });
+  useQuery({ queryKey: qk.projects(slug), queryFn: () => api.projects.list(slug), enabled });
+  useQuery({
+    queryKey: qk.project(slug, projectKey ?? ""),
+    queryFn: () => api.projects.get(slug, projectKey!),
+    enabled: enabled && Boolean(projectKey),
+  });
+  return null;
 }
 
 function WorkspaceLoader({ slug, children }: { slug: string; children: ReactNode }) {

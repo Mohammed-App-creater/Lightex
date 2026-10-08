@@ -12,6 +12,12 @@ type Status = "loading" | "anonymous" | "authenticated";
 type SessionValue = {
   status: Status;
   user: User | null;
+  /**
+   * True once authenticated requests can be sent: immediately in mock mode, and in live mode as
+   * soon as the access token is restored, before /auth/me returns. Lets route data load in
+   * parallel with the session check instead of after it.
+   */
+  ready: boolean;
   /** True after a 401 that a refresh could not fix: show the re-auth modal, keep drafts. */
   expired: boolean;
   signedIn: (result: { accessToken: string; user: User }) => void;
@@ -26,6 +32,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<Status>("loading");
   const [user, setUserState] = useState<User | null>(null);
+  const [ready, setReady] = useState(apiMode !== "live");
   const [expired, setExpired] = useState(false);
 
   useEffect(() => {
@@ -36,6 +43,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           // Access token is memory-only: restore it from the httpOnly refresh cookie.
           const { accessToken } = await api.auth.refresh();
           tokenStore.set(accessToken);
+          if (!alive) return;
+          setReady(true);
         }
         const me = await api.auth.me();
         if (!alive) return;
@@ -44,6 +53,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       } catch {
         if (!alive) return;
         tokenStore.set(null);
+        setReady(false);
         setStatus("anonymous");
       }
     })();
@@ -73,6 +83,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return result.user;
       });
       setExpired(false);
+      setReady(true);
       setStatus("authenticated");
     },
     [qc],
@@ -86,6 +97,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
     tokenStore.set(null);
     setUserState(null);
+    setReady(apiMode !== "live");
     setStatus("anonymous");
     qc.clear();
     authEvents.emit("signed-out");
@@ -95,13 +107,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     () => ({
       status,
       user,
+      ready,
       expired,
       signedIn,
       signOut,
       setUser: setUserState,
       clearExpired: () => setExpired(false),
     }),
-    [status, user, expired, signedIn, signOut],
+    [status, user, ready, expired, signedIn, signOut],
   );
 
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;

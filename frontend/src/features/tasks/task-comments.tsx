@@ -15,9 +15,10 @@ import { useProjectMembers } from "@/features/projects/queries";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
-import type { ActivityEntry, Comment, RichDoc, TaskDetail, User } from "@/lib/api/types";
+import type { Comment, RichDoc, TaskDetail, User } from "@/lib/api/types";
 import { can } from "@/lib/permissions/can";
 import { ago, agoOrDate } from "@/lib/utils/dates";
+import { activityText } from "./activity-text";
 import { CommentComposer, RichView, richIsEmpty, useRichEditor } from "./rich-text";
 
 export function TaskConversation({ task, deleted }: { task: TaskDetail; deleted: boolean }) {
@@ -212,27 +213,6 @@ function CommentEditForm({ initial, people, onCancel, onSave }: { initial: RichD
       </div>
     </div>
   );
-}
-
-const VERB: Record<ActivityEntry["verb"], (a: ActivityEntry) => string> = {
-  created: () => "created the task",
-  status_changed: (a) => `moved this to ${a.data.to ?? "a new status"}`,
-  assigned: (a) => `assigned ${a.data.assignee ?? "someone"}`,
-  commented: () => "commented",
-  linked_objective: (a) => `linked ${a.data.objective ?? "an objective"}`,
-  updated: () => "updated the task",
-  deleted: () => "deleted the task",
-  restored: () => "restored the task",
-  sprint_started: (a) => `started ${a.data.sprint ?? "the sprint"}`,
-  sprint_completed: (a) => `completed ${a.data.sprint ?? "the sprint"}`,
-  attached: (a) => `attached ${a.data.file ?? "a file"}`,
-  member_added: (a) => `added ${a.data.member ?? "a member"}`,
-};
-
-export function activityText(a: ActivityEntry, subject?: string) {
-  const text = VERB[a.verb]?.(a) ?? a.verb;
-  // In a project/workspace feed, name the task instead of "this" / "the task".
-  return subject ? text.replace("moved this", `moved ${subject}`).replace("the task", subject) : text;
 }
 
 function Activity({ task }: { task: TaskDetail }) {

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph, glyphLabel, type GlyphKind } from "@/components/ui/glyphs";
 import { useProjectMembers } from "@/features/projects/queries";
-import { activityText } from "@/features/tasks/task-comments";
+import { activityText } from "@/features/tasks/activity-text";
 import { useWsMembers } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";

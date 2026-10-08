@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiMode } from "@/lib/env";
 import { cn } from "@/lib/utils/cn";
 import { LogoMark, Wordmark } from "./logo";
 
@@ -13,7 +14,8 @@ import { LogoMark, Wordmark } from "./logo";
  *   520ms  "Lighte"         10px → 0 · 0 → 1           ease-out 300ms
  *   1200+  bolt hold        opacity 1 → .55 → 1 loop   ease-in-out 1200ms (while still loading)
  *   reduced motion: one 150ms linear fade, no strike/flash/loop.
- * Then a 140×2 indeterminate track; a text label appears only after 2s.
+ * Then a 140×2 indeterminate track; a text label appears only after 2s. In live mode a second
+ * label after 8s explains that an idle API host is waking up (free-tier cold start, up to ~1 min).
  * `variant="splash"` is the icon tile (board 35 "Splash · holds until ready").
  */
 export function AppLoader({
@@ -25,11 +27,17 @@ export function AppLoader({
   label?: string;
   variant?: "wordmark" | "splash";
 }) {
-  const [slow, setSlow] = useState(false);
+  const [stage, setStage] = useState<0 | 1 | 2>(0);
   useEffect(() => {
-    const id = setTimeout(() => setSlow(true), 2000);
-    return () => clearTimeout(id);
+    const slow = setTimeout(() => setStage(1), 2000);
+    const cold = setTimeout(() => setStage(2), 8000);
+    return () => {
+      clearTimeout(slow);
+      clearTimeout(cold);
+    };
   }, []);
+  const slow = stage >= 1;
+  const message = stage === 2 && apiMode === "live" ? "Waking up the server… the first visit after a quiet spell can take up to a minute." : "Still loading…";
   return (
     <div
       role="status"
@@ -50,8 +58,8 @@ export function AppLoader({
       <div className="lx-track relative h-0.5 w-[140px] overflow-hidden rounded-full bg-line">
         <span className="lx-track-bar absolute inset-y-0 w-2/5 rounded-full bg-accent" />
       </div>
-      <p className={cn("m-0 h-4 text-meta text-fg-3 transition-opacity duration-300", slow ? "opacity-100" : "opacity-0")}>
-        {slow ? "Still loading…" : ""}
+      <p className={cn("m-0 min-h-4 max-w-[320px] px-4 text-center text-meta text-fg-3 transition-opacity duration-300", slow ? "opacity-100" : "opacity-0")}>
+        {slow ? message : ""}
       </p>
     </div>
   );
