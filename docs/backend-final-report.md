@@ -188,8 +188,10 @@ TypeScript stripping.
 
 ## 5. Known gaps
 
-- **Docker Compose was validated (`docker compose config`) but not run here**: the Docker daemon isn't available
-  in this environment. Development and tests ran against a local PostgreSQL 17.
+- **Docker** was verified on 2026-10-08: `docker compose up --build` (db + api) migrates and serves the API,
+  `seed_demo` runs in the container, and the full suite passes inside the api container (1,089 tests). The
+  production image boots gunicorn with prod settings, serves static files, hides the admin and sets the secure
+  refresh cookie. The optional `worker` profile (Redis + Celery worker) was not run.
 - **R2 was not exercised against a real bucket.** The R2 backend uses standard boto3 presigning; the flow is
   covered end to end with the fake and local backends.
 - **The web client's CSP blocks attachment previews in live mode.** `img-src` in `frontend/next.config.ts`
