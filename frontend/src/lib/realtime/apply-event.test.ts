@@ -182,3 +182,38 @@ describe("applyEvent", () => {
     expect(invalid(qk.unread("w1"))).toBe(true);
   });
 });
+
+describe("board 37 events (§8.4)", () => {
+  it("task.changed with fields [development] and version null invalidates the Development section", () => {
+    set(qk.development("t1"), { pullRequests: [] });
+    set(qk.development("t2"), { pullRequests: [] });
+    const a = applier();
+    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: null, fields: ["development"] }));
+    flush();
+    expect(invalid(qk.development("t1"))).toBe(true);
+    expect(invalid(qk.development("t2"))).toBe(false);
+    expect(invalid(qk.task(SLUG, "PRJ-1"))).toBe(true);
+  });
+
+  it("integration.changed (no project) refreshes the settings page, devEnabled and task-scoped queries", () => {
+    set(qk.integrations(SLUG), { providers: [], integrations: [] });
+    set(qk.projects(SLUG), []);
+    set(qk.development("t1"), { pullRequests: [] });
+    const a = applier();
+    a.apply(ev("integration.changed", { integrationId: "int_1", op: "disconnected" }, { projectId: null }));
+    flush();
+    expect(invalid(qk.integrations(SLUG))).toBe(true);
+    expect(invalid(qk.projects(SLUG))).toBe(true);
+    expect(invalid(qk.development("t1"))).toBe(true);
+  });
+
+  it("project.changed [development] refreshes the automation rules and projects", () => {
+    set(qk.devRules(P), []);
+    set(qk.projects(SLUG), []);
+    const a = applier();
+    a.apply(ev("project.changed", { areas: ["development"] }));
+    flush();
+    expect(invalid(qk.devRules(P))).toBe(true);
+    expect(invalid(qk.projects(SLUG))).toBe(true);
+  });
+});

@@ -34,7 +34,9 @@ export type ProjectArea =
   | "milestones"
   | "custom_fields"
   | "dependencies"
-  | "time";
+  | "time"
+  /** Board 37: automation rules, or which repositories apply to the project (devEnabled). */
+  | "development";
 
 export type HelloEvent = RealtimeEnvelope<
   "hello",
@@ -64,6 +66,11 @@ export type PresenceUpdatedEvent = RealtimeEnvelope<
   "presence.updated",
   { location: PresenceLocation; people: PresencePerson[]; at: ISODateTime }
 >;
+/** Board 37: a workspace connection changed. Delivered to every member of the workspace (projectId null). */
+export type IntegrationChangedEvent = RealtimeEnvelope<
+  "integration.changed",
+  { integrationId: ID; op: "connected" | "updated" | "synced" | "error" | "disconnected" }
+>;
 /** Reserved for board 40; not emitted in this release (useImportJob keeps polling). */
 export type ImportProgressEvent = RealtimeEnvelope<"import.progress", { jobId: ID; status: string; progress: unknown }>;
 
@@ -80,6 +87,7 @@ export type RealtimeEvent =
   | InboxChangedEvent
   | AccessChangedEvent
   | PresenceUpdatedEvent
+  | IntegrationChangedEvent
   | ImportProgressEvent;
 
 export type RealtimeEventType = RealtimeEvent["type"];
@@ -93,6 +101,7 @@ export const DURABLE_TYPES: readonly RealtimeEventType[] = [
   "dashboard.changed",
   "inbox.changed",
   "access.changed",
+  "integration.changed",
 ];
 
 /** Parses one `data:` payload. Returns null for anything that isn't a v1 envelope (ignored, never thrown). */

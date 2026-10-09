@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph, glyphLabel, type GlyphKind } from "@/components/ui/glyphs";
 import { useProjectMembers } from "@/features/projects/queries";
-import { activityText } from "@/features/tasks/activity-text";
+import { activityActorName, activityText } from "@/features/tasks/activity-text";
+import { ActorAvatar } from "./audit-parts";
 import { useWsMembers } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
@@ -214,14 +215,15 @@ export function ActivityFeed({
                 <ul role="feed" aria-label={`Activity, ${d.label}`} className="relative m-0 list-none p-0 before:absolute before:bottom-3.5 before:left-3 before:top-3.5 before:w-px before:bg-line-2 before:content-['']">
                   {d.items.map((a) => {
                     const p = a.actorId ? people.get(a.actorId) : undefined;
-                    const name = p?.name ?? "Lightex";
+                    const name = activityActorName(a, p?.name);
+                    const integration = a.actorKind === "integration";
                     return (
                       <li key={a.id} className="relative grid grid-cols-[26px_minmax(0,1fr)_auto] gap-2.5 py-1.5 animate-[fade-in_220ms_var(--ease)]">
-                        <span title={name} className="relative rounded-full shadow-[0_0_0_3px_var(--surface)]">
-                          <Avatar name={name} hue={p?.hue} size={24} decorative ring={false} className="size-[26px]" />
+                        <span title={name} className={integration ? "relative flex rounded-[5px] shadow-[0_0_0_3px_var(--surface)]" : "relative rounded-full shadow-[0_0_0_3px_var(--surface)]"}>
+                          {integration ? <ActorAvatar name={name} integration size={26} /> : <Avatar name={name} hue={p?.hue} size={24} decorative ring={false} className="size-[26px]" />}
                         </span>
                         <span className="min-w-0 text-[13px] leading-5 text-fg-2">
-                          <Sentence a={a} actor={name.split(" ")[0]!} />
+                          <Sentence a={a} actor={integration ? name : name.split(" ")[0]!} />
                         </span>
                         <time dateTime={a.createdAt} className="font-mono text-[11.5px] leading-5 text-fg-3">
                           {hhmm(a.createdAt)}

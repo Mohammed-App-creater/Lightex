@@ -193,7 +193,7 @@ describe("dashboards DB1–DB6 (§5.2)", () => {
     expect(p.my_permissions.slice(-3)).toEqual(["dashboard.create", "dashboard.manage", "report.view"]);
     as("u_sam");
     const sam = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    expect(sam.my_permissions).toEqual(["project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "time.log", "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view"]);
+    expect(sam.my_permissions).toEqual(["project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "development.link", "time.log", "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view"]);
     // A database cached before board 33: no keys, no dashboards, no marker.
     const old = createSeed();
     delete old.ext33;

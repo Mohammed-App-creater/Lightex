@@ -20,6 +20,8 @@ export const WORKSPACE_PERMISSIONS = [
   "workspace.manage_roles",
   "project.create",
   "project.assign_admin",
+  /* Board 37 (v2): connect GitHub / GitLab, choose repositories, disconnect. */
+  "integration.manage",
   "audit.view",
 ] as const;
 
@@ -42,6 +44,8 @@ export const PROJECT_PERMISSIONS = [
   "task.assign",
   "task.move",
   "project.import",
+  /* Board 37 (v2): create branches, link and unlink PRs, commits and branches. */
+  "development.link",
   "time.log",
   "time.delete_any",
   "comment.create",
@@ -157,6 +161,8 @@ export interface Project {
   my_permissions: ProjectPermission[];
   /** Board 40: `task_seq + 1`, the number the next task gets (import picker "next key" PRJ-61). */
   nextTaskNumber: number;
+  /** Board 37: at least one active integration has a tracked repository that applies to this project. */
+  devEnabled: boolean;
 }
 
 /** Board 24 "Not on any project": a member asks workspace admins to be added to a project. */
@@ -359,6 +365,9 @@ export interface Task {
   timeEstimateMinutes: number | null;
   /** Sum of the task's time entries, all users. */
   loggedMinutes: number;
+  /* Board 37 (v2). */
+  /** Linked development work (headline PR + counts); null when the task has no visible links. */
+  dev: TaskDevSummary | null;
 }
 
 /** Full task as returned by GET /workspaces/:slug/tasks/:key. */
@@ -475,7 +484,11 @@ export type ActivityVerb =
   | "dependency_added"
   | "dependency_removed"
   /** Board 40: `task.imported` (task feed) and `project.import_completed` (project / workspace feeds). */
-  | "imported";
+  | "imported"
+  /* Board 37: `task.dev_linked` (PR/MR), `task.dev_branch_created`, `task.dev_pr_state` → merged. */
+  | "dev_linked"
+  | "dev_branch_created"
+  | "dev_pr_merged";
 
 export interface ActivityEntry {
   id: ID;
@@ -487,6 +500,10 @@ export interface ActivityEntry {
   taskTitle: string | null;
   data: Record<string, string | number | null>;
   createdAt: ISODateTime;
+  /** Board 37: the actor's display name for integration rows ("GitHub"); actorId is null then. */
+  actorName?: string | null;
+  /** Board 37: "integration" rows render the square integration avatar. */
+  actorKind?: "user" | "integration";
 }
 
 /** "access": someone asked to join a project you manage (no task; payload.projectKey, optional quote). */
@@ -515,6 +532,8 @@ export interface Notification {
     imported?: number;
     skipped?: number;
     importStatus?: "completed" | "canceled" | "failed";
+    /** Board 37: the change was made by an automation of this provider ("GitHub moved PRJ-42 to Done"). */
+    via?: Provider;
   };
   createdAt: ISODateTime;
   readAt: ISODateTime | null;
@@ -544,8 +563,8 @@ export interface AuditEntry {
   entityType?: string;
   /** Task key ("PRJ-42") or project key ("PRJ") when the entity has one. */
   entityKey?: string | null;
-  /** Board 40 adds "import" (rows written by an import job). */
-  source?: "web" | "api" | "import";
+  /** Board 40 adds "import" (rows written by an import job); board 37 adds "webhook" (integration rows). */
+  source?: "web" | "api" | "import" | "webhook";
   requestId?: string | null;
   changes?: AuditChange[];
 }
@@ -1094,4 +1113,215 @@ export interface PresenceHeartbeat {
   expiresAt: ISODateTime;
   heartbeatSec: number;
   roster: PresenceRoster;
+}
+
+/* ───────────────────────── Board 37 (v2): integrations & development ───────────────────────── */
+
+export type Provider = "github" | "gitlab";
+export type IntegrationErrorCode =
+  | "token_expired"
+  | "token_revoked"
+  | "installation_suspended"
+  | "installation_removed"
+  | "insufficient_scope"
+  | "unreachable"
+  | "webhook_failing";
+
+export interface ProviderInfo {
+  provider: Provider;
+  name: "GitHub" | "GitLab";
+  /** The server has this provider configured (§2.3). */
+  available: boolean;
+  /** github: ["app"]; gitlab: ["oauth", "token"] or ["token"]. */
+  methods: ("app" | "oauth" | "token")[];
+  /** GitLab OAuth: "https://gitlab.com". */
+  oauthBaseUrl: string | null;
+  canCreateBranch: boolean;
+}
+
+export type RepoVisibility = "public" | "private" | "internal";
+
+export interface Repository {
+  id: ID;
+  integrationId: ID;
+  provider: Provider;
+  externalId: string;
+  /** "platform-team/web" */
+  fullPath: string;
+  owner: string;
+  name: string;
+  visibility: RepoVisibility;
+  defaultBranch: string;
+  url: string;
+  allProjects: boolean;
+  /** [] when allProjects. */
+  projectIds: ID[];
+  openPullRequests: number;
+  /** "paused" when the integration is in error. */
+  syncState: "idle" | "queued" | "syncing" | "paused" | "failed";
+  lastSyncedAt: ISODateTime | null;
+  /** The provider allows it and the repository isn't archived. */
+  canCreateBranch: boolean;
+}
+
+export interface Integration {
+  id: ID;
+  provider: Provider;
+  authKind: "github_app" | "gitlab_oauth" | "gitlab_token";
+  baseUrl: string;
+  account: { login: string; kind: "organization" | "user" | "bot"; url: string };
+  status: "active" | "error";
+  error: { code: IntegrationErrorCode; message: string; since: ISODateTime } | null;
+  connectedBy: ID | null;
+  connectedAt: ISODateTime;
+  lastSyncedAt: ISODateTime | null;
+  /** A sync run is queued / running / deferred. */
+  syncing: boolean;
+  /** "Sync now" is available again at. */
+  nextSyncAt: ISODateTime | null;
+  tokenExpiresAt: ISODateTime | null;
+  /** GitHub: installation settings (managers only); GitLab token: null. */
+  manageUrl: string | null;
+  /** Tracked only; ordered by full path. */
+  repositories: Repository[];
+}
+
+export interface AvailableRepository {
+  externalId: string;
+  fullPath: string;
+  owner: string;
+  name: string;
+  visibility: RepoVisibility;
+  updatedAt: ISODateTime | null;
+  /** Tracked by this integration. */
+  tracked: boolean;
+  /** Tracked by another integration of this workspace (disabled row). */
+  trackedElsewhere: boolean;
+}
+
+export interface IntegrationsOverview {
+  /** Always both, GitHub first. */
+  providers: ProviderInfo[];
+  /** Active + error; GitHub first, then by connectedAt. */
+  integrations: Integration[];
+}
+
+export interface RepoRef {
+  id: ID;
+  fullPath: string;
+}
+export interface DevAuthor {
+  login: string;
+  name: string | null;
+  userId: ID | null;
+}
+export type CheckState = "passing" | "failing" | "running";
+export interface DevCheck {
+  name: string;
+  state: CheckState;
+  durationSec: number | null;
+  url: string | null;
+}
+export type DevLinkSource = "auto" | "manual" | "created";
+
+export interface DevPullRequest {
+  id: ID;
+  kind: "pull_request";
+  provider: Provider;
+  /** null after a disconnect (repoFullPath still names it). */
+  repository: RepoRef | null;
+  repoFullPath: string;
+  number: number;
+  /** GitHub "#214", GitLab "!12". */
+  ref: string;
+  title: string;
+  url: string;
+  state: "open" | "draft" | "merged" | "closed";
+  headBranch: string;
+  baseBranch: string;
+  author: DevAuthor;
+  checks: { state: CheckState; passed: number; total: number; items: DevCheck[] } | null;
+  approvals: number;
+  linkSource: DevLinkSource;
+  createdAt: ISODateTime;
+  updatedAt: ISODateTime;
+  mergedAt: ISODateTime | null;
+  closedAt: ISODateTime | null;
+}
+export interface DevBranch {
+  id: ID;
+  kind: "branch";
+  provider: Provider;
+  repository: RepoRef | null;
+  repoFullPath: string;
+  name: string;
+  url: string;
+  state: "active" | "deleted";
+  aheadBy: number | null;
+  linkSource: DevLinkSource;
+  updatedAt: ISODateTime;
+}
+export interface DevCommit {
+  id: ID;
+  kind: "commit";
+  provider: Provider;
+  repository: RepoRef | null;
+  repoFullPath: string;
+  sha: string;
+  shortSha: string;
+  message: string;
+  url: string;
+  author: DevAuthor;
+  committedAt: ISODateTime;
+  linkSource: "auto" | "manual";
+}
+export type DevItem = DevPullRequest | DevBranch | DevCommit;
+
+export interface DevRepositoryOption {
+  id: ID;
+  provider: Provider;
+  fullPath: string;
+  name: string;
+  defaultBranch: string;
+  canCreateBranch: boolean;
+}
+
+export interface TaskDevelopment {
+  taskId: ID;
+  taskKey: string;
+  /** Project.devEnabled */
+  enabled: boolean;
+  suggestedBranch: string;
+  repositories: DevRepositoryOption[];
+  pullRequests: DevPullRequest[];
+  branches: DevBranch[];
+  commits: DevCommit[];
+  commitTotal: number;
+  syncedAt: ISODateTime | null;
+}
+
+export interface TaskDevSummary {
+  /** The headline PR: most recently updated open/draft, else merged in the last 14 days, else null. */
+  pr: {
+    provider: Provider;
+    number: number;
+    ref: string;
+    state: DevPullRequest["state"];
+    checks: CheckState | null;
+    checksPassed: number;
+    checksTotal: number;
+    approvals: number;
+    baseBranch: string;
+    mergedAt: ISODateTime | null;
+  } | null;
+  prCount: number;
+  branchCount: number;
+  commitCount: number;
+}
+
+export type DevTrigger = "branch_created" | "pr_opened" | "pr_merged";
+export interface DevAutomationRule {
+  trigger: DevTrigger;
+  enabled: boolean;
+  statusId: ID | null;
 }

@@ -5,6 +5,7 @@ import { ensureExt39 } from "./handlers/extensions";
 import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
+import { ensureExt37 } from "./handlers/integrations";
 import type {
   AttachmentRec,
   MockDB,
@@ -738,6 +739,8 @@ export function createSeed(): MockDB {
   ensureExt40(db);
   // Board 33 (v2): dashboard.create / dashboard.manage on system roles and the PRJ dashboards.
   ensureExt33(db);
+  // Board 37 (v2): integration.manage / development.link, PRJ-41 + PRJ-29, the GitHub connection and its PRs.
+  ensureExt37(db);
   return db;
 }
 

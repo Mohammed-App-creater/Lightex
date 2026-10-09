@@ -26,6 +26,11 @@ import type {
   ImportTaskType,
   TimeEntry,
   Dashboard,
+  DevItem,
+  DevTrigger,
+  Integration,
+  Provider,
+  Repository,
 } from "@/lib/api/types";
 
 /* Stored shapes. Derived fields (progress, counts, my_permissions) are computed per request. */
@@ -63,7 +68,7 @@ export type InviteRec = {
 };
 export type ProjectRec = Omit<
   Project,
-  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber"
+  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber" | "devEnabled"
 > & { taskSeq: number };
 export type ProjectMemberRec = { projectId: string; userId: string; roleId: string; addedAt: string };
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
@@ -75,7 +80,7 @@ export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archi
 export type SprintRec = Omit<Sprint, "progress">;
 export type TaskRec = Omit<
   Task,
-  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes" | "startDate"
+  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes" | "startDate" | "dev"
 > & {
   /** Board 32 (optional so v1-cached records still load; toTask normalizes to null). */
   startDate?: string | null;
@@ -127,6 +132,14 @@ export interface MockDB {
   timers?: { userId: string; taskId: string; startedAt: string }[];
   /** Board 39 upgrade marker for databases cached before v2. */
   ext39?: boolean;
+  /* Board 37 (v2). Optional, created by ensureExt37 (handlers/integrations.ts), so no SCHEMA bump. */
+  integrations?: IntegrationRec[];
+  repositories?: RepositoryRec[];
+  devLinks?: DevLinkRec[];
+  devRules?: DevRuleRec[];
+  connectAttempts?: ConnectAttemptRec[];
+  /** Board 37 upgrade marker (new keys on cached system roles, PRJ-41 / PRJ-29, the GitHub seed). */
+  ext37?: boolean;
   /** Board 32 upgrade marker (start dates, epic dates, one extra dependency). */
   ext32?: boolean;
   /* Board 40 (v2). Optional, created lazily by handlers/imports.ts, so no SCHEMA bump. Job records hold no file content. */
@@ -139,6 +152,52 @@ export interface MockDB {
   /** Board 33 upgrade marker (dashboard keys on cached system roles, PRJ dashboards). */
   ext33?: boolean;
 }
+
+/* Board 37: integrations. Credentials never exist in the mock; the fake provider needs none. */
+export type IntegrationRec = Omit<Integration, "repositories" | "syncing" | "nextSyncAt" | "status" | "manageUrl"> & {
+  workspaceId: string;
+  /** "pending" = called back, waiting for confirm (never listed). */
+  status: "pending" | "active" | "error";
+  accountExternalId: string;
+  manageUrl: string | null;
+  syncRequestedAt: string | null;
+  /** A sync run is "running" until this time (lazy completion on read). */
+  syncUntil: string | null;
+};
+export type RepositoryRec = Omit<Repository, "provider" | "syncState" | "canCreateBranch"> & {
+  workspaceId: string;
+  baseUrl: string;
+  syncState: "idle" | "queued" | "syncing" | "failed";
+  syncUntil: string | null;
+  archived: boolean;
+};
+/** One linked object per task; the wire item is kept as-is with the server-side match fields next to it. */
+export type DevLinkRec = {
+  id: string;
+  taskId: string;
+  workspaceId: string;
+  baseUrl: string;
+  repoExternalId: string;
+  /** PR "<repo>#<n>", commit sha, branch "<repo>:<name>". */
+  externalId: string;
+  repositoryId: string | null;
+  suppressed: boolean;
+  linkedBy: string | null;
+  item: DevItem;
+};
+export type DevRuleRec = { projectId: string; trigger: DevTrigger; enabled: boolean; statusId: string | null; updatedBy: string | null };
+export type ConnectAttemptRec = {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  provider: Provider;
+  mode: "connect" | "reconnect";
+  integrationId: string | null;
+  status: "started" | "called_back" | "confirmed" | "failed" | "expired";
+  /** The one-time confirm token (the backend stores only its hash). */
+  confirmToken: string | null;
+  expiresAt: string;
+};
 
 /** Board 33: the wire dashboard without the derived `owner`. */
 export type DashboardRec = Omit<Dashboard, "owner">;

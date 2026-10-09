@@ -71,6 +71,12 @@ export const qk = {
   /** My-tasks widget: the viewer's tasks in one project (under ["p", id], so task patches reach it). */
   myProjectTasks: (projectId: string) => ["p", projectId, "tasks", "mine"] as const,
 
+  /* Board 37 (v2). Development sits under ["t", id] (task-scoped), rules under ["p", id] (qk.scope reaches them). */
+  integrations: (slug: string) => ["workspace", slug, "integrations"] as const,
+  availableRepos: (integrationId: string, q?: string) => ["integration", integrationId, "available", q ?? ""] as const,
+  development: (taskId: string) => ["t", taskId, "development"] as const,
+  devRules: (projectId: string) => ["p", projectId, "dev-rules"] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,

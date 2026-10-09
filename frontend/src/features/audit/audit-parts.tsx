@@ -197,7 +197,7 @@ export function DiffPanel({ e, people, id }: { e: AuditEntry; people: PeopleInde
       )}
       <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface px-2.5 py-[7px] text-[12px] text-fg-3">
         <Path16 d={api ? AUDIT_ICON.code : AUDIT_ICON.globe} />
-        <span>via {api ? "API" : "web"}</span>
+        <span>via {api ? "API" : e.source === "webhook" ? "webhook" : "web"}</span>
         {e.requestId && (
           <>
             <span aria-hidden className="size-[3px] rounded-full bg-line-2" />
@@ -254,7 +254,7 @@ export function EventCard({ e, people, open, onToggle }: { e: AuditEntry; people
             </div>
           ))}
           <span className="mt-1 flex items-center gap-1 font-mono text-[11.5px] text-fg-3">
-            via {e.source === "api" ? "API" : e.source === "import" ? "import" : "web"}
+            via {e.source === "api" ? "API" : e.source === "import" ? "import" : e.source === "webhook" ? "webhook" : "web"}
             {e.requestId ? ` · ${e.requestId}` : ""}
             {e.requestId && <CopyRequestId id={e.requestId} />}
           </span>

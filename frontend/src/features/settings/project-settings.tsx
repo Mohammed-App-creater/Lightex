@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/toast";
 import { CustomFieldsPanel } from "@/features/fields/custom-fields-settings";
 import { useCustomFields } from "@/features/fields/queries";
 import { ImportHistoryPanel } from "@/features/import/import-history";
+import { DevelopmentSettingsPanel } from "@/features/development/dev-settings-panel";
 import { canImport } from "@/features/import/import-lib";
 import { useLabels, useProjectMembers } from "@/features/projects/queries";
 import { useRoles } from "@/features/workspace/queries";
@@ -27,9 +28,9 @@ import { MembersPanel } from "./project-members";
 import { ReadOnlyNote } from "./project-parts";
 import { WorkflowPanel } from "./project-workflow";
 
-type Tab = "general" | "workflow" | "labels" | "fields" | "members" | "import";
-const TABS: Tab[] = ["general", "workflow", "labels", "fields", "members", "import"];
-const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", fields: "Custom fields", members: "Members", import: "Import" };
+type Tab = "general" | "workflow" | "labels" | "fields" | "members" | "development" | "import";
+const TABS: Tab[] = ["general", "workflow", "labels", "fields", "members", "development", "import"];
+const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", fields: "Custom fields", members: "Members", development: "Development", import: "Import" };
 
 /**
  * Project settings (board 28): General / Workflow / Labels / Custom fields (board 39) / Members tabs. Each tab edits only
@@ -61,7 +62,8 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   // (a project Member) lands on it.
   const importer = canImport(project.my_permissions);
   const v1Settings = can("project.update", project.my_permissions) || can("project.manage_members", project.my_permissions) || can("status.manage", project.my_permissions);
-  const tabs = TABS.filter((t) => t !== "import" || importer);
+  // Board 37: the Development tab only when a connected repository applies to the project (devEnabled).
+  const tabs = TABS.filter((t) => (t !== "import" || importer) && (t !== "development" || project.devEnabled));
   const tabParam = params.get("tab") as Tab | null;
   const tab: Tab = tabParam && tabs.includes(tabParam) ? tabParam : importer && !v1Settings ? "import" : "general";
   const setTab = (t: Tab) => {
@@ -85,6 +87,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
     labels: canUpdate && !archived,
     fields: canFields && !archived,
     members: canMembers && !archived,
+    development: canStatuses && !archived,
     import: true,
   };
 
@@ -99,13 +102,14 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   const fullAdmin = canUpdate && canStatuses && canMembers;
 
   const reason: Record<Tab, string> = archived
-    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", fields: "archived projects are read-only", members: "archived projects are read-only", import: "archived projects are read-only" }
+    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", fields: "archived projects are read-only", members: "archived projects are read-only", development: "archived projects are read-only", import: "archived projects are read-only" }
     : {
         general: "your role can’t edit project details",
         workflow: "your role can’t change the workflow",
         labels: "your role can’t edit labels",
         fields: "your role can’t edit custom fields",
         members: "your role can’t manage members",
+        development: "your role can’t change the workflow",
         import: "",
       };
 
@@ -173,6 +177,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
           {tab === "labels" && <LabelsPanel project={project} canEdit={edit.labels} />}
           {tab === "fields" && <CustomFieldsPanel project={project} canEdit={edit.fields} />}
           {tab === "members" && <MembersPanel project={project} canEdit={edit.members} />}
+          {tab === "development" && <DevelopmentSettingsPanel project={project} canEdit={edit.development} />}
           {tab === "import" && <ImportHistoryPanel project={project} />}
         </TabPanel>
       </div>

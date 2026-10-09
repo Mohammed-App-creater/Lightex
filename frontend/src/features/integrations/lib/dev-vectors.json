@@ -1,0 +1,48 @@
+{
+  "_comment": "Board 37 shared vectors (docs/v2/37-integrations-github-gitlab.md §12.3). The spec's canonical location is docs/v2/vectors/37-dev.json at the repo root; this frontend copy must stay identical to it. Read by src/features/integrations/lib/dev-lib.test.ts.",
+  "keys": [
+    { "texts": ["prj-42-fix-reflow"], "prefixes": ["PRJ"], "expected": ["PRJ-42"] },
+    { "texts": ["fix(board): debounce reflow (PRJ-42)"], "prefixes": ["PRJ"], "expected": ["PRJ-42"] },
+    { "texts": ["feature/PRJ-42_x and prj-43"], "prefixes": ["PRJ"], "expected": ["PRJ-42", "PRJ-43"] },
+    { "texts": ["XPRJ-42"], "prefixes": ["PRJ"], "expected": [] },
+    { "texts": ["PRJ-42a"], "prefixes": ["PRJ"], "expected": [] },
+    { "texts": ["PRJ-042"], "prefixes": ["PRJ"], "expected": [] },
+    { "texts": ["PRJ-"], "prefixes": ["PRJ"], "expected": [] },
+    { "texts": ["PRJ-4242424242"], "prefixes": ["PRJ"], "expected": [] },
+    { "texts": ["UTF-8 and SHA-256"], "prefixes": ["PRJ", "MOB"], "expected": [] },
+    { "texts": ["[PRJ-1] PRJ-1 PRJ-2"], "prefixes": ["PRJ"], "expected": ["PRJ-1", "PRJ-2"] },
+    { "texts": ["(PRJ-42) PRJ-43: [PRJ-44] feature/PRJ-45 PRJ-46/x"], "prefixes": ["PRJ"], "expected": ["PRJ-42", "PRJ-43", "PRJ-44", "PRJ-45", "PRJ-46"] },
+    {
+      "texts": ["PRJ-1 PRJ-2 PRJ-3 PRJ-4 PRJ-5 PRJ-6 PRJ-7 PRJ-8 PRJ-9 PRJ-10 PRJ-11 PRJ-12"],
+      "prefixes": ["PRJ"],
+      "expected": ["PRJ-1", "PRJ-2", "PRJ-3", "PRJ-4", "PRJ-5", "PRJ-6", "PRJ-7", "PRJ-8", "PRJ-9", "PRJ-10"]
+    },
+    { "texts": ["PRJ-42 Fix flaky board reflow", "prj-42-fix-reflow"], "prefixes": ["PRJ"], "expected": ["PRJ-42"] },
+    { "texts": ["MOB-12 and prj-42", "inf-3-hotfix"], "prefixes": ["PRJ", "MOB", "INF"], "expected": ["MOB-12", "PRJ-42", "INF-3"] }
+  ],
+  "suggestBranch": [
+    { "key": "PRJ-42", "title": "Fix flaky board reflow on column resize", "prefix": "", "expected": "prj-42-fix-flaky-board-reflow" },
+    { "key": "PRJ-58", "title": "Write release notes for 2.4", "prefix": "", "expected": "prj-58-write-release-notes-24" },
+    { "key": "PRJ-52", "title": "Rate-limit login attempts", "prefix": "feature/", "expected": "feature/prj-52-rate-limit-login-attempts" },
+    { "key": "PRJ-7", "title": "Résumé — the café", "prefix": "", "expected": "prj-7-resume-cafe" },
+    { "key": "PRJ-9", "title": "!!!", "prefix": "", "expected": "prj-9" }
+  ],
+  "validateBranch": {
+    "invalid": ["a..b", "-x", "x/", "x.lock", "a//b", "a@{b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "a b", ""],
+    "valid": ["feature/prj-42-x", "prj-42.fix_1", "prj-42-fix-flaky-board-reflow"]
+  },
+  "checks": [
+    { "states": ["failing", "passing"], "expected": "failing" },
+    { "states": ["running", "passing"], "expected": "running" },
+    { "states": ["passing", "passing"], "expected": "passing" },
+    { "states": [], "expected": null },
+    { "states": ["running", "failing"], "expected": "failing" }
+  ],
+  "hashHue": [
+    { "login": "akim", "expected": 346 },
+    { "login": "jlee", "expected": 272 },
+    { "login": "sam-p", "expected": 46 },
+    { "login": "octocat", "expected": 353 },
+    { "login": "dependabot[bot]", "expected": 295 }
+  ]
+}

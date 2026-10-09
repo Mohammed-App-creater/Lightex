@@ -66,6 +66,14 @@ import type {
   Workspace,
   WorkspaceAccessRequest,
   WorkspaceMember,
+  AvailableRepository,
+  DevAutomationRule,
+  DevBranch,
+  DevItem,
+  Integration,
+  IntegrationsOverview,
+  Repository,
+  TaskDevelopment,
 } from "./types";
 
 /*
@@ -423,10 +431,59 @@ export const presence = {
     http.get<PresenceRoster>(`/workspaces/${enc(slug)}/presence`, { filter: { project: projectId } }),
 };
 
+/* ───────── Board 37 (v2): integrations & development. Requested API additions (docs/v2/37-integrations-github-gitlab.md §5). ───────── */
+
+export type GitLabConnectBody = { method: "oauth" } | { method: "token"; baseUrl: string; token: string };
+
+export const integrations = {
+  /** G1: providers (both, GitHub first) and the workspace's connections. Every member. */
+  overview: (slug: string) => http.get<IntegrationsOverview>(`/workspaces/${enc(slug)}/integrations`),
+  /** G2: 200 `{ authorizeUrl }` (GitHub App install page; the client navigates there). */
+  connectGitHub: (slug: string) => http.post<{ authorizeUrl: string }>(`/workspaces/${enc(slug)}/integrations/github/connect`, {}),
+  /** G3: OAuth → 200 `{ authorizeUrl }`; token → 201 `Integration` (synchronous checks, 422 per field, 409 integration_exists). */
+  connectGitLab: (slug: string, body: GitLabConnectBody) =>
+    http.post<{ authorizeUrl: string } | Integration>(`/workspaces/${enc(slug)}/integrations/gitlab/connect`, body),
+  /** G6: the `#connect=<attempt>.<token>` fragment, sent back by the signed-in admin. Any mismatch → 404. */
+  confirm: (slug: string, body: { attempt: string; token: string }) => http.post<Integration>(`/workspaces/${enc(slug)}/integrations/confirm`, body),
+  /** G7 */
+  get: (id: string) => http.get<Integration>(`/integrations/${enc(id)}`),
+  /** G8: live from the provider (cached 60 s), `q` filters by full path. 409 integration_error, 502 provider_failed. */
+  availableRepositories: (id: string, q?: string) =>
+    http.get<AvailableRepository[]>(`/integrations/${enc(id)}/available-repositories`, q ? { q } : undefined),
+  /** G9: the complete tracked set (1–200). `projectIds` omitted or [] = all projects. */
+  setRepositories: (id: string, repositories: { externalId: string; projectIds?: string[] }[]) =>
+    http.put<Integration>(`/integrations/${enc(id)}/repositories`, { repositories }),
+  /** G10: [] = all projects. */
+  scopeRepository: (repoId: string, projectIds: string[]) => http.patch<Repository>(`/repositories/${enc(repoId)}`, { projectIds }),
+  /** G11: 202 with `syncing: true`; 429 sync_throttled (details.nextSyncAt) within 2 minutes; 409 integration_error. */
+  sync: (id: string) => http.post<Integration>(`/integrations/${enc(id)}/sync`, {}),
+  /** G12: `{ authorizeUrl }` (GitHub / GitLab OAuth) or `Integration` (GitLab token, body `{ token }`). */
+  reconnect: (id: string, body: { token?: string } = {}) => http.post<{ authorizeUrl: string } | Integration>(`/integrations/${enc(id)}/reconnect`, body),
+  /** G13: 204; linked PRs stay on tasks. */
+  disconnect: (id: string) => http.del(`/integrations/${enc(id)}`),
+};
+
+export const development = {
+  /** D1: a task's linked branches, commits and PRs/MRs (`:id` = task id or key). Never calls the provider. */
+  get: (taskId: string) => http.get<TaskDevelopment>(`/tasks/${enc(taskId)}/development`),
+  /** D2: link by URL (PR/MR, commit or branch). 201 (200 when already linked). */
+  link: (taskId: string, url: string) => http.post<DevItem>(`/tasks/${enc(taskId)}/development/links`, { url }),
+  /** D3: manual → deleted; auto / created → suppressed. 204. */
+  unlink: (taskId: string, linkId: string) => http.del(`/tasks/${enc(taskId)}/development/links/${enc(linkId)}`),
+  /** D4: from the repository's default branch. 409 branch_exists. */
+  createBranch: (taskId: string, body: { repositoryId: string; name: string }) => http.post<DevBranch>(`/tasks/${enc(taskId)}/development/branches`, body),
+  /** A1: always all three triggers, in order. */
+  rules: (projectId: string) => http.get<DevAutomationRule[]>(`/projects/${enc(projectId)}/dev-automation`),
+  /** A2: `status.manage`; an enabled rule needs a status of this project, pr_merged a done-category one. */
+  setRules: (projectId: string, rules: DevAutomationRule[]) => http.put<DevAutomationRule[]>(`/projects/${enc(projectId)}/dev-automation`, rules),
+};
+
 /** S1. The stream is not a JSON request: src/lib/realtime opens it. The path is kept here for the paper trail. */
 export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };
 
 export const api = {
+  integrations,
+  development,
   dashboards,
   presence,
   realtime,

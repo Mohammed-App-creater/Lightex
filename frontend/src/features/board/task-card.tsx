@@ -10,6 +10,7 @@ import type { Label, PresencePerson, Status, Task, User } from "@/lib/api/types"
 import { cn } from "@/lib/utils/cn";
 import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/features/tasks/task-bits";
 import { BlockedBadge, blockedTitle } from "@/features/dependencies/blocked-badge";
+import { PrChip } from "@/features/development/pr-chip";
 import { cardChip } from "@/features/fields/field-lib";
 import { useCustomFields } from "@/features/fields/queries";
 import { formatClock } from "@/features/time/duration";
@@ -61,7 +62,9 @@ export const TaskCard = memo(function TaskCard({
   const chip = fields ? cardChip(task, fields) : null;
   const { data: timer } = useMyTimer();
   const timing = timer?.taskId === task.id;
-  const extras = task.isBlocked || timing || chip;
+  // Board 37: the headline PR chip.
+  const pr = task.dev?.pr ?? null;
+  const extras = task.isBlocked || timing || chip || pr;
   const open = (e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => onOpen?.(task, e.currentTarget);
   const live = !overlay && present && present.length > 0 ? present : null;
   return (
@@ -114,6 +117,7 @@ export const TaskCard = memo(function TaskCard({
       {extras && (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {task.isBlocked && <BlockedBadge />}
+          {pr && <PrChip pr={pr} />}
           {timing && timer && <CardTimer timer={timer} />}
           {chip && (
             <span className="inline-flex h-[22px] min-w-0 items-center gap-[5px] rounded-[6px] border border-line bg-raised px-[7px] text-[11.5px] text-fg-2">

@@ -49,8 +49,10 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
-  - Also: `trash`, `settings/{general,members,roles,notifications,profile,audit}`, `tasks/[taskKey]`, `my-tasks`,
-    `search`, `inbox`, `timesheet` (v2, board 39).
+  - Also: `trash`, `settings/{general,members,roles,integrations,notifications,profile,audit}` (`integrations`: v2,
+    board 37), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
+  - Board 37 has no project route of its own: the task panel's Development section, the board / list PR chip and
+    project settings `?tab=development` (shown when `Project.devEnabled`).
   - Import wizard (v2, board 40): no route; `?import=new|<jobId>` on any project view (`ImportWizardHost` in the
     project shell), history in project settings `?tab=import`.
 - **Task side panel:** `?task=KEY` on any project view (`TaskPanelHost`, with a card→panel morph).
@@ -104,14 +106,21 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **v2 features, only as scoped:**
   - In scope: **board 39** (custom fields, dependencies, time tracking), built from `docs/v2/39-fields-dependencies-time.md`;
     **board 32** (timeline & calendar), built from `docs/v2/32-timeline-calendar.md`; **board 40** (import wizard,
-    CSV and Jira/Linear/Asana CSV exports), built from `docs/v2/40-import-wizard.md`; and **board 33** (dashboards and
-    presence, realtime over Server-Sent Events), built from `docs/v2/33-dashboards-presence.md` (all at the repo root);
-    see `docs/final-report.md` §8.
+    CSV and Jira/Linear/Asana CSV exports), built from `docs/v2/40-import-wizard.md`; **board 33** (dashboards and
+    presence, realtime over Server-Sent Events), built from `docs/v2/33-dashboards-presence.md`; and **board 37**
+    (integrations & development: GitHub and GitLab), built from `docs/v2/37-integrations-github-gitlab.md` (all at the
+    repo root); see `docs/final-report.md` §8.
   - Import: the CSV parser lives only in `src/lib/mock/import/` (the lazily loaded mock chunk); the live client never
     parses CSV. Trello and every API connector stay "Coming soon".
   - Dashboards and presence: realtime is one SSE stream per browser per workspace (never a WebSocket). No
     character-level co-editing, remote cursors or remote selections (spec §9 #8, #9); typing indicators only.
-  - Planned next, still not built: GitHub/GitLab (37), Telegram/SMS/push sending (38).
+  - Integrations: GitHub (App) and GitLab (OAuth or access token, self-managed too). The provider round-trip ends
+    with `#connect=<attempt>.<token>` on `/[ws]/settings/integrations`; the screen strips the fragment before the
+    confirm call. In mock mode `authorizeUrl` is `#mock-authorize=<provider>.<attempt>` and the design's
+    "Authorize Lightex" dialog stands in for the provider. Task-key matching and branch names live in
+    `src/features/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
+    text; keys are highlighted with React parts, never innerHTML.
+  - Planned next, still not built: Telegram/SMS/push sending (38).
   - Until a board is in scope, where a design puts it inside an in-scope screen, it is hidden or marked "Coming soon".
 - **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
   `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
@@ -151,6 +160,10 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Mock controls persist in `lightex-mock-controls`.
   - Simulated teammates also show presence every 7 s (viewers, field edits, typing) and, on a dashboard, make a real
     change every third tick.
+  - Board 37 "Integrations" controls act on the open task (`?task=`): Open PR, Merge PR, Fail checks, and Expire
+    GitHub token (the workspace's connection). They mutate the mock as the backend processor would, automations
+    included. The seed has GitHub `int_gh_platform` (platform-team, 4 repos) and PRs on PRJ-42, PRJ-41 and PRJ-29;
+    the GitLab token form accepts `fake-token` (`fake-noscope`, `fake-expired` and `fake-other` test the errors).
   - e2e sets `{ errorRate: 0, teammates: false }` there to stay deterministic.
 - **Galleries:** component gallery at `/dev/ui`, email previews at `/dev/emails`.
 

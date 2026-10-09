@@ -33,6 +33,7 @@ import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
 import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
+import { PrChip } from "@/features/development/pr-chip";
 import { blockedTitle } from "@/features/dependencies/blocked-badge";
 import { displayValue } from "@/features/fields/field-lib";
 import { useCustomFields } from "@/features/fields/queries";
@@ -700,7 +701,12 @@ const TaskRow = memo(function TaskRow({
     }
     switch (id) {
       case "key":
-        return <span className={cn(cellStatic, "font-mono text-[12px] font-medium text-fg-3")}>{task.key}</span>;
+        return (
+          <span className={cn(cellStatic, "font-mono text-[12px] font-medium text-fg-3")}>
+            {task.key}
+            {task.dev?.pr && <PrChip pr={task.dev.pr} compact />}
+          </span>
+        );
       case "title":
         if (editingTitle) {
           return (

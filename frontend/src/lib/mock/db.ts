@@ -3,6 +3,7 @@ import { ensureExt39 } from "./handlers/extensions";
 import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
+import { ensureExt37 } from "./handlers/integrations";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -51,6 +52,11 @@ export function getDB(): MockDB {
           // Board 33: dashboard keys on cached system roles and the PRJ dashboards, once.
           if (!db.ext33) {
             ensureExt33(db);
+            persist();
+          }
+          // Board 37: integration keys on cached system roles, PRJ-41 / PRJ-29 and the GitHub seed, once.
+          if (!db.ext37) {
+            ensureExt37(db);
             persist();
           }
           return db;

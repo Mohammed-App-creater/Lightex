@@ -225,7 +225,10 @@ export class MockRealtimeSource implements RealtimeSource {
     const projects = new Set(
       db.projects.filter((p) => p.workspaceId === ws.id && projectPermissions(db, me, p.id).includes("project.view")).map((p) => p.id),
     );
-    const visible = (e: BusEvent) => e.ws === ws.id && ((e.userId ? e.userId === me : false) || (!e.userId && !!e.projectId && projects.has(e.projectId)));
+    // Board 37: integration.changed has no project and goes to every member of the workspace.
+    const visible = (e: BusEvent) =>
+      e.ws === ws.id &&
+      ((e.userId ? e.userId === me : false) || (!e.userId && !!e.projectId && projects.has(e.projectId)) || (!e.userId && !e.projectId && e.type === "integration.changed"));
 
     let replay: BusEvent[] = [];
     let reset = false;

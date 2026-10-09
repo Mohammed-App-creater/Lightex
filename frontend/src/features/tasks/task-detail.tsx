@@ -32,6 +32,7 @@ import { AddProperty, CF_FORCE, TaskChips, TaskFields, TaskLabels, TaskPlanning 
 import { TaskDependencies } from "@/features/dependencies/task-dependencies";
 import { TaskCustomFields } from "@/features/fields/task-custom-fields";
 import { TaskTime } from "@/features/time/task-time";
+import { DevelopmentSection } from "@/features/development/development-section";
 import { triggerSpark } from "./task-origin";
 import { useSparking } from "./task-bits";
 import { liveUpdateToast } from "@/features/presence/live-toast";
@@ -390,6 +391,8 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
           </FieldFlagProvider>
 
           <div className="flex min-w-0 flex-col gap-6 [grid-area:main]">
+            {/* Board 37: Development sits above Description (side panel, full page and sheet). */}
+            <DevelopmentSection task={task} />
             <section
               aria-label={descEditor ? `Description, ${firstName(descEditor.user.name)} is editing` : "Description"}
               className={cn("relative rounded-md", descEditor && "pf-desc-live", flash.has("description") && "hl")}

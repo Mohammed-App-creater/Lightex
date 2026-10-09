@@ -14,7 +14,8 @@ import { StatusGlyph } from "@/components/ui/glyphs";
 import { shell } from "@/components/shell/shell-state";
 import { canImportInto } from "@/features/import/import-lib";
 import { ImportCsvButton } from "@/features/import/import-wizard-host";
-import { activityText } from "@/features/tasks/activity-text";
+import { activityActorName, activityText } from "@/features/tasks/activity-text";
+import { ActorAvatar } from "@/features/audit/audit-parts";
 import { useEpics, useMilestones, useObjectives, useProjectMembers, useSprints, useStatuses } from "./queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
@@ -488,9 +489,13 @@ function ActivityPanel({ project }: { project: Project }) {
             const actor = members.find((m) => m.userId === a.actorId)?.user;
             return (
               <article key={a.id} className="flex gap-2.5 py-2 text-[13px] leading-5 text-fg-2">
-                <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} className="mt-px" decorative />
+                {a.actorKind === "integration" ? (
+                  <span className="mt-px flex"><ActorAvatar name={activityActorName(a, null)} integration size={20} /></span>
+                ) : (
+                  <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} className="mt-px" decorative />
+                )}
                 <span className="min-w-0 flex-1">
-                  <b className="font-medium text-fg">{actor?.name ?? "Lightex"}</b> {activityText(a, a.taskKey ?? undefined)}
+                  <b className="font-medium text-fg">{activityActorName(a, actor?.name)}</b> {activityText(a, a.taskKey ?? undefined)}
                   {a.taskTitle && a.verb === "created" ? ` · ${a.taskTitle}` : ""}
                 </span>
                 <span className="whitespace-nowrap text-meta text-fg-3">{agoOrDate(a.createdAt)}</span>

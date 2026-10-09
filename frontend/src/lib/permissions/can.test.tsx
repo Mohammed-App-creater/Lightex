@@ -83,9 +83,9 @@ describe("board 33: dashboard permissions", () => {
       project_member: [true, false],
       viewer: [false, false],
     });
-    // Sam's example (§4.4): the project Member list, in order.
+    // Sam's example (board 37 §4.3, which adds development.link): the project Member list, in order.
     expect(DEFAULT_ROLES.find((r) => r.key === "project_member")!.permissions).toEqual([
-      "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "time.log",
+      "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "development.link", "time.log",
       "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view",
     ]);
   });

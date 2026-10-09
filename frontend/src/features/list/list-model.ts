@@ -11,7 +11,7 @@ export type GroupBy = "status" | "epic" | "sprint" | "assignee";
 export type SortState = { col: ColumnId; dir: "asc" | "desc" } | null;
 
 export const COLUMNS: (ColumnDef & { id: BaseColumnId })[] = [
-  { id: "key", label: "Key", width: 70, min: 56 },
+  { id: "key", label: "Key", width: 92, min: 56 },
   { id: "title", label: "Title", width: 300, min: 140 },
   { id: "status", label: "Status", width: 120, min: 48 },
   { id: "pri", label: "Priority", width: 96, min: 44 },

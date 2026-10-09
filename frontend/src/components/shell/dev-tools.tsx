@@ -226,6 +226,48 @@ function DevToolsInner() {
               </div>
             </section>
           )}
+          {isMock && (
+            <section className="flex flex-col gap-2">
+              <h3 className="eyebrow m-0">Integrations</h3>
+              <p className="m-0 text-meta text-fg-3">
+                Provider events for {search.get("task") ? <span className="font-mono">{search.get("task")!.toUpperCase()}</span> : "the open task (?task=)"}, applied as the backend processor would.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["Open PR on task", "simulateOpenPr"],
+                    ["Merge PR", "simulateMergePr"],
+                    ["Fail checks", "simulateFailChecks"],
+                  ] as const
+                ).map(([label, fn]) => (
+                  <Button
+                    key={fn}
+                    size="sm"
+                    onClick={async () => {
+                      const m = await import("@/lib/mock/handlers/integrations");
+                      const msg = m[fn](search.get("task"));
+                      await qc.invalidateQueries();
+                      toast.info(msg);
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+                <Button
+                  size="sm"
+                  variant="danger-ghost"
+                  onClick={async () => {
+                    const m = await import("@/lib/mock/handlers/integrations");
+                    const msg = m.simulateExpireToken(route.workspace || "platform");
+                    await qc.invalidateQueries();
+                    toast.info(msg);
+                  }}
+                >
+                  Expire GitHub token
+                </Button>
+              </div>
+            </section>
+          )}
           <Link href="/dev/ui" className="text-[12px] text-accent-t underline-offset-2 hover:underline">
             Open component gallery
           </Link>

@@ -102,7 +102,9 @@ export function lineParts(n: Notification, actorName: string | null, today = tod
     const t = importNotificationText(n.payload);
     return { lead: t.lead, verb: `· ${t.rest}` };
   }
-  const lead = actorName ?? (n.actorId ? "Someone" : "Lightex");
+  // Board 37: an automation's change names the provider ("GitHub moved PRJ-42 to Done").
+  const via = n.payload.via === "github" ? "GitHub" : n.payload.via === "gitlab" ? "GitLab" : null;
+  const lead = via ?? actorName ?? (n.actorId ? "Someone" : "Lightex");
   if (n.type === "sprint") return { lead, verb: n.payload.sprintName ? `started ${n.payload.sprintName}` : "started a sprint" };
   return { lead, verb: EVENTS[n.type].verb };
 }

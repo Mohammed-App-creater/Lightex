@@ -141,7 +141,9 @@ describe("permissions catalogue and default roles (§3)", () => {
   it("places project.import after task.move and in the Tasks group", () => {
     const i = PROJECT_PERMISSIONS.indexOf("project.import");
     expect(PROJECT_PERMISSIONS[i - 1]).toBe("task.move");
-    expect(PROJECT_PERMISSIONS[i + 1]).toBe("time.log");
+    // Board 37 (§4.3) puts development.link between project.import and time.log.
+    expect(PROJECT_PERMISSIONS[i + 1]).toBe("development.link");
+    expect(PROJECT_PERMISSIONS[i + 2]).toBe("time.log");
     expect(PERMISSION_CATALOGUE.find((p) => p.key === "project.import")).toMatchObject({ group: "Tasks", label: "Import tasks", scope: "project" });
   });
   it("grants it to Project Admin, Manager and Member, not Viewer", () => {

@@ -8,7 +8,7 @@ Each step passed its checks before it was committed.
 | `npm run build` | passes |
 | `npm run typecheck` | clean (TypeScript strict) |
 | `npm run lint` | 0 errors, 1 warning (expected React Compiler note on TanStack Virtual's `useVirtualizer`) |
-| `npm test` | 46 files, 610+ tests passing (after board 33; run with `--maxWorkers=2` on this machine) |
+| `npm test` | 49 files, 703 tests passing (after board 37; run with `--maxWorkers=2` on this machine) |
 | `npm run test:e2e` | 8 Playwright tests passing (sign-in → board → task panel → palette; role-hiding matrix) |
 | Route sweep | 29 routes × {navy 1440, light 1440, near-black 390, light 390}: all render, no console errors, no horizontal scroll |
 
@@ -89,6 +89,9 @@ Each step passed its checks before it was committed.
 Board 33 (realtime, dashboards) adds **no** dependency: the SSE parser is hand-written, the stream uses `fetch`,
 leader election uses the Web Locks and BroadcastChannel browser APIs (with a per-tab fallback), drag and resize are
 pointer events, and the widget charts reuse Recharts.
+
+Board 37 (integrations) adds **no** dependency: key matching, branch names and the connect fragment are plain
+TypeScript, and the Create branch popover reuses Radix Popover.
 
 ---
 
@@ -413,6 +416,75 @@ presence field pattern also accepts `_`, because mock ids contain it (`cf.p_prj-
 `backend/apps/dashboards/tests/pack_vectors.json`; `src/features/dashboards/layout-lib.test.ts` hashes both and fails
 when they differ (they are identical today).
 
+### v2 · Board 37: integrations & development (GitHub and GitLab)
+
+The contract is `docs/v2/37-integrations-github-gitlab.md` (repo root). Every item is typed in `src/lib/api/types.ts`
+and `src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.integrations.*`, `api.development.*`) and
+`qk` (`integrations`, `availableRepos`, `development`, `devRules`), and implemented in the mock
+(`src/lib/mock/handlers/integrations.ts`, `src/lib/mock/dev-derive.ts`; tested in `src/lib/mock/integrations.test.ts`).
+
+**Endpoints** (all under `/api/v1`; same codes and messages as the contract)
+
+| # | Method | Path | Permission | Response | Client |
+|---|---|---|---|---|---|
+| G1 | GET | `/workspaces/:slug/integrations` | member | 200 `IntegrationsOverview` (non-managers: no `manageUrl`, no repositories scoped only to projects they can't view) | `api.integrations.overview` · `qk.integrations` |
+| G2 | POST | `/workspaces/:slug/integrations/github/connect` `{}` | `integration.manage` | 200 `{ authorizeUrl }`; 503 `integrations_unavailable` | `api.integrations.connectGitHub` |
+| G3 | POST | `/workspaces/:slug/integrations/gitlab/connect` `{ method: "oauth" }` or `{ method: "token", baseUrl, token }` | `integration.manage` | 200 `{ authorizeUrl }` · 201 `Integration` (token); 422 `baseUrl` / `token`; 409 `integration_exists` (`details.integrationId`) | `api.integrations.connectGitLab` |
+| G4 | GET | `/integrations/github/setup` | browser, `state` | 302 (browser only; the client never calls it) | — |
+| G5 | GET | `/integrations/{github,gitlab}/callback` | browser, `state` | 302 → `/<slug>/settings/integrations#connect=<attempt>.<token>` or `#connect_error=<code>` | read by `IntegrationsScreen` |
+| G6 | POST | `/workspaces/:slug/integrations/confirm` `{ attempt, token }` | `integration.manage` (re-checked) | 200 `Integration`; any mismatch 404 | `api.integrations.confirm` |
+| G7 | GET | `/integrations/:id` | member | 200 `Integration` | `api.integrations.get` |
+| G8 | GET | `/integrations/:id/available-repositories?q=` | `integration.manage` | 200 `AvailableRepository[]`; 409 `integration_error`; 502 `provider_failed` | `api.integrations.availableRepositories` · `qk.availableRepos` |
+| G9 | PUT | `/integrations/:id/repositories` `{ repositories: [{ externalId, projectIds? }] }` (the complete set, 1–200) | `integration.manage` | 200 `Integration`; 422 `repositories`, `repositories.N.externalId`, `repositories.N.projectIds` | `api.integrations.setRepositories` |
+| G10 | PATCH | `/repositories/:id` `{ projectIds }` (`[]` = all projects) | `integration.manage` | 200 `Repository` | `api.integrations.scopeRepository` |
+| G11 | POST | `/integrations/:id/sync` | `integration.manage` | 202 `Integration` (`syncing: true`); 429 `sync_throttled` (`details.nextSyncAt`, `Retry-After`); 409 `integration_error` | `api.integrations.sync` |
+| G12 | POST | `/integrations/:id/reconnect` `{}` or `{ token }` (GitLab token) | `integration.manage` | 200 `{ authorizeUrl }` · 200 `Integration`; 422 `token` | `api.integrations.reconnect` |
+| G13 | DELETE | `/integrations/:id` | `integration.manage` | 204 (links stay on tasks) | `api.integrations.disconnect` |
+| W1 / W2 | POST | `/webhooks/github`, `/webhooks/gitlab/:integrationId` | signature / token | provider-facing only; the client never calls them | — |
+| D1 | GET | `/tasks/:idOrKey/development` | `project.view` | 200 `TaskDevelopment` | `api.development.get` · `qk.development` |
+| D2 | POST | `/tasks/:idOrKey/development/links` `{ url }` | `development.link` | 201 `DevItem` (200 when already linked); 422 `url` | `api.development.link` |
+| D3 | DELETE | `/tasks/:idOrKey/development/links/:linkId` | `development.link` | 204 (manual → deleted, auto / created → suppressed) | `api.development.unlink` |
+| D4 | POST | `/tasks/:idOrKey/development/branches` `{ repositoryId, name }` | `development.link` | 201 `DevBranch`; 422 `name` / `repositoryId`; 409 `branch_exists` | `api.development.createBranch` |
+| A1 | GET | `/projects/:id/dev-automation` | `project.view` | 200 `DevAutomationRule[]` (always the three triggers, in order) | `api.development.rules` · `qk.devRules` |
+| A2 | PUT | `/projects/:id/dev-automation` (the same array) | `status.manage` | 200 `DevAutomationRule[]`; 422 `rules.N.statusId` ("Choose a status." / "Pick a Done status.") | `api.development.setRules` |
+
+**Types:** `Provider`, `IntegrationErrorCode`, `ProviderInfo`, `RepoVisibility`, `Repository`, `Integration`,
+`AvailableRepository`, `IntegrationsOverview`, `RepoRef`, `DevAuthor`, `CheckState`, `DevCheck`, `DevLinkSource`,
+`DevPullRequest`, `DevBranch`, `DevCommit`, `DevItem`, `DevRepositoryOption`, `TaskDevelopment`, `TaskDevSummary`,
+`DevTrigger`, `DevAutomationRule` (§5.1, §9.1); the realtime `IntegrationChangedEvent`.
+
+**Changed payloads (additive)**
+
+- `Task.dev: TaskDevSummary | null` (required) on every task payload: the headline PR (most recently updated
+  open / draft, else merged in the last 14 days, else null; closed never) and the PR / branch / commit counts.
+- `Project.devEnabled: boolean` (required): an active integration has a tracked repository that applies to the
+  project.
+- `ActivityEntry.actorName?: string | null` and `actorKind?: "user" | "integration"`; `ActivityVerb` gains
+  `dev_linked`, `dev_branch_created` and `dev_pr_merged`.
+- `AuditEntry.source` gains `"webhook"`; `actorKind: "integration"` rows (actorId = the integration id, `actorName`
+  "GitHub" / "GitLab").
+- `Notification.payload.via?: "github" | "gitlab"` (automation status changes; actorId null).
+- New permissions: workspace `integration.manage` ("Manage integrations", Administration, after
+  `workspace.manage_roles` in the catalogue; in `my_permissions` after `project.assign_admin`, before `audit.view`) and
+  project `development.link` ("Link code", Tasks, after `project.import`, before `time.log`). Owner and Admin get
+  `integration.manage`; Project Admin, Manager and Member get `development.link`; Viewer and workspace Member get
+  neither. Cached mock databases get them through `ensureExt37` (marker `ext37`, custom roles untouched).
+- Audit actions `integration.connected`, `.reconnected`, `.repositories_updated`, `.repository_scoped`,
+  `.sync_requested`, `.error`, `.disconnected`, `task.dev_linked`, `task.dev_unlinked`, `task.dev_branch_created`,
+  `task.dev_pr_state`, `project.dev_automation_updated`, and `task.status_changed` made by the integration.
+- Realtime: `integration.changed` (`{ integrationId, op: connected | updated | synced | error | disconnected }`,
+  `projectId: null`, delivered to **every member of the workspace**); `task.changed` with `fields: ["development"]`
+  and `version: null` for link changes; `project.changed` area `"development"`.
+
+**Errors:** 503 `integrations_unavailable`; 409 `integration_exists`, `integration_error`, `branch_exists`; 429
+`sync_throttled`; 502 `provider_failed`; 422 `validation_failed` with the §5.3 / §5.6 / §5.8 field messages; 404
+`not_found` for every confirm mismatch.
+
+**Shared test vectors:** `src/features/integrations/lib/dev-vectors.json` (task keys, `suggestBranch`,
+`validateBranch`, check aggregation and `hashHue`, §12.3), read by `src/features/integrations/lib/dev-lib.test.ts`.
+The spec's canonical copy is `docs/v2/vectors/37-dev.json` at the repo root, outside `frontend/`; the backend's copy
+should be created from this file, and the two must stay identical.
+
 ---
 
 ## 6. Known gaps
@@ -524,8 +596,8 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 
 ## 8. v2
 
-The user lifted the "no v2 features" rule for boards 39, 32, 40 and 33. The remaining v2 boards are planned next:
-**37** Integrations, **38** Telegram / SMS / Push.
+The user lifted the "no v2 features" rule for boards 39, 32, 40, 33 and 37. The remaining v2 board is planned next:
+**38** Telegram / SMS / Push.
 
 ### Board 39: custom fields, dependencies, time tracking (built)
 
@@ -853,3 +925,137 @@ client), `src/lib/domain/dashboards.ts` (widget catalogue and `pack()`), and in 
 - No character-level co-editing, remote cursors or remote selections (out of scope, §9 #8 and #9).
 - `import.progress` is not used; the import wizard keeps its 1 s poll (§10 #8).
 - Objectives and the time estimate in the task panel have no field flag.
+
+### Board 37: integrations & development, GitHub and GitLab (built)
+
+Spec: `docs/v2/37-integrations-github-gitlab.md`. API additions are listed in §5 ("v2 · Board 37"). Code:
+`src/features/integrations/` (settings page, dialogs, picker, task keys, and `lib/` with key matching, branch names
+and copy helpers), `src/features/development/` (task panel section, Create branch popover, PR chip, project settings
+tab), and in the mock `handlers/integrations.ts` (routes, fake provider, automations, dev-pill simulators) and
+`dev-derive.ts` (`Task.dev`, `Project.devEnabled`).
+
+- **Rules lifted:** board 37 moved to "in scope" in `frontend/CLAUDE.md`. No new npm dependency.
+- **Settings → Integrations** (`/[ws]/settings/integrations`): the nav item "Integrations" (Plug icon) sits after
+  Roles, for every member. Holders of `integration.manage` see a warning dot when a connection is in error.
+  - **Source control:** a card per connection, then a tile per provider not connected yet.
+    - Card: logo, provider + account, and "Connected" or the §9.7 error badge. Meta "4 repos · last sync 2m",
+      "expired 3d ago · 4 repos paused" or "token expires in 5d".
+    - Card actions: Sync now (spinner; a disabled reason during the 2-minute window), Edit repos, Reconnect in
+      error, Disconnect.
+    - Repository rows: "12 open PRs", last sync / "syncing" / "queued" / "paused", and an "All projects ▾" scope menu
+      for managers. "Add organization" / "Add GitLab connection" in the card footer.
+    - Tile: chips and Connect; "Waiting for authorization…" + Cancel; "Choosing repositories…"; the lock note "Can’t
+      connect · needs Manage integrations"; or a disabled Connect with "GitHub isn’t set up on this server."
+  - **Connect flow:** G2 / G3 → `sessionStorage["lightex-int-connect"]` → `location.assign(authorizeUrl)`.
+    - On return, `#connect=<attempt>.<token>` is removed with `replaceUrl` before G6. A connect opens **Choose
+      repositories**; a reconnect toasts "GitHub reconnected"; a 404 shows "That connection link expired. Try again."
+    - `#connect_error` shows the §5.3 copy in an inline banner (info tone for cancellations). A return without a
+      fragment (live mode) shows "Connection cancelled."
+    - Mock mode: `#mock-authorize=<provider>.<attempt>` opens the design's "Authorize Lightex" dialog with the real
+      permission names. Authorize / Cancel produce the same fragments as the real callback.
+  - **GitLab dialog:** GitLab.com (OAuth; hidden without `oauth` in `methods`) or Access token (instance URL + token,
+    with help text naming role Maintainer and scope `api`). Field errors come from the 422; `integration_exists`
+    offers Reconnect. Token reconnect has its own small dialog.
+  - **Choose repositories:**
+    - search (60 chars); groups by owner with a tri-state select-all and `n/m`; visibility; relative update time;
+    - skeleton; "No repositories match “q”" + Clear search; error + Retry;
+    - "N selected", and "Connect N repos" / "Save · N repos" (disabled at 0 with "Choose at least one repository");
+    - `trackedElsewhere` rows disabled ("Connected through another account"); "Missing a repository? Change access on
+      GitHub".
+    - Cancel on the first picker after a connect disconnects (§11 #20). Saving keeps the project scope of
+      repositories already tracked.
+  - **Disconnect:** the design's alertdialog (Cancel focused, Esc closes), optimistic removal with rollback, toast
+    "GitHub disconnected".
+  - **Task keys:** the three examples with the keys marked, and the branch generator over your open assigned tasks
+    (first 20; hidden when none), plain / feature/, Copy → "Copied" for 1.4 s.
+  - States: the design's loading skeleton, ErrorState + Retry, and every error code's badge.
+- **Task panel → Development:** above Description (side panel, full page and sheet). Shown when
+  `project.devEnabled || task.dev`.
+  - Header: the count "4 PRs · 2 branches" ("MRs" when all are GitLab) and the "Branch created" flash.
+  - With `development.link`: **Create branch** (popover; suggested name, Copy, "from {defaultBranch} in [repo ▾]",
+    client validation, spinner, 409 / 422 inline) and ⋯ "Link pull request or commit…" (URL dialog, D2).
+  - PR rows: state pill (Open / Draft dashed / Merged / Closed), ref, and the title with keys marked (opens the PR).
+    The checks button (`aria-expanded`, "Checks Failing, 1 of 3 passing") expands check rows with durations. Author
+    avatar: the member, or initials + `hashHue(login)`.
+  - Branch rows with "3 ahead" and Copy. Commit rows with the 7-char sha, first line, avatar and time; "Show all N on
+    GitHub" when the commits are in one repository.
+  - Row menu **Unlink**: optimistic, with the toast "Unlinked #214" and Undo (→ D2).
+  - Empty: "No linked work yet", the suggested branch + Copy, "Use PRJ-58 in a branch, PR or commit". Loading
+    skeleton; inline error + Retry. Polls every 30 s only while a check is running and the stream is down.
+- **Board card chip** (`task.dev.pr`): `#214 · Failing ✕`, `#221 · Open`, `#187 · Merged`, and a muted Draft, with
+  the §9.5 tooltip and aria-label. The list shows a compact icon chip in the key column (see deviations).
+- **Project settings → Development** (`?tab=development`, only when `devEnabled`): the repositories that apply (with
+  a link to workspace settings for managers) and the three rules, each with a switch and a status select (done-only
+  for merges). Saved with the v1 SaveBar; the read-only note without `status.manage`.
+- **Activity, inbox, audit:**
+  - the three new verbs ("linked PR #214", "created branch …", "GitHub · PR #198 merged");
+  - integration rows named by `actorName`, with the square integration avatar (task activity, project overview,
+    activity feed, dashboard widget);
+  - the inbox lead "GitHub moved PRJ-42 to Done" from `payload.via`; audit "via webhook".
+- **Realtime** (`apply-event.ts`):
+  - `task.changed` + `development` → `qk.development(taskId)`;
+  - `integration.changed` → the overview, projects (`devEnabled`) and task-scoped queries;
+  - `project.changed` `development` → the rules and projects.
+  - The mock stream delivers `integration.changed` to every member of the workspace (it has no project).
+- **Mock:**
+  - Seed: `int_gh_platform` (platform-team; `web`, `api`, `board-engine`, `mobile-app`; last sync 2 min). PRJ-42 has
+    PRs #214 / #209 / #198 / #190, two branches and four commits; PRJ-41 has #221 (open, passing, 1 review); PRJ-29 has
+    #187 (merged into main); PRJ-58 is empty. PRJ's automation `pr_merged → Done` is on.
+  - Fake provider: the design's eight repositories (700 ms). GitHub connects `platform-team`, then `alexkim`; GitLab
+    OAuth connects `akim` on gitlab.com; token mode accepts `fake-token`.
+  - Automations (§7.10) run as the integration: forward-only guards, version bump, activity / audit with
+    `actorKind: "integration"`, notifications to the assignee and reporter with `via`, and `task.changed`.
+  - **Dev pill → Integrations:** Open PR on task, Merge PR, Fail checks, Expire GitHub token.
+- **Tests:**
+  - shared vectors and helpers (`dev-lib.test.ts`): keys, branch names, checks, `hashHue`, chip text, count label,
+    `parseConnectFragment`, error copy, meta;
+  - the mock (`integrations.test.ts`): seed and `ensureExt37`, the `my_permissions` order, D1 shape / ordering and
+    the `Task.dev` headline rules, G1 filtering, G2 → consent → G6 with every 404 case, cancel, GitLab OAuth and token
+    errors, 403 / 503, reconnect, G8–G13, D2–D4 (URL parsing, suppression and re-link, 409), permissions per seeded
+    user and archived projects, A1 / A2 validation, automations through the dev-pill simulators, and
+    `integration.changed` reaching a member who is on no project;
+  - the realtime mapping (`apply-event.test.ts`);
+  - components (`integrations.test.tsx`): page states, lock note, disabled reason, error card, the full connect flow,
+    cancelled and expired links, disconnect focus / Esc, GitLab field errors, picker tri-state / search /
+    `trackedElsewhere`, Development ready / empty / loading / Viewer / Create branch 409 / Unlink, the settings tab,
+    the chip.
+
+### Deviations (board 37)
+
+- **Conflicts** are resolved exactly as the spec's §11 (#1–#23): a card per connection plus tiles; the consent dialog
+  only in mock mode; an installation-scoped picker; permission keys instead of roles; "Can’t connect · needs Manage
+  integrations" / "Ask a workspace admin to reconnect"; Sync now for managers only; per-code error badges; the scope
+  menu; the GitLab dialog; manual link / unlink; the Development settings tab; "from {defaultBranch}"; deterministic
+  branch names; highlighting by the workspace's keys; real relative times; initials + hue avatars; real tasks in the
+  generator; Integrations after Roles; a non-optimistic Create branch; disconnect on the first picker's Cancel; MRs;
+  draft chips.
+- **Shared vectors** live at `src/features/integrations/lib/dev-vectors.json`. The spec names
+  `docs/v2/vectors/37-dev.json`, which is outside `frontend/`.
+- **Mock consent page:** the fake provider's dialog is the app's `Modal` (title "GitHub · authorize", the paired logos
+  with the animated dots, chips, Cancel / Authorize), without the design's fake browser bar. It calls `fakeAuthorize()`
+  directly, because the backend's fake authorize route is a browser redirect, not a JSON endpoint.
+- **Picker search** filters the loaded list locally (G8 is called once, without `q`), so the selection survives a
+  search. `api.integrations.availableRepositories(id, q)` still sends `q`.
+- **List view:** the key column shows a compact chip (the state icon only; same tooltip and aria-label), and its
+  default width grows from 70 to 92 px. The full chip didn't fit.
+- **Design tasks:** the v1 seed has no PRJ-41 or PRJ-29, so `ensureExt37` adds them: PRJ-41 "Virtualize board column
+  lists" (In review, Riley) and PRJ-29 "Board drag preview" (Done, Taylor), both in Sprint 14. PRJ-41's title differs
+  from the design's "Virtualize board columns" because PRJ-40 already has that title.
+- **"Expire GitHub token"** (dev pill) sets `token_expired` on the GitHub connection, as the design shows, although a
+  real GitHub App never has an expiring token (§11 #7).
+- **Mock-only details:** `branch_exists` also carries `details.fields.name`; G8's 700 ms delay is
+  `fakeTiming.listMs`.
+- **`validateBranch`** adds messages for the cases the contract doesn't word: empty ("Enter a branch name."), the
+  start / end characters, and `//`.
+- **The Development section** also shows when the project has no connection but the task still has links (after a
+  disconnect), without Create branch or Link (D2 / D4 need a tracked repository).
+
+### Known gaps (board 37)
+
+- Live mode is untested against the backend (built in parallel). G4 / G5 / W1 / W2 are browser- or provider-facing,
+  and the client has no code for them beyond reading the fragment.
+- The Playwright smoke suite (`e2e/smoke.spec.ts`) is not extended. Verified instead with scripted Playwright runs at
+  1440 and 390, dark and light, as `u_alex` and `u_taylor`: settings, the task panel (PRJ-42 with expanded checks,
+  PRJ-58 empty), board chips, list, the project Development tab, the picker, GitLab dialog, disconnect, consent, first
+  picker, and the connected and error states. No console errors and no horizontal scroll.
+- The "partial sync" tooltip (§7.4 `stats.partial`) isn't shown: the payload has no field for it.

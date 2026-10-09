@@ -18,7 +18,7 @@ import { qk } from "@/lib/api/query-keys";
 import type { Comment, PresencePerson, RichDoc, TaskDetail, User } from "@/lib/api/types";
 import { can } from "@/lib/permissions/can";
 import { ago, agoOrDate } from "@/lib/utils/dates";
-import { activityText } from "./activity-text";
+import { activityActorName, activityText } from "./activity-text";
 import { CommentComposer, RichView, richIsEmpty, useRichEditor } from "./rich-text";
 import { TypingIndicator } from "@/features/presence/presence-ui";
 import { useTypingSignal } from "@/features/presence/use-typing";
@@ -260,7 +260,7 @@ function Activity({ task }: { task: TaskDetail }) {
             key={a.id}
             className="relative text-[13px] leading-5 text-fg-2 before:absolute before:-left-5 before:top-1.5 before:size-[9px] before:rounded-full before:border-[1.5px] before:border-control before:bg-surface before:content-['']"
           >
-            <b className="font-medium text-fg">{actor?.name ?? "Lightex"}</b> {activityText(a)}
+            <b className="font-medium text-fg">{activityActorName(a, actor?.name)}</b> {activityText(a)}
             <span className="text-[11px] text-fg-3"> · {agoOrDate(a.createdAt)}</span>
           </li>
         );

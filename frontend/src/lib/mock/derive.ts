@@ -26,6 +26,7 @@ import type {
   UserRec,
   WorkspaceRec,
 } from "./db-types";
+import { devEnabledOf, devSummaryOf } from "./dev-derive";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
@@ -116,6 +117,7 @@ export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
     myRoleId: m?.roleId ?? null,
     my_permissions: projectPermissions(db, userId, p.id),
     nextTaskNumber: p.taskSeq + 1,
+    devEnabled: devEnabledOf(db, p.id),
   };
 }
 
@@ -140,6 +142,7 @@ export function toTask(db: MockDB, t: TaskRec): Task {
     openBlockers,
     timeEstimateMinutes: timeEstimateMinutes ?? null,
     loggedMinutes: (db.timeEntries ?? []).reduce((a, e) => (e.taskId === t.id ? a + e.minutes : a), 0),
+    dev: devSummaryOf(db, t.id),
   };
 }
 

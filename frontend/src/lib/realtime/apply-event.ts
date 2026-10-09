@@ -6,6 +6,7 @@ import type {
   CommentChangedEvent,
   DashboardChangedEvent,
   InboxChangedEvent,
+  IntegrationChangedEvent,
   PresenceUpdatedEvent,
   ProjectArea,
   ProjectChangedEvent,
@@ -104,6 +105,8 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
       // Own echo or already fresh everywhere: a cheap no-op.
       if (hit && hit.minVersion >= d.version) return;
     }
+    // Board 37: linked PRs / branches / commits changed (version null): the Development section refetches.
+    if (d.fields?.includes("development")) invalidate(qk.development(d.taskId));
     if (d.op === "deleted") patchTasks(qc, (t) => (t.id === d.taskId ? null : t), pid);
     if (isRemote(ev)) {
       remoteMarks.set(`p:${pid}`, { actorId: ev.actorId!, fields: d.fields });
@@ -140,6 +143,7 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
       custom_fields: [qk.customFields(pid)],
       dependencies: [["t"], ["p", pid, "board"], qk.taskList(pid), qk.schedules(pid)],
       time: [["t"], ["workspace", ctx.slug, "timesheet"], ["p", pid, "reports"]],
+      development: [qk.devRules(pid), qk.projects(ctx.slug), ["project", ctx.slug]],
     };
     if (isRemote(ev)) remoteMarks.set(`p:${pid}`, { actorId: ev.actorId!, fields: [] });
     for (const area of ev.data.areas ?? []) {
@@ -211,6 +215,10 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
         return;
       case "presence.updated":
         return onPresence(ev as PresenceUpdatedEvent);
+      case "integration.changed":
+        // Board 37: the settings page, devEnabled on projects, and every open Development section.
+        invalidate(qk.integrations(ctx.slug), qk.projects(ctx.slug), ["project", ctx.slug], ["t"], ["integration", (ev as IntegrationChangedEvent).data.integrationId]);
+        return;
       case "import.progress":
         return; // reserved (board 40 keeps polling)
       default:

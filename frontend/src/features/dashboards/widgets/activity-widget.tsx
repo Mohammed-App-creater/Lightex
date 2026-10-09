@@ -2,7 +2,8 @@
 
 import { Avatar } from "@/components/ui/avatar";
 import { firstName } from "@/features/presence/presence-lib";
-import { activityText } from "@/features/tasks/activity-text";
+import { activityActorName, activityText } from "@/features/tasks/activity-text";
+import { ActorAvatar } from "@/features/audit/audit-parts";
 import type { ActivityEntry } from "@/lib/api/types";
 import { useIsLive } from "@/lib/realtime/status-store";
 import { cn } from "@/lib/utils/cn";
@@ -62,9 +63,13 @@ export function ActivityWidget({ project }: WidgetProps) {
           const now = t === "just now";
           return (
             <li key={a.id} className={cn("-mx-1.5 flex min-h-8 min-w-0 flex-none items-center gap-[9px] rounded-sm px-1.5 py-[3px] text-[12.5px] leading-[17px] text-fg-2", flash.has(a.id) && "hl")}>
-              <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} decorative ring={false} />
+              {a.actorKind === "integration" ? (
+                <ActorAvatar name={activityActorName(a, null)} integration size={20} />
+              ) : (
+                <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} decorative ring={false} />
+              )}
               <span className="min-w-0 flex-1 truncate">
-                <b className="font-semibold text-fg">{actor ? firstName(actor.name) : "Lightex"}</b> <Line a={a} />
+                <b className="font-semibold text-fg">{actor ? firstName(actor.name) : activityActorName(a, null)}</b> <Line a={a} />
               </span>
               <span className={cn("flex-none font-mono text-[11px] font-medium text-fg-3", now && "text-[oklch(var(--lv-l)_var(--lv-c)_150)]")}>{now ? "now" : t}</span>
             </li>
