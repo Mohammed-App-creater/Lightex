@@ -23,6 +23,10 @@ def PU(user: str):
     return lambda w: {"project_id": w.project.id, "user_id": w.users[user].id}
 
 
+def IMP(w) -> dict[str, Any]:
+    return {"import_id": w.import_job.id}
+
+
 def T(name: str):
     return lambda w: {"task_id": getattr(w, name).id}
 
@@ -528,6 +532,28 @@ ROWS = [
     _row("my-timer", "GET", allow=ANY_USER, deny=("anon",)),
     _row("my-timer-stop", "POST", allow=("owner",), deny=("anon",), body=lambda w: {}),
     _row("workspace-timesheet", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    # ── import wizard (board 40) ──
+    _row("project-imports", "GET", P, allow=("owner", "manager", "pmember"), deny=("viewer", "ws_admin", "outsider")),
+    _row(
+        "project-imports",
+        "POST",
+        P,
+        allow=("pmember",),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"source": "csv", "fileName": "tasks.csv", "size": 10},
+    ),
+    *[
+        _row(name, method, IMP, allow=allow, deny=deny, body=(lambda w: {"revision": 1}) if method == "PUT" else None)
+        for name, method, allow, deny in (
+            ("import-detail", "GET", ("owner", "manager", "pmember"), ("viewer", "ws_admin", "outsider")),
+            ("import-rows", "GET", ("owner", "pmember"), ("viewer", "ws_member", "outsider")),
+            ("import-error-report", "GET", ("owner", "manager"), ("viewer", "ws_admin", "outsider")),
+            ("import-analyze", "POST", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-mapping", "PUT", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-start", "POST", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-cancel", "POST", ("owner", "manager"), ("pmember", "viewer", "outsider")),
+        )
+    ],
     # ── saved views ──
     _row("workspace-views", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
     _row(

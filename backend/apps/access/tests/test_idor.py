@@ -22,7 +22,7 @@ NO_SCOPE = {
 }  # fmt: skip
 PROJECT_KWARGS = {
     "project_id", "task_id", "task_ref", "item_id", "comment_id", "attachment_id", "sprint_id", "view_id",
-    "field_id", "entry_id",
+    "field_id", "entry_id", "import_id",
 }  # fmt: skip
 
 

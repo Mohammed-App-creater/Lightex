@@ -20,6 +20,9 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_BROKER_URL = "memory://"
 STORAGE_BACKEND = "fake"
+# Board 40: the import runner runs synchronously (deterministic tests), with no retry delay.
+IMPORT_RUNNER = "inline"
+IMPORT_RETRY_DELAY_SECONDS = 0.0
 REFRESH_COOKIE_SECURE = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 STORAGES = {
@@ -38,5 +41,6 @@ REST_FRAMEWORK = {
         "invitations": "100000/min",
         "invite_token": "100000/min",
         "uploads": "100000/min",
+        "imports": "100000/min",
     },
 }

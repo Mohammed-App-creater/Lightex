@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.search",
     "apps.timetracking",
+    "apps.imports",
 ]
 
 MIDDLEWARE = [
@@ -127,6 +128,7 @@ REST_FRAMEWORK = {
         "invitations": env("THROTTLE_INVITATIONS", default="30/hour"),
         "invite_token": env("THROTTLE_INVITE_TOKEN", default="30/min"),
         "uploads": env("THROTTLE_UPLOADS", default="60/min"),
+        "imports": env("THROTTLE_IMPORTS", default="20/hour"),
     },
     "UNAUTHENTICATED_USER": "django.contrib.auth.models.AnonymousUser",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
@@ -228,6 +230,17 @@ MAX_AVATAR_BYTES = 2 * 1024 * 1024
 INVITATION_TTL_DAYS = 7
 PASSWORD_RESET_TTL_MINUTES = 60
 TRASH_RETENTION_DAYS = 30
+
+# Board 40 imports. IMPORT_RUNNER: "auto" (Celery with a broker, else a daemon thread in the web process),
+# "thread", "celery" or "inline" (tests: runs synchronously inside the start request).
+IMPORT_RUNNER = env("IMPORT_RUNNER", default="auto")
+IMPORT_BATCH_SIZE = env.int("IMPORT_BATCH_SIZE", default=200)
+IMPORT_LINK_BATCH = env.int("IMPORT_LINK_BATCH", default=500)
+IMPORT_LEASE_SECONDS = env.int("IMPORT_LEASE_SECONDS", default=120)
+IMPORT_MAX_ROWS = 5000
+IMPORT_RETRIES = 2  # thread runner: a failed batch is retried twice, IMPORT_RETRY_DELAY_SECONDS apart
+IMPORT_RETRY_DELAY_SECONDS = 2.0
+IMPORT_REPORT_URL_TTL_SECONDS = 60
 
 # ───────────────────────── Logging ─────────────────────────
 

@@ -371,6 +371,171 @@ paths:
               schema:
                 $ref: '#/components/schemas/Health'
           description: ''
+  /api/v1/imports/{import_id}:
+    get:
+      operationId: imports_retrieve
+      description: 'I3: the job. Polled while queued/running; re-dispatches a runner
+        whose heartbeat went stale.'
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+          description: ''
+  /api/v1/imports/{import_id}/analyze:
+    post:
+      operationId: imports_analyze_create
+      description: Scope = the job's project (job → project → membership, like v1).
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+          description: ''
+  /api/v1/imports/{import_id}/cancel:
+    post:
+      operationId: imports_cancel_create
+      description: The creator, or a holder of project.update (checked by the service).
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+          description: ''
+  /api/v1/imports/{import_id}/error-report:
+    get:
+      operationId: imports_error_report_retrieve
+      description: Scope = the job's project (job → project → membership, like v1).
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportErrorReport'
+          description: ''
+  /api/v1/imports/{import_id}/mapping:
+    put:
+      operationId: imports_mapping_update
+      description: Scope = the job's project (job → project → membership, like v1).
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportMappingInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+          description: ''
+  /api/v1/imports/{import_id}/rows:
+    get:
+      operationId: imports_rows_retrieve
+      description: Scope = the job's project (job → project → membership, like v1).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[outcome]
+        schema:
+          type: string
+          enum:
+          - all
+          - epic
+          - skipped
+          - task
+          - warning
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportRowsPage'
+          description: ''
+  /api/v1/imports/{import_id}/start:
+    post:
+      operationId: imports_start_create
+      description: Scope = the job's project (job → project → membership, like v1).
+      parameters:
+      - in: path
+        name: import_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+          description: ''
   /api/v1/invites/{token}:
     get:
       operationId: invites_retrieve
@@ -1186,6 +1351,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EpicOut'
+          description: ''
+  /api/v1/projects/{project_id}/imports:
+    get:
+      operationId: projects_imports_list
+      description: I1 create a job + upload ticket; I9 the project's import history.
+        Both need `can_import`.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImportJobSummary'
+          description: ''
+    post:
+      operationId: projects_imports_create
+      description: I1 create a job + upload ticket; I9 the project's import history.
+        Both need `can_import`.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportCreateInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportCreated'
           description: ''
   /api/v1/projects/{project_id}/labels:
     get:
@@ -3823,6 +4037,9 @@ components:
       required:
       - sprintId
       - tasks
+    BlankEnum:
+      enum:
+      - ''
     Board:
       type: object
       properties:
@@ -3999,6 +4216,13 @@ components:
       - required
       - taskCount
       - type
+    DelimiterEnum:
+      enum:
+      - ','
+      - ;
+      - "\t"
+      - '|'
+      type: string
     DependencyInRequest:
       type: object
       properties:
@@ -4091,6 +4315,12 @@ components:
       properties:
         email:
           type: string
+    EncodingEnum:
+      enum:
+      - utf-8
+      - utf-16
+      - windows-1252
+      type: string
     EpicInRequest:
       type: object
       properties:
@@ -4172,6 +4402,28 @@ components:
       - progress
       - projectId
       - startDate
+    FieldEnum:
+      enum:
+      - title
+      - description
+      - status
+      - assignee
+      - priority
+      - estimate
+      - dueDate
+      - labels
+      - type
+      - timeEstimate
+      - startDate
+      - epic
+      - sprint
+      - parent
+      - sourceId
+      - blockedBy
+      - blocks
+      - customField
+      - skip
+      type: string
     GlyphEnum:
       enum:
       - backlog
@@ -4201,6 +4453,326 @@ components:
             format: uuid
       required:
       - ids
+    ImportColumnMappingRequest:
+      type: object
+      properties:
+        field:
+          $ref: '#/components/schemas/FieldEnum'
+        customFieldId:
+          type: string
+          format: uuid
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+      required:
+      - field
+    ImportCreateInRequest:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceBb6Enum'
+        fileName:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+      required:
+      - fileName
+      - size
+      - source
+    ImportCreated:
+      type: object
+      properties:
+        job:
+          $ref: '#/components/schemas/ImportJob'
+        upload:
+          $ref: '#/components/schemas/ImportUploadTicket'
+      required:
+      - job
+      - upload
+    ImportErrorReport:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        fileName:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - expiresAt
+      - fileName
+      - url
+    ImportFailure:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
+    ImportFileInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+        encoding:
+          oneOf:
+          - $ref: '#/components/schemas/EncodingEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        delimiter:
+          oneOf:
+          - $ref: '#/components/schemas/DelimiterEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        rowCount:
+          type: integer
+        columnCount:
+          type: integer
+      required:
+      - columnCount
+      - delimiter
+      - encoding
+      - name
+      - rowCount
+      - size
+    ImportJob:
+      type: object
+      properties:
+        file:
+          $ref: '#/components/schemas/ImportFileInfo'
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceBb6Enum'
+        preset:
+          $ref: '#/components/schemas/PresetEnum'
+        status:
+          $ref: '#/components/schemas/StatusA51Enum'
+        cancelRequested:
+          type: boolean
+        analysis:
+          nullable: true
+          description: '{ columns: ImportColumn[] } (§4.3)'
+        mapping:
+          nullable: true
+          description: ImportMapping (§4.5), normalised
+        validation:
+          nullable: true
+          description: ImportValidation (§4.6)
+        progress:
+          nullable: true
+          description: ImportProgress, from queued on (§4.4)
+        result:
+          nullable: true
+          description: ImportResult, terminal states after a start
+        error:
+          allOf:
+          - $ref: '#/components/schemas/ImportFailure'
+          nullable: true
+        createdById:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - analysis
+      - cancelRequested
+      - createdAt
+      - createdById
+      - error
+      - expiresAt
+      - file
+      - finishedAt
+      - id
+      - mapping
+      - preset
+      - progress
+      - projectId
+      - result
+      - source
+      - startedAt
+      - status
+      - validation
+    ImportJobSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceBb6Enum'
+        status:
+          $ref: '#/components/schemas/StatusA51Enum'
+        fileName:
+          type: string
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        firstKey:
+          type: string
+          nullable: true
+        lastKey:
+          type: string
+          nullable: true
+        hasErrorReport:
+          type: boolean
+        createdById:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          allOf:
+          - $ref: '#/components/schemas/ImportFailure'
+          nullable: true
+      required:
+      - createdAt
+      - createdById
+      - error
+      - expiresAt
+      - fileName
+      - finishedAt
+      - firstKey
+      - hasErrorReport
+      - id
+      - imported
+      - lastKey
+      - projectId
+      - skipped
+      - source
+      - startedAt
+      - status
+    ImportMappingInRequest:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportColumnMappingRequest'
+        revision:
+          type: integer
+        statuses:
+          type: object
+          additionalProperties:
+            type: string
+            format: uuid
+            nullable: true
+        types:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+            minLength: 1
+        people:
+          type: object
+          additionalProperties:
+            type: string
+            format: uuid
+            nullable: true
+      required:
+      - columns
+      - people
+      - revision
+      - statuses
+      - types
+    ImportRowPreview:
+      type: object
+      properties:
+        row:
+          type: integer
+        outcome:
+          $ref: '#/components/schemas/OutcomeEnum'
+        key:
+          type: string
+          nullable: true
+        issues:
+          description: ImportIssue[]
+        values:
+          description: Converted values (§4.8)
+      required:
+      - issues
+      - key
+      - outcome
+      - row
+      - values
+    ImportRowsPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportRowPreview'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    ImportUploadTicket:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        method:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - expiresAt
+      - headers
+      - method
+      - uploadId
+      - url
     Invite:
       type: object
       properties:
@@ -4556,6 +5128,8 @@ components:
       - comment
       - due
       - sprint
+      - access
+      - import
       type: string
     ObjectiveInRequest:
       type: object
@@ -4624,6 +5198,12 @@ components:
       - status
       - taskIds
       - title
+    OutcomeEnum:
+      enum:
+      - task
+      - epic
+      - skipped
+      type: string
     PatchedCommentInRequest:
       type: object
       properties:
@@ -4903,6 +5483,13 @@ components:
       - key
       - label
       - scope
+    PresetEnum:
+      enum:
+      - generic
+      - jira
+      - linear
+      - asana
+      type: string
     ProgressOut:
       type: object
       properties:
@@ -4972,6 +5559,11 @@ components:
           items:
             type: string
           readOnly: true
+        nextTaskNumber:
+          type: integer
+          description: 'Board 40: the number the next task gets (the import picker''s
+            "next key").'
+          readOnly: true
       required:
       - activeSprintId
       - createdAt
@@ -4983,6 +5575,7 @@ components:
       - myRoleId
       - my_permissions
       - name
+      - nextTaskNumber
       - openTaskCount
       - workspaceId
     ProjectDirectoryEntry:
@@ -5234,10 +5827,10 @@ components:
       required:
       - available
       - slug
-    SourceEnum:
+    SourceBb6Enum:
       enum:
-      - manual
-      - timer
+      - csv
+      - jira
       type: string
     SprintCompleteRequest:
       type: object
@@ -5361,6 +5954,16 @@ components:
       - name
       - projectId
       - taskCount
+    StatusA51Enum:
+      enum:
+      - draft
+      - ready
+      - queued
+      - running
+      - completed
+      - failed
+      - canceled
+      type: string
     StatusCategoryEnum:
       enum:
       - todo
@@ -5907,7 +6510,7 @@ components:
         note:
           type: string
         source:
-          $ref: '#/components/schemas/SourceEnum'
+          $ref: '#/components/schemas/TimeEntryOutSourceEnum'
         createdAt:
           type: string
           format: date-time
@@ -5921,6 +6524,11 @@ components:
       - source
       - taskId
       - userId
+    TimeEntryOutSourceEnum:
+      enum:
+      - manual
+      - timer
+      type: string
     TimerStartInRequest:
       type: object
       properties:
@@ -6137,6 +6745,12 @@ components:
       - bug
       - chore
       - spike
+      type: string
+    UnitEnum:
+      enum:
+      - minutes
+      - hours
+      - seconds
       type: string
     UnreadCount:
       type: object

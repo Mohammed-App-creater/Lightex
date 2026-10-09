@@ -33,7 +33,7 @@ _ROLE = Q(action__endswith=".role_changed")
 _INVITED = Q(action__endswith=".invited")
 _DELETED = Q(action__endswith=".removed") | Q(action__endswith=".deleted")
 _COMMENTED = Q(action="comment.created") | Q(action__endswith=".commented")
-_CREATED = Q(action__endswith=".created") & ~Q(entity_type="comment")
+_CREATED = (Q(action__endswith=".created") & ~Q(entity_type="comment")) | Q(action="task.imported")
 ACTION_KINDS = {
     "status": _STATUS,
     "assigned": _ASSIGNED,

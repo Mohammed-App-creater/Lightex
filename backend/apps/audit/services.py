@@ -47,23 +47,64 @@ def record(
     changes: list[dict[str, Any]] | None = None,
     data: dict[str, Any] | None = None,
     source: str = "web",
+    request_id: str | None = None,
 ) -> AuditLog:
-    clean_changes = [c for c in (changes or []) if not _SECRET.search(str(c.get("field", "")))]
     return AuditLog.objects.create(
-        workspace_id=getattr(workspace, "pk", workspace),
-        project_id=getattr(project, "pk", project),
-        task_id=getattr(task, "pk", task),
-        actor_id=getattr(actor, "pk", None),
-        actor_name=(getattr(actor, "name", "") or "")[:80],
-        action=action,
-        entity_type=action.split(".")[0],
-        entity_id=str(entity_id or ""),
-        entity_key=entity_key,
-        target=(target or "")[:300],
-        task_key=getattr(task, "key", None),
-        task_title=(getattr(task, "title", None) or None) and task.title[:300],
-        changes=_scrub(clean_changes),
-        data=_scrub(data or {}),
-        source=source,
-        request_id=current_request_id(),
+        **_row(
+            workspace=workspace,
+            actor=actor,
+            action=action,
+            target=target,
+            entity_id=entity_id,
+            entity_key=entity_key,
+            project=project,
+            task=task,
+            changes=changes,
+            data=data,
+            source=source,
+            request_id=request_id,
+        )
     )
+
+
+def record_many(rows: list[dict[str, Any]]) -> list[AuditLog]:
+    """Many rows in one INSERT (imports): each item takes `record()`'s keyword arguments, same scrubbing."""
+    if not rows:
+        return []
+    return AuditLog.objects.bulk_create([AuditLog(**_row(**r)) for r in rows])
+
+
+def _row(
+    *,
+    workspace: Any,
+    actor: Any,
+    action: str,
+    target: str = "",
+    entity_id: Any = "",
+    entity_key: str | None = None,
+    project: Any = None,
+    task: Any = None,
+    changes: list[dict[str, Any]] | None = None,
+    data: dict[str, Any] | None = None,
+    source: str = "web",
+    request_id: str | None = None,
+) -> dict[str, Any]:
+    clean_changes = [c for c in (changes or []) if not _SECRET.search(str(c.get("field", "")))]
+    return {
+        "workspace_id": getattr(workspace, "pk", workspace),
+        "project_id": getattr(project, "pk", project),
+        "task_id": getattr(task, "pk", task),
+        "actor_id": getattr(actor, "pk", None),
+        "actor_name": (getattr(actor, "name", "") or "")[:80],
+        "action": action,
+        "entity_type": action.split(".")[0],
+        "entity_id": str(entity_id or ""),
+        "entity_key": entity_key,
+        "target": (target or "")[:300],
+        "task_key": getattr(task, "key", None),
+        "task_title": (getattr(task, "title", None) or None) and task.title[:300],
+        "changes": _scrub(clean_changes),
+        "data": _scrub(data or {}),
+        "source": source,
+        "request_id": request_id or current_request_id(),
+    }

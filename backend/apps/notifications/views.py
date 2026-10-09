@@ -58,7 +58,9 @@ NotificationOut = inline_serializer(
     "Notification",
     {
         "id": serializers.UUIDField(),
-        "type": serializers.ChoiceField(choices=["assigned", "mention", "status", "comment", "due", "sprint"]),
+        "type": serializers.ChoiceField(
+            choices=["assigned", "mention", "status", "comment", "due", "sprint", "access", "import"]
+        ),
         "actorId": serializers.UUIDField(allow_null=True),
         "projectId": serializers.UUIDField(),
         "projectName": serializers.CharField(),

@@ -39,3 +39,9 @@ class InviteTokenThrottle(_IdentThrottle):
 
 class UploadThrottle(_IdentThrottle):
     scope = "uploads"
+
+
+class ImportThrottle(_IdentThrottle):
+    """Board 40: import job creation per user (THROTTLE_IMPORTS, 20/hour)."""
+
+    scope = "imports"

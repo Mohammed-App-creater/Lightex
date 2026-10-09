@@ -86,6 +86,7 @@ def _add_project(w: World) -> None:
     _add_notifications(w)
     _add_views(w)
     _add_board39(w)
+    _add_board40(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -165,3 +166,20 @@ def _add_board39(w: World) -> None:
     w.extra["dependency"] = add_dependency(owner, w.task, {"relation": "blocked_by", "taskId": str(blocker.id)})
     w.extra["entry"] = log_time(w.users["pmember"], w.task, {"minutes": 30, "date": today().isoformat()})
     RunningTimer.objects.create(user=owner, task=w.task, started_at=w.task.created_at)
+
+
+def _add_board40(w: World) -> None:
+    """A finished import (with an error report) started by the owner (board 40)."""
+    import uuid
+
+    from django.utils import timezone
+
+    from apps.imports.models import ImportJob
+
+    job_id = uuid.uuid4()
+    base = f"ws/{w.ws.pk}/p/{w.project.pk}/imports/{job_id}"
+    w.extra["import_job"] = ImportJob.objects.create(
+        pk=job_id, workspace=w.ws, project=w.project, created_by=w.users["owner"], source="csv",
+        file_name="tasks.csv", file_size=10, source_key=f"{base}/source.csv", report_key=f"{base}/report.csv",
+        status="completed", phase="finishing", finished_at=timezone.now(), expires_at=timezone.now(),
+    )  # fmt: skip

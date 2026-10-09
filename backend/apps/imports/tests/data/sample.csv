@@ -1,0 +1,49 @@
+Title,Description,Status,Assignee,Priority,Estimate,Due,Tags
+Fix login redirect loop,Repro in Safari 17,todo,Alex Kim,High,3,2026-10-08,frontend
+Add SSO for admin console,See incident 112,in progress,Riley Chen,Medium,2,2026-10-09,backend
+Board loads slowly with 500 cards,,todo,Sam Patel,Low,5,2026-10-10,"frontend;perf"
+Rate-limit password reset,"Spec in ""Billing v2"" doc",done,Chris Ortiz,Urgent,1,,
+Dark mode for settings,,review,,Medium,8,2026-10-12,api
+Export sprint report as PDF,Repro in Safari 17,in progress,Alex Kim,,,2026-10-13,frontend
+,See incident 112,blocked,Riley Chen,High,3,2026-10-14,backend
+Webhook retries with backoff,,todo,Sam Patel,Medium,2,,"frontend;perf"
+Keyboard shortcut cheatsheet,"Spec in ""Billing v2"" doc",in progress,Chris Ortiz,Low,5,2026-10-16,
+Archive closed sprints,,todo,,Urgent,1,2026-10-17,api
+Paginate activity feed,Repro in Safari 17,done,Alex Kim,Medium,8,2026-10-18,frontend
+Mobile: offline task cache,See incident 112,review,Riley Chen,,,,backend
+Audit log for role changes,,in progress,Sam Patel,High,3,2026-10-20,"frontend;perf"
+Invite flow email copy,"Spec in ""Billing v2"" doc",blocked,Chris Ortiz,Medium,2,2026-10-21,
+Bulk edit priority,,todo,,Low,5,2026-10-22,api
+Search by task key,Repro in Safari 17,in progress,Alex Kim,Urgent,1,,frontend
+Billing: proration on seat change,See incident 112,todo,Riley Chen,Medium,8,2026-10-24,backend
+Upgrade to Node 22,,done,Sam Patel,,,2026-10-25,"frontend;perf"
+Remove legacy v1 endpoints,"Spec in ""Billing v2"" doc",review,Chris Ortiz,High,3,next week,
+Attachment virus scan,,in progress,,Medium,2,,api
+Due date reminders,Repro in Safari 17,blocked,Alex Kim,Low,5,2026-10-08,frontend
+Burndown off by one day,See incident 112,todo,Riley Chen,Urgent,1,2026-10-09,backend
+Slack notifications digest,,in progress,Sam Patel,Medium,8,2026-10-10,"frontend;perf"
+Custom fields on cards,"Spec in ""Billing v2"" doc",todo,Chris Ortiz,,,,
+Reduce bundle size under 300 KB,,done,,High,3,2026-10-12,api
+Timezone bug in due dates,Repro in Safari 17,review,Alex Kim,Medium,XL,2026-10-13,frontend
+Retry failed uploads,See incident 112,in progress,Riley Chen,Low,5,2026-10-14,backend
+Sticky table headers,,blocked,Sam Patel,Urgent,1,,"frontend;perf"
+Onboarding checklist,"Spec in ""Billing v2"" doc",todo,Chris Ortiz,Medium,8,2026-10-16,
+Two-factor recovery codes,,in progress,,,,2026-10-17,api
+Fix login redirect loop (follow-up),Repro in Safari 17,todo,Alex Kim,High,3,2026-10-18,frontend
+Add SSO for admin console (follow-up),See incident 112,done,Riley Chen,Medium,2,,backend
+Board loads slowly with 500 cards (follow-up),,review,Sam Patel,Low,5,2026-10-20,"frontend;perf"
+Rate-limit password reset (follow-up),"Spec in ""Billing v2"" doc",in progress,Chris Ortiz,Urgent,1,2026-10-21,
+Dark mode for settings (follow-up),,blocked,,Medium,8,2026-10-22,api
+Export sprint report as PDF (follow-up),Repro in Safari 17,todo,Alex Kim,,,,frontend
+Flaky test: drag between columns (follow-up),See incident 112,in progress,Riley Chen,High,3,2026-10-24,backend
+Webhook retries with backoff (follow-up),,todo,Sam Patel,Medium,2,2026-10-25,"frontend;perf"
+Keyboard shortcut cheatsheet (follow-up),"Spec in ""Billing v2"" doc",done,Chris Ortiz,Low,5,2026-10-26,
+Archive closed sprints (follow-up),,review,,Urgent,1,,api
+,Repro in Safari 17,in progress,Alex Kim,Medium,8,2026-10-08,frontend
+Mobile: offline task cache (follow-up),See incident 112,blocked,Riley Chen,,,2026-10-09,backend
+Audit log for role changes (follow-up),,todo,Sam Patel,High,3,2026-10-10,"frontend;perf"
+Invite flow email copy (follow-up),"Spec in ""Billing v2"" doc",in progress,Chris Ortiz,Medium,2,,
+Bulk edit priority (follow-up),,todo,,Low,5,2026-10-12,api
+Search by task key (follow-up),Repro in Safari 17,done,Alex Kim,Urgent,1,2026-10-13,frontend
+Billing: proration on seat change (follow-up),See incident 112,review,Riley Chen,Medium,8,2026-10-14,backend
+Upgrade to Node 22 (follow-up),,in progress,Sam Patel,,,,"frontend;perf"

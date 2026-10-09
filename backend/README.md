@@ -115,6 +115,10 @@ after each transaction commits. Nothing else changes, so a free host with one we
 
 With Redis: set `REDIS_URL`, then run `celery -A config worker -l info` next to the web process.
 
+Imports (board 40) run in a daemon thread in the web process when there is no broker, and as a Celery task when
+there is one (`IMPORT_RUNNER=auto`; `thread` or `celery` force one). Each batch of `IMPORT_BATCH_SIZE` (200) rows
+commits on its own, and a restarted process resumes the job from its last committed batch.
+
 ### Scheduled commands
 
 Run these from cron, a platform scheduler, or a CI schedule:
@@ -126,6 +130,8 @@ Run these from cron, a platform scheduler, or a CI schedule:
 | `python manage.py send_notification_emails --delivery daily` | daily | Queued emails for people on daily delivery |
 | `python manage.py purge_trash` | daily | Deletes trash items older than 30 days, abandoned uploads and old outbox rows |
 | `python manage.py process_outbox` | every few minutes (optional) | Retries notification events that failed |
+| `python manage.py purge_imports` | daily | Board 40: cancels untouched import drafts (24 h) and deletes import jobs and their files 30 days after they finish (imported tasks stay) |
+| `python manage.py resume_imports` | every minute (optional) | Board 40: re-dispatches imports whose runner stopped sending heartbeats (the import poll does this too) |
 | `python manage.py sync_permissions` | after deploys (runs on `migrate` too) | Syncs the permission catalogue |
 
 ## Connecting the web client

@@ -18,12 +18,14 @@ class ProjectSerializer(serializers.ModelSerializer):
     activeSprintId = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
+    nextTaskNumber = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = [
             "id", "workspaceId", "key", "name", "description", "hue", "leadId", "status", "template", "createdAt",
             "memberCount", "openTaskCount", "doneTaskCount", "activeSprintId", "myRoleId", "my_permissions",
+            "nextTaskNumber",
         ]  # fmt: skip
 
     def get_createdAt(self, obj) -> str | None:
@@ -56,6 +58,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_my_permissions(self, obj) -> list[str]:
         return ordered(access.project_permissions(self.context["user"], obj))
+
+    def get_nextTaskNumber(self, obj) -> int:
+        """Board 40: the number the next task gets (the import picker's "next key")."""
+        return obj.task_seq + 1
 
 
 def project_context(user, projects) -> dict:
