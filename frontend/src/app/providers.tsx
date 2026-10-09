@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "@/features/auth/session";
+import { ServiceWorkerBridge } from "@/features/notifications/channels/sw-bridge";
 import { makeQueryClient } from "@/lib/api/query-client";
 import { devToolsEnabled } from "@/lib/env";
 
@@ -36,6 +37,8 @@ export function Providers({ children }: { children: ReactNode }) {
             <TooltipProvider>
               {children}
               <Toaster />
+              {/* Board 38: notification clicks from public/sw.js navigate here. */}
+              <ServiceWorkerBridge />
             </TooltipProvider>
           </MotionConfig>
         </ThemeProvider>

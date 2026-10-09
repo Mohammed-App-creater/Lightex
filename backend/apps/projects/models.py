@@ -152,3 +152,48 @@ class ViewPin(BaseModel):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "view"], name="view_pin_unique")]
+
+
+# ───────────────────────── custom fields (board 39) ─────────────────────────
+
+FIELD_TYPES = [("text", "Text"), ("number", "Number"), ("select", "Select"), ("date", "Date"), ("user", "Person")]
+FIELD_COLORS = (
+    "var(--low)",
+    "var(--accent-t)",
+    "var(--info)",
+    "var(--warn)",
+    "var(--orange)",
+    "var(--danger)",
+    "var(--ok)",
+    "var(--text-3)",
+)
+
+
+class CustomField(BaseModel):
+    """A per-project task property. The type is fixed at creation; delete is a hard delete (values cascade)."""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="custom_fields")
+    name = models.CharField(max_length=40)
+    type = models.CharField(max_length=8, choices=FIELD_TYPES)
+    required = models.BooleanField(default=False)
+    position = models.PositiveSmallIntegerField(default=0)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        constraints = [models.UniqueConstraint("project", Lower("name"), name="custom_field_name_unique")]
+        indexes = [models.Index(fields=["project", "position"], name="custom_field_order")]
+
+
+class CustomFieldOption(BaseModel):
+    """One choice of a select field."""
+
+    field = models.ForeignKey(CustomField, on_delete=models.CASCADE, related_name="options")
+    name = models.CharField(max_length=32)
+    color = models.CharField(max_length=24)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint("field", Lower("name"), name="custom_field_option_unique")]
+        indexes = [models.Index(fields=["field", "position"], name="custom_field_option_order")]

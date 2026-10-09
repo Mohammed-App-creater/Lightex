@@ -207,9 +207,11 @@ def remove_member(actor: User, ws: Workspace, user_id: Any) -> None:
 
 
 def _remove_project_memberships(ws: Workspace, user_id: Any) -> None:
+    from apps.dashboards.models import Dashboard
     from apps.projects.models import AccessRequest, ProjectMember
 
     ProjectMember.objects.filter(project__workspace=ws, user_id=user_id).delete()
+    Dashboard.objects.filter(project__workspace=ws, owner_id=user_id, visibility="personal").delete()
     AccessRequest.objects.filter(project__workspace=ws, user_id=user_id, status="pending").update(status="withdrawn")
 
 

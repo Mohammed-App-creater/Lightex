@@ -2,7 +2,7 @@
 
 import * as D from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Button, type ButtonVariant } from "./button";
 
@@ -180,6 +180,57 @@ export function Drawer({
           style={{ width, maxWidth: "88vw" }}
         >
           <D.Title className="sr-only">{title}</D.Title>
+          {children}
+        </D.Content>
+      </D.Portal>
+    </D.Root>
+  );
+}
+
+/**
+ * Bare dialog container (board 40 import wizard): the scrim, focus trap, Esc and modal-in motion of
+ * Modal, without its title block or padding, so the caller lays out its own head / body / footer.
+ * The title is visually hidden. Below 760px it becomes a full-height sheet.
+ */
+export function DialogShell({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  width = 760,
+  height = 640,
+  className,
+  onEscapeKeyDown,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  width?: number;
+  height?: number;
+  className?: string;
+  onEscapeKeyDown?: (e: KeyboardEvent) => void;
+}) {
+  return (
+    <D.Root open={open} onOpenChange={onOpenChange}>
+      <D.Portal>
+        <D.Overlay className={scrim} />
+        <D.Content
+          onEscapeKeyDown={onEscapeKeyDown}
+          className={cn(
+            "fixed left-1/2 top-1/2 z-[61] flex h-[var(--dlg-h)] w-[calc(100%-32px)] max-w-[var(--dlg-w)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden",
+            "max-h-[calc(100dvh-32px)] rounded-lg border border-line-2 bg-surface shadow-modal outline-none",
+            "data-[state=open]:animate-[modal-in_180ms_var(--ease)]",
+            "max-[760px]:inset-0 max-[760px]:h-dvh max-[760px]:max-h-none max-[760px]:w-full max-[760px]:max-w-none max-[760px]:translate-x-0 max-[760px]:translate-y-0 max-[760px]:rounded-none max-[760px]:border-0",
+            "max-[760px]:data-[state=open]:animate-[sheet-up_280ms_var(--ease)]",
+            className,
+          )}
+          style={{ "--dlg-w": `${width}px`, "--dlg-h": `${height}px` } as CSSProperties}
+        >
+          <D.Title className="sr-only">{title}</D.Title>
+          <D.Description className="sr-only">{description ?? title}</D.Description>
           {children}
         </D.Content>
       </D.Portal>

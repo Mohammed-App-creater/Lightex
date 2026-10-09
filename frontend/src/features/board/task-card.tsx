@@ -1,12 +1,20 @@
 "use client";
 
 import { memo, type CSSProperties, type KeyboardEvent, type MouseEvent, type Ref } from "react";
+import { groupLabel } from "@/features/presence/presence-lib";
+import { PresenceStack } from "@/features/presence/presence-stack";
 import { LabelChip } from "@/components/ui/badge";
 import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { Label, Status, Task, User } from "@/lib/api/types";
+import type { Label, PresencePerson, Status, Task, User } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/features/tasks/task-bits";
+import { BlockedBadge, blockedTitle } from "@/features/dependencies/blocked-badge";
+import { PrChip } from "@/features/development/pr-chip";
+import { cardChip } from "@/features/fields/field-lib";
+import { useCustomFields } from "@/features/fields/queries";
+import { formatClock } from "@/features/time/duration";
+import { elapsed, useMyTimer, useNow, useStopTimer } from "@/features/time/use-timer";
 
 export type CardProps = {
   task: Task;
@@ -14,6 +22,8 @@ export type CardProps = {
   assignee: User | null;
   labels: Label[];
   selected?: boolean;
+  /** Board 33: other people with this task open (avatars on the card's top-right edge, live border). */
+  present?: readonly PresencePerson[];
   dragging?: boolean;
   overlay?: boolean;
   /** Show the done toggle on the status glyph (user can change status). */
@@ -35,6 +45,7 @@ export const TaskCard = memo(function TaskCard({
   assignee,
   labels,
   selected,
+  present,
   dragging,
   overlay,
   canToggle,
@@ -46,15 +57,25 @@ export const TaskCard = memo(function TaskCard({
 }: CardProps) {
   const spark = useSparking(task.id);
   const done = status?.category === "done";
+  // Board 39: blocked badge, running-timer chip, first select field with a value.
+  const { data: fields } = useCustomFields(task.projectId);
+  const chip = fields ? cardChip(task, fields) : null;
+  const { data: timer } = useMyTimer();
+  const timing = timer?.taskId === task.id;
+  // Board 37: the headline PR chip.
+  const pr = task.dev?.pr ?? null;
+  const extras = task.isBlocked || timing || chip || pr;
   const open = (e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => onOpen?.(task, e.currentTarget);
+  const live = !overlay && present && present.length > 0 ? present : null;
   return (
     <div
       ref={cardRef}
-      style={style}
+      style={live ? ({ ...style, "--hue": live[0]!.user.hue } as CSSProperties) : style}
       {...dragHandleProps}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${task.key}: ${task.title}`}
+      aria-label={`Open ${task.key}: ${task.title}${task.isBlocked ? ", blocked" : ""}`}
+      title={task.isBlocked ? blockedTitle(task, true) : undefined}
       aria-pressed={selected || undefined}
       data-task-key={task.key}
       onClick={(e) => {
@@ -74,11 +95,18 @@ export const TaskCard = memo(function TaskCard({
         "hover:-translate-y-0.5 hover:border-line-2 hover:shadow-pop focus-visible:shadow-[var(--focus-ring)] motion-reduce:hover:translate-y-0",
         "cursor-grab active:cursor-grabbing",
         selected && "border-accent bg-accent-s",
+        task.isBlocked && !selected && "border-[color-mix(in_srgb,var(--danger)_30%,transparent)]",
+        live && !selected && "card-live",
         dragging && !overlay && "opacity-0",
         overlay &&
           "-translate-y-1 -rotate-[1.5deg] scale-[1.03] cursor-grabbing border-line-2 shadow-modal motion-reduce:translate-y-0 motion-reduce:rotate-0 motion-reduce:scale-100",
       )}
     >
+      {live && (
+        <span className="pointer-events-none absolute -top-[9px] right-2 z-[2]">
+          <PresenceStack others={live} size={20} max={3} label={groupLabel(live)} bg="var(--surface)" dot={false} />
+        </span>
+      )}
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] font-medium text-fg-3">{task.key}</span>
         <AssigneeAvatar user={assignee} />
@@ -86,6 +114,21 @@ export const TaskCard = memo(function TaskCard({
       <p className={cn("m-0 line-clamp-3 text-[13px] font-medium leading-5 text-fg", done && status?.glyph === "done" && "text-fg-3 line-through")}>
         {task.title}
       </p>
+      {extras && (
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {task.isBlocked && <BlockedBadge />}
+          {pr && <PrChip pr={pr} />}
+          {timing && timer && <CardTimer timer={timer} />}
+          {chip && (
+            <span className="inline-flex h-[22px] min-w-0 items-center gap-[5px] rounded-[6px] border border-line bg-raised px-[7px] text-[11.5px] text-fg-2">
+              <span aria-hidden className="size-[7px] flex-none rounded-full" style={{ background: chip.color }} />
+              <span className="truncate">
+                {chip.field}: {chip.option}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex min-w-0 items-center gap-2.5">
         {canToggle ? (
           <Tooltip content={done ? "Reopen" : "Mark done"}>
@@ -119,3 +162,26 @@ export const TaskCard = memo(function TaskCard({
     </div>
   );
 });
+
+/** Running-timer chip on a card (pulse + clock); clicking stops the timer and logs the entry. */
+function CardTimer({ timer }: { timer: NonNullable<ReturnType<typeof useMyTimer>["data"]> }) {
+  const now = useNow(true);
+  const stop = useStopTimer();
+  const clock = formatClock(elapsed(timer, now));
+  return (
+    <button
+      type="button"
+      data-card-action
+      aria-label={`Stop timer, ${clock}`}
+      aria-pressed
+      disabled={stop.isPending}
+      onPointerDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={() => stop.mutate(timer)}
+      className="inline-flex h-[22px] flex-none items-center gap-1.5 rounded-[6px] bg-accent-s px-[7px] font-mono text-[11.5px] font-medium tabular-nums text-accent-t transition-opacity hover:opacity-85 max-[1023px]:h-8"
+    >
+      <span className="tx-pulse" aria-hidden />
+      {clock}
+    </button>
+  );
+}

@@ -4,6 +4,8 @@ import { Suspense, type ReactNode } from "react";
 import { ErrorScreen, NotFoundScreen, ProjectForbidden } from "@/components/shell/edge-screens";
 import { Skeleton } from "@/components/ui/feedback";
 import { NavTabs } from "@/components/ui/tabs";
+import { canImport } from "@/features/import/import-lib";
+import { ImportWizardHost } from "@/features/import/import-wizard-host";
 import { TaskPanelHost } from "@/features/tasks/task-panel-host";
 import { isForbidden, isNotFound, isApiError } from "@/lib/api/errors";
 import type { Project, ProjectAccessInfo } from "@/lib/api/types";
@@ -19,16 +21,22 @@ export function projectTabs(p: Pick<Project, "my_permissions">): { view: Project
     { view: "board", label: "Board", show: true },
     { view: "list", label: "List", show: true },
     { view: "backlog", label: "Backlog", show: true },
+    // Board 32 (v2): everyone on the project sees them; editing is gated per bar / chip.
+    { view: "timeline", label: "Timeline", show: true },
+    { view: "calendar", label: "Calendar", show: true },
     // Board 27: everyone can view epics (viewer frame is read-only); epic.manage gates the actions.
     { view: "epics", label: "Epics", show: true },
     { view: "sprints", label: "Sprints", show: can("sprint.manage", perms) || can("task.move", perms) },
     { view: "objectives", label: "Objectives", show: true },
     { view: "milestones", label: "Milestones", show: true },
     { view: "reports", label: "Reports", show: can("report.view", perms) },
+    // Board 33 (v2): everyone on the project; widgets are gated by report.view / project.view.
+    { view: "dashboards", label: "Dashboards", show: true },
     {
       view: "settings",
       label: "Settings",
-      show: can("project.update", perms) || can("project.manage_members", perms) || can("status.manage", perms),
+      // Board 40: the Import tab (history) is reachable by anyone who may import.
+      show: can("project.update", perms) || can("project.manage_members", perms) || can("status.manage", perms) || canImport(perms),
     },
   ];
   return tabs.filter((t) => t.show);
@@ -84,6 +92,10 @@ export function ProjectShell({ projectKey, children }: { projectKey: string; chi
       </div>
       <Suspense fallback={null}>
         <TaskPanelHost />
+      </Suspense>
+      {/* Board 40: ?import=new|<jobId> opens the import wizard on any project view. */}
+      <Suspense fallback={null}>
+        <ImportWizardHost />
       </Suspense>
     </ProjectScope>
   );

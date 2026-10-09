@@ -12,6 +12,7 @@ from apps.common.pagination import paginate_queryset
 from apps.common.params import body, filter_value
 from apps.common.utils import iso
 from apps.projects.models import ProjectMember
+from apps.realtime.services import publish_inbox
 
 from .handlers import preferences_for
 from .models import EVENTS, Notification
@@ -58,7 +59,9 @@ NotificationOut = inline_serializer(
     "Notification",
     {
         "id": serializers.UUIDField(),
-        "type": serializers.ChoiceField(choices=["assigned", "mention", "status", "comment", "due", "sprint"]),
+        "type": serializers.ChoiceField(
+            choices=["assigned", "mention", "status", "comment", "due", "sprint", "access", "import"]
+        ),
         "actorId": serializers.UUIDField(allow_null=True),
         "projectId": serializers.UUIDField(),
         "projectName": serializers.CharField(),
@@ -152,6 +155,7 @@ class MarkReadView(APIView):
             raise not_found("Notification not found.")
         n.read_at = timezone.now() if body(request).get("read", True) is not False else None
         n.save(update_fields=["read_at", "updated_at"])
+        publish_inbox(request.user, [n.workspace_id])
         return Response(notification_data(n))
 
 
@@ -182,6 +186,8 @@ class ReadAllView(APIView):
         with transaction.atomic():
             changed = [str(i) for i in qs.values_list("pk", flat=True)]
             Notification.objects.filter(pk__in=changed).update(read_at=None if undo else timezone.now())
+            if changed:
+                publish_inbox(request.user)
         return Response({"ids": changed})
 
 

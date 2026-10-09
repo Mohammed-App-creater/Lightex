@@ -48,7 +48,10 @@ django_settings_module = "config.settings.test"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
 addopts = "-q --strict-markers --ds=config.settings.test"
-markers = ["concurrency: tests that need real transactions (TransactionTestCase)"]
+markers = [
+  "concurrency: tests that need real transactions (TransactionTestCase)",
+  "realtime_pg: board 33 broker tests on a real LISTEN connection to the test database",
+]
 filterwarnings = ["ignore::DeprecationWarning:celery.*", "ignore:No directory at:UserWarning"]
 
 [tool.coverage.run]

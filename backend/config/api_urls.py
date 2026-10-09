@@ -10,6 +10,8 @@ urlpatterns = [
     path("", include("apps.workspaces.urls")),
     path("", include("apps.access.urls")),
     path("", include("apps.projects.urls")),
+    path("", include("apps.imports.urls")),
+    path("", include("apps.timetracking.urls")),  # tasks/<uuid>/… routes before tasks/<task_ref>
     path("", include("apps.tasks.urls")),
     path("", include("apps.planning.urls")),
     path("", include("apps.collaboration.urls")),
@@ -17,4 +19,6 @@ urlpatterns = [
     path("", include("apps.search.urls")),
     path("", include("apps.audit.urls")),
     path("", include("apps.reports.urls")),
+    path("", include("apps.dashboards.urls")),
+    path("", include("apps.realtime.urls")),
 ]

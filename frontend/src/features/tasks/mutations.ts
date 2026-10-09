@@ -51,6 +51,15 @@ export function useUpdateTask() {
         (t) => {
           if (t.id !== task.id) return t;
           const next = { ...t, ...patch } as Task;
+          // Board 39: customFields is a merge (null clears a key), not a replacement.
+          if (patch.customFields) {
+            const merged = { ...(t.customFields ?? {}) };
+            for (const [k, v] of Object.entries(patch.customFields)) {
+              if (v === null) delete merged[k];
+              else merged[k] = v;
+            }
+            next.customFields = merged;
+          }
           if (patch.statusId && statuses) {
             const s = statuses.find((x) => x.id === patch.statusId);
             next.completedAt = s?.category === "done" && s.glyph !== "canceled" ? (t.completedAt ?? new Date().toISOString()) : null;
@@ -74,6 +83,8 @@ export function useUpdateTask() {
       void qc.invalidateQueries({ queryKey: qk.milestones(vars.task.projectId) });
       void qc.invalidateQueries({ queryKey: qk.summary(vars.task.projectId) });
       void qc.invalidateQueries({ queryKey: qk.activity(vars.task.projectId) });
+      // Board 39: values feed the field's "N tasks" count.
+      if (vars.patch.customFields) void qc.invalidateQueries({ queryKey: qk.customFields(vars.task.projectId) });
     },
   });
   return m;

@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "about": "Board 33 first-fit packing vectors (docs/v2/33-dashboards-presence.md §8.3). Identical copy expected at backend/apps/dashboards/tests/pack_vectors.json. Each case: widgets [{type, w, h}] in layout order -> rects [{x, y, w, h}] on a 12-column grid.",
+  "cols": 12,
+  "cases": [
+    {
+      "name": "design default (Sprint health)",
+      "widgets": [
+        { "type": "burndown", "w": 6, "h": 2 },
+        { "type": "my_tasks", "w": 3, "h": 2 },
+        { "type": "objectives", "w": 3, "h": 2 },
+        { "type": "workload", "w": 6, "h": 2 },
+        { "type": "velocity", "w": 3, "h": 2 },
+        { "type": "activity", "w": 3, "h": 2 }
+      ],
+      "rects": [
+        { "x": 0, "y": 0, "w": 6, "h": 2 },
+        { "x": 6, "y": 0, "w": 3, "h": 2 },
+        { "x": 9, "y": 0, "w": 3, "h": 2 },
+        { "x": 0, "y": 2, "w": 6, "h": 2 },
+        { "x": 6, "y": 2, "w": 3, "h": 2 },
+        { "x": 9, "y": 2, "w": 3, "h": 2 }
+      ]
+    },
+    {
+      "name": "all 3x1",
+      "widgets": [
+        { "type": "my_tasks", "w": 3, "h": 1 },
+        { "type": "objectives", "w": 3, "h": 1 },
+        { "type": "activity", "w": 3, "h": 1 },
+        { "type": "burndown", "w": 3, "h": 1 },
+        { "type": "workload", "w": 3, "h": 1 },
+        { "type": "velocity", "w": 3, "h": 1 }
+      ],
+      "rects": [
+        { "x": 0, "y": 0, "w": 3, "h": 1 },
+        { "x": 3, "y": 0, "w": 3, "h": 1 },
+        { "x": 6, "y": 0, "w": 3, "h": 1 },
+        { "x": 9, "y": 0, "w": 3, "h": 1 },
+        { "x": 0, "y": 1, "w": 3, "h": 1 },
+        { "x": 3, "y": 1, "w": 3, "h": 1 }
+      ]
+    },
+    {
+      "name": "12x4 then 3x1",
+      "widgets": [
+        { "type": "burndown", "w": 12, "h": 4 },
+        { "type": "my_tasks", "w": 3, "h": 1 }
+      ],
+      "rects": [
+        { "x": 0, "y": 0, "w": 12, "h": 4 },
+        { "x": 0, "y": 4, "w": 3, "h": 1 }
+      ]
+    },
+    {
+      "name": "widths 6, 3, 3, 6, 3, 3 with mixed heights",
+      "widgets": [
+        { "type": "burndown", "w": 6, "h": 2 },
+        { "type": "my_tasks", "w": 3, "h": 1 },
+        { "type": "velocity", "w": 3, "h": 2 },
+        { "type": "workload", "w": 6, "h": 2 },
+        { "type": "objectives", "w": 3, "h": 1 },
+        { "type": "activity", "w": 3, "h": 1 }
+      ],
+      "rects": [
+        { "x": 0, "y": 0, "w": 6, "h": 2 },
+        { "x": 6, "y": 0, "w": 3, "h": 1 },
+        { "x": 9, "y": 0, "w": 3, "h": 2 },
+        { "x": 0, "y": 2, "w": 6, "h": 2 },
+        { "x": 6, "y": 1, "w": 3, "h": 1 },
+        { "x": 6, "y": 2, "w": 3, "h": 1 }
+      ]
+    },
+    {
+      "name": "a 3x2 back-fills the hole under a 3x1",
+      "widgets": [
+        { "type": "objectives", "w": 3, "h": 1 },
+        { "type": "burndown", "w": 6, "h": 2 },
+        { "type": "activity", "w": 3, "h": 1 },
+        { "type": "velocity", "w": 3, "h": 2 },
+        { "type": "my_tasks", "w": 3, "h": 1 }
+      ],
+      "rects": [
+        { "x": 0, "y": 0, "w": 3, "h": 1 },
+        { "x": 3, "y": 0, "w": 6, "h": 2 },
+        { "x": 9, "y": 0, "w": 3, "h": 1 },
+        { "x": 0, "y": 1, "w": 3, "h": 2 },
+        { "x": 9, "y": 1, "w": 3, "h": 1 }
+      ]
+    },
+    {
+      "name": "empty list",
+      "widgets": [],
+      "rects": []
+    }
+  ]
+}

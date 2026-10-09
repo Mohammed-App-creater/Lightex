@@ -85,6 +85,9 @@ def _add_project(w: World) -> None:
     _add_collaboration(w)
     _add_notifications(w)
     _add_views(w)
+    _add_board39(w)
+    _add_board40(w)
+    _add_board33(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -144,3 +147,52 @@ def _add_views(w: World) -> None:
         workspace=w.ws, project=w.project, owner=w.users["owner"], name="Shared", visibility="project",
         filters=[{"field": "priority", "op": "is", "values": ["3"]}],
     )  # fmt: skip
+
+
+def _add_board39(w: World) -> None:
+    """Custom field, dependency, time entry and a running timer (board 39)."""
+    from apps.common.utils import today
+    from apps.projects.custom_fields import create_field
+    from apps.tasks.services import add_dependency, create_task
+    from apps.timetracking.models import RunningTimer
+    from apps.timetracking.services import log_time
+
+    owner = w.users["owner"]
+    w.extra["field"] = create_field(
+        owner,
+        w.project,
+        {"name": "Browser", "type": "select", "options": [{"name": "Chrome", "color": "var(--low)"}]},
+    )
+    blocker = create_task(owner, w.project, {"title": "Blocker"})
+    w.extra["dependency"] = add_dependency(owner, w.task, {"relation": "blocked_by", "taskId": str(blocker.id)})
+    w.extra["entry"] = log_time(w.users["pmember"], w.task, {"minutes": 30, "date": today().isoformat()})
+    RunningTimer.objects.create(user=owner, task=w.task, started_at=w.task.created_at)
+
+
+def _add_board40(w: World) -> None:
+    """A finished import (with an error report) started by the owner (board 40)."""
+    import uuid
+
+    from django.utils import timezone
+
+    from apps.imports.models import ImportJob
+
+    job_id = uuid.uuid4()
+    base = f"ws/{w.ws.pk}/p/{w.project.pk}/imports/{job_id}"
+    w.extra["import_job"] = ImportJob.objects.create(
+        pk=job_id, workspace=w.ws, project=w.project, created_by=w.users["owner"], source="csv",
+        file_name="tasks.csv", file_size=10, source_key=f"{base}/source.csv", report_key=f"{base}/report.csv",
+        status="completed", phase="finishing", finished_at=timezone.now(), expires_at=timezone.now(),
+    )  # fmt: skip
+
+
+def _add_board33(w: World) -> None:
+    """A shared dashboard (the owner's) and a personal one (the project member's) (board 33)."""
+    from apps.dashboards.models import Dashboard
+
+    w.extra["dashboard"] = Dashboard.objects.create(
+        project=w.project, owner=w.users["owner"], name="Sprint health", visibility="shared"
+    )
+    w.extra["personal_dashboard"] = Dashboard.objects.create(
+        project=w.project, owner=w.users["pmember"], name="My focus", visibility="personal"
+    )

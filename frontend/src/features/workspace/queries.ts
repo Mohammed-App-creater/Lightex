@@ -3,8 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
+import { useLiveInterval } from "@/lib/realtime/status-store";
 
-/** 30s polling while the tab is visible (TanStack pauses intervals in background tabs). */
+/**
+ * 30s polling while the tab is visible (TanStack pauses intervals in background tabs). Board 33:
+ * only while realtime isn't live (useLiveInterval); a live stream invalidates instead.
+ */
 export const POLL_MS = 30_000;
 
 export function useWorkspaces(enabled = true) {
@@ -32,11 +36,12 @@ export function useRoles(slug: string) {
 }
 
 export function useUnreadCount(workspaceId: string | undefined) {
+  const interval = useLiveInterval(POLL_MS);
   return useQuery({
     queryKey: qk.unread(workspaceId),
     queryFn: () => api.notifications.unreadCount(workspaceId),
     enabled: Boolean(workspaceId),
-    refetchInterval: POLL_MS,
+    refetchInterval: interval,
     refetchIntervalInBackground: false,
     select: (r) => r.count,
   });

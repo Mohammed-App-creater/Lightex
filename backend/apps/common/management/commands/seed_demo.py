@@ -7,6 +7,14 @@ Status history is synthesised from each task's started/completed timestamps so r
     python manage.py seed_demo            # refuses if the demo workspace already exists
     python manage.py seed_demo --flush    # deletes the demo workspaces and users first
 
+Board 39 (custom fields, dependencies, time) is loaded from the fixture's `customFields`, `dependencies` and
+`timeEntries` collections when present; otherwise the same PRJ data is built here from
+docs/v2/39-fields-dependencies-time.md §6.8.
+
+Board 32 (timeline & calendar) start dates and epic dates are read from the fixture's `startDate` / `dueDate` keys
+when present; then `load_board32` applies the mock's `ensureExt32` upgrade (docs/v2/32-timeline-calendar.md §6.9)
+with the same rules, so an older fixture gets the same PRJ dates as mock mode.
+
 Every demo account uses DEMO_PASSWORD. The command refuses to run when DEBUG is off.
 """
 
@@ -14,12 +22,14 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 
 from apps.access.models import Permission, Role, RolePermission
@@ -31,9 +41,27 @@ from apps.common.richtext import doc_text
 from apps.common.tokens import new_token
 from apps.notifications.models import Notification
 from apps.planning.models import Epic, Milestone, Objective, Sprint
-from apps.projects.models import Label, Project, ProjectKeyAlias, ProjectMember, SavedView, Status, ViewPin
-from apps.tasks.models import Task, TaskLabel, TaskObjective, TaskStatusHistory
+from apps.projects.models import (
+    CustomField,
+    CustomFieldOption,
+    Label,
+    Project,
+    ProjectKeyAlias,
+    ProjectMember,
+    SavedView,
+    Status,
+    ViewPin,
+)
+from apps.tasks.models import (
+    Task,
+    TaskDependency,
+    TaskFieldValue,
+    TaskLabel,
+    TaskObjective,
+    TaskStatusHistory,
+)
 from apps.tasks.services import refresh_search_vector
+from apps.timetracking.models import TimeEntry
 from apps.workspaces.models import Invitation, Workspace, WorkspaceMember
 
 DEMO_PASSWORD = "Lightex-demo-2026"
@@ -138,7 +166,10 @@ class Command(BaseCommand):
         self.load_projects(data)
         self.load_planning(data)
         self.load_tasks(data)
+        self.load_board39(data)
+        self.load_board32()
         self.load_collaboration(data)
+        self.load_board33()
 
     def load_projects(self, data: dict[str, Any]) -> None:
         self.projects, self.statuses, self.labels = {}, {}, {}
@@ -209,6 +240,8 @@ class Command(BaseCommand):
                 owner=self.users.get(e.get("ownerId")),
                 milestone=self.milestones.get(e.get("milestoneId")),
                 archived_at=self.ts(e.get("archivedAt")),
+                start_date=self.date(e.get("startDate")),
+                due_date=self.date(e.get("dueDate")),
             )
         for s in data["sprints"]:
             start, end = self.day(s["startDate"]), self.day(s["endDate"])
@@ -244,6 +277,7 @@ class Command(BaseCommand):
                 assignee=self.users.get(t["assigneeId"]),
                 reporter=self.users.get(t["reporterId"]),
                 estimate=t["estimate"],
+                start_date=self.date(t.get("startDate")),
                 due_date=self.date(t["dueDate"]),
                 epic=self.epics.get(t["epicId"]),
                 milestone=self.milestones.get(t["milestoneId"]),
@@ -423,6 +457,208 @@ class Command(BaseCommand):
                     filters=filters,
                 )
                 ViewPin.objects.create(user=member.user, view=view, position=i)
+        self.blocked_views()
+
+    # ── board 39: custom fields, dependencies, time ──
+
+    def load_board39(self, data: dict[str, Any]) -> None:
+        ext = board39_from_fixture(data) if "customFields" in data else board39_defaults()
+        fields: dict[str, CustomField] = {}
+        options: dict[str, CustomFieldOption] = {}
+        for f in ext["customFields"]:
+            if f["projectId"] not in self.projects:
+                continue
+            field = CustomField.objects.create(
+                project=self.projects[f["projectId"]],
+                name=f["name"],
+                type=f["type"],
+                required=f["required"],
+                position=f["position"],
+                created_at=self.ts(f.get("createdAt")) or timezone.now(),
+            )
+            fields[f["id"]] = field
+            for o in f.get("options") or []:
+                options[o["id"]] = CustomFieldOption.objects.create(
+                    field=field, name=o["name"], color=o["color"], position=o["position"]
+                )
+        for task_id, values in ext["taskValues"].items():
+            task = self.tasks.get(task_id)
+            for field_id, value in values.items():
+                target = fields.get(field_id)
+                if task is None or target is None or value in (None, ""):
+                    continue
+                TaskFieldValue.objects.create(task=task, field=target, **self.value_column(target, value, options))
+        for task_id, minutes in ext["timeEstimates"].items():
+            if task_id in self.tasks and minutes:
+                Task.all_objects.filter(pk=self.tasks[task_id].pk).update(time_estimate_minutes=minutes)
+        for d in ext["dependencies"]:
+            blocker, blocked = self.tasks.get(d["blockerId"]), self.tasks.get(d["blockedId"])
+            if blocker is None or blocked is None:
+                continue
+            TaskDependency.objects.create(
+                blocker=blocker,
+                blocked=blocked,
+                project=blocked.project,
+                created_by=self.users.get(d.get("createdById")),
+                created_at=self.ts(d.get("createdAt")) or timezone.now(),
+            )
+        for e in ext["timeEntries"]:
+            task = self.tasks.get(e["taskId"])
+            if task is None or e["userId"] not in self.users:
+                continue
+            TimeEntry.objects.create(
+                task=task,
+                project=task.project,
+                user=self.users[e["userId"]],
+                minutes=e["minutes"],
+                date=self.day(e["date"]),
+                note=e.get("note") or "",
+                source=e.get("source") or "manual",
+                created_at=self.ts(e.get("createdAt")) or timezone.now(),
+            )
+        if ext["fill"]:
+            self.timesheet_fill(data, skip={e["taskId"] for e in ext["timeEntries"]})
+
+    # ── board 32: timeline & calendar ──
+
+    def load_board32(self) -> None:
+        """A port of the mock's `ensureExt32`: PRJ start dates where the task has none and its due date is still
+        the seeded one, the four design epic dates where the epic has none, and PRJ-50 blocks PRJ-52."""
+        if "p_prj" not in self.projects:
+            return
+        for number, start, due in PRJ_DATES:
+            task = self.tasks.get(f"p_prj-t{number}")
+            if task is None or task.start_date is not None or task.due_date != self.day(due):
+                continue
+            task.start_date = self.day(start)
+            Task.all_objects.filter(pk=task.pk).update(start_date=task.start_date)
+        for epic_id, (start, due) in EPIC_DATES.items():
+            epic = self.epics.get(epic_id)
+            if epic is None or epic.start_date is not None or epic.due_date is not None:
+                continue
+            epic.start_date, epic.due_date = self.day(start), self.day(due)
+            epic.save(update_fields=["start_date", "due_date"])
+        blocker, blocked = self.tasks.get("p_prj-t50"), self.tasks.get("p_prj-t52")
+        if blocker and blocked and not TaskDependency.objects.filter(blocker=blocker, blocked=blocked).exists():
+            TaskDependency.objects.create(
+                blocker=blocker,
+                blocked=blocked,
+                project=blocked.project,
+                created_by=self.users.get("u_jordan"),
+                created_at=timezone.now() - dt.timedelta(hours=2),
+            )
+
+    # ── board 33: dashboards ──
+
+    def load_board33(self) -> None:
+        """The mock's `ensureExt33` seed (docs/v2/33-dashboards-presence.md §7.11): PRJ's shared "Sprint 14 health"
+        (Alex, the design's default layout, objectives for Q4) and Sam's personal "My focus". MOB has none."""
+        from apps.dashboards.models import Dashboard, DashboardWidget
+        from apps.dashboards.widgets import default_config
+
+        project = self.projects.get("p_prj")
+        if project is None:
+            return
+        for owner_id, name, visibility, created, layout in DASHBOARDS:
+            owner = self.users.get(owner_id)
+            if owner is None:
+                continue
+            dashboard = Dashboard.objects.create(
+                project=project, owner=owner, name=name, visibility=visibility, created_at=self.moment(created)
+            )
+            DashboardWidget.objects.bulk_create(
+                [
+                    DashboardWidget(
+                        dashboard=dashboard,
+                        type=kind,
+                        position=i,
+                        w=w,
+                        h=h,
+                        config={**default_config(kind), **extra},
+                    )
+                    for i, (kind, w, h, extra) in enumerate(layout)
+                ]
+            )
+
+    def value_column(self, field: CustomField, value: Any, options: dict[str, CustomFieldOption]) -> dict[str, Any]:
+        if field.type == "number":
+            return {"number": Decimal(str(value))}
+        if field.type == "date":
+            return {"date": self.day(value)}
+        if field.type == "select":
+            return {"option": options[value]}
+        if field.type == "user":
+            return {"user": self.users[value]}
+        return {"text": str(value)}
+
+    def timesheet_fill(self, data: dict[str, Any], skip: set[str]) -> None:
+        """Weekday entries (1–4 h in 30-minute steps) for this and last week up to today, for members of PRJ, MOB
+        and INF on their open assigned tasks. A port of the mock's `seedTimesheet` (same hash, same choices), in
+        real dates like the mock's `rel()`."""
+        today = timezone.now().date()
+        start = today - dt.timedelta(days=today.weekday() + 7)
+        user_index = {u["id"]: i for i, u in enumerate(data["users"])}
+        done = {sid for sid, s in self.statuses.items() if s.category == "done"}
+        entries = []
+        for pi, project_id in enumerate(("p_prj", "p_mob", "p_inf")):
+            project = self.projects.get(project_id)
+            if project is None:
+                continue
+            for m in (m for m in data["projectMembers"] if m["projectId"] == project_id):
+                ui = user_index.get(m["userId"], -1)
+                open_tasks = [
+                    self.tasks[t["id"]]
+                    for t in data["tasks"]
+                    if t["projectId"] == project_id
+                    and t["assigneeId"] == m["userId"]
+                    and not t.get("deletedAt")
+                    and t["statusId"] not in done
+                    and t["id"] not in skip
+                ]
+                if not open_tasks:
+                    continue
+                for d in range(14):
+                    day = start + dt.timedelta(days=d)
+                    if day > today or d % 7 >= 5:
+                        continue
+                    h = mix(ui, d, pi)
+                    if h % 10 < 4:
+                        continue
+                    entries.append(
+                        TimeEntry(
+                            task=open_tasks[(h >> 8) % len(open_tasks)],
+                            project=project,
+                            user=self.users[m["userId"]],
+                            minutes=60 + ((h >> 4) % 7) * 30,
+                            date=day,
+                            note="" if (h >> 12) % 3 == 0 else FILL_NOTES[(h >> 14) % 5],
+                            source="timer" if (h >> 16) % 4 == 0 else "manual",
+                            created_at=dt.datetime.combine(day, dt.time(17, 10 + h % 40), tzinfo=dt.UTC),
+                        )
+                    )
+        TimeEntry.objects.bulk_create(entries)
+
+    def blocked_views(self) -> None:
+        """A personal pinned "Blocked" view for every PRJ member (after their existing pins)."""
+        project = self.projects.get("p_prj")
+        if project is None:
+            return
+        for member in ProjectMember.objects.filter(project=project).select_related("user"):
+            if SavedView.objects.filter(
+                workspace=project.workspace, owner=member.user, name__iexact="Blocked"
+            ).exists():
+                continue
+            view = SavedView.objects.create(
+                workspace=project.workspace,
+                project=project,
+                owner=member.user,
+                name="Blocked",
+                icon="flag",
+                layout="board",
+                filters=[{"field": "blocked", "op": "is", "values": ["true"]}],
+            )
+            last = ViewPin.objects.filter(user=member.user).aggregate(m=Max("position"))["m"]
+            ViewPin.objects.create(user=member.user, view=view, position=0 if last is None else last + 1)
 
     def report(self, data: dict[str, Any]) -> None:
         out = self.stdout
@@ -434,3 +670,135 @@ class Command(BaseCommand):
             out.write(f"    {email}")
         for email, link in getattr(self, "invite_links", []):
             out.write(f"  Pending invite for {email}: {link}")
+
+
+# ───────────────────────── board 33 seed data (docs/v2/33-dashboards-presence.md §7.11) ─────────────────────────
+
+DASHBOARDS: list[tuple[str, str, str, str, list[tuple[str, int, int, dict[str, Any]]]]] = [
+    (
+        "u_alex",
+        "Sprint 14 health",
+        "shared",
+        "2026-10-01T09:00:00Z",
+        [
+            ("burndown", 6, 2, {}),
+            ("my_tasks", 3, 2, {}),
+            ("objectives", 3, 2, {"quarter": "Q4"}),
+            ("workload", 6, 2, {}),
+            ("velocity", 3, 2, {}),
+            ("activity", 3, 2, {}),
+        ],
+    ),
+    ("u_sam", "My focus", "personal", "2026-10-02T10:00:00Z", [("my_tasks", 6, 2, {}), ("activity", 6, 2, {})]),
+]
+
+# ───────────────────────── board 32 seed data (docs/v2/32-timeline-calendar.md §6.9) ─────────────────────────
+
+# (PRJ task number, startDate, dueDate as seeded in v1), design dates relative to ANCHOR.
+PRJ_DATES = [
+    (31, "2026-09-24", "2026-09-30"), (33, "2026-10-02", "2026-10-14"), (34, "2026-10-06", "2026-10-10"),
+    (38, "2026-10-09", "2026-10-16"), (40, "2026-09-22", "2026-10-02"), (42, "2026-10-01", "2026-10-21"),
+    (44, "2026-10-05", "2026-10-08"), (48, "2026-10-05", "2026-10-09"), (49, "2026-09-03", "2026-09-10"),
+    (50, "2026-09-29", "2026-10-06"), (52, "2026-10-14", "2026-10-20"), (53, "2026-09-25", "2026-09-29"),
+    (54, "2026-10-12", "2026-10-14"), (57, "2026-10-05", "2026-10-15"), (58, "2026-10-12", "2026-10-17"),
+    (60, "2026-09-01", "2026-09-08"), (61, "2026-09-24", "2026-10-01"), (62, "2026-09-21", "2026-09-28"),
+    (65, "2026-10-01", "2026-10-05"), (66, "2026-10-13", "2026-10-18"), (67, "2026-10-20", "2026-10-26"),
+    (71, "2026-10-14", "2026-10-19"),
+]  # fmt: skip
+EPIC_DATES = {
+    "ep_auth": ("2026-09-14", "2026-10-23"),
+    "ep_board": ("2026-09-21", "2026-11-06"),
+    "ep_sprint": ("2026-09-01", "2026-10-30"),
+    "ep_bill": ("2026-09-01", "2026-11-20"),
+}
+
+
+# ───────────────────────── board 39 seed data ─────────────────────────
+
+FILL_NOTES = ["Implementation", "Review fixes", "Pairing", "Investigation", "Tests"]
+
+
+def mix(*numbers: int) -> int:
+    """The mock's small 32-bit integer hash (frontend/src/lib/mock/handlers/extensions.ts `mix`)."""
+    h = 2166136261
+    for x in numbers:
+        h ^= (x + 0x9E3779B9) & 0xFFFFFFFF
+        h = (h * 16777619) & 0xFFFFFFFF
+        h ^= h >> 13
+    return h & 0xFFFFFFFF
+
+
+def board39_from_fixture(data: dict[str, Any]) -> dict[str, Any]:
+    """The mock's own collections (fixture regenerated from a frontend seed that has board 39)."""
+    tasks = data["tasks"]
+    return {
+        "customFields": data.get("customFields") or [],
+        "taskValues": {t["id"]: t["customFields"] for t in tasks if t.get("customFields")},
+        "timeEstimates": {t["id"]: t["timeEstimateMinutes"] for t in tasks if t.get("timeEstimateMinutes")},
+        "dependencies": data.get("dependencies") or [],
+        "timeEntries": data.get("timeEntries") or [],
+        "fill": False,
+    }
+
+
+def board39_defaults() -> dict[str, Any]:
+    """PRJ seed data from the board 39 contract (§6.8), in the mock's id and date format."""
+    cf = "p_prj-cf-"
+    created = "2026-10-01T09:00:00Z"  # six days before the anchor
+    browser = [("chrome", "Chrome", "var(--low)"), ("safari", "Safari", "var(--accent-t)"),
+               ("firefox", "Firefox", "var(--orange)"), ("edge", "Edge", "var(--info)")]  # fmt: skip
+    fields = [
+        {"id": f"{cf}browser", "name": "Browser", "type": "select", "required": False,
+         "options": [{"id": f"{cf}browser-{k}", "name": n, "color": c, "position": i}
+                     for i, (k, n, c) in enumerate(browser)]},
+        {"id": f"{cf}found", "name": "Found in", "type": "text", "required": True},
+        {"id": f"{cf}accounts", "name": "Accounts affected", "type": "number", "required": False},
+        {"id": f"{cf}qasignoff", "name": "QA sign-off", "type": "date", "required": False},
+        {"id": f"{cf}qaowner", "name": "QA owner", "type": "user", "required": False},
+    ]  # fmt: skip
+    for i, f in enumerate(fields):
+        f.update({"projectId": "p_prj", "position": i, "createdAt": created})
+        f.setdefault("options", [])
+
+    def row(browser_key, found, accounts, signoff, owner):
+        values = {
+            f"{cf}browser": f"{cf}browser-{browser_key}" if browser_key else None,
+            f"{cf}found": found,
+            f"{cf}accounts": accounts,
+            f"{cf}qasignoff": signoff,
+            f"{cf}qaowner": owner,
+        }
+        return {k: v for k, v in values.items() if v is not None}
+
+    values = {
+        "p_prj-t42": row("safari", "v2.3.1", 1240, None, "u_riley"),
+        "p_prj-t48": row("chrome", "v2.3.0", 310, None, "u_sam"),
+        "p_prj-t53": row("firefox", "v2.2.4", 18, "2026-09-28", "u_morgan"),
+        "p_prj-t51": row("safari", "v2.3.1", None, None, None),
+        "p_prj-t33": row(None, "v2.3.0", None, None, "u_jordan"),
+    }
+    links = [("p_prj-t48", "p_prj-t42"), ("p_prj-t40", "p_prj-t42"), ("p_prj-t42", "p_prj-t47"),
+             ("p_prj-t42", "p_prj-t68"), ("p_prj-t57", "p_prj-t58")]  # fmt: skip
+    dependencies = [
+        {"id": f"p_prj-dep-{i}", "projectId": "p_prj", "blockerId": a, "blockedId": b,
+         "createdById": "u_jordan", "createdAt": f"2026-10-07T0{4 + i}:00:00Z"}
+        for i, (a, b) in enumerate(links)
+    ]  # fmt: skip
+    entries = [
+        ("u_alex", 90, "2026-10-05", "Repro + profiling", "manual", "2026-10-05T16:40:00Z"),
+        ("u_jordan", 45, "2026-10-06", "Safari check", "manual", "2026-10-06T11:40:00Z"),
+        ("u_alex", 120, "2026-10-07", "ResizeObserver fix", "timer", "2026-10-07T09:40:00Z"),
+    ]
+    time_entries = [
+        {"id": f"p_prj-te-{i}", "taskId": "p_prj-t42", "projectId": "p_prj", "userId": u, "minutes": m,
+         "date": d, "note": n, "source": src, "createdAt": at}
+        for i, (u, m, d, n, src, at) in enumerate(entries)
+    ]  # fmt: skip
+    return {
+        "customFields": fields,
+        "taskValues": values,
+        "timeEstimates": {"p_prj-t42": 360},
+        "dependencies": dependencies,
+        "timeEntries": time_entries,
+        "fill": True,
+    }

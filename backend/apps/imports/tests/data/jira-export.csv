@@ -1,0 +1,7 @@
+Issue key,Issue id,Summary,Issue Type,Status,Priority,Assignee,Custom field (Story Points),Original Estimate,Parent,Labels,Labels,Custom field (Start date),Due date,Inward issue link (Blocks),Sprint
+WEB-1,10001,Checkout redesign,Epic,In Progress,High,Alex Kim,,,,,,01/Oct/26 9:00 AM,30/Oct/26 6:00 PM,,
+WEB-2,10002,Cart drawer,Story,To Do,Medium,Jordan Lee,3,28800,10001,frontend,ux,05/Oct/26 9:00 AM,14/Oct/26 6:00 PM,,Sprint 14
+WEB-3,10003,Cart drawer animation,Sub-task,To Do,Low,jordan.lee,1,7200,10002,frontend,,,,,Sprint 14
+WEB-4,10004,Price rounding bug,Bug,Done,Highest,Sam P.,2,,10001,backend,,,09/Oct/26 6:00 PM,,
+WEB-5,10005,Payment retry,Story,In Review,Medium,Dana Wu,5,14400,10001,backend,api,,,WEB-4,Sprint 99
+WEB-6,10006,,Task,To Do,Low,,,,,,,,,,

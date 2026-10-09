@@ -12,7 +12,10 @@ import { Panel } from "@/components/ui/card";
 import { CountUp, ErrorState, ProgressBar, ProgressRing, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph } from "@/components/ui/glyphs";
 import { shell } from "@/components/shell/shell-state";
-import { activityText } from "@/features/tasks/activity-text";
+import { canImportInto } from "@/features/import/import-lib";
+import { ImportCsvButton } from "@/features/import/import-wizard-host";
+import { activityActorName, activityText } from "@/features/tasks/activity-text";
+import { ActorAvatar } from "@/features/audit/audit-parts";
 import { useEpics, useMilestones, useObjectives, useProjectMembers, useSprints, useStatuses } from "./queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
@@ -486,9 +489,13 @@ function ActivityPanel({ project }: { project: Project }) {
             const actor = members.find((m) => m.userId === a.actorId)?.user;
             return (
               <article key={a.id} className="flex gap-2.5 py-2 text-[13px] leading-5 text-fg-2">
-                <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} className="mt-px" decorative />
+                {a.actorKind === "integration" ? (
+                  <span className="mt-px flex"><ActorAvatar name={activityActorName(a, null)} integration size={20} /></span>
+                ) : (
+                  <Avatar name={actor?.name ?? "Lightex"} hue={actor?.hue} size={20} className="mt-px" decorative />
+                )}
                 <span className="min-w-0 flex-1">
-                  <b className="font-medium text-fg">{actor?.name ?? "Lightex"}</b> {activityText(a, a.taskKey ?? undefined)}
+                  <b className="font-medium text-fg">{activityActorName(a, actor?.name)}</b> {activityText(a, a.taskKey ?? undefined)}
                   {a.taskTitle && a.verb === "created" ? ` · ${a.taskTitle}` : ""}
                 </span>
                 <span className="whitespace-nowrap text-meta text-fg-3">{agoOrDate(a.createdAt)}</span>
@@ -546,7 +553,18 @@ function SetupChecklist({
     { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", allowed: can("project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}?tab=members`) },
     { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", allowed: can("objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
     { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", allowed: can("milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
-    { id: "tasks", title: "Create your first tasks", desc: "Type them in, one per line or one at a time", done: tasks > 0, cta: "New task", kbd: "C", allowed: can("task.create", perms), run: () => shell.openCreateTask({ projectId: project.id }) },
+    {
+      id: "tasks",
+      title: "Create your first tasks",
+      // Board 40 (E1): with import rights the desc mentions the CSV and "Import CSV" sits next to "New task".
+      desc: canImportInto(project) ? "Type them or import a CSV" : "Type them in, one per line or one at a time",
+      done: tasks > 0,
+      cta: "New task",
+      kbd: "C",
+      allowed: can("task.create", perms),
+      run: () => shell.openCreateTask({ projectId: project.id }),
+      extra: <ImportCsvButton project={project} variant="secondary" size="sm" className="max-[760px]:w-full" />,
+    },
     { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", allowed: can("sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
   ];
   const doneCount = steps.filter((s) => s.done).length;
@@ -600,6 +618,7 @@ function SetupChecklist({
                 <span className={cn("font-semibold", s.done && "text-fg-3 line-through")}>{s.title}</span>
                 <span className="text-[12px] leading-[18px] text-fg-3">{s.desc}</span>
               </div>
+              {!s.done && s.allowed && "extra" in s && s.extra}
               {!s.done && s.allowed && s.cta && (
                 <Button size="sm" variant={isNext ? "primary" : "secondary"} kbd={s.kbd} onClick={s.run} className="max-[760px]:w-full">
                   {s.cta}

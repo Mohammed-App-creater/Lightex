@@ -4,11 +4,16 @@ records status history where relevant, writes audit rows and emits domain events
 from __future__ import annotations
 
 import datetime as dt
+import math
+import re
+import uuid
+from collections import deque
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from django.contrib.postgres.search import SearchVector
 from django.db import transaction
-from django.db.models import TextField, Value
+from django.db.models import Q, TextField, Value
 from django.utils import timezone
 
 from apps.access import services as access
@@ -16,13 +21,15 @@ from apps.audit.services import change, record
 from apps.common import fractional
 from apps.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from apps.common.richtext import doc_text, mention_ids, sanitize_doc
+from apps.common.utils import iso_date
 from apps.notifications.events import emit
 from apps.planning.models import Epic, Milestone, Objective, Sprint, SprintScopeChange
-from apps.projects.models import Label, Project, ProjectMember, Status
+from apps.projects.models import CustomField, Label, Project, ProjectMember, Status
+from apps.realtime.services import publish_bulk, publish_task_moved, suppress_audit_events
 
 from . import selectors
 from .domain import apply_status, initial_history
-from .models import Task, TaskLabel, TaskObjective
+from .models import Task, TaskDependency, TaskFieldValue, TaskLabel, TaskObjective
 
 MAX_BULK = 200
 
@@ -148,13 +155,34 @@ def _type(value: Any) -> str:
     return value
 
 
-def _due(value: Any) -> dt.date | None:
-    if value is None:
-        return None
-    try:
-        return dt.date.fromisoformat(str(value))
-    except ValueError as exc:
-        raise invalid({"dueDate": "Pick a date"}) from exc
+START_AFTER_DUE = "Start date must be on or before the due date"
+DUE_BEFORE_START = "Due date must be on or after the start date"
+
+
+DatePair = tuple[dt.date | None, dt.date | None]
+
+
+def _task_dates(data: dict[str, Any], start: dt.date | None, due: dt.date | None) -> DatePair:
+    """Board 32: the resulting (start_date, due_date) after applying the sent `startDate` / `dueDate` to the
+    stored pair. Format errors first (both keys reported), then the order of the resulting pair: the error goes
+    on `startDate` when it was sent, else on `dueDate`."""
+    errors: dict[str, str] = {}
+    for key in ("startDate", "dueDate"):
+        if key not in data:
+            continue
+        value = data[key]
+        parsed = None if value is None else iso_date(value)
+        if value is not None and parsed is None:
+            errors[key] = "Pick a date"
+        elif key == "startDate":
+            start = parsed
+        else:
+            due = parsed
+    if errors:
+        raise invalid(errors)
+    if start is not None and due is not None and start > due:
+        raise invalid({"startDate": START_AFTER_DUE} if "startDate" in data else {"dueDate": DUE_BEFORE_START})
+    return start, due
 
 
 def last_position(project_id: Any, status_id: Any, *, exclude: Any = None) -> str:
@@ -240,6 +268,7 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         epic = epic or parent.epic
     labels = _labels(project, data["labelIds"]) if data.get("labelIds") else []
     description = sanitize_doc(data.get("description"))
+    start_date, due_date = _task_dates(data, None, None)
 
     locked = Project.objects.select_for_update().get(pk=project.pk)  # serialises key allocation
     locked.task_seq += 1
@@ -256,7 +285,8 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         assignee=assignee,
         reporter=actor,
         estimate=_estimate(data.get("estimate")),
-        due_date=_due(data.get("dueDate")),
+        start_date=start_date,
+        due_date=due_date,
         epic=epic,
         milestone=milestone,
         sprint=sprint,
@@ -309,8 +339,8 @@ def _emit_mentions(task: Task, actor: Any, now: list[str], before: list[str]) ->
 # ───────────────────────── update ─────────────────────────
 
 EDITABLE = {
-    "title", "type", "priority", "statusId", "assigneeId", "estimate", "dueDate", "epicId", "milestoneId",
-    "sprintId", "objectiveIds", "labelIds", "description",
+    "title", "type", "priority", "statusId", "assigneeId", "estimate", "startDate", "dueDate", "epicId", "milestoneId",
+    "sprintId", "objectiveIds", "labelIds", "description", "customFields", "timeEstimateMinutes",
 }  # fmt: skip
 
 
@@ -367,8 +397,11 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
         if estimate != task.estimate:
             changes.append(change("Estimate", task.estimate, estimate))
             task.estimate = estimate
-    if "dueDate" in keys:
-        due = _due(data["dueDate"])
+    if {"startDate", "dueDate"} & keys:
+        start, due = _task_dates(data, task.start_date, task.due_date)
+        if start != task.start_date:
+            changes.append(change("Start date", task.start_date, start))
+            task.start_date = start
         if due != task.due_date:
             changes.append(change("Due date", task.due_date, due))
             task.due_date = due
@@ -413,6 +446,13 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
             changes.append(change("Labels", len(current), len(wanted)))
     if "objectiveIds" in keys:
         linked = _set_objectives(task, _objectives(project, data["objectiveIds"]))
+    if "customFields" in keys:
+        changes.extend(_apply_custom_fields(task, data["customFields"]))
+    if "timeEstimateMinutes" in keys:
+        minutes = _time_estimate(data["timeEstimateMinutes"])
+        if minutes != task.time_estimate_minutes:
+            changes.append(change("Time estimate", task.time_estimate_minutes, minutes))
+            task.time_estimate_minutes = minutes
 
     task.version += 1
     task.save()
@@ -458,6 +498,138 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
     if "description" in keys:
         _emit_mentions(task, actor, mention_ids(task.description), mentions_before)
     return task
+
+
+# ───────────────────────── custom-field values and time estimate (board 39) ─────────────────────────
+
+MAX_FIELD_NUMBER = Decimal(1_000_000_000)
+MAX_TIME_ESTIMATE = 60_000
+_ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_NUMBER_MESSAGE = "Enter a number from 0 to 1,000,000,000"
+
+
+def _time_estimate(value: Any) -> int | None:
+    if value is None or (not isinstance(value, bool) and value == 0):
+        return None
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_TIME_ESTIMATE:
+        raise invalid({"timeEstimateMinutes": "Estimate is 1 minute to 1000 hours"})
+    return value
+
+
+def _field_value(field: CustomField, value: Any) -> dict[str, Any]:
+    """The value column for a non-empty `value`; ValueError(message) when it doesn't fit the field's type."""
+    if field.type == "text":
+        if not isinstance(value, str) or len(value) > 120:
+            raise ValueError("Up to 120 characters")
+        return {"text": value}
+    if field.type == "number":
+        if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
+            raise ValueError(_NUMBER_MESSAGE)
+        number = Decimal(repr(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if not 0 <= number <= MAX_FIELD_NUMBER:
+            raise ValueError(_NUMBER_MESSAGE)
+        return {"number": number}
+    if field.type == "select":
+        option = next((o for o in field.options.all() if str(o.pk) == str(value)), None)
+        if option is None:
+            raise ValueError("Pick one of the options")
+        return {"option": option}
+    if field.type == "date":
+        try:
+            if not isinstance(value, str) or not _ISO_DATE.match(value):
+                raise ValueError
+            return {"date": dt.date.fromisoformat(value)}
+        except ValueError:
+            raise ValueError("Pick a date") from None
+    # user: must be on the project when set
+    if (
+        not selectors.is_uuid(value)
+        or not ProjectMember.objects.filter(project=field.project_id, user_id=value).exists()
+    ):
+        raise ValueError("Pick someone on this project")
+    return {"user_id": uuid.UUID(str(value))}
+
+
+def _audit_value(columns: dict[str, Any] | None) -> Any:
+    """Audit form of a value: option names for selects, user ids for people, ISO dates, numbers, text."""
+    if not columns:
+        return None
+    if "option" in columns:
+        return columns["option"].name
+    if "user_id" in columns:
+        return str(columns["user_id"])
+    if "number" in columns:
+        from .serializers import number_out
+
+        return number_out(columns["number"])
+    return columns.get("text", columns.get("date"))
+
+
+def _columns_of(v: TaskFieldValue | None) -> dict[str, Any] | None:
+    if v is None:
+        return None
+    if v.option_id:
+        return {"option": v.option}
+    if v.user_id:
+        return {"user_id": v.user_id}
+    if v.date is not None:
+        return {"date": v.date}
+    if v.number is not None:
+        return {"number": v.number}
+    return {"text": v.text}
+
+
+def _apply_custom_fields(task: Task, raw: Any) -> list[dict[str, Any]]:
+    """Merges `raw` ({fieldId: value | null}) into the task's values. Returns the audit changes."""
+    if not isinstance(raw, dict):
+        raise invalid({"customFields": "Send an object of field ids"})
+    if not raw:
+        return []
+    ids = [k for k in raw if selectors.is_uuid(k)]
+    fields = {
+        str(f.pk): f
+        for f in CustomField.objects.filter(project_id=task.project_id, pk__in=ids).prefetch_related("options")
+    }
+    errors: dict[str, str] = {}
+    plan: list[tuple[CustomField, dict[str, Any] | None]] = []
+    for key, value in raw.items():
+        path = f"customFields.{key}"
+        field = fields.get(str(key))
+        if field is None:
+            errors[path] = "This field was deleted"
+            continue
+        if isinstance(value, str) and field.type == "text":
+            value = value.strip()
+        if value is None or value == "":
+            if field.required:
+                errors[path] = "This field is required"
+            else:
+                plan.append((field, None))
+            continue
+        try:
+            plan.append((field, _field_value(field, value)))
+        except ValueError as exc:
+            errors[path] = str(exc)
+    if errors:
+        raise invalid(errors)
+    current = {v.field_id: v for v in TaskFieldValue.objects.filter(task=task).select_related("option")}
+    empty = {"text": None, "number": None, "date": None, "option": None, "user_id": None}
+    changes = []
+    for field, columns in plan:
+        existing = current.get(field.pk)
+        if columns is None:
+            if existing is None:
+                continue
+            existing.delete()
+        else:
+            if existing is not None and _columns_of(existing) == columns:
+                continue
+            TaskFieldValue.objects.update_or_create(task=task, field=field, defaults={**empty, **columns})
+        kind = "person" if field.type == "user" else "value"
+        changes.append(change(field.name, _audit_value(_columns_of(existing)), _audit_value(columns), kind))
+    return changes
 
 
 def _set_objectives(task: Task, objectives: list[Objective]) -> list[Objective]:
@@ -513,13 +685,14 @@ def move_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
         rebalance_column(project.pk, task.status_id)
         task.refresh_from_db()
     if before.pk != task.status_id:
-        _audit(
-            task,
-            actor,
-            "task.status_changed",
-            [change("Status", before.glyph, task.status.glyph, "status")],
-            {"from": before.name, "to": task.status.name},
-        )
+        with suppress_audit_events():  # a board move publishes one `moved` event instead
+            _audit(
+                task,
+                actor,
+                "task.status_changed",
+                [change("Status", before.glyph, task.status.glyph, "status")],
+                {"from": before.name, "to": task.status.name},
+            )
         emit(
             "status_change",
             workspace=project.workspace_id,
@@ -527,6 +700,7 @@ def move_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
             actor=actor,
             payload={"taskId": str(task.pk), "fromStatus": before.name, "toStatus": task.status.name},
         )
+    publish_task_moved(actor, task, ["statusId", "position", *(["sprintId"] if "sprintId" in data else [])])
     return task
 
 
@@ -582,11 +756,13 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
     if data.get("delete") or data.get("restore"):
         if not access.can(actor, "task.delete", project):
             raise forbidden(details={"permission": "task.delete"})
-        for task in tasks:
-            if data.get("delete") and task.deleted_at is None:
-                delete_task(actor, task)
-            elif data.get("restore") and task.deleted_at is not None:
-                restore_task(actor, task)
+        with suppress_audit_events():  # one tasks.bulk_changed instead of N events
+            for task in tasks:
+                if data.get("delete") and task.deleted_at is None:
+                    delete_task(actor, task)
+                elif data.get("restore") and task.deleted_at is not None:
+                    restore_task(actor, task)
+        publish_bulk(actor, project, [t.pk for t in tasks], "deleted" if data.get("delete") else "restored")
         return list(Task.all_objects.filter(pk__in=ids))
     patch = data.get("patch") or {}
     if not isinstance(patch, dict) or not patch:
@@ -594,6 +770,7 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
     unknown = set(patch) - BULK_FIELDS
     if unknown:
         raise invalid({f"patch.{sorted(unknown)[0]}": "This field can’t be bulk-edited"})
+    _check_bulk_due(patch, tasks)
     if "assigneeId" in patch and not access.can(actor, "task.assign", project):
         raise forbidden("You can’t reassign tasks.", {"permission": "task.assign"})
     for task in tasks:
@@ -601,13 +778,143 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
             raise conflict("task_deleted", f"{task.key} is deleted.")
         _authorize_patch(actor, task, set(patch))
     out = []
-    for task in tasks:
-        single = dict(patch)
-        if "labelIds" in single:  # bulk labels are added, not replaced
-            existing = [str(i) for i in TaskLabel.objects.filter(task=task).values_list("label_id", flat=True)]
-            single["labelIds"] = list(
-                dict.fromkeys(existing + [str(i) for i in _id_list(single["labelIds"], "labelIds")])
-            )
-        single["version"] = task.version
-        out.append(update_task(actor, task, single))
+    with suppress_audit_events():  # one tasks.bulk_changed instead of N events
+        for task in tasks:
+            single = dict(patch)
+            if "labelIds" in single:  # bulk labels are added, not replaced
+                existing = [str(i) for i in TaskLabel.objects.filter(task=task).values_list("label_id", flat=True)]
+                single["labelIds"] = list(
+                    dict.fromkeys(existing + [str(i) for i in _id_list(single["labelIds"], "labelIds")])
+                )
+            single["version"] = task.version
+            out.append(update_task(actor, task, single))
+    publish_bulk(actor, project, [t.pk for t in tasks], "updated")
     return out
+
+
+def _check_bulk_due(patch: dict[str, Any], tasks: list[Task]) -> None:
+    """Board 32: a bulk due date must not fall before any selected task's start (all-or-nothing). Null is
+    always allowed (the tasks become start-only)."""
+    if "dueDate" not in patch or patch["dueDate"] is None:
+        return
+    due = iso_date(patch["dueDate"])
+    if due is None:
+        raise invalid({"patch.dueDate": "Pick a date"})
+    late = sorted((t for t in tasks if t.start_date is not None and t.start_date > due), key=lambda t: t.number)
+    if late:
+        raise invalid({"patch.dueDate": f"{late[0].key} starts after this date"})
+
+
+# ───────────────────────── dependencies (board 39) ─────────────────────────
+
+DEPENDENCY_LIMIT = 50
+_CANT_EDIT = "You can only edit tasks you reported or are assigned."
+_DELETED = "This task was deleted. Restore it to make changes."
+
+
+def _live_links(project_id: Any):
+    return TaskDependency.objects.filter(
+        project_id=project_id, blocker__deleted_at__isnull=True, blocked__deleted_at__isnull=True
+    )
+
+
+def cycle_path(project_id: Any, blocker: Task, blocked: Task) -> list[str] | None:
+    """Would `blocker blocks blocked` close a loop? BFS from `blocked` along live `blocks` edges, looking for
+    `blocker`. Returns the loop as task keys in blocking order with the first key repeated at the end."""
+    adjacency: dict[Any, list[tuple[int, Any]]] = {}
+    for a, b, number in _live_links(project_id).values_list("blocker_id", "blocked_id", "blocked__number"):
+        adjacency.setdefault(a, []).append((number, b))
+    start, target = blocked.pk, blocker.pk
+    previous: dict[Any, Any] = {start: None}
+    queue = deque([start])
+    while queue:
+        node = queue.popleft()
+        if node == target:
+            break
+        for _, nxt in sorted(adjacency.get(node, []), key=lambda e: e[0]):
+            if nxt not in previous:
+                previous[nxt] = node
+                queue.append(nxt)
+    if target not in previous:
+        return None
+    chain = [target]
+    while chain[-1] != start:
+        chain.append(previous[chain[-1]])
+    chain.reverse()
+    keys = dict(Task.all_objects.filter(pk__in=chain).values_list("pk", "key"))
+    path = [keys[pk] for pk in chain]
+    return [*path, path[0]]
+
+
+def _audit_link(actor: Any, action: str, blocker: Task, blocked: Task) -> None:
+    """One row per task, each from that task's point of view."""
+    _audit(
+        blocked, actor, action, data={"relation": "blocked_by", "otherKey": blocker.key, "otherTitle": blocker.title}
+    )
+    _audit(blocker, actor, action, data={"relation": "blocks", "otherKey": blocked.key, "otherTitle": blocked.title})
+
+
+@transaction.atomic
+def add_dependency(actor: Any, task: Task, data: dict[str, Any]) -> TaskDependency:
+    task = Task.all_objects.select_related("project").get(pk=task.pk)
+    if task.deleted_at is not None:
+        raise conflict("task_deleted", _DELETED)
+    if not can_edit(actor, task):
+        raise forbidden(_CANT_EDIT, {"permission": "task.edit_any"})
+    errors: dict[str, str] = {}
+    relation = data.get("relation")
+    if relation not in ("blocked_by", "blocks"):
+        errors["relation"] = "Pick blocked by or blocks"
+    raw_other = data.get("taskId")
+    other = (
+        Task.all_objects.filter(pk=raw_other, project_id=task.project_id).first()
+        if selectors.is_uuid(raw_other)
+        else None
+    )
+    if other is None:
+        errors["taskId"] = "Pick a task from this project"
+    elif other.pk == task.pk:
+        errors["taskId"] = "A task can’t depend on itself"
+    elif task.pk == other.parent_id or other.pk == task.parent_id:
+        errors["taskId"] = "A task and its sub-task can’t depend on each other"
+    if errors or other is None:
+        raise invalid(errors)
+    if other.deleted_at is not None:
+        raise conflict("task_deleted", _DELETED)
+    blocker, blocked = (other, task) if relation == "blocked_by" else (task, other)
+    # Serialises dependency writes per project so two concurrent inserts can't close a loop.
+    Project.objects.select_for_update().get(pk=task.project_id)
+    if TaskDependency.objects.filter(blocker=blocker, blocked=blocked).exists():
+        raise conflict("dependency_exists", "These tasks are already linked.")
+    path = cycle_path(task.project_id, blocker, blocked)
+    if path:
+        raise conflict("dependency_cycle", f"That would create a loop: {' → '.join(path)}.", {"path": path})
+    live = _live_links(task.project_id)
+    if (
+        live.filter(blocked=blocked).count() >= DEPENDENCY_LIMIT
+        or live.filter(blocker=blocker).count() >= DEPENDENCY_LIMIT
+    ):
+        raise conflict("dependency_limit", f"A task can have up to {DEPENDENCY_LIMIT} dependencies each way.")
+    link = TaskDependency.objects.create(blocker=blocker, blocked=blocked, project_id=task.project_id, created_by=actor)
+    _audit_link(actor, "task.dependency_added", blocker, blocked)
+    return link
+
+
+@transaction.atomic
+def remove_dependency(actor: Any, task: Task, dependency_id: Any) -> None:
+    link = (
+        TaskDependency.objects.select_related("blocker__project", "blocked__project")
+        .filter(Q(blocker_id=task.pk) | Q(blocked_id=task.pk), pk=dependency_id)
+        .first()
+        if selectors.is_uuid(dependency_id)
+        else None
+    )
+    other = None if link is None else (link.blocked if link.blocker_id == task.pk else link.blocker)
+    if link is None or other is None or other.deleted_at is not None:
+        raise not_found("Dependency not found.")
+    if task.deleted_at is not None:
+        raise conflict("task_deleted", _DELETED)
+    if not (can_edit(actor, link.blocker) or can_edit(actor, link.blocked)):
+        raise forbidden(_CANT_EDIT, {"permission": "task.edit_any"})
+    _audit_link(actor, "task.dependency_removed", link.blocker, link.blocked)
+    link.delete()

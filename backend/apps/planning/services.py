@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from apps.audit.services import change, record
 from apps.common.exceptions import ApiError, invalid
+from apps.common.utils import iso_date
 from apps.projects.models import ProjectMember
 from apps.tasks.models import Task, TaskObjective
 
@@ -268,6 +269,8 @@ def delete_milestone(actor: Any, milestone: Milestone) -> None:
 
 # ───────────────────────── epics ─────────────────────────
 
+DATE_LABELS = {"start_date": "Start date", "due_date": "Target date"}
+
 
 def _epic_fields(project: Any, data: dict[str, Any], epic: Epic | None) -> dict[str, Any]:
     out: dict[str, Any] = {}
@@ -299,11 +302,37 @@ def _epic_fields(project: Any, data: dict[str, Any], epic: Epic | None) -> dict[
         if mid and milestone is None:
             fields["milestoneId"] = "Pick a milestone in this project"
         out["milestone"] = milestone
+    if "startDate" in data or "dueDate" in data:
+        _epic_dates(data, epic, out, fields)
     if fields:
         raise invalid(fields)
     if "description" in data:
         out["description"] = str(data.get("description") or "")[:600]
     return out
+
+
+def _epic_dates(data: dict[str, Any], epic: Epic | None, out: dict[str, Any], fields: dict[str, str]) -> None:
+    """Board 32: both dates or neither, start on or before the target, checked on the resulting pair (the sent
+    value, else the stored one)."""
+    pair = {"startDate": epic.start_date if epic else None, "dueDate": epic.due_date if epic else None}
+    bad = False
+    for key in ("startDate", "dueDate"):
+        if key not in data:
+            continue
+        value = data[key]
+        parsed = None if value is None else iso_date(value)
+        if value is not None and parsed is None:
+            fields[key] = "Pick a date"
+            bad = True
+        pair[key] = parsed
+    start, due = pair["startDate"], pair["dueDate"]
+    if bad:
+        return
+    if (start is None) != (due is None):
+        fields["startDate"] = "Set both dates or neither"
+    elif start is not None and due is not None and start > due:
+        fields["dueDate"] = "Target date must be on or after the start date"
+    out["start_date"], out["due_date"] = start, due
 
 
 @transaction.atomic
@@ -328,6 +357,8 @@ def update_epic(actor: Any, epic: Epic, data: dict[str, Any]) -> Epic:
         if before != value:
             if key in ("name", "description", "hue"):
                 changes.append(change(key.capitalize(), before, value))
+            elif key in DATE_LABELS:
+                changes.append(change(DATE_LABELS[key], before, value))
             setattr(epic, key, value)
     if "archived" in data:
         archived = bool(data.get("archived"))

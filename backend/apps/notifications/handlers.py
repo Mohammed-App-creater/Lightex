@@ -105,6 +105,10 @@ def deliver(
             "email_context": (email_context or {}) if email else {},
         },
     )
+    if created and in_app:
+        from apps.realtime.services import publish_inbox
+
+        publish_inbox(recipient, [event.workspace_id])
     if created and email:
         if prefs.email_delivery == "instant":
             queue_email(recipient.email, email_template, email_context or {})
@@ -348,6 +352,34 @@ def on_due_soon(event: DomainEvent) -> None:
         )
 
 
+def on_import_finished(event: DomainEvent) -> None:
+    """Board 40 §5.8: one in-app row to the job's creator (a system row: no actor, no task, no email, no
+    preference). Bypasses `_recipients` (which drops the actor) but still requires an active project member."""
+    from apps.imports.models import ImportJob
+
+    job = ImportJob.objects.select_related("project").filter(pk=event.payload.get("jobId")).first()
+    if job is None or job.created_by_id is None:
+        return
+    if not ProjectMember.objects.filter(project_id=job.project_id, user_id=job.created_by_id).exists():
+        return
+    user = User.objects.filter(pk=job.created_by_id, is_active=True).first()
+    if user is None:
+        return
+    deliver(
+        event,
+        user,
+        kind="import",
+        pref=None,
+        payload={
+            "importId": str(job.pk),
+            "projectKey": job.project.key,
+            "imported": job.imported,
+            "skipped": job.skipped,
+            "importStatus": job.status,
+        },
+    )
+
+
 HANDLERS: dict[str, Callable[[DomainEvent], None]] = {
     "task_assigned": on_task_assigned,
     "status_change": on_status_change,
@@ -358,6 +390,7 @@ HANDLERS: dict[str, Callable[[DomainEvent], None]] = {
     "access_request": on_access_request,
     "workspace_access_request": on_workspace_access_request,
     "due_soon": on_due_soon,
+    "import_finished": on_import_finished,
     # Recorded for the outbox trail; the email itself is sent by the service (it carries a token).
     "invitation": lambda event: None,
 }

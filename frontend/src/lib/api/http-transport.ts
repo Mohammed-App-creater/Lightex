@@ -55,7 +55,7 @@ export class HttpTransport implements Transport {
     return this.refreshing;
   }
 
-  private send({ method, path, query, body, signal, anonymous }: RequestOptions) {
+  private send({ method, path, query, body, signal, anonymous, keepalive }: RequestOptions) {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     const token = tokenStore.get();
@@ -66,6 +66,7 @@ export class HttpTransport implements Transport {
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: "include",
       signal,
+      keepalive,
     }).catch((e: unknown) => {
       if ((e as Error)?.name === "AbortError") throw e;
       throw new ApiError({

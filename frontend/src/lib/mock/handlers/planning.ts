@@ -5,6 +5,7 @@ import type { EpicRec, MilestoneRec, ObjectiveRec, SprintRec } from "../db-types
 import { statusesOf, toEpic, toMilestone, toObjective, toSprint } from "../derive";
 import { logActivity, notify } from "./common";
 import { memberProject } from "./projects";
+import { checkEpicDates } from "./schedule";
 import { fail, invalid, projectById, requireProject, route, str, type Ctx } from "../router";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -165,6 +166,8 @@ export function registerPlanning() {
     const b = bodyOf<EpicWrite>(ctx);
     if (!b.name?.trim()) invalid({ name: "Name the epic" });
     checkEpicFields(ctx, p.id, b, null);
+    // Board 32: both dates or neither, ordered.
+    const dates = checkEpicDates(b as Record<string, unknown>, null);
     const e: EpicRec = {
       id: uid("ep"),
       projectId: p.id,
@@ -174,6 +177,8 @@ export function registerPlanning() {
       ownerId: b.ownerId ?? ctx.userId ?? null,
       milestoneId: b.milestoneId ?? null,
       archivedAt: null,
+      startDate: dates?.startDate ?? null,
+      dueDate: dates?.dueDate ?? null,
     };
     ctx.db.epics.push(e);
     return toEpic(ctx.db, e);
@@ -187,6 +192,11 @@ export function registerPlanning() {
       e.name = b.name.trim().slice(0, 80);
     }
     checkEpicFields(ctx, e.projectId, b, e.id);
+    const dates = checkEpicDates(b as Record<string, unknown>, e);
+    if (dates) {
+      e.startDate = dates.startDate;
+      e.dueDate = dates.dueDate;
+    }
     if (b.description !== undefined) e.description = b.description.slice(0, 600);
     if (typeof b.hue === "number") e.hue = b.hue;
     if (b.ownerId !== undefined) e.ownerId = b.ownerId;

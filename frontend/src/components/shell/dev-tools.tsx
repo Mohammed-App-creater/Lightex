@@ -5,7 +5,7 @@ import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Segmented, Switch } from "@/components/ui/choice";
@@ -15,6 +15,7 @@ import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { apiMode, devToolsEnabled } from "@/lib/env";
 import { mockControls } from "@/lib/mock/controls";
+import { useRealtimeStatus } from "@/lib/realtime/status-store";
 import { useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 
@@ -47,9 +48,30 @@ function DevToolsInner() {
   const route = useRouteInfo();
   const search = useSearchParams();
   const controls = useSyncExternalStore(mockControls.subscribe, mockControls.get, mockControls.get);
+  const realtime = useRealtimeStatus();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const isMock = apiMode === "mock";
+
+  // Board 38: the mock "sends" an SMS code; show it as a dev toast (spec §8.8).
+  const meId = user?.id ?? null;
+  useEffect(() => {
+    if (!isMock || !meId) return;
+    let off: (() => void) | undefined;
+    let live = true;
+    void import("@/lib/mock/realtime").then(({ mockBus }) => {
+      if (!live) return;
+      off = mockBus.subscribe((e) => {
+        if (e.type !== "mock.sms_code" || e.userId !== meId) return;
+        const d = e.data as { code: string; display: string };
+        toast.info(`Mock SMS · code ${d.code}`, { body: `Sent to ${d.display}` });
+      });
+    });
+    return () => {
+      live = false;
+      off?.();
+    };
+  }, [isMock, meId]);
 
   const tryAs = async (email: string, label: string) => {
     setBusy(label);
@@ -91,6 +113,11 @@ function DevToolsInner() {
             <h2 className="m-0 text-[14px] font-semibold">Developer tools</h2>
             <p className="m-0 text-meta text-fg-3">
               {isMock ? "Mock API · data lives in your browser" : "Live API"} · not shown in live production builds
+            </p>
+            {/* Board 33: the realtime mode is only visible here (polling is a working mode, not an error). */}
+            <p className="m-0 mt-1 flex items-center gap-1.5 text-meta text-fg-2" role="status">
+              <span aria-hidden className={cn("size-2 rounded-full", realtime === "live" ? "bg-ok" : realtime === "off" ? "bg-danger" : "bg-warn")} />
+              Realtime: {realtime}
             </p>
           </div>
 
@@ -172,10 +199,22 @@ function DevToolsInner() {
                 }}
               />
               <Switch
-                label="Teammates edit tasks every ~45s"
+                label="Teammates: presence every 7s, edits every ~45s"
                 checked={controls.teammates}
                 onChange={(e) => mockControls.set((c) => ({ ...c, teammates: e.target.checked }))}
               />
+              <div className="flex items-center justify-between gap-2 text-[13px]">
+                <span>Realtime</span>
+                <Segmented
+                  label="Realtime"
+                  value={controls.realtime}
+                  onChange={(v) => mockControls.set((c) => ({ ...c, realtime: v }))}
+                  options={[
+                    { value: "live", label: "Live (SSE)" },
+                    { value: "polling", label: "Polling" },
+                  ]}
+                />
+              </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
@@ -204,6 +243,86 @@ function DevToolsInner() {
                 >
                   Reset mock data
                 </Button>
+              </div>
+            </section>
+          )}
+          {isMock && (
+            <section className="flex flex-col gap-2">
+              <h3 className="eyebrow m-0">Integrations</h3>
+              <p className="m-0 text-meta text-fg-3">
+                Provider events for {search.get("task") ? <span className="font-mono">{search.get("task")!.toUpperCase()}</span> : "the open task (?task=)"}, applied as the backend processor would.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["Open PR on task", "simulateOpenPr"],
+                    ["Merge PR", "simulateMergePr"],
+                    ["Fail checks", "simulateFailChecks"],
+                  ] as const
+                ).map(([label, fn]) => (
+                  <Button
+                    key={fn}
+                    size="sm"
+                    onClick={async () => {
+                      const m = await import("@/lib/mock/handlers/integrations");
+                      const msg = m[fn](search.get("task"));
+                      await qc.invalidateQueries();
+                      toast.info(msg);
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+                <Button
+                  size="sm"
+                  variant="danger-ghost"
+                  onClick={async () => {
+                    const m = await import("@/lib/mock/handlers/integrations");
+                    const msg = m.simulateExpireToken(route.workspace || "platform");
+                    await qc.invalidateQueries();
+                    toast.info(msg);
+                  }}
+                >
+                  Expire GitHub token
+                </Button>
+              </div>
+            </section>
+          )}
+          {isMock && (
+            <section className="flex flex-col gap-2">
+              <h3 className="eyebrow m-0">Notification channels</h3>
+              <p className="m-0 text-meta text-fg-3">SMS code is always 482913. Telegram links itself 5 s after the code appears.</p>
+              <Switch
+                label="Telegram: manual (wait for Simulate scan)"
+                checked={controls.telegramManual}
+                onChange={(e) => mockControls.set((c) => ({ ...c, telegramManual: e.target.checked }))}
+              />
+              <Switch
+                label="Channel failures (next Send test fails)"
+                checked={controls.channelFailures}
+                onChange={(e) => mockControls.set((c) => ({ ...c, channelFailures: e.target.checked }))}
+              />
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["Block bot", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateTelegramBlocked(id)],
+                    ["Reply STOP", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "STOP")],
+                    ["Reply START", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "START")],
+                  ] as const
+                ).map(([label, fn]) => (
+                  <Button
+                    key={label}
+                    size="sm"
+                    onClick={async () => {
+                      const m = await import("@/lib/mock/handlers/channels");
+                      const msg = fn(m, user?.id ?? null);
+                      await qc.invalidateQueries({ queryKey: ["notification-channels"] });
+                      toast.info(msg);
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
               </div>
             </section>
           )}

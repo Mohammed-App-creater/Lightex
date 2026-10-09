@@ -1,4 +1,5 @@
 import type { Notification, NotificationEvent, NotificationType, StatusGlyph } from "@/lib/api/types";
+import { importNotificationText } from "@/features/import/import-lib";
 import { ago, addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 
 /*
@@ -58,6 +59,13 @@ export const EVENTS: Record<NotificationType, EventMeta> = {
     color: "var(--warn)",
     path: "M5 7.5V5.5a3 3 0 016 0v2M3.5 7.5h9v6h-9zM8 10v1.5",
   },
+  // Board 40: system row for a finished import (no preference row, always on).
+  import: {
+    pref: "Imports",
+    verb: "",
+    color: "var(--accent-t)",
+    path: "M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 11v2.5h11V11",
+  },
 };
 
 /** Preferences matrix rows, in design order, mapped to the inbox type that carries the icon. */
@@ -90,7 +98,13 @@ export function dueLabel(dueDate: string | undefined, today = todayISO()) {
  */
 export function lineParts(n: Notification, actorName: string | null, today = todayISO()) {
   if (n.type === "due") return { lead: dueLabel(n.payload.dueDate, today), verb: "" };
-  const lead = actorName ?? (n.actorId ? "Someone" : "Lightex");
+  if (n.type === "import") {
+    const t = importNotificationText(n.payload);
+    return { lead: t.lead, verb: `· ${t.rest}` };
+  }
+  // Board 37: an automation's change names the provider ("GitHub moved PRJ-42 to Done").
+  const via = n.payload.via === "github" ? "GitHub" : n.payload.via === "gitlab" ? "GitLab" : null;
+  const lead = via ?? actorName ?? (n.actorId ? "Someone" : "Lightex");
   if (n.type === "sprint") return { lead, verb: n.payload.sprintName ? `started ${n.payload.sprintName}` : "started a sprint" };
   return { lead, verb: EVENTS[n.type].verb };
 }

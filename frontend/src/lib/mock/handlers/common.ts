@@ -1,6 +1,8 @@
 import type { ActivityVerb, NotificationEvent, NotificationType } from "@/lib/api/types";
 import { nowISO, uid } from "../db";
 import type { MockDB, TaskRec } from "../db-types";
+import { publishInbox } from "../realtime";
+import { fanOut } from "../channels-dispatch";
 
 export function logActivity(
   db: MockDB,
@@ -33,6 +35,7 @@ const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
   due: "due_soon",
   sprint: "sprint_started",
   access: null,
+  import: null,
 };
 
 /** Creates an in-app notification when the recipient's preferences allow it. Never notifies the actor. */
@@ -48,10 +51,16 @@ export function notify(
   if (recipientId === actorId) return;
   const prefs = db.prefs.find((p) => p.userId === recipientId)?.prefs;
   const event = EVENT_FOR[type];
-  if (prefs && event && !prefs.events[event].in_app) return;
   const project = db.projects.find((p) => p.id === projectId)!;
+  const id = uid("n");
+  const inApp = !(prefs && event && !prefs.events[event]?.in_app);
+  // Board 38: Telegram / SMS / Push fan out even when in-app is off (access and import never do).
+  if (event) {
+    fanOut(db, recipientId, event, { workspaceId: project.workspaceId, notificationId: inApp ? id : null, taskKey: task?.key ?? null, urgent: task?.priority === 4 });
+  }
+  if (!inApp) return;
   db.notifications.unshift({
-    id: uid("n"),
+    id,
     recipientId,
     type,
     actorId,
@@ -64,4 +73,6 @@ export function notify(
     createdAt: nowISO(),
     readAt: null,
   });
+  // Board 33: inbox.changed to the recipient with the new unread count.
+  publishInbox(db, recipientId, project.workspaceId);
 }

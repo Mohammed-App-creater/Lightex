@@ -19,11 +19,19 @@ logger = logging.getLogger("lightex.api")
 class ApiError(drf.APIException):
     """Raise from services and views to return a specific status/code/message."""
 
-    def __init__(self, status: int, code: str, message: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        status: int,
+        code: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ):
         self.status_code = status
         self.code = code
         self.message = message
         self.details = details or {}
+        self.headers = headers or {}
         super().__init__(detail=message, code=code)
 
 
@@ -69,7 +77,7 @@ def _body(code: str, message: str, details: dict[str, Any] | None = None) -> dic
 
 def api_exception_handler(exc: Exception, context: dict[str, Any]) -> Response:
     if isinstance(exc, ApiError):
-        return Response(_body(exc.code, exc.message, exc.details), status=exc.status_code)
+        return Response(_body(exc.code, exc.message, exc.details), status=exc.status_code, headers=exc.headers or None)
     if isinstance(exc, drf.ValidationError):
         fields = _flatten(exc.detail)
         return Response(_body("validation_failed", "Some fields need fixing.", {"fields": fields}), status=422)

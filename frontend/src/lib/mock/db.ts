@@ -1,4 +1,10 @@
 import type { MockDB } from "./db-types";
+import { ensureExt39 } from "./handlers/extensions";
+import { ensureExt40 } from "./handlers/imports";
+import { ensureExt32 } from "./handlers/schedule";
+import { ensureExt33 } from "./handlers/dashboards";
+import { ensureExt37 } from "./handlers/integrations";
+import { ensureExt38 } from "./handlers/channels";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -29,6 +35,36 @@ export function getDB(): MockDB {
         const parsed = JSON.parse(raw) as MockDB;
         if (parsed.schema === SCHEMA) {
           db = parsed;
+          // Board 39: upgrade a database cached before v2 (roles, seed data, "Blocked" view), once.
+          if (!db.ext39) {
+            ensureExt39(db);
+            persist();
+          }
+          // Board 32: start dates, epic dates and the extra dependency, once (needs board 39's data first).
+          if (!db.ext32) {
+            ensureExt32(db);
+            persist();
+          }
+          // Board 40: project.import on cached system roles, once.
+          if (!db.ext40) {
+            ensureExt40(db);
+            persist();
+          }
+          // Board 33: dashboard keys on cached system roles and the PRJ dashboards, once.
+          if (!db.ext33) {
+            ensureExt33(db);
+            persist();
+          }
+          // Board 37: integration keys on cached system roles, PRJ-41 / PRJ-29 and the GitHub seed, once.
+          if (!db.ext37) {
+            ensureExt37(db);
+            persist();
+          }
+          // Board 38: channel preference keys, quiet hours and u_alex's Telegram / push, once.
+          if (!db.ext38) {
+            ensureExt38(db);
+            persist();
+          }
           return db;
         }
       }

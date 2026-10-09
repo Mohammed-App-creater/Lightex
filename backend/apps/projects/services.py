@@ -338,6 +338,9 @@ def remove_member(actor: Any, project: Project, user_id: Any) -> None:
     _guard_last_admin(project, member, None)
     name = member.user.name
     member.delete()
+    from apps.dashboards.services import delete_personal_for_member
+
+    delete_personal_for_member(project, member.user_id)
     record(
         workspace=project.workspace_id,
         project=project,

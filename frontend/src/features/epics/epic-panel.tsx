@@ -4,6 +4,7 @@ import { Flag, X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { Select } from "@/components/ui/select";
@@ -90,6 +91,10 @@ function PanelForm({
   const [ownerId, setOwner] = useState<string | null>(defaultOwner);
   const [milestoneId, setMilestone] = useState<string | null>(epic?.milestoneId ?? null);
   const [desc, setDesc] = useState(epic?.description ?? "");
+  // Board 32: explicit timeline dates, both or neither (null = the timeline derives them from tasks).
+  const [startDate, setStartDate] = useState<string | null>(epic?.startDate ?? null);
+  const [dueDate, setDueDate] = useState<string | null>(epic?.dueDate ?? null);
+  const [dateErr, setDateErr] = useState<{ startDate?: string; dueDate?: string }>({});
   const [shown, setShown] = useState(false);
   const [serverErr, setServerErr] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -103,17 +108,21 @@ function PanelForm({
   const submit = async () => {
     if (save.isPending) return; // ⌘↵ while a save is in flight would send it twice
     setShown(true);
+    const dates = Boolean(startDate) !== Boolean(dueDate) ? { startDate: "Set both dates or neither" } : startDate && dueDate && startDate > dueDate ? { dueDate: "Target date must be on or after the start date" } : {};
+    setDateErr(dates);
     if (localErr) {
       titleRef.current?.focus();
       return;
     }
+    if (dates.startDate || dates.dueDate) return;
     try {
-      const body = { name: name.trim(), hue, ownerId, milestoneId, description: desc.trim() };
+      const body = { name: name.trim(), hue, ownerId, milestoneId, description: desc.trim(), startDate, dueDate };
       const saved = await save.mutateAsync({ id: epic?.id, body });
       toast.success(epic ? `Saved ${saved.name}` : `Created ${saved.name}`);
       onSaved(saved, !epic);
     } catch (e) {
       if (isApiError(e) && e.fieldErrors.name) setServerErr(e.fieldErrors.name);
+      else if (isApiError(e) && (e.fieldErrors.startDate || e.fieldErrors.dueDate)) setDateErr({ startDate: e.fieldErrors.startDate, dueDate: e.fieldErrors.dueDate });
       else toast.error(epic ? "Couldn’t save the epic" : "Couldn’t create the epic", { body: errorMessage(e) });
     }
   };
@@ -245,6 +254,32 @@ function PanelForm({
           width={260}
           options={msOptions}
         />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Start" error={dateErr.startDate}>
+            <DatePicker
+              value={startDate}
+              max={dueDate ?? undefined}
+              clearable
+              placeholder="No date"
+              onChange={(v) => {
+                setStartDate(v);
+                setDateErr({});
+              }}
+            />
+          </Field>
+          <Field label="Target" error={dateErr.dueDate}>
+            <DatePicker
+              value={dueDate}
+              min={startDate ?? undefined}
+              clearable
+              placeholder="No date"
+              onChange={(v) => {
+                setDueDate(v);
+                setDateErr({});
+              }}
+            />
+          </Field>
+        </div>
         <Field label="Description">
           <Textarea placeholder="What does done look like?" maxLength={600} value={desc} onChange={(e) => setDesc(e.target.value)} className="h-[96px] min-h-[96px] resize-none" />
         </Field>

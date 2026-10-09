@@ -40,6 +40,10 @@ class StorageBackend(Protocol):
 
     def delete(self, key: str) -> None: ...
 
+    def put(self, key: str, data: bytes, content_type: str) -> None:
+        """Server-side write (import parsed files and error reports)."""
+        ...
+
 
 def content_disposition(file_name: str, inline: bool) -> str:
     ascii_name = file_name.encode("ascii", "ignore").decode().replace('"', "").replace("\\", "") or "file"
@@ -104,6 +108,9 @@ class R2Storage:
     def delete(self, key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=key)
 
+    def put(self, key: str, data: bytes, content_type: str) -> None:
+        self.client.put_object(Bucket=self.bucket, Key=key, Body=data, ContentType=content_type)
+
 
 class FakeStorage:
     """In-memory storage for tests. `put()` stands in for the browser's PUT to the signed URL."""
@@ -165,6 +172,9 @@ class LocalStorage:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
         target.with_suffix(target.suffix + ".type").write_text(content_type)
+
+    def put(self, key: str, data: bytes, content_type: str) -> None:
+        self.write(key, data, content_type)
 
     def presigned_put(self, key: str, content_type: str, expires: int) -> tuple[str, dict[str, str]]:
         return self._url("upload", {"k": key, "t": content_type}), {"Content-Type": content_type}

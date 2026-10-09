@@ -23,6 +23,18 @@ def PU(user: str):
     return lambda w: {"project_id": w.project.id, "user_id": w.users[user].id}
 
 
+def DB(name: str):
+    return lambda w: {"dashboard_id": getattr(w, name).id}
+
+
+def PS(w) -> dict[str, Any]:
+    return {"slug": w.ws.slug, "session_id": "8f7a0c4e-3d2b-4f1a-9c6d-5e4b3a2f1e0d"}
+
+
+def IMP(w) -> dict[str, Any]:
+    return {"import_id": w.import_job.id}
+
+
 def T(name: str):
     return lambda w: {"task_id": getattr(w, name).id}
 
@@ -454,9 +466,150 @@ ROWS = [
     # ── reports ──
     *[
         _row(f"report-{name}", "GET", P, allow=("pmember", "manager"), deny=("viewer", "ws_admin", "outsider"))
-        for name in ("kpis", "burndown", "velocity", "cycle-time", "throughput", "progress")
+        for name in ("kpis", "burndown", "velocity", "cycle-time", "throughput", "progress", "workload")
     ],
     _row("project-summary", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    # ── custom fields, dependencies, time (board 39) ──
+    _row("project-custom-fields", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "project-custom-fields",
+        "POST",
+        P,
+        allow=("owner", "manager"),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"name": "Found in", "type": "text"},
+    ),
+    _row(
+        "project-custom-fields-order",
+        "PUT",
+        P,
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"ids": [str(w.field.id)]},
+    ),
+    _row(
+        "custom-field-detail",
+        "PATCH",
+        lambda w: {"field_id": w.field.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_member", "outsider"),
+        body=lambda w: {"required": True},
+    ),
+    _row(
+        "custom-field-detail",
+        "DELETE",
+        lambda w: {"field_id": w.field.id},
+        allow=("owner",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row("task-dependencies", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row(
+        "task-dependencies",
+        "POST",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"relation": "blocks", "taskId": str(w.own_task.id)},
+    ),
+    _row(
+        "task-dependency-detail",
+        "DELETE",
+        lambda w: {"task_id": w.task.id, "dependency_id": w.dependency.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row("task-time-entries", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row(
+        "task-time-entries",
+        "POST",
+        T("task"),
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"minutes": 30, "date": w.entry.date.isoformat()},
+    ),
+    _row(
+        "time-entry-detail",
+        "DELETE",
+        lambda w: {"entry_id": w.entry.id},
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+    ),
+    _row(
+        "task-timer", "POST", T("task"), allow=("pmember",), deny=("viewer", "ws_member", "outsider"), body=lambda w: {}
+    ),
+    _row("my-timer", "GET", allow=ANY_USER, deny=("anon",)),
+    _row("my-timer-stop", "POST", allow=("owner",), deny=("anon",), body=lambda w: {}),
+    _row("workspace-timesheet", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    # ── import wizard (board 40) ──
+    _row("project-imports", "GET", P, allow=("owner", "manager", "pmember"), deny=("viewer", "ws_admin", "outsider")),
+    _row(
+        "project-imports",
+        "POST",
+        P,
+        allow=("pmember",),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"source": "csv", "fileName": "tasks.csv", "size": 10},
+    ),
+    *[
+        _row(name, method, IMP, allow=allow, deny=deny, body=(lambda w: {"revision": 1}) if method == "PUT" else None)
+        for name, method, allow, deny in (
+            ("import-detail", "GET", ("owner", "manager", "pmember"), ("viewer", "ws_admin", "outsider")),
+            ("import-rows", "GET", ("owner", "pmember"), ("viewer", "ws_member", "outsider")),
+            ("import-error-report", "GET", ("owner", "manager"), ("viewer", "ws_admin", "outsider")),
+            ("import-analyze", "POST", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-mapping", "PUT", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-start", "POST", ("owner",), ("manager", "pmember", "viewer", "outsider")),
+            ("import-cancel", "POST", ("owner", "manager"), ("pmember", "viewer", "outsider")),
+        )
+    ],
+    # ── dashboards and presence (board 33) ──
+    _row("project-dashboards", "GET", P, allow=("viewer", "pmember"), deny=("ws_admin", "outsider")),
+    _row(
+        "project-dashboards",
+        "POST",
+        P,
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"name": "Matrix board"},
+    ),
+    _row("dashboard-detail", "GET", DB("dashboard"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row("dashboard-detail", "GET", DB("personal_dashboard"), allow=("pmember",), deny=("owner", "manager")),
+    _row(
+        "dashboard-detail",
+        "PATCH",
+        DB("dashboard"),
+        allow=("owner", "manager"),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"name": "Renamed", "version": 1},
+    ),
+    _row(
+        "dashboard-detail",
+        "PATCH",
+        DB("personal_dashboard"),
+        allow=("pmember",),
+        deny=("owner", "manager", "outsider"),
+        body=lambda w: {"name": "Renamed", "version": 1},
+    ),
+    _row("dashboard-detail", "DELETE", DB("dashboard"), allow=("manager",), deny=("pmember", "viewer", "outsider")),
+    _row(
+        "dashboard-layout",
+        "PUT",
+        DB("dashboard"),
+        allow=("owner", "manager"),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"version": 1, "widgets": []},
+    ),
+    _row("workspace-presence", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row(
+        "workspace-presence-session",
+        "PUT",
+        PS,
+        allow=("viewer", "pmember"),
+        deny=("ws_member", "outsider", "anon"),
+        body=lambda w: {"location": {"kind": "board", "id": str(w.project.id)}, "state": "viewing"},
+    ),
+    _row("workspace-presence-session", "DELETE", PS, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row("workspace-stream", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
     # ── saved views ──
     _row("workspace-views", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
     _row(

@@ -70,5 +70,38 @@ def evenly_spaced(n: int) -> list[str]:
     return out
 
 
+def keys_after(last: str | None, n: int) -> list[str]:
+    """n short, increasing keys after `last` (the end of a column), for appending many rows at once.
+
+    Repeated `key_between(prev, None)` grows a key by one character every few steps; this spreads the n keys
+    over a small slice (about 1/62) of the space after `last` instead, using the fewest digits that leave
+    room, so a column can take many batches before its keys get longer.
+    """
+    if n <= 0:
+        return []
+    base = len(DIGITS)
+    last = last or ""
+    width = max(len(last), 1)
+    while True:
+        space = base**width
+        low = 0
+        for ch in last.ljust(width, "0"):
+            low = low * base + DIGITS.index(ch)
+        room = space - 1 - low
+        if room >= n * base:
+            break
+        width += 1
+    step = max(1, room // (n * base))
+    out = []
+    for i in range(1, n + 1):
+        v = low + step * i
+        digits = []
+        for _ in range(width):
+            digits.append(DIGITS[v % base])
+            v //= base
+        out.append("".join(reversed(digits)).rstrip("0"))
+    return out
+
+
 def is_valid_key(key: object) -> bool:
     return isinstance(key, str) and bool(KEY_RE.match(key)) and not key.endswith("0")

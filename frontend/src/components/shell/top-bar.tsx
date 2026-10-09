@@ -21,6 +21,9 @@ const VIEW_LABEL: Record<string, string> = {
   milestones: "Milestones",
   epics: "Epics",
   reports: "Reports",
+  dashboards: "Dashboards",
+  timeline: "Timeline",
+  calendar: "Calendar",
   settings: "Settings",
 };
 const PAGE_LABEL: Record<string, string> = {
@@ -30,6 +33,7 @@ const PAGE_LABEL: Record<string, string> = {
   search: "Search",
   settings: "Settings",
   trash: "Trash",
+  timesheet: "Timesheet",
 };
 
 /* Pages put their actions into the top bar through a portal slot. */

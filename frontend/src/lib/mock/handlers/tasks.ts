@@ -1,12 +1,15 @@
-import type { Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/lib/api/types";
+import type { ActivityEntry, Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/lib/api/types";
 import { validateUpload } from "@/lib/files";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { nowISO, uid } from "../db";
 import type { AttachmentRec, MockDB, TaskRec } from "../db-types";
 import { projectPermissions, statusesOf, toProject, toTask } from "../derive";
 import { logActivity, notify } from "./common";
+import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
+import { checkBulkDates, checkTaskDates, dateSortValue, ensureExt32, scheduleFilter } from "./schedule";
 import { markTaskDeleted, trashComment } from "./trash";
+import { publishAttachment, publishBulk, publishComment, publishTask } from "../realtime";
 import {
   fail,
   filterValues,
@@ -45,7 +48,7 @@ function statusName(db: MockDB, id: string) {
   return db.statuses.find((s) => s.id === id)?.name ?? "";
 }
 
-function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
+export function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
   const s = db.statuses.find((x) => x.id === nextStatusId);
   if (!s) invalid({ statusId: "Unknown status" });
   if (s.projectId !== t.projectId) invalid({ statusId: "Unknown status" });
@@ -54,7 +57,7 @@ function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
   if (s.category === "in_progress") t.startedAt ??= nowISO();
 }
 
-function lastPosition(db: MockDB, projectId: string, statusId: string) {
+export function lastPosition(db: MockDB, projectId: string, statusId: string) {
   const sorted = db.tasks.filter((x) => x.projectId === projectId && x.statusId === statusId && !x.deletedAt).sort(comparePosition);
   return keyBetween(sorted.at(-1)?.position ?? null, null);
 }
@@ -70,6 +73,7 @@ export function toDetail(db: MockDB, t: TaskRec, userId: string): TaskDetail {
       .sort((a, b) => a.number - b.number)
       .map((x) => toTask(db, x)),
     project: { id: p.id, key: p.key, name: p.name, hue: p.hue, my_permissions: proj.my_permissions },
+    dependencies: dependenciesOf(db, t.id),
   };
 }
 
@@ -99,6 +103,11 @@ function richText(doc: RichDoc | null | undefined): string {
 /* Uploaded bodies live only in memory (never in localStorage). */
 const uploads = new Map<string, { taskId: string; fileName: string; size: number; mimeType: string; blob?: Blob }>();
 export const mockUploads = uploads;
+
+/** Board 40: the import ticket (I1) reuses the signed-upload map; the blob arrives through mockUpload(). */
+export function registerMockUpload(id: string, fileName: string, size: number, mimeType = "text/csv") {
+  uploads.set(id, { taskId: "", fileName: fileName.slice(0, 120), size, mimeType });
+}
 
 function kindOf(fileName: string, mime: string): AttachmentRec["kind"] {
   if (/^image\/(png|jpe?g|gif|webp)$/.test(mime) || /\.(png|jpe?g|gif|webp)$/i.test(fileName)) return "image";
@@ -156,6 +165,12 @@ export function registerTasks() {
     const p = memberProject(ctx, ctx.params.id!);
     const q = String(ctx.query.q ?? "").toLowerCase();
     const f = (k: string) => filterValues(ctx.query, k);
+    const blocked = f("blocked")[0];
+    if (blocked !== undefined && blocked !== "true" && blocked !== "false") invalid({ "filter[blocked]": "Use true or false" });
+    ensureExt39(ctx.db);
+    ensureExt32(ctx.db);
+    // Board 32: filter[from] / filter[to] (span overlap) and filter[scheduled]; 422 on bad values.
+    const inRange = scheduleFilter(ctx.query);
     const [status, assignee, sprint, epic, milestone, priority, label, parent] = [
       f("status"),
       f("assignee").map((a) => (a === "me" ? ctx.userId! : a)),
@@ -176,17 +191,24 @@ export function registerTasks() {
       .filter((t) => !milestone.length || milestone.includes(t.milestoneId ?? "none"))
       .filter((t) => !priority.length || priority.includes(t.priority))
       .filter((t) => !label.length || t.labelIds.some((l) => label.includes(l)))
-      .filter((t) => !parent.length || parent.includes(t.parentId ?? "none"));
+      .filter((t) => !parent.length || parent.includes(t.parentId ?? "none"))
+      .filter((t) => !inRange || inRange(t));
     const sort = String(ctx.query.sort ?? "number");
     const desc = sort.startsWith("-");
     const key = desc ? sort.slice(1) : sort;
+    // Dates sort with a sentinel: missing dates last ascending, first descending (board 32 §4.1).
+    const isDate = key === "startDate" || key === "dueDate";
     list = [...list].sort((a, b) => {
-      const av = (a as unknown as Record<string, unknown>)[key] ?? "";
-      const bv = (b as unknown as Record<string, unknown>)[key] ?? "";
+      const ar = (a as unknown as Record<string, unknown>)[key];
+      const br = (b as unknown as Record<string, unknown>)[key];
+      const av = isDate ? dateSortValue(ar) : (ar ?? "");
+      const bv = isDate ? dateSortValue(br) : (br ?? "");
       const r = av < bv ? -1 : av > bv ? 1 : 0;
       return desc ? -r : r;
     });
-    return paginate(list.map((t) => toTask(ctx.db, t)), ctx.query, 500);
+    let out = list.map((t) => toTask(ctx.db, t));
+    if (blocked !== undefined) out = out.filter((t) => t.isBlocked === (blocked === "true"));
+    return paginate(out, ctx.query, 500, 500);
   });
 
   route("POST", "/projects/:id/tasks", (ctx) => {
@@ -200,6 +222,8 @@ export function registerTasks() {
     if (b.assigneeId && b.assigneeId !== ctx.userId && !perms.includes("task.assign")) {
       fail(403, "forbidden", "You can’t assign tasks to others.", { permission: "task.assign" });
     }
+    // Board 32: startDate / dueDate format and order (same messages as PATCH).
+    checkTaskDates(b as Record<string, unknown>, null);
     p.taskSeq += 1;
     const now = nowISO();
     const t: TaskRec = {
@@ -214,6 +238,7 @@ export function registerTasks() {
       assigneeId: b.assigneeId ?? null,
       reporterId: ctx.userId!,
       estimate: b.estimate ?? null,
+      startDate: b.startDate ?? null,
       dueDate: b.dueDate ?? null,
       epicId: b.epicId ?? null,
       milestoneId: b.milestoneId ?? null,
@@ -240,6 +265,7 @@ export function registerTasks() {
     ctx.db.tasks.push(t);
     logActivity(ctx.db, ctx.userId, "created", p.id, t);
     if (t.assigneeId) notify(ctx.db, t.assigneeId, "assigned", ctx.userId, t, p.id);
+    publishTask(ctx.db, ctx.userId, t, "created");
     return toTask(ctx.db, t);
   });
 
@@ -272,6 +298,10 @@ export function registerTasks() {
     if ("assigneeId" in b && b.assigneeId !== t.assigneeId && !perms.includes("task.assign")) {
       fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
     }
+    // Board 39: customFields / timeEstimateMinutes are validated before anything is written.
+    const applyExt = keys.some((k) => k === "customFields" || k === "timeEstimateMinutes") ? prepareTaskExtPatch(ctx.db, t, b as Record<string, unknown>) : null;
+    // Board 32: date format, then order on the resulting pair (sent value, else the stored one).
+    checkTaskDates(b as Record<string, unknown>, t);
     const before = { ...t };
     if (b.title !== undefined) {
       if (!b.title.trim()) invalid({ title: "Give the task a title" });
@@ -286,6 +316,7 @@ export function registerTasks() {
     if (b.priority !== undefined) t.priority = b.priority;
     if (b.assigneeId !== undefined) t.assigneeId = b.assigneeId;
     if (b.estimate !== undefined) t.estimate = b.estimate === null ? null : Math.max(0, Math.min(99, Math.round(b.estimate)));
+    if (b.startDate !== undefined) t.startDate = b.startDate;
     if (b.dueDate !== undefined) t.dueDate = b.dueDate;
     if (b.epicId !== undefined) t.epicId = b.epicId;
     if (b.milestoneId !== undefined) t.milestoneId = b.milestoneId;
@@ -293,6 +324,7 @@ export function registerTasks() {
     if (b.objectiveIds !== undefined) t.objectiveIds = [...new Set(b.objectiveIds)];
     if (b.labelIds !== undefined) t.labelIds = [...new Set(b.labelIds)];
     if (b.description !== undefined) t.description = b.description;
+    applyExt?.(userId);
     t.version += 1;
     t.updatedAt = nowISO();
 
@@ -314,6 +346,9 @@ export function registerTasks() {
         if (!mentionIds(before.description).includes(m)) notify(ctx.db, m, "mention", userId, t, t.projectId, { quote: richText(b.description).slice(0, 140) });
       }
     }
+    // Board 33: task.changed with the camelCase field names of the change (custom fields as customFields.<id>).
+    const fields = keys.flatMap((k) => (k === "customFields" ? Object.keys(b.customFields ?? {}).map((id) => `customFields.${id}`) : [k as string]));
+    publishTask(ctx.db, userId, t, "updated", fields);
     return toTask(ctx.db, t);
   });
 
@@ -326,6 +361,7 @@ export function registerTasks() {
     markTaskDeleted(ctx.db, t.id, ctx.userId);
     ctx.db.tasks.filter((x) => x.parentId === t.id).forEach((x) => (x.deletedAt = now));
     logActivity(ctx.db, ctx.userId, "deleted", t.projectId, t);
+    publishTask(ctx.db, ctx.userId, t, "deleted");
     return undefined;
   });
 
@@ -338,6 +374,7 @@ export function registerTasks() {
     t.version += 1;
     ctx.db.tasks.filter((x) => x.parentId === t.id && x.deletedAt === when).forEach((x) => (x.deletedAt = null));
     logActivity(ctx.db, ctx.userId, "restored", t.projectId, t);
+    publishTask(ctx.db, ctx.userId, t, "restored");
     return toTask(ctx.db, t);
   });
 
@@ -355,9 +392,15 @@ export function registerTasks() {
         t.version += 1;
         if (b.delete) markTaskDeleted(ctx.db, t.id, userId);
       });
+      // Board 33: one bulk event instead of N task events.
+      publishBulk(ctx.db, userId, p.id, tasks.map((t) => t.id), b.delete ? "deleted" : "restored");
       return tasks.map((t) => toTask(ctx.db, t));
     }
     const patch = b.patch ?? {};
+    if ("customFields" in patch) invalid({ customFields: "This field can’t be bulk-edited" });
+    if ("timeEstimateMinutes" in patch) invalid({ timeEstimateMinutes: "This field can’t be bulk-edited" });
+    // Board 32: startDate isn't bulk-editable; a due date before a selected task's start fails the whole request.
+    checkBulkDates(patch as Record<string, unknown>, tasks);
     const perms = projectPermissions(ctx.db, userId, p.id);
     if ("assigneeId" in patch && !perms.includes("task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
     const statusOnly = Object.keys(patch).every((k) => k === "statusId");
@@ -376,6 +419,7 @@ export function registerTasks() {
       if (patch.labelIds) t.labelIds = [...new Set([...t.labelIds, ...patch.labelIds])];
       if (patch.sprintId !== undefined) t.sprintId = patch.sprintId;
       if (patch.priority !== undefined) t.priority = patch.priority;
+      if (patch.dueDate !== undefined) t.dueDate = patch.dueDate;
       // Board 27: "Add tasks to epic" / remove from epic go through bulk { epicId }.
       if (patch.epicId !== undefined) {
         if (patch.epicId && !ctx.db.epics.some((e) => e.id === patch.epicId && e.projectId === p.id)) invalid({ epicId: "Pick an epic in this project" });
@@ -384,12 +428,16 @@ export function registerTasks() {
       t.version += 1;
       t.updatedAt = nowISO();
     }
+    publishBulk(ctx.db, userId, p.id, tasks.map((t) => t.id), "updated");
     return tasks.map((t) => toTask(ctx.db, t));
   });
 
   route("GET", "/tasks/:id/activity", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    return ctx.db.activity.filter((a) => a.taskId === t.id);
+    // Board 40: the task's own feed starts with "imported this task from …" (task.imported), derived
+    // from the import rows so a 1,000-row import doesn't flood the shared activity log.
+    const imported = importedActivity(ctx.db, t);
+    return [...ctx.db.activity.filter((a) => a.taskId === t.id), ...(imported ? [imported] : [])];
   });
 
   /* board + backlog */
@@ -431,6 +479,7 @@ export function registerTasks() {
       logActivity(ctx.db, ctx.userId, "status_changed", t.projectId, t, { from: statusName(ctx.db, from), to: statusName(ctx.db, t.statusId) });
       if (t.assigneeId) notify(ctx.db, t.assigneeId, "status", ctx.userId, t, t.projectId, { fromStatus: statusName(ctx.db, from), toStatus: statusName(ctx.db, t.statusId) });
     }
+    publishTask(ctx.db, ctx.userId, t, "moved", ["statusId", "position", ...(b.sprintId !== undefined ? ["sprintId"] : [])]);
     return toTask(ctx.db, t);
   });
 
@@ -466,6 +515,7 @@ export function registerTasks() {
     new Set([t.assigneeId, t.reporterId].filter((x): x is string => Boolean(x) && !c.mentions.includes(x!))).forEach((r) =>
       notify(ctx.db, r, "comment", ctx.userId, t, t.projectId, { quote }),
     );
+    publishComment(ctx.db, ctx.userId, t, c.id, "created");
     return c;
   });
   route("PATCH", "/comments/:id", (ctx) => {
@@ -480,6 +530,7 @@ export function registerTasks() {
     c.body = body;
     c.mentions = mentionIds(body);
     c.editedAt = nowISO();
+    publishComment(ctx.db, userId, t, c.id, "updated");
     return c;
   });
   route("DELETE", "/comments/:id", (ctx) => {
@@ -492,6 +543,7 @@ export function registerTasks() {
     if (!own && !perms.includes("comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "comment.delete_any" });
     trashComment(ctx.db, c, userId); // board 29: deleted comments go to the Trash for 30 days
     ctx.db.comments = ctx.db.comments.filter((x) => x.id !== c.id);
+    publishComment(ctx.db, userId, t, c.id, "deleted");
     return undefined;
   });
 
@@ -535,6 +587,7 @@ export function registerTasks() {
     ctx.db.attachments.push(a);
     uploads.delete(uploadId);
     logActivity(ctx.db, ctx.userId, "attached", t.projectId, t, { file: a.fileName });
+    publishAttachment(ctx.db, ctx.userId, t, "created");
     return toAttachment(a);
   });
   route("DELETE", "/attachments/:id", (ctx) => {
@@ -546,8 +599,26 @@ export function registerTasks() {
     if (!(a.uploaderId === userId && perms.includes("attachment.upload")) && !perms.includes("attachment.delete_any"))
       fail(403, "forbidden", "You can’t delete this file.", { permission: "attachment.delete_any" });
     ctx.db.attachments = ctx.db.attachments.filter((x) => x.id !== a.id);
+    publishAttachment(ctx.db, userId, t, "deleted");
     return undefined;
   });
+}
+
+function importedActivity(db: MockDB, t: TaskRec): ActivityEntry | null {
+  const row = db.importRows?.find((r) => r.taskId === t.id);
+  const job = row && db.imports?.find((j) => j.id === row.jobId);
+  if (!row || !job) return null;
+  return {
+    id: `act_imp_${t.id}`,
+    actorId: job.createdById,
+    verb: "imported",
+    projectId: t.projectId,
+    taskId: t.id,
+    taskKey: t.key,
+    taskTitle: t.title,
+    data: { fileName: job.file.name, row: row.row },
+    createdAt: t.createdAt,
+  };
 }
 
 export function recordRecent(db: MockDB, userId: string, kind: "task" | "project", id: string) {

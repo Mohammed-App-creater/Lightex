@@ -57,10 +57,20 @@ class Epic(BaseModel):
     )
     milestone = models.ForeignKey(Milestone, null=True, blank=True, on_delete=models.SET_NULL, related_name="epics")
     archived_at = models.DateTimeField(null=True, blank=True)
+    # Board 32: explicit timeline span, both or neither (null = the client derives it from the tasks).
+    start_date = models.DateField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
 
     class Meta:
         ordering = ["created_at"]
-        constraints = [models.UniqueConstraint("project", Lower("name"), name="epic_name_unique_per_project")]
+        constraints = [
+            models.UniqueConstraint("project", Lower("name"), name="epic_name_unique_per_project"),
+            models.CheckConstraint(
+                condition=models.Q(start_date__isnull=True, due_date__isnull=True)
+                | models.Q(start_date__isnull=False, due_date__isnull=False, start_date__lte=models.F("due_date")),
+                name="epic_dates_ordered",
+            ),
+        ]
 
 
 class Sprint(BaseModel):

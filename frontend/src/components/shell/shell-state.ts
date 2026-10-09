@@ -11,6 +11,8 @@ export type CreateTaskDefaults = {
   sprintId?: string | null;
   parentId?: string;
   title?: string;
+  /** Board 32: the agenda FAB pre-fills the selected day. */
+  dueDate?: string;
 };
 
 type ShellState = {

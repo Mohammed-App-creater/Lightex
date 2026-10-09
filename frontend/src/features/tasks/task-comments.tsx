@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EditorContent } from "@tiptap/react";
 import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/feedback";
@@ -15,13 +15,27 @@ import { useProjectMembers } from "@/features/projects/queries";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
-import type { Comment, RichDoc, TaskDetail, User } from "@/lib/api/types";
+import type { Comment, PresencePerson, RichDoc, TaskDetail, User } from "@/lib/api/types";
 import { can } from "@/lib/permissions/can";
 import { ago, agoOrDate } from "@/lib/utils/dates";
-import { activityText } from "./activity-text";
+import { activityActorName, activityText } from "./activity-text";
 import { CommentComposer, RichView, richIsEmpty, useRichEditor } from "./rich-text";
+import { TypingIndicator } from "@/features/presence/presence-ui";
+import { useTypingSignal } from "@/features/presence/use-typing";
+import { useIsLive } from "@/lib/realtime/status-store";
 
-export function TaskConversation({ task, deleted }: { task: TaskDetail; deleted: boolean }) {
+const NO_TYPISTS: readonly PresencePerson[] = [];
+
+type Presence = {
+  /** "Sam is typing" (others only). */
+  typingLabel?: string;
+  typingPeople?: readonly PresencePerson[];
+  onTyping?: (typing: boolean) => void;
+  /** The composer is on screen (the mock teammate simulator types only then). */
+  onComposer?: (visible: boolean) => void;
+};
+
+export function TaskConversation({ task, deleted, ...presence }: { task: TaskDetail; deleted: boolean } & Presence) {
   const [tab, setTab] = useState<"comments" | "activity">("comments");
   const { data: comments = [], isPending } = useQuery({ queryKey: qk.comments(task.id), queryFn: () => api.comments.list(task.id) });
   const idBase = `conv-${task.id}`;
@@ -39,20 +53,37 @@ export function TaskConversation({ task, deleted }: { task: TaskDetail; deleted:
         ]}
       />
       <TabPanel idBase={idBase} value={tab}>
-        {tab === "comments" ? <Comments task={task} comments={comments} loading={isPending} deleted={deleted} /> : <Activity task={task} />}
+        {tab === "comments" ? <Comments task={task} comments={comments} loading={isPending} deleted={deleted} {...presence} /> : <Activity task={task} />}
       </TabPanel>
     </section>
   );
 }
 
-function Comments({ task, comments, loading, deleted }: { task: TaskDetail; comments: Comment[]; loading: boolean; deleted: boolean }) {
+function Comments({
+  task,
+  comments,
+  loading,
+  deleted,
+  typingLabel = "",
+  typingPeople = NO_TYPISTS,
+  onTyping,
+  onComposer,
+}: { task: TaskDetail; comments: Comment[]; loading: boolean; deleted: boolean } & Presence) {
   const qc = useQueryClient();
+  // Board 33: my typing goes into the panel's presence; others' typing shows under the thread (live only).
+  const live = useIsLive();
+  const signal = useTypingSignal();
+  useEffect(() => onTyping?.(signal.typing), [signal.typing, onTyping]);
   const me = useMe();
   const { data: members = [] } = useProjectMembers(task.projectId);
   const perms = task.project.my_permissions;
   const canComment = can("comment.create", perms) && !deleted;
   const people = () => members.map((m) => m.user);
   const userById = new Map<string, User>(members.map((m) => [m.userId, m.user]));
+  useEffect(() => {
+    onComposer?.(canComment);
+    return () => onComposer?.(false);
+  }, [canComment, onComposer]);
 
   const send = useMutation({
     mutationFn: (body: RichDoc) => api.comments.create(task.id, body),
@@ -93,12 +124,14 @@ function Comments({ task, comments, loading, deleted }: { task: TaskDetail; comm
           ))}
         </ul>
       )}
+      {live && <TypingIndicator people={typingPeople} label={typingLabel} />}
       {canComment && (
         <CommentComposer
           people={people}
           me={me}
           sending={send.isPending}
           onSend={(doc) => send.mutateAsync(doc)}
+          typing={signal}
         />
       )}
     </div>
@@ -227,7 +260,7 @@ function Activity({ task }: { task: TaskDetail }) {
             key={a.id}
             className="relative text-[13px] leading-5 text-fg-2 before:absolute before:-left-5 before:top-1.5 before:size-[9px] before:rounded-full before:border-[1.5px] before:border-control before:bg-surface before:content-['']"
           >
-            <b className="font-medium text-fg">{actor?.name ?? "Lightex"}</b> {activityText(a)}
+            <b className="font-medium text-fg">{activityActorName(a, actor?.name)}</b> {activityText(a)}
             <span className="text-[11px] text-fg-3"> · {agoOrDate(a.createdAt)}</span>
           </li>
         );

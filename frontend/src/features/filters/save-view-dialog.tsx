@@ -9,7 +9,7 @@ import { useMe } from "@/features/auth/session";
 import { errorMessage, isApiError } from "@/lib/api/errors";
 import type { FilterRule, SavedView, ViewIcon } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
-import { FIELD_ICON } from "./filter-bar";
+import { fieldIcon } from "./filter-bar";
 import { completeRules } from "./filter-model";
 import type { FilterOptions } from "./use-filters";
 import { VIEW_ICONS, ViewGlyph } from "./view-icons";
@@ -148,7 +148,7 @@ function Inner({
         <ul aria-label="Filters in this view" className="m-0 flex list-none flex-wrap gap-[5px] p-0">
           {done.map((r, i) => (
             <li key={i} className="inline-flex h-[22px] items-center gap-[5px] whitespace-nowrap rounded-[5px] border border-line bg-raised px-[7px] text-[11.5px] text-fg-2 [&_svg]:size-[11px]">
-              {FIELD_ICON[r.field]}
+              {fieldIcon(r.field, opts.fields)}
               {opts.describe(r)}
             </li>
           ))}

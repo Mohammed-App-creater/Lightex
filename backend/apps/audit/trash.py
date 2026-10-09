@@ -211,9 +211,11 @@ def purge_task(task: Task) -> None:
 
 
 def purge_project(project: Project) -> None:
+    from apps.imports.services import delete_project_files
     from apps.projects.models import ProjectMember
 
     _delete_files(Attachment.all_objects.filter(task__project=project))
+    delete_project_files(project)  # import files: the FK cascade alone would orphan them in storage
     Task.all_objects.filter(project=project, parent__isnull=False).delete()
     Task.all_objects.filter(project=project).delete()
     ProjectMember.objects.filter(project=project).delete()  # role FKs are PROTECT

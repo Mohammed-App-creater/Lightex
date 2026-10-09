@@ -1,18 +1,24 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { ChevronRight, Plus, Search, Target, X } from "lucide-react";
+import { CalendarRange, ChevronRight, Plus, Search, Target, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/choice";
 import { DateChip, DatePicker } from "@/components/ui/date-picker";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { BlockedChip } from "@/features/dependencies/blocked-badge";
+import { hasValue } from "@/features/fields/field-lib";
+import { useCustomFields } from "@/features/fields/queries";
+import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
+import { RunningTimerChip } from "@/features/time/task-time";
 import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/features/projects/queries";
 import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 import { daysUntil } from "@/lib/domain/progress";
+import { PresenceField } from "@/features/presence/presence-ui";
 
 /* Task properties (board 14 §2.8): 3 chips · 4 fields · Planning folded · empty = hidden. */
 
@@ -55,6 +61,7 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
   const assignee = members.find((m) => m.userId === task.assigneeId)?.user;
   return (
     <div className="flex flex-wrap items-center gap-1.5 max-[760px]:flex-nowrap max-[760px]:overflow-x-auto">
+      <PresenceField field="statusId" as="span" className="inline-flex">
       <Menu>
         <Chip editable={canStatus} label={`Status: ${status?.name ?? ""}`}>
           {status && <StatusGlyph kind={status.glyph} />}
@@ -70,8 +77,10 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
           </MenuRadioGroup>
         </MenuContent>
       </Menu>
+      </PresenceField>
 
       {(task.priority > 0 || canEdit) && (
+        <PresenceField field="priority" as="span" className="inline-flex">
         <Menu>
           <Chip editable={canEdit} ghost={task.priority === 0} label={`Priority: ${priorityMeta[task.priority].label}`}>
             {task.priority === 0 ? (
@@ -95,9 +104,11 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
             </MenuRadioGroup>
           </MenuContent>
         </Menu>
+        </PresenceField>
       )}
 
       {(assignee || canAssign) && (
+        <PresenceField field="assigneeId" as="span" className="inline-flex">
         <Menu>
           <Chip editable={canAssign} ghost={!assignee} label={`Assignee: ${assignee?.name ?? "Unassigned"}`}>
             {assignee ? (
@@ -129,7 +140,18 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
             )}
           </MenuContent>
         </Menu>
+        </PresenceField>
       )}
+      {/* Board 32: the task's span when it has both dates. */}
+      {task.startDate && task.dueDate && (
+        <span className={cn(chipBase, "cursor-default font-mono text-[12px]")} aria-label={`Scheduled ${shortDate(task.startDate)} to ${shortDate(task.dueDate)}`}>
+          <CalendarRange size={13} aria-hidden className="text-fg-3" />
+          {shortDate(task.startDate)} → {shortDate(task.dueDate)}
+        </span>
+      )}
+      {/* Board 39: derived Blocked chip and the viewer's running timer (read-only). */}
+      <BlockedChip task={task} />
+      <RunningTimerChip taskId={task.id} />
     </div>
   );
 }
@@ -156,6 +178,7 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
   const sprint = sprints.find((s) => s.id === task.sprintId);
   const showEst = task.estimate !== null || forced.has("estimate");
   const showDue = Boolean(task.dueDate) || forced.has("due");
+  const showStart = Boolean(task.startDate) || forced.has("start");
 
   const commitEst = () => {
     setEditingEst(false);
@@ -200,8 +223,9 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
         </MenuContent>
       </Menu>
 
-      {showEst &&
-        (editingEst ? (
+      {showEst && (
+        <PresenceField field="estimate">
+        {editingEst ? (
           <div className={fieldBtn}>
             <FieldLabel>Estimate</FieldLabel>
             <span className="flex items-center gap-1.5">
@@ -244,9 +268,20 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
             <FieldLabel>Estimate</FieldLabel>
             <FieldValue>{task.estimate} pts</FieldValue>
           </div>
-        ))}
+        )}
+        </PresenceField>
+      )}
 
-      {showDue && <DueField task={task} canEdit={canEdit} onPatch={onPatch} sprintEnd={sprint?.endDate} />}
+      {showStart && (
+        <PresenceField field="startDate">
+          <StartField task={task} canEdit={canEdit} onPatch={onPatch} />
+        </PresenceField>
+      )}
+      {showDue && (
+        <PresenceField field="dueDate">
+          <DueField task={task} canEdit={canEdit} onPatch={onPatch} sprintEnd={sprint?.endDate} />
+        </PresenceField>
+      )}
     </div>
   );
 }
@@ -275,6 +310,8 @@ function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; can
   return (
     <DatePicker
       value={d}
+      // Board 32: days before the start date can't be picked (the server refuses start > due).
+      min={task.startDate ?? undefined}
       onChange={(v) => onPatch({ dueDate: v })}
       quick={(pick) => (
         <>
@@ -286,6 +323,35 @@ function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; can
       )}
     >
       <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Due date: ${d ? shortDate(d) : "none"}`}>
+        {value}
+      </button>
+    </DatePicker>
+  );
+}
+
+/** Board 32: Start date (shown when set or revealed through "Add property"); days after the due date are disabled. */
+function StartField({ task, canEdit, onPatch }: { task: TaskDetail; canEdit: boolean; onPatch: (p: TaskPatch) => void }) {
+  const d = task.startDate;
+  const value = (
+    <>
+      <FieldLabel>Start date</FieldLabel>
+      <FieldValue>{d ? shortDate(d) : <span className="text-fg-3">Set…</span>}</FieldValue>
+    </>
+  );
+  if (!canEdit) return <div className={fieldBtn}>{value}</div>;
+  return (
+    <DatePicker
+      value={d}
+      max={task.dueDate ?? undefined}
+      onChange={(v) => onPatch({ startDate: v })}
+      quick={(pick) => (
+        <>
+          <DateChip onClick={() => pick(todayISO())}>Today</DateChip>
+          {d && <DateChip onClick={() => pick(null)}>Clear</DateChip>}
+        </>
+      )}
+    >
+      <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Start date: ${d ? shortDate(d) : "none"}`}>
         {value}
       </button>
     </DatePicker>
@@ -310,7 +376,7 @@ export function TaskPlanning({ task, canEdit, onPatch, open, onOpenChange, force
   const row = (label: string, current: string | undefined, items: { id: string; name: string }[], key: "sprintId" | "milestoneId" | "epicId", value: string | null, noneLabel: string, force: string) => {
     if (!current && !canEdit && !forced.has(force)) return null;
     return (
-      <div className="grid min-h-[30px] grid-cols-[84px_minmax(0,1fr)] items-center px-2.5">
+      <PresenceField field={key} className="grid min-h-[30px] grid-cols-[84px_minmax(0,1fr)] items-center px-2.5">
         <span className="text-[12px] font-medium text-fg-3">{label}</span>
         {canEdit ? (
           <Menu>
@@ -333,7 +399,7 @@ export function TaskPlanning({ task, canEdit, onPatch, open, onOpenChange, force
         ) : (
           <span className="truncate text-[13px] font-medium">{current ?? "—"}</span>
         )}
-      </div>
+      </PresenceField>
     );
   };
 
@@ -444,7 +510,7 @@ export function TaskLabels({ task, canEdit, onPatch }: Props) {
   const on = labels.filter((l) => task.labelIds.includes(l.id));
   if (!on.length && !canEdit) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <PresenceField field="labels" className="flex flex-wrap items-center gap-1.5">
       {on.map((l) => (
         <span key={l.id} className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-line bg-raised px-2 text-[12px] font-medium">
           <span className="size-[7px] rounded-full" style={{ background: l.color }} aria-hidden />
@@ -480,21 +546,29 @@ export function TaskLabels({ task, canEdit, onPatch }: Props) {
           </MenuContent>
         </Menu>
       )}
-    </div>
+    </PresenceField>
   );
 }
 
+/** Prefix for "Add property" keys that reveal a custom-field row (board 39). */
+export const CF_FORCE = "cf:";
+
 export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced: Set<string>; onForce: (k: string) => void }) {
+  const { data: fields = [] } = useCustomFields(task.projectId);
   if (!canEdit) return null;
+  // Board 39: hidden custom fields (no value, not required, not revealed) and the time estimate.
+  const hiddenFields = [...fields].sort((a, b) => a.position - b.position).filter((f) => !f.required && !hasValue(task.customFields?.[f.id]) && !forced.has(`${CF_FORCE}${f.id}`));
+  const showEstimate = task.timeEstimateMinutes === null && !forced.has("timeEstimate");
   const missing = [
     { k: "estimate", label: "Estimate", has: task.estimate !== null },
+    { k: "start", label: "Start date", has: Boolean(task.startDate) },
     { k: "due", label: "Due date", has: Boolean(task.dueDate) },
     { k: "sprint", label: "Sprint", has: Boolean(task.sprintId) },
     { k: "milestone", label: "Milestone", has: Boolean(task.milestoneId) },
     { k: "epic", label: "Epic", has: Boolean(task.epicId) },
     { k: "objective", label: "Objective", has: task.objectiveIds.length > 0 },
   ].filter((m) => !m.has && !forced.has(m.k));
-  if (!missing.length) return null;
+  if (!missing.length && !hiddenFields.length && !showEstimate) return null;
   return (
     <Menu>
       <MenuTrigger asChild>
@@ -508,6 +582,18 @@ export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced
             {m.label}
           </MenuItem>
         ))}
+        {showEstimate && <MenuItem onSelect={() => onForce("timeEstimate")}>Time estimate</MenuItem>}
+        {hiddenFields.length > 0 && (
+          <>
+            <MenuSeparator />
+            <MenuLabel>Custom fields</MenuLabel>
+            {hiddenFields.map((f) => (
+              <MenuItem key={f.id} icon={CF_TYPE_ICON[f.type]} onSelect={() => onForce(`${CF_FORCE}${f.id}`)}>
+                {f.name}
+              </MenuItem>
+            ))}
+          </>
+        )}
       </MenuContent>
     </Menu>
   );

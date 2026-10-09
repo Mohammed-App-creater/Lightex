@@ -70,8 +70,8 @@ drawer, ≤760px mobile: sheets instead of side panels, 44px touch targets).
 
 ## No dead UI
 Every visible button does something in mock mode. Features outside v1 (GitHub/GitLab, Telegram/SMS/
-Push sending, WebSockets, timeline/calendar *project views*, custom fields, dependencies, time
-tracking, import) are hidden or marked "Coming soon".
+Push sending, WebSockets, timeline/calendar *project views*, import) are hidden or marked "Coming soon".
+Board 39 (custom fields, dependencies, time tracking) is built in v2; see `docs/final-report.md` §8.
 
 ## Checking your work
 `npx tsc --noEmit`, `npx eslint <your files>`, `npx vitest run <your tests>`. A dev server runs on

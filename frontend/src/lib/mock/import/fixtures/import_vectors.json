@@ -1,0 +1,1164 @@
+{
+ "version": 1,
+ "about": "Board 40 shared import vectors (docs/v2/40-import-wizard.md §8). The frontend mock (src/lib/mock/import/import.test.ts) and the backend (apps/imports, pytest) must give the same results. Byte inputs are hex. Statuses and members are fixtures, not seed ids.",
+ "decode": [
+  {
+   "name": "utf-8 with BOM",
+   "hex": "efbbbf5469746c650d0a436166c3a90d0a",
+   "encoding": "utf-8",
+   "text": "Title\r\nCafé\r\n"
+  },
+  {
+   "name": "utf-8 without BOM",
+   "hex": "5469746c650a4e61c3af766520e29c930a",
+   "encoding": "utf-8",
+   "text": "Title\nNaïve ✓\n"
+  },
+  {
+   "name": "utf-16le with BOM (Excel Unicode text)",
+   "hex": "fffe5400690074006c00650009005300740061007400750073000d000a00430061006600e900090074006f0064006f000d000a00",
+   "encoding": "utf-16",
+   "text": "Title\tStatus\r\nCafé\ttodo\r\n"
+  },
+  {
+   "name": "utf-16be with BOM",
+   "hex": "feff005400690074006c0065000a0041000a",
+   "encoding": "utf-16",
+   "text": "Title\nA\n"
+  },
+  {
+   "name": "windows-1252 Café, smart quotes, euro",
+   "hex": "5469746c650a436166e9209371756f746564942080350a",
+   "encoding": "windows-1252",
+   "text": "Title\nCafé “quoted” €5\n"
+  },
+  {
+   "name": "windows-1252 undefined byte 0x81",
+   "hex": "41e981420a",
+   "encoding": "windows-1252",
+   "text": "Aé�B\n"
+  },
+  {
+   "name": "xlsx (ZIP signature)",
+   "hex": "504b030414000600",
+   "error": "excel"
+  },
+  {
+   "name": "xls (OLE signature)",
+   "hex": "d0cf11e0a1b11ae1",
+   "error": "excel"
+  },
+  {
+   "name": "NUL after decoding",
+   "hex": "5469746c650a4100420a",
+   "error": "binary"
+  }
+ ],
+ "delimiter": [
+  {
+   "name": "comma",
+   "text": "Title,Status\nA,todo\nB,done\n",
+   "delimiter": ","
+  },
+  {
+   "name": "semicolon (European Excel)",
+   "text": "Title;Estimate\nA;1,5\nB;2\n",
+   "delimiter": ";"
+  },
+  {
+   "name": "tab",
+   "text": "Title\tStatus\nA, B\ttodo\n",
+   "delimiter": "\t"
+  },
+  {
+   "name": "pipe",
+   "text": "Title|Status\nA|todo\n",
+   "delimiter": "|"
+  },
+  {
+   "name": "quoted commas don't count",
+   "text": "Title;Notes\n\"A, B, C\";x\n\"D, E\";y\n",
+   "delimiter": ";"
+  },
+  {
+   "name": "one column",
+   "text": "Title\nA\nB\n",
+   "delimiter": ","
+  },
+  {
+   "name": "header only uses the header count",
+   "text": "a;b;c,d\n",
+   "delimiter": ";"
+  }
+ ],
+ "parse": [
+  {
+   "name": "quotes, doubled quotes, CRLF",
+   "text": "Title,Description\r\n\"Rate-limit, reset\",\"Spec in \"\"Billing v2\"\" doc\"\r\n",
+   "delimiter": ",",
+   "header": [
+    "Title",
+    "Description"
+   ],
+   "rows": [
+    [
+     "Rate-limit, reset",
+     "Spec in \"Billing v2\" doc"
+    ]
+   ]
+  },
+  {
+   "name": "embedded newline inside quotes",
+   "text": "Title,Notes\nA,\"line 1\nline 2\"\nB,x\n",
+   "delimiter": ",",
+   "header": [
+    "Title",
+    "Notes"
+   ],
+   "rows": [
+    [
+     "A",
+     "line 1\nline 2"
+    ],
+    [
+     "B",
+     "x"
+    ]
+   ]
+  },
+  {
+   "name": "embedded CRLF inside quotes becomes LF (CR is a C0 control character)",
+   "text": "Title,Notes\r\nA,\"line 1\r\nline 2\"\r\n",
+   "delimiter": ",",
+   "header": [
+    "Title",
+    "Notes"
+   ],
+   "rows": [
+    [
+     "A",
+     "line 1\nline 2"
+    ]
+   ]
+  },
+  {
+   "name": "empty lines are ignored, short rows padded, long rows cut",
+   "text": "A,B,C\n\n1\n1,2,3,4\n",
+   "delimiter": ",",
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "rows": [
+    [
+     "1",
+     "",
+     ""
+    ],
+    [
+     "1",
+     "2",
+     "3"
+    ]
+   ]
+  },
+  {
+   "name": "no trailing newline",
+   "text": "A,B\n1,2",
+   "delimiter": ",",
+   "header": [
+    "A",
+    "B"
+   ],
+   "rows": [
+    [
+     "1",
+     "2"
+    ]
+   ]
+  },
+  {
+   "name": "blank and duplicate headers",
+   "text": "Labels,,Labels,labels\nx,y,z,w\n",
+   "delimiter": ",",
+   "header": [
+    "Labels",
+    "Column 2",
+    "Labels (2)",
+    "labels (3)"
+   ],
+   "rows": [
+    [
+     "x",
+     "y",
+     "z",
+     "w"
+    ]
+   ]
+  },
+  {
+   "name": "control characters stripped (tab and newline kept)",
+   "text": "Title\n\"A\u0007B\tC\"\n",
+   "delimiter": ",",
+   "header": [
+    "Title"
+   ],
+   "rows": [
+    [
+     "AB\tC"
+    ]
+   ]
+  },
+  {
+   "name": "unclosed quote reports the line it opened on",
+   "text": "Title,Notes\nA,ok\nB,\"never closed\nC,x\n",
+   "delimiter": ",",
+   "error": {
+    "reason": "unclosed_quote",
+    "line": 3
+   }
+  },
+  {
+   "name": "header only",
+   "text": "Title,Status\n",
+   "delimiter": ",",
+   "error": {
+    "reason": "header_only"
+   }
+  },
+  {
+   "name": "no rows",
+   "text": "\n\n",
+   "delimiter": ",",
+   "error": {
+    "reason": "no_rows"
+   }
+  }
+ ],
+ "headers": [
+  {
+   "header": "Title",
+   "normalised": "title",
+   "field": "title"
+  },
+  {
+   "header": "Summary",
+   "normalised": "summary",
+   "field": "title"
+  },
+  {
+   "header": "Card name",
+   "normalised": "card name",
+   "field": "title"
+  },
+  {
+   "header": "Custom field (Story Points)",
+   "normalised": "story points",
+   "field": "estimate"
+  },
+  {
+   "header": "Custom field (Start date)",
+   "normalised": "start date",
+   "field": "startDate"
+  },
+  {
+   "header": "Inward issue link (Blocks)",
+   "normalised": "inward issue link blocks",
+   "field": "blockedBy"
+  },
+  {
+   "header": "Outward issue link (Blocks)",
+   "normalised": "outward issue link blocks",
+   "field": "blocks"
+  },
+  {
+   "header": "Section/Column",
+   "normalised": "section column",
+   "field": "status"
+  },
+  {
+   "header": "Assignee Email",
+   "normalised": "assignee email",
+   "field": "assignee"
+  },
+  {
+   "header": "Issue key",
+   "normalised": "issue key",
+   "field": "sourceId"
+  },
+  {
+   "header": "Original Estimate",
+   "normalised": "original estimate",
+   "field": "timeEstimate"
+  },
+  {
+   "header": "Due",
+   "normalised": "due",
+   "field": "dueDate"
+  },
+  {
+   "header": "Tags",
+   "normalised": "tags",
+   "field": "labels"
+  },
+  {
+   "header": "Won’t fix",
+   "normalised": "wont fix",
+   "field": null
+  },
+  {
+   "header": "Cycle Name",
+   "normalised": "cycle name",
+   "field": "sprint"
+  },
+  {
+   "header": "Parent issue",
+   "normalised": "parent issue",
+   "field": "parent"
+  }
+ ],
+ "suggest": [
+  {
+   "name": "sample file",
+   "preset": "generic",
+   "headers": [
+    "Title",
+    "Description",
+    "Status",
+    "Assignee",
+    "Priority",
+    "Estimate",
+    "Due",
+    "Tags"
+   ],
+   "columns": [
+    {
+     "field": "title"
+    },
+    {
+     "field": "description"
+    },
+    {
+     "field": "status"
+    },
+    {
+     "field": "assignee"
+    },
+    {
+     "field": "priority"
+    },
+    {
+     "field": "estimate"
+    },
+    {
+     "field": "dueDate"
+    },
+    {
+     "field": "labels"
+    }
+   ]
+  },
+  {
+   "name": "first column wins for single fields",
+   "preset": "generic",
+   "headers": [
+    "Title",
+    "Name",
+    "Labels",
+    "Tags"
+   ],
+   "columns": [
+    {
+     "field": "title"
+    },
+    {
+     "field": "skip"
+    },
+    {
+     "field": "labels"
+    },
+    {
+     "field": "labels"
+    }
+   ]
+  },
+  {
+   "name": "jira export",
+   "preset": "jira",
+   "headers": [
+    "Issue key",
+    "Issue id",
+    "Summary",
+    "Issue Type",
+    "Status",
+    "Priority",
+    "Assignee",
+    "Custom field (Story Points)",
+    "Original Estimate",
+    "Parent",
+    "Labels",
+    "Labels",
+    "Custom field (Start date)",
+    "Due date",
+    "Inward issue link (Blocks)",
+    "Sprint"
+   ],
+   "columns": [
+    {
+     "field": "sourceId"
+    },
+    {
+     "field": "sourceId"
+    },
+    {
+     "field": "title"
+    },
+    {
+     "field": "type"
+    },
+    {
+     "field": "status"
+    },
+    {
+     "field": "priority"
+    },
+    {
+     "field": "assignee"
+    },
+    {
+     "field": "estimate"
+    },
+    {
+     "field": "timeEstimate",
+     "unit": "seconds"
+    },
+    {
+     "field": "parent"
+    },
+    {
+     "field": "labels"
+    },
+    {
+     "field": "labels"
+    },
+    {
+     "field": "startDate"
+    },
+    {
+     "field": "dueDate"
+    },
+    {
+     "field": "blockedBy"
+    },
+    {
+     "field": "sprint"
+    }
+   ]
+  },
+  {
+   "name": "asana: Assignee Email beats Assignee",
+   "preset": "asana",
+   "headers": [
+    "Task ID",
+    "Name",
+    "Section/Column",
+    "Assignee",
+    "Assignee Email",
+    "Notes",
+    "Parent task"
+   ],
+   "columns": [
+    {
+     "field": "sourceId"
+    },
+    {
+     "field": "title"
+    },
+    {
+     "field": "status"
+    },
+    {
+     "field": "skip"
+    },
+    {
+     "field": "assignee"
+    },
+    {
+     "field": "description"
+    },
+    {
+     "field": "parent"
+    }
+   ]
+  },
+  {
+   "name": "error report columns are not suggested",
+   "preset": "generic",
+   "headers": [
+    "Row",
+    "Outcome",
+    "Reason",
+    "Value",
+    "Title"
+   ],
+   "columns": [
+    {
+     "field": "skip"
+    },
+    {
+     "field": "skip"
+    },
+    {
+     "field": "skip"
+    },
+    {
+     "field": "skip"
+    },
+    {
+     "field": "title"
+    }
+   ]
+  }
+ ],
+ "presets": [
+  {
+   "headers": [
+    "Issue key",
+    "Summary",
+    "Issue Type",
+    "Status"
+   ],
+   "preset": "jira"
+  },
+  {
+   "headers": [
+    "ID",
+    "Title",
+    "Status",
+    "Cycle Name"
+   ],
+   "preset": "linear"
+  },
+  {
+   "headers": [
+    "ID",
+    "Title",
+    "Team"
+   ],
+   "preset": "linear"
+  },
+  {
+   "headers": [
+    "Task ID",
+    "Name",
+    "Section/Column"
+   ],
+   "preset": "asana"
+  },
+  {
+   "headers": [
+    "Title",
+    "Status"
+   ],
+   "preset": "generic"
+  },
+  {
+   "headers": [
+    "ID",
+    "Title"
+   ],
+   "preset": "generic"
+  }
+ ],
+ "statuses": {
+  "project": [
+   {
+    "id": "st_backlog",
+    "name": "Backlog",
+    "glyph": "backlog",
+    "position": 0
+   },
+   {
+    "id": "st_todo",
+    "name": "Todo",
+    "glyph": "todo",
+    "position": 1
+   },
+   {
+    "id": "st_progress",
+    "name": "In progress",
+    "glyph": "progress",
+    "position": 2
+   },
+   {
+    "id": "st_review",
+    "name": "In review",
+    "glyph": "review",
+    "position": 3
+   },
+   {
+    "id": "st_done",
+    "name": "Done",
+    "glyph": "done",
+    "position": 4
+   },
+   {
+    "id": "st_canceled",
+    "name": "Canceled",
+    "glyph": "canceled",
+    "position": 5
+   }
+  ],
+  "cases": [
+   {
+    "value": "todo",
+    "target": "st_todo"
+   },
+   {
+    "value": "To Do",
+    "target": "st_todo"
+   },
+   {
+    "value": "open",
+    "target": "st_todo"
+   },
+   {
+    "value": "in progress",
+    "target": "st_progress"
+   },
+   {
+    "value": "WIP",
+    "target": "st_progress"
+   },
+   {
+    "value": "review",
+    "target": "st_review"
+   },
+   {
+    "value": "QA",
+    "target": "st_review"
+   },
+   {
+    "value": "In Review",
+    "target": "st_review"
+   },
+   {
+    "value": "Done",
+    "target": "st_done"
+   },
+   {
+    "value": "resolved",
+    "target": "st_done"
+   },
+   {
+    "value": "Won’t Do",
+    "target": "st_canceled"
+   },
+   {
+    "value": "cancelled",
+    "target": "st_canceled"
+   },
+   {
+    "value": "icebox",
+    "target": "st_backlog"
+   },
+   {
+    "value": "blocked",
+    "target": null
+   },
+   {
+    "value": "QA passed",
+    "target": null
+   }
+  ]
+ },
+ "types": [
+  {
+   "value": "Story",
+   "canEpic": true,
+   "type": "feature"
+  },
+  {
+   "value": "Sub-task",
+   "canEpic": true,
+   "type": "feature"
+  },
+  {
+   "value": "Improvement",
+   "canEpic": true,
+   "type": "feature"
+  },
+  {
+   "value": "Bug",
+   "canEpic": true,
+   "type": "bug"
+  },
+  {
+   "value": "incident",
+   "canEpic": true,
+   "type": "bug"
+  },
+  {
+   "value": "Tech debt",
+   "canEpic": true,
+   "type": "chore"
+  },
+  {
+   "value": "Research",
+   "canEpic": true,
+   "type": "spike"
+  },
+  {
+   "value": "Epic",
+   "canEpic": true,
+   "type": "epic"
+  },
+  {
+   "value": "Epic",
+   "canEpic": false,
+   "type": null
+  },
+  {
+   "value": "Initiative",
+   "canEpic": true,
+   "type": null
+  }
+ ],
+ "people": {
+  "members": [
+   {
+    "id": "u_alex",
+    "name": "Alex Kim",
+    "email": "alex@team.dev"
+   },
+   {
+    "id": "u_jordan",
+    "name": "Jordan Lee",
+    "email": "jordan@team.dev"
+   },
+   {
+    "id": "u_sam",
+    "name": "Sam Patel",
+    "email": "sam@team.dev"
+   },
+   {
+    "id": "u_samuel",
+    "name": "Sam Price",
+    "email": "samuel@team.dev"
+   },
+   {
+    "id": "u_riley",
+    "name": "Riley Chen",
+    "email": "riley@team.dev"
+   }
+  ],
+  "cases": [
+   {
+    "value": "Alex Kim",
+    "target": "u_alex",
+    "matchedBy": "name"
+   },
+   {
+    "value": "  alex   kim ",
+    "target": "u_alex",
+    "matchedBy": "name"
+   },
+   {
+    "value": "JORDAN@team.dev",
+    "target": "u_jordan",
+    "matchedBy": "email"
+   },
+   {
+    "value": "jordan.lee",
+    "target": "u_jordan",
+    "matchedBy": "initial"
+   },
+   {
+    "value": "Riley C.",
+    "target": "u_riley",
+    "matchedBy": "initial"
+   },
+   {
+    "value": "Sam P.",
+    "target": null,
+    "matchedBy": null,
+    "note": "two members match (Sam Patel, Sam Price)"
+   },
+   {
+    "value": "Riley Chen, Alex Kim",
+    "target": "u_riley",
+    "matchedBy": "name"
+   },
+   {
+    "value": "Chris Ortiz",
+    "target": null,
+    "matchedBy": null
+   },
+   {
+    "value": "",
+    "target": null,
+    "matchedBy": null
+   }
+  ]
+ },
+ "priorities": [
+  {
+   "value": "Urgent",
+   "priority": 4
+  },
+  {
+   "value": "Highest",
+   "priority": 4
+  },
+  {
+   "value": "blocker",
+   "priority": 4
+  },
+  {
+   "value": "P0",
+   "priority": 4
+  },
+  {
+   "value": "High",
+   "priority": 3
+  },
+  {
+   "value": "p1",
+   "priority": 3
+  },
+  {
+   "value": "Medium",
+   "priority": 2
+  },
+  {
+   "value": "normal",
+   "priority": 2
+  },
+  {
+   "value": "Low",
+   "priority": 1
+  },
+  {
+   "value": "Lowest",
+   "priority": 1
+  },
+  {
+   "value": "trivial",
+   "priority": 1
+  },
+  {
+   "value": "P4",
+   "priority": 1
+  },
+  {
+   "value": "none",
+   "priority": 0
+  },
+  {
+   "value": "",
+   "priority": 0
+  },
+  {
+   "value": "whenever",
+   "priority": 0
+  }
+ ],
+ "dates": [
+  {
+   "value": "2026-10-14",
+   "order": "ymd",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "2026-10-14T18:00:00Z",
+   "order": "ymd",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "2026/10/14",
+   "order": "ymd",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "10/14/2026",
+   "order": "mdy",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "14/10/2026",
+   "order": "dmy",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "03/04/2026",
+   "order": "mdy",
+   "date": "2026-03-04"
+  },
+  {
+   "value": "03/04/2026",
+   "order": "dmy",
+   "date": "2026-04-03"
+  },
+  {
+   "value": "14.10.2026",
+   "order": "dmy",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "10/14/26",
+   "order": "mdy",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "14/Oct/26 6:00 PM",
+   "order": "jira",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "01/Oct/26 9:00 AM",
+   "order": "jira",
+   "date": "2026-10-01"
+  },
+  {
+   "value": "Oct 14, 2026",
+   "order": "text",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "14 Oct 2026",
+   "order": "text",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "October 14, 2026",
+   "order": "text",
+   "date": "2026-10-14"
+  },
+  {
+   "value": "2026-02-30",
+   "order": "ymd",
+   "date": null
+  },
+  {
+   "value": "next week",
+   "order": null,
+   "date": null
+  },
+  {
+   "value": "ASAP",
+   "order": null,
+   "date": null
+  },
+  {
+   "value": "46309",
+   "order": null,
+   "date": null
+  }
+ ],
+ "dateOrder": [
+  {
+   "values": [
+    "2026-10-08",
+    "2026-10-09",
+    ""
+   ],
+   "order": "ymd"
+  },
+  {
+   "values": [
+    "14/10/2026",
+    "03/04/2026"
+   ],
+   "order": "dmy"
+  },
+  {
+   "values": [
+    "10/12/2026",
+    "03/04/2026"
+   ],
+   "order": "mdy"
+  },
+  {
+   "values": [
+    "14.10.2026"
+   ],
+   "order": "dmy"
+  },
+  {
+   "values": [
+    "01/Oct/26 9:00 AM",
+    "30/Oct/26 6:00 PM"
+   ],
+   "order": "jira"
+  },
+  {
+   "values": [
+    "Oct 14, 2026"
+   ],
+   "order": "text"
+  },
+  {
+   "values": [
+    "frontend",
+    "api"
+   ],
+   "order": null
+  }
+ ],
+ "numbers": [
+  {
+   "value": "1240",
+   "delimiter": ",",
+   "number": 1240
+  },
+  {
+   "value": "1,240",
+   "delimiter": ",",
+   "number": 1240
+  },
+  {
+   "value": "1 240",
+   "delimiter": ",",
+   "number": 1240
+  },
+  {
+   "value": "12.5",
+   "delimiter": ",",
+   "number": 12.5
+  },
+  {
+   "value": "12,5",
+   "delimiter": ";",
+   "number": 12.5
+  },
+  {
+   "value": "12,5",
+   "delimiter": ",",
+   "number": null
+  },
+  {
+   "value": "XL",
+   "delimiter": ",",
+   "number": null
+  },
+  {
+   "value": "",
+   "delimiter": ",",
+   "number": null
+  }
+ ],
+ "durations": [
+  {
+   "value": "28800",
+   "unit": "seconds",
+   "minutes": 480
+  },
+  {
+   "value": "90",
+   "unit": "minutes",
+   "minutes": 90
+  },
+  {
+   "value": "1.5",
+   "unit": "hours",
+   "minutes": 90
+  },
+  {
+   "value": "1h 30m",
+   "unit": "hours",
+   "minutes": 90
+  },
+  {
+   "value": "90m",
+   "unit": "seconds",
+   "minutes": 90
+  },
+  {
+   "value": "1:30",
+   "unit": "hours",
+   "minutes": 90
+  },
+  {
+   "value": "2 hours 5 mins",
+   "unit": "hours",
+   "minutes": 125
+  },
+  {
+   "value": "",
+   "unit": "hours",
+   "minutes": 0
+  },
+  {
+   "value": "soon",
+   "unit": "hours",
+   "minutes": null
+  }
+ ],
+ "csvSafe": [
+  {
+   "value": "plain",
+   "cell": "\"plain\""
+  },
+  {
+   "value": "Spec in \"Billing v2\" doc",
+   "cell": "\"Spec in \"\"Billing v2\"\" doc\""
+  },
+  {
+   "value": "=1+1",
+   "cell": "\"'=1+1\""
+  },
+  {
+   "value": "+31 6 1234",
+   "cell": "\"'+31 6 1234\""
+  },
+  {
+   "value": "-2",
+   "cell": "\"'-2\""
+  },
+  {
+   "value": "@SUM(A1)",
+   "cell": "\"'@SUM(A1)\""
+  },
+  {
+   "value": "\tcmd",
+   "cell": "\"'\tcmd\""
+  },
+  {
+   "value": "\rx",
+   "cell": "\"'\rx\""
+  },
+  {
+   "value": "\nx",
+   "cell": "\"'\nx\""
+  },
+  {
+   "value": "  =HYPERLINK(\"http://x\")",
+   "cell": "\"'  =HYPERLINK(\"\"http://x\"\")\""
+  },
+  {
+   "value": "＝1+1",
+   "cell": "\"'＝1+1\""
+  },
+  {
+   "value": "＋1",
+   "cell": "\"'＋1\""
+  },
+  {
+   "value": "－1",
+   "cell": "\"'－1\""
+  },
+  {
+   "value": "＠x",
+   "cell": "\"'＠x\""
+  },
+  {
+   "value": "a=b",
+   "cell": "\"a=b\""
+  },
+  {
+   "value": "",
+   "cell": "\"\""
+  }
+ ]
+}

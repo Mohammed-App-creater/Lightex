@@ -14,7 +14,7 @@ export type Ctx = {
 };
 type Handler = (ctx: Ctx) => unknown | Promise<unknown>;
 
-type Route = { method: HttpMethod; re: RegExp; keys: string[]; handler: Handler; anonymous: boolean };
+type Route = { method: HttpMethod; pattern: string; re: RegExp; keys: string[]; handler: Handler; anonymous: boolean };
 const routes: Route[] = [];
 
 export function route(method: HttpMethod, pattern: string, handler: Handler, opts: { anonymous?: boolean } = {}) {
@@ -27,7 +27,7 @@ export function route(method: HttpMethod, pattern: string, handler: Handler, opt
       }) +
       "$",
   );
-  routes.push({ method, re, keys, handler, anonymous: Boolean(opts.anonymous) });
+  routes.push({ method, pattern, re, keys, handler, anonymous: Boolean(opts.anonymous) });
 }
 
 export function match(method: HttpMethod, path: string) {
@@ -96,8 +96,8 @@ export function hasProject(ctx: Ctx, projectId: string, perm: Permission) {
 
 /* ───────── list helpers ───────── */
 
-export function paginate<T>(items: T[], query: ListQuery, defaultLimit = 50): Paginated<T> {
-  const limit = Math.min(Math.max(Number(query.limit) || defaultLimit, 1), 200);
+export function paginate<T>(items: T[], query: ListQuery, defaultLimit = 50, maxLimit = 200): Paginated<T> {
+  const limit = Math.min(Math.max(Number(query.limit) || defaultLimit, 1), maxLimit);
   const offset = query.cursor ? Number(query.cursor) || 0 : 0;
   const data = items.slice(offset, offset + limit);
   const next = offset + limit < items.length ? String(offset + limit) : null;

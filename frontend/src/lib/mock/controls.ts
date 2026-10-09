@@ -7,8 +7,14 @@ export type MockControls = {
   latencyMin: number;
   latencyMax: number;
   offline: boolean;
-  /** Simulated teammates occasionally edit tasks (drives polling + version conflicts). */
+  /** Simulated teammates occasionally edit tasks (drives polling + version conflicts) and, board 33, show presence. */
   teammates: boolean;
+  /** Board 33: "polling" makes the simulated stream answer "unavailable" (exercises the v1 fallback). */
+  realtime: "live" | "polling";
+  /** Board 38: Telegram links wait for "Simulate scan" instead of linking themselves after 5 s. */
+  telegramManual: boolean;
+  /** Board 38: the next Send test fails with that channel's 502 (one-shot; it switches itself off). */
+  channelFailures: boolean;
 };
 
 const STORAGE_KEY = "lightex-mock-controls";
@@ -30,6 +36,9 @@ export const mockControls = createStore<MockControls>({
   latencyMax: mockConfig.latencyMax,
   offline: false,
   teammates: true,
+  realtime: "live",
+  telegramManual: false,
+  channelFailures: false,
   ...saved(),
 });
 

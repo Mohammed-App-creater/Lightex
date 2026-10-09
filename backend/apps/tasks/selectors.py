@@ -6,15 +6,16 @@ import datetime as dt
 import uuid
 from typing import Any
 
-from django.db.models import Count, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Value
+from django.db.models import Count, Exists, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 
 from apps.common.exceptions import invalid, not_found
+from apps.common.utils import iso_date
 from apps.planning.models import Objective
 from apps.projects.models import Label, ProjectMember
 from apps.projects.selectors import project_for
 
-from .models import Task
+from .models import Task, TaskDependency, TaskFieldValue
 
 
 def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
@@ -22,8 +23,26 @@ def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
     return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
 
 
+def open_blocker_links() -> QuerySet[TaskDependency]:
+    """Dependency rows whose blocker is live and not closed (Done and Canceled both close it)."""
+    return TaskDependency.objects.filter(blocker__deleted_at__isnull=True).exclude(blocker__status__category="done")
+
+
+def is_blocked() -> Exists:
+    """`isBlocked` as an expression on Task querysets (filters and saved views)."""
+    return Exists(open_blocker_links().filter(blocked=OuterRef("pk")))
+
+
+def _sum_minutes() -> Coalesce:
+    from apps.timetracking.models import TimeEntry
+
+    sub = TimeEntry.objects.filter(task=OuterRef("pk")).order_by().values("task").annotate(s=Sum("minutes")).values("s")
+    return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
+
+
 def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
-    """Adds the counters the Task payload carries, using subqueries (no join fan-out)."""
+    """Adds the counters the Task payload carries, using subqueries (no join fan-out), and prefetches the
+    custom-field values and open blockers (one query each, whatever the number of tasks)."""
     from apps.collaboration.models import Attachment, Comment
 
     live_subtasks = Task.objects.all()
@@ -33,10 +52,38 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
         subtask_done_count=_count(done_subtasks, "parent"),
         comment_count=_count(Comment.objects.all()),
         attachment_count=_count(Attachment.objects.filter(status="ready")),
+        logged_minutes=_sum_minutes(),
     ).prefetch_related(
         Prefetch("objectives", queryset=Objective.objects.only("id")),
         Prefetch("labels", queryset=Label.objects.only("id")),
+        Prefetch(
+            "field_values",
+            queryset=TaskFieldValue.objects.only("id", "task", "field", "text", "number", "date", "option", "user"),
+        ),
+        Prefetch(
+            "blocked_by_links",
+            queryset=open_blocker_links()
+            .select_related("blocker")
+            .only("id", "blocked", "blocker__id", "blocker__key", "blocker__title", "blocker__number")
+            .order_by("blocker__number"),
+            to_attr="open_blocker_links",
+        ),
     )
+
+
+def dependencies_of(task: Task) -> tuple[QuerySet[TaskDependency], QuerySet[TaskDependency]]:
+    """(blocked by, blocks) for a task, oldest first. Rows whose other task is soft-deleted are hidden."""
+    blocked_by = (
+        TaskDependency.objects.filter(blocked=task, blocker__deleted_at__isnull=True)
+        .select_related("blocker__status")
+        .order_by("created_at", "id")
+    )
+    blocks = (
+        TaskDependency.objects.filter(blocker=task, blocked__deleted_at__isnull=True)
+        .select_related("blocked__status")
+        .order_by("created_at", "id")
+    )
+    return blocked_by, blocks
 
 
 def is_uuid(value: Any) -> bool:
@@ -90,6 +137,7 @@ SORTS: dict[str, tuple[str, Any]] = {
     "title": ("title", None),
     "priority": ("priority", None),
     "dueDate": ("due_date", dt.date(9999, 12, 31)),
+    "startDate": ("start_date", dt.date(9999, 12, 31)),
     "estimate": ("estimate", 10_000),
     "createdAt": ("created_at", None),
     "updatedAt": ("updated_at", None),
@@ -137,12 +185,61 @@ def filter_tasks(qs: QuerySet[Task], params: Any, user: Any) -> QuerySet[Task]:
             qs = qs.filter(priority__in=[int(p) for p in priorities])
         except ValueError as exc:
             raise invalid({"filter[priority]": "Priority is 0–4"}) from exc
+    blocked = set(values("blocked"))
+    if blocked - {"true", "false"}:
+        raise invalid({"filter[blocked]": "Use true or false"})
+    if blocked == {"true"}:
+        qs = qs.filter(is_blocked())
+    elif blocked == {"false"}:
+        qs = qs.filter(~is_blocked())
     types = values("type")
     if types:
         qs = qs.filter(type__in=types)
     q = (params.get("q") or "").strip()
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(key__iexact=q) | Q(key__istartswith=q))
+    return filter_schedule(qs, params)
+
+
+# ───────────────────────── board 32: date range and scheduled filters ─────────────────────────
+
+MAX_RANGE_DAYS = 400
+
+
+def filter_schedule(qs: QuerySet[Task], params: Any) -> QuerySet[Task]:
+    """`filter[from]`, `filter[to]` (inclusive overlap with the effective span
+    [start_date ?? due_date, due_date ?? start_date]) and `filter[scheduled]`. Unscheduled tasks never match a
+    range. The first value of each parameter is used."""
+
+    def first(key: str) -> str | None:
+        found = [v for v in params.getlist(f"filter[{key}]") if v != ""]
+        return found[0] if found else None
+
+    raw_from, raw_to, scheduled = first("from"), first("to"), first("scheduled")
+    errors: dict[str, str] = {}
+    frm = iso_date(raw_from)
+    to = iso_date(raw_to)
+    if raw_from is not None and frm is None:
+        errors["filter[from]"] = "Pick a date"
+    if raw_to is not None and to is None:
+        errors["filter[to]"] = "Pick a date"
+    if scheduled is not None and scheduled not in ("true", "false"):
+        errors["filter[scheduled]"] = "Use true or false"
+    if frm is not None and to is not None:
+        if to < frm:
+            errors["filter[to]"] = "End must be on or after the start"
+        elif (to - frm).days + 1 > MAX_RANGE_DAYS:
+            errors["filter[to]"] = f"Pick a range of {MAX_RANGE_DAYS} days or less"
+    if errors:
+        raise invalid(errors)
+    if frm is not None:
+        qs = qs.annotate(_span_end=Coalesce("due_date", "start_date")).filter(_span_end__gte=frm)
+    if to is not None:
+        qs = qs.annotate(_span_start=Coalesce("start_date", "due_date")).filter(_span_start__lte=to)
+    if scheduled == "true":
+        qs = qs.filter(Q(start_date__isnull=False) | Q(due_date__isnull=False))
+    elif scheduled == "false":
+        qs = qs.filter(start_date__isnull=True, due_date__isnull=True)
     return qs
 
 

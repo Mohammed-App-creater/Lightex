@@ -1,0 +1,25 @@
+{
+  "_comment": "Board 32 §7.3 shared span/overlap vectors. Inclusive overlap of [startDate ?? dueDate, dueDate ?? startDate] with [from, to]; null from/to = parameter absent. The backend copy belongs at backend/apps/tasks/tests/data/span_vectors.json.",
+  "cases": [
+    { "name": "due-only inside", "startDate": null, "dueDate": "2026-10-09", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "start-only inside", "startDate": "2026-10-09", "dueDate": null, "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "both inside", "startDate": "2026-10-06", "dueDate": "2026-10-10", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "neither (unscheduled)", "startDate": null, "dueDate": null, "from": "2026-10-01", "to": "2026-10-31", "expected": false },
+    { "name": "neither, from only", "startDate": null, "dueDate": null, "from": "2026-10-01", "to": null, "expected": false },
+    { "name": "ends exactly on from", "startDate": "2026-09-20", "dueDate": "2026-10-01", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "starts exactly on to", "startDate": "2026-10-31", "dueDate": "2026-11-05", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "ends the day before from", "startDate": "2026-09-20", "dueDate": "2026-09-30", "from": "2026-10-01", "to": "2026-10-31", "expected": false },
+    { "name": "starts the day after to", "startDate": "2026-11-01", "dueDate": "2026-11-05", "from": "2026-10-01", "to": "2026-10-31", "expected": false },
+    { "name": "encloses the window", "startDate": "2026-09-01", "dueDate": "2026-12-01", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "due-only on from", "startDate": null, "dueDate": "2026-10-01", "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "due-only before from", "startDate": null, "dueDate": "2026-09-30", "from": "2026-10-01", "to": "2026-10-31", "expected": false },
+    { "name": "start-only on to", "startDate": "2026-10-31", "dueDate": null, "from": "2026-10-01", "to": "2026-10-31", "expected": true },
+    { "name": "start-only after to", "startDate": "2026-11-01", "dueDate": null, "from": "2026-10-01", "to": "2026-10-31", "expected": false },
+    { "name": "from only, ends after", "startDate": "2026-10-02", "dueDate": "2026-10-03", "from": "2026-10-01", "to": null, "expected": true },
+    { "name": "from only, ends before", "startDate": "2026-09-02", "dueDate": "2026-09-03", "from": "2026-10-01", "to": null, "expected": false },
+    { "name": "to only, starts before", "startDate": "2026-09-02", "dueDate": "2026-12-03", "from": null, "to": "2026-10-01", "expected": true },
+    { "name": "to only, starts after", "startDate": "2026-10-02", "dueDate": "2026-10-03", "from": null, "to": "2026-10-01", "expected": false },
+    { "name": "single day window, 1-day span on it", "startDate": "2026-10-07", "dueDate": "2026-10-07", "from": "2026-10-07", "to": "2026-10-07", "expected": true },
+    { "name": "across a year boundary", "startDate": "2026-12-28", "dueDate": "2027-01-04", "from": "2027-01-01", "to": "2027-01-31", "expected": true }
+  ]
+}

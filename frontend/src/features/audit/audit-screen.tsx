@@ -366,7 +366,7 @@ export function AuditScreen() {
                         </Cell>
                         <Cell>
                           <span className={cn("font-mono text-[11.5px] font-medium", e.source === "api" ? "text-info" : "text-fg-3")}>
-                            {e.source === "api" ? "API" : "web"}
+                            {e.source === "api" ? "API" : e.source === "import" ? "import" : "web"}
                           </span>
                         </Cell>
                       </div>

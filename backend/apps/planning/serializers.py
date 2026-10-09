@@ -66,6 +66,8 @@ def epic_data(e: Epic) -> dict[str, Any]:
         "ownerId": _id(e.owner_id),
         "milestoneId": _id(e.milestone_id),
         "archivedAt": iso(e.archived_at),
+        "startDate": iso(e.start_date),
+        "dueDate": iso(e.due_date),
         "progress": _progress(e),
     }
 
@@ -139,6 +141,8 @@ class EpicOut(serializers.Serializer):
     ownerId = serializers.UUIDField(allow_null=True)
     milestoneId = serializers.UUIDField(allow_null=True)
     archivedAt = serializers.DateTimeField(allow_null=True)
+    startDate = serializers.DateField(allow_null=True, help_text="Board 32. Both or neither with dueDate.")
+    dueDate = serializers.DateField(allow_null=True, help_text="Board 32. Target date; both or neither.")
     progress = ProgressOut()
 
 
@@ -186,6 +190,10 @@ class EpicIn(serializers.Serializer):
     ownerId = serializers.UUIDField(required=False, allow_null=True)
     milestoneId = serializers.UUIDField(required=False, allow_null=True)
     archived = serializers.BooleanField(required=False)
+    startDate = serializers.DateField(
+        required=False, allow_null=True, help_text="Board 32. Set both dates or neither; null clears."
+    )
+    dueDate = serializers.DateField(required=False, allow_null=True, help_text="Board 32. On or after startDate.")
 
 
 class SprintIn(serializers.Serializer):

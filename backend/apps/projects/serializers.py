@@ -5,7 +5,7 @@ from apps.access.catalogue import ordered
 from apps.accounts.serializers import UserSerializer
 from apps.common.utils import iso
 
-from .models import Label, Project, ProjectMember, Status
+from .models import CustomField, Label, Project, ProjectMember, Status
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -18,12 +18,14 @@ class ProjectSerializer(serializers.ModelSerializer):
     activeSprintId = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
+    nextTaskNumber = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = [
             "id", "workspaceId", "key", "name", "description", "hue", "leadId", "status", "template", "createdAt",
             "memberCount", "openTaskCount", "doneTaskCount", "activeSprintId", "myRoleId", "my_permissions",
+            "nextTaskNumber",
         ]  # fmt: skip
 
     def get_createdAt(self, obj) -> str | None:
@@ -56,6 +58,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_my_permissions(self, obj) -> list[str]:
         return ordered(access.project_permissions(self.context["user"], obj))
+
+    def get_nextTaskNumber(self, obj) -> int:
+        """Board 40: the number the next task gets (the import picker's "next key")."""
+        return obj.task_seq + 1
 
 
 def project_context(user, projects) -> dict:
@@ -160,3 +166,65 @@ class LabelIn(serializers.Serializer):
 
 class IdsIn(serializers.Serializer):
     ids = serializers.ListField(child=serializers.UUIDField())
+
+
+# ───────────────────────── custom fields (board 39) ─────────────────────────
+
+
+def custom_field_data(f: CustomField) -> dict:
+    """The client's `CustomField` shape. Expects selectors.with_field_details() (falls back to queries)."""
+    count = getattr(f, "task_count", None)
+    if count is None:
+        count = f.values.filter(task__deleted_at__isnull=True).count()
+    options = sorted(f.options.all(), key=lambda o: (o.position, o.created_at)) if f.type == "select" else []
+    return {
+        "id": str(f.pk),
+        "projectId": str(f.project_id),
+        "name": f.name,
+        "type": f.type,
+        "required": f.required,
+        "position": f.position,
+        "options": [{"id": str(o.pk), "name": o.name, "color": o.color, "position": o.position} for o in options],
+        "taskCount": count,
+        "createdAt": iso(f.created_at),
+    }
+
+
+class CustomFieldOptionOut(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    color = serializers.CharField()
+    position = serializers.IntegerField()
+
+
+class CustomFieldOut(serializers.Serializer):
+    """Schema for the CustomField payload (built by custom_field_data)."""
+
+    id = serializers.UUIDField()
+    projectId = serializers.UUIDField()
+    name = serializers.CharField()
+    type = serializers.ChoiceField(choices=["text", "number", "select", "date", "user"])
+    required = serializers.BooleanField()  # type: ignore[assignment]
+    position = serializers.IntegerField()
+    options = CustomFieldOptionOut(many=True)
+    taskCount = serializers.IntegerField()
+    createdAt = serializers.DateTimeField()
+
+
+class CustomFieldOptionIn(serializers.Serializer):
+    id = serializers.UUIDField(required=False)
+    name = serializers.CharField()
+    color = serializers.CharField()
+
+
+class CustomFieldIn(serializers.Serializer):
+    name = serializers.CharField()
+    type = serializers.ChoiceField(choices=["text", "number", "select", "date", "user"])
+    required = serializers.BooleanField(required=False)  # type: ignore[assignment]
+    options = CustomFieldOptionIn(many=True, required=False)
+
+
+class CustomFieldPatchIn(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    required = serializers.BooleanField(required=False)  # type: ignore[assignment]
+    options = CustomFieldOptionIn(many=True, required=False)

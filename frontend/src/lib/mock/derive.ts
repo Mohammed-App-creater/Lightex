@@ -26,6 +26,7 @@ import type {
   UserRec,
   WorkspaceRec,
 } from "./db-types";
+import { devEnabledOf, devSummaryOf } from "./dev-derive";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
@@ -71,6 +72,7 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
     memberCount: db.wsMembers.filter((x) => x.workspaceId === w.id && x.status === "active").length,
     myRoleId: m.roleId,
     my_permissions: wsPermissions(db, userId, w.id),
+    notificationPolicy: { sms: w.smsEnabled !== false },
   };
 }
 
@@ -115,6 +117,8 @@ export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
     activeSprintId: db.sprints.find((s) => s.projectId === p.id && s.state === "active")?.id ?? null,
     myRoleId: m?.roleId ?? null,
     my_permissions: projectPermissions(db, userId, p.id),
+    nextTaskNumber: p.taskSeq + 1,
+    devEnabled: devEnabledOf(db, p.id),
   };
 }
 
@@ -123,16 +127,40 @@ function stripSeq({ taskSeq: _taskSeq, ...rest }: ProjectRec) {
 }
 
 export function toTask(db: MockDB, t: TaskRec): Task {
-  const { description: _d, startedAt: _s, ...rest } = t;
+  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, startDate, ...rest } = t;
   const statuses = statusesOf(db, t.projectId);
   const subs = db.tasks.filter((x) => x.parentId === t.id && !x.deletedAt);
+  const openBlockers = openBlockersOf(db, t.id);
   return {
     ...rest,
+    startDate: startDate ?? null,
     subtaskCount: subs.length,
     subtaskDoneCount: subs.filter((x) => isDoneStatus(x.statusId, statuses)).length,
     commentCount: db.comments.filter((c) => c.taskId === t.id).length,
     attachmentCount: db.attachments.filter((a) => a.taskId === t.id).length,
+    customFields: { ...(customFields ?? {}) },
+    isBlocked: openBlockers.length > 0,
+    openBlockers,
+    timeEstimateMinutes: timeEstimateMinutes ?? null,
+    loggedMinutes: (db.timeEntries ?? []).reduce((a, e) => (e.taskId === t.id ? a + e.minutes : a), 0),
+    dev: devSummaryOf(db, t.id),
   };
+}
+
+/**
+ * Board 39: live blockers of a task whose status category is not done (Done and Canceled both
+ * close a blocker), ordered by task number. Rows touching a soft-deleted task are ignored.
+ */
+export function openBlockersOf(db: MockDB, taskId: string) {
+  const out: TaskRec[] = [];
+  for (const d of db.dependencies ?? []) {
+    if (d.blockedId !== taskId) continue;
+    const b = db.tasks.find((x) => x.id === d.blockerId);
+    if (!b || b.deletedAt) continue;
+    const cat = db.statuses.find((s) => s.id === b.statusId)?.category;
+    if (cat !== "done") out.push(b);
+  }
+  return out.sort((a, b) => a.number - b.number).map((b) => ({ id: b.id, key: b.key, title: b.title }));
 }
 
 export function toObjective(db: MockDB, o: ObjectiveRec): Objective {
@@ -151,7 +179,15 @@ export function toMilestone(db: MockDB, m: MilestoneRec): Milestone {
 
 export function toEpic(db: MockDB, e: EpicRec): Epic {
   const tasks = liveTasks(db, e.projectId).filter((t) => t.epicId === e.id);
-  return { ...e, ownerId: e.ownerId ?? null, milestoneId: e.milestoneId ?? null, archivedAt: e.archivedAt ?? null, progress: progressOf(tasks, statusesOf(db, e.projectId)) };
+  return {
+    ...e,
+    ownerId: e.ownerId ?? null,
+    milestoneId: e.milestoneId ?? null,
+    archivedAt: e.archivedAt ?? null,
+    startDate: e.startDate ?? null,
+    dueDate: e.dueDate ?? null,
+    progress: progressOf(tasks, statusesOf(db, e.projectId)),
+  };
 }
 
 export function toSprint(db: MockDB, s: SprintRec): Sprint {

@@ -60,6 +60,41 @@ class ProgressView(ReportView):
         return Response(services.progress_rows(self.scope))
 
 
+class WorkloadView(ReportView):
+    """Board 33 W1: open sprint work per person (points or remaining minutes) against a derived capacity."""
+
+    @extend_schema(
+        tags=["reports"],
+        parameters=[
+            OpenApiParameter("filter[sprint]", str, description="Sprint id; default = the active sprint"),
+            OpenApiParameter("filter[unit]", str, enum=["points", "hours"]),
+            OpenApiParameter("filter[person]", str, description="`assignee` (default) or a Person custom field id"),
+        ],
+        responses=inline_serializer(
+            "WorkloadReport",
+            {
+                "sprint": serializers.JSONField(allow_null=True, help_text="{ id, name, number, startDate, endDate }"),
+                "unit": serializers.ChoiceField(choices=["points", "hours"]),
+                "personField": serializers.JSONField(allow_null=True, help_text="{ id, name } when used"),
+                "scale": serializers.IntegerField(),
+                "rows": serializers.JSONField(
+                    help_text="[{ user: { id, name, hue, avatarUrl }, inProgress, todo, capacity | null, unestimated }]"
+                ),
+                "unassigned": serializers.JSONField(help_text="{ inProgress, todo, unestimated }"),
+            },
+        ),
+    )
+    def get(self, request, project_id):
+        return Response(
+            services.workload(
+                self.scope,
+                filter_value(request, "sprint"),
+                filter_value(request, "unit"),
+                filter_value(request, "person"),
+            )
+        )
+
+
 class SummaryView(ProjectScopedView):
     """Project overview KPIs; visible to every project member (not only report.view)."""
 

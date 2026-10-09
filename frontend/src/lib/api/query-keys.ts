@@ -42,7 +42,45 @@ export const qk = {
   attachments: (taskId: string) => ["t", taskId, "attachments"] as const,
   taskActivity: (taskId: string) => ["t", taskId, "activity"] as const,
 
+  /* Board 39 (v2) */
+  customFields: (projectId: string) => ["p", projectId, "custom-fields"] as const,
+  dependencies: (taskId: string) => ["t", taskId, "dependencies"] as const,
+  timeEntries: (taskId: string) => ["t", taskId, "time"] as const,
+  myTimer: () => ["me", "timer"] as const,
+  /** Prefix for every week/project of a workspace's timesheet. */
+  timesheets: (slug: string) => ["workspace", slug, "timesheet"] as const,
+  timesheet: (slug: string, week: string, projectId?: string) => ["workspace", slug, "timesheet", week, projectId ?? "all"] as const,
+
+  /* Board 32 (v2). Under ["p", id] so qk.scope invalidation and patchTasks reach them. */
+  /** Tasks overlapping a window (timeline / calendar). */
+  schedule: (projectId: string, from: string, to: string) => ["p", projectId, "schedule", from, to] as const,
+  /** Prefix of every schedule window of a project. */
+  schedules: (projectId: string) => ["p", projectId, "schedule"] as const,
+  unscheduled: (projectId: string) => ["p", projectId, "unscheduled"] as const,
+
+  /* Board 40 (v2). The history sits under ["p", id] so qk.scope invalidation reaches it. */
+  imports: (projectId: string) => ["p", projectId, "imports"] as const,
+  importJob: (id: string) => ["import", id] as const,
+  importRows: (id: string, outcome: string, revision: number) => ["import", id, "rows", outcome, revision] as const,
+
+  /* Board 33 (v2). The list sits under ["p", id] so qk.scope invalidation reaches it. */
+  dashboards: (projectId: string) => ["p", projectId, "dashboards"] as const,
+  dashboard: (id: string) => ["dashboard", id] as const,
+  /** Project presence roster; outside ["p", id] so qk.scope invalidation doesn't refetch it. */
+  presence: (slug: string, projectId: string) => ["presence", slug, projectId] as const,
+  /** My-tasks widget: the viewer's tasks in one project (under ["p", id], so task patches reach it). */
+  myProjectTasks: (projectId: string) => ["p", projectId, "tasks", "mine"] as const,
+
+  /* Board 37 (v2). Development sits under ["t", id] (task-scoped), rules under ["p", id] (qk.scope reaches them). */
+  integrations: (slug: string) => ["workspace", slug, "integrations"] as const,
+  availableRepos: (integrationId: string, q?: string) => ["integration", integrationId, "available", q ?? ""] as const,
+  development: (taskId: string) => ["t", taskId, "development"] as const,
+  devRules: (projectId: string) => ["p", projectId, "dev-rules"] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,
+  /* Board 38 (v2). Personal: not under a workspace (the same for every workspace). */
+  channels: () => ["notification-channels"] as const,
+  telegramLink: (id: string) => ["notification-channels", "telegram-link", id] as const,
 };

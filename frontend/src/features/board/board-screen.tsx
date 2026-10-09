@@ -21,7 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Filter, ListTodo, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph } from "@/components/ui/glyphs";
@@ -30,6 +30,8 @@ import { Segmented } from "@/components/ui/choice";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { shell } from "@/components/shell/shell-state";
 import { useMe } from "@/features/auth/session";
+import { ImportCsvButton } from "@/features/import/import-wizard-host";
+import { canImportInto } from "@/features/import/import-lib";
 import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
 import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
@@ -37,9 +39,14 @@ import { useLabels, useProjectMembers } from "@/features/projects/queries";
 import { useMoveTask, useUpdateTask } from "@/features/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
 import { POLL_MS } from "@/features/workspace/queries";
+import { NO_PEOPLE, peopleAt, taskViewers } from "@/features/presence/presence-lib";
+import { PresenceStack } from "@/features/presence/presence-stack";
+import { usePresence, useRoster } from "@/features/presence/use-presence";
+import { useRealtime } from "@/lib/realtime/provider";
+import { useLiveInterval } from "@/lib/realtime/status-store";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
-import type { Label, Status, Task, User } from "@/lib/api/types";
+import type { Label, PresencePerson, Status, Task, User } from "@/lib/api/types";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { canEditTask, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
 import { pushUrl, routes, withTaskParam } from "@/lib/routes";
@@ -72,13 +79,28 @@ export function BoardScreen() {
   const [drag, setDrag] = useState<{ activeId: string; columns: Columns; overCol: string | null } | null>(null);
   const lastSwitch = useRef(0);
 
+  // Board 33: the SSE stream invalidates while live; otherwise v1's 30 s polling while visible.
+  const interval = useLiveInterval(POLL_MS);
   const board = useQuery({
     queryKey: qk.board(project.id, scope),
     queryFn: () => api.board.get(project.id, scope),
-    // No WebSockets: poll every 30s while visible; pause while a card is in the air.
-    refetchInterval: drag ? false : POLL_MS,
+    // Pause while a card is in the air.
+    refetchInterval: drag ? false : interval,
     refetchIntervalInBackground: false,
   });
+  // Board 33 presence: this tab is on the board; cards show who has each task open.
+  usePresence({ projectId: project.id, location: { kind: "board", id: project.id } });
+  const roster = useRoster(project.id);
+  const viewers = useMemo(() => taskViewers(roster.data, me.id), [roster.data, me.id]);
+  const onBoard = peopleAt(roster.data, { kind: "board", id: project.id }, me.id).others;
+  // Realtime events for this project wait while a card is in the air (applied on drop).
+  const realtime = useRealtime();
+  const dragging = Boolean(drag);
+  useEffect(() => {
+    if (!dragging) return;
+    realtime.pause(project.id);
+    return () => realtime.resume(project.id);
+  }, [dragging, realtime, project.id]);
   const { data: members = [] } = useProjectMembers(project.id);
   const { data: labels = [] } = useLabels(project.id);
   const { data: sprint } = useQuery({
@@ -281,11 +303,14 @@ export function BoardScreen() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {canCreate && (
+      {(canCreate || onBoard.length > 0) && (
         <TopBarActions>
-          <Button size="sm" variant="primary" kbd="C" onClick={() => shell.openCreateTask({ projectId: project.id })}>
-            <Plus size={14} aria-hidden /> New task
-          </Button>
+          {onBoard.length > 0 && <PresenceStack others={onBoard} me={me} size={26} label="Viewing now" className="mr-1 max-[760px]:hidden" />}
+          {canCreate && (
+            <Button size="sm" variant="primary" kbd="C" onClick={() => shell.openCreateTask({ projectId: project.id })}>
+              <Plus size={14} aria-hidden /> New task
+            </Button>
+          )}
         </TopBarActions>
       )}
       {toolbar}
@@ -314,7 +339,7 @@ export function BoardScreen() {
               align="center"
               icon={<ListTodo size={20} aria-hidden />}
               title={scope === "active" && sprint ? `No tasks in ${sprint.name}` : "No tasks yet"}
-              body={scope === "active" && sprint ? "Pull work in from the backlog, or create a task." : "Create the first task for this project."}
+              body={scope === "active" && sprint ? "Pull work in from the backlog, or create a task." : canImportInto(project) ? "Create the first task for this project, or import a CSV." : "Create the first task for this project."}
               actions={
                 <>
                   {canCreate && (
@@ -322,6 +347,7 @@ export function BoardScreen() {
                       New task
                     </Button>
                   )}
+                  <ImportCsvButton project={project} />
                   <Button variant="ghost" asChild>
                     <Link href={routes.project(ws.slug, project.key, "backlog")}>Open backlog</Link>
                   </Button>
@@ -359,6 +385,7 @@ export function BoardScreen() {
                 userById={userById}
                 labelById={labelById}
                 openKey={openKey}
+                viewers={viewers}
                 canMove={canMove}
                 canCreate={canCreate}
                 isTarget={Boolean(drag && drag.overCol === s.id)}
@@ -393,6 +420,7 @@ const BoardColumn = memo(function BoardColumn({
   userById,
   labelById,
   openKey,
+  viewers,
   canMove,
   canCreate,
   isTarget,
@@ -407,6 +435,7 @@ const BoardColumn = memo(function BoardColumn({
   userById: Map<string, User>;
   labelById: Map<string, Label>;
   openKey: string | null;
+  viewers: Map<string, readonly PresencePerson[]>;
   canMove: boolean;
   canCreate: boolean;
   isTarget: boolean;
@@ -453,6 +482,7 @@ const BoardColumn = memo(function BoardColumn({
                 assignee={t.assigneeId ? userById.get(t.assigneeId) ?? null : null}
                 labels={t.labelIds.map((l) => labelById.get(l)).filter((l): l is Label => Boolean(l))}
                 selected={openKey === t.key}
+                present={viewers.get(t.id) ?? NO_PEOPLE}
                 disabled={!canMove}
                 canToggle={canToggleFor(t)}
                 onOpen={onOpen}
@@ -477,6 +507,7 @@ function SortableCard({
   assignee,
   labels,
   selected,
+  present,
   disabled,
   canToggle,
   onOpen,
@@ -487,6 +518,7 @@ function SortableCard({
   assignee: User | null;
   labels: Label[];
   selected: boolean;
+  present: readonly PresencePerson[];
   disabled: boolean;
   canToggle: boolean;
   onOpen: (t: Task, el: HTMLElement) => void;
@@ -505,6 +537,7 @@ function SortableCard({
         assignee={assignee}
         labels={labels}
         selected={selected}
+        present={present}
         dragging={isDragging}
         canToggle={canToggle}
         onOpen={onOpen}

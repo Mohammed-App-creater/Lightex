@@ -7,14 +7,17 @@ export type ProjectView =
   | "board"
   | "list"
   | "backlog"
+  | "timeline"
+  | "calendar"
   | "sprints"
   | "epics"
   | "objectives"
   | "milestones"
   | "reports"
+  | "dashboards"
   | "settings";
 
-export type SettingsSection = "general" | "members" | "roles" | "notifications" | "profile" | "audit";
+export type SettingsSection = "general" | "members" | "roles" | "integrations" | "notifications" | "profile" | "audit";
 
 export const routes = {
   login: (next?: string) => (next ? `/login?next=${encodeURIComponent(next)}` : "/login"),
@@ -28,13 +31,21 @@ export const routes = {
   task: (ws: string, key: string) => `/${ws}/tasks/${key}`,
   settings: (ws: string, section: SettingsSection = "general") => `/${ws}/settings/${section}`,
   trash: (ws: string) => `/${ws}/trash`,
+  /** Board 39 (v2): workspace timesheet. */
+  timesheet: (ws: string) => `/${ws}/timesheet`,
+  /** Board 33 (v2): one project dashboard. */
+  dashboard: (ws: string, key: string, id: string) => `/${ws}/projects/${key}/dashboards/${encodeURIComponent(id)}`,
 };
 
 /** Adds or removes ?task=KEY on the current URL (task side panel). */
 export function withTaskParam(pathname: string, search: string, key: string | null) {
   const sp = new URLSearchParams(search);
   if (key) sp.set("task", key);
-  else sp.delete("task");
+  else {
+    sp.delete("task");
+    // Board 32: "Add dates" opens the panel with the date fields revealed (?reveal=dates).
+    sp.delete("reveal");
+  }
   const qs = sp.toString();
   return qs ? `${pathname}?${qs}` : pathname;
 }
@@ -54,7 +65,7 @@ export function useRouteInfo() {
     taskKey: params.taskKey ?? null,
     view,
     section,
-    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash",
+    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash" | "timesheet",
     pathname,
   };
 }

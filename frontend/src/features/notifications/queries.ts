@@ -7,14 +7,16 @@ import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
 import type { Notification, NotificationPreferences } from "@/lib/api/types";
 import { POLL_MS } from "@/features/workspace/queries";
+import { useLiveInterval } from "@/lib/realtime/status-store";
 
 export type InboxPage = Awaited<ReturnType<typeof api.notifications.list>>;
 
 export function useInbox(tab: NotificationTab, workspaceId: string) {
+  const interval = useLiveInterval(POLL_MS);
   return useQuery({
     queryKey: qk.notifications(tab, workspaceId),
     queryFn: () => api.notifications.list(tab, workspaceId, { limit: 100 }),
-    refetchInterval: POLL_MS,
+    refetchInterval: interval,
     refetchIntervalInBackground: false,
   });
 }

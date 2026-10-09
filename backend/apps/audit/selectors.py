@@ -24,11 +24,19 @@ ACTIVITY_VERBS = {
     "sprint.completed": "sprint_completed",
     "attachment.created": "attached",
     "project_member.added": "member_added",
+    "task.dependency_added": "dependency_added",
+    "task.dependency_removed": "dependency_removed",
+    # Board 40: one entry per import in the project/workspace feeds, one per task in the task feed.
+    "task.imported": "imported",
+    "project.import_completed": "imported",
 }
+# Kept in each task's own feed but left out of project/workspace feeds (an import shows as one entry there).
+TASK_ONLY = ("task.imported",)
 
 
 def activity(project_ids: Any) -> QuerySet[AuditLog]:
-    return AuditLog.objects.filter(project_id__in=project_ids, action__in=list(ACTIVITY_VERBS))
+    actions = [a for a in ACTIVITY_VERBS if a not in TASK_ONLY]
+    return AuditLog.objects.filter(project_id__in=project_ids, action__in=actions)
 
 
 def task_activity(task: Any) -> QuerySet[AuditLog]:

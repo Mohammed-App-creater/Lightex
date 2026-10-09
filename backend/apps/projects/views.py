@@ -6,10 +6,13 @@ from apps.access.permissions import MEMBER, ScopedView
 from apps.common.params import body, filter_value
 from apps.workspaces.views import WorkspaceScopedView
 
-from . import saved_views, selectors, services
+from . import custom_fields, saved_views, selectors, services
 from .serializers import (
     AccessRequestSerializer,
     AccessRequestWithUserSerializer,
+    CustomFieldIn,
+    CustomFieldOut,
+    CustomFieldPatchIn,
     IdsIn,
     LabelIn,
     LabelSerializer,
@@ -19,6 +22,7 @@ from .serializers import (
     ProjectSerializer,
     StatusIn,
     StatusSerializer,
+    custom_field_data,
     project_context,
 )
 
@@ -281,4 +285,55 @@ class SavedViewDetailView(ScopedView):
     @extend_schema(tags=["views"])
     def delete(self, request, view_id):
         saved_views.delete_view(request.user, self.view_obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ───────────────────────── custom fields (board 39) ─────────────────────────
+
+
+def _field_list(project) -> list[dict]:
+    return [custom_field_data(f) for f in selectors.custom_fields_of(project)]
+
+
+def _field_payload(field) -> dict:
+    return custom_field_data(selectors.with_field_details(type(field).objects.filter(pk=field.pk)).get())
+
+
+class CustomFieldsView(ProjectScopedView):
+    required = {"GET": "project.view", "POST": "field.manage"}
+
+    @extend_schema(tags=["custom fields"], responses={200: CustomFieldOut(many=True)})
+    def get(self, request, project_id):
+        return Response(_field_list(self.scope))
+
+    @extend_schema(tags=["custom fields"], request=CustomFieldIn, responses={201: CustomFieldOut})
+    def post(self, request, project_id):
+        field = custom_fields.create_field(request.user, self.scope, body(request))
+        return Response(_field_payload(field), status=status.HTTP_201_CREATED)
+
+
+class CustomFieldsOrderView(ProjectScopedView):
+    required = {"PUT": "field.manage"}
+
+    @extend_schema(tags=["custom fields"], request=IdsIn, responses={200: CustomFieldOut(many=True)})
+    def put(self, request, project_id):
+        custom_fields.reorder_fields(request.user, self.scope, body(request).get("ids"))
+        return Response(_field_list(self.scope))
+
+
+class CustomFieldDetailView(ScopedView):
+    required = {"PATCH": "field.manage", "DELETE": "field.manage"}
+
+    def get_scope(self):
+        self.field = selectors.custom_field_for(self.request.user, self.kwargs["field_id"])
+        return self.field.project
+
+    @extend_schema(tags=["custom fields"], request=CustomFieldPatchIn, responses={200: CustomFieldOut})
+    def patch(self, request, field_id):
+        field = custom_fields.update_field(request.user, self.field, body(request))
+        return Response(_field_payload(field))
+
+    @extend_schema(tags=["custom fields"], responses={204: None})
+    def delete(self, request, field_id):
+        custom_fields.delete_field(request.user, self.field)
         return Response(status=status.HTTP_204_NO_CONTENT)

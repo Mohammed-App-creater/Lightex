@@ -83,6 +83,27 @@ export function patchTasks(qc: QueryClient, fn: TaskFn, projectId?: string) {
   }
 }
 
+/**
+ * Board 33 (realtime): the cached copies of a task, across every cache that holds it. applyEvent
+ * skips a `task.changed` when even the oldest copy is already at that version (own echo).
+ */
+export function findTask(qc: QueryClient, taskId: string, projectId?: string): { task: Task; minVersion: number } | null {
+  let found: Task | null = null;
+  let minVersion = Infinity;
+  for (const queryKey of taskCachePrefixes(projectId)) {
+    for (const [, data] of qc.getQueriesData({ queryKey })) {
+      mapTasksIn(data, (t) => {
+        if (t.id === taskId) {
+          if (!found || t.version > found.version) found = t;
+          minVersion = Math.min(minVersion, t.version);
+        }
+        return t;
+      });
+    }
+  }
+  return found ? { task: found, minVersion } : null;
+}
+
 export function restore(qc: QueryClient, snap: Snapshot) {
   for (const [key, data] of snap) qc.setQueryData(key, data);
 }

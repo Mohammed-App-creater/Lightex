@@ -367,12 +367,15 @@ export function CommentComposer({
   onSend,
   sending,
   me,
+  typing,
 }: {
   people: () => User[];
   /** Rejects when the comment wasn't saved, so the composer can restore the draft. */
   onSend: (doc: RichDoc) => Promise<unknown> | void;
   sending?: boolean;
   me: Pick<User, "name" | "hue">;
+  /** Board 33: the typing signal (keys, blur, send) for "Sam is typing" in other people's panels. */
+  typing?: { onKeyDown: (e: { key: string; metaKey?: boolean; ctrlKey?: boolean }) => void; onBlur: () => void; onSend: () => void };
 }) {
   const [empty, setEmpty] = useState(true);
   const send = async () => {
@@ -381,6 +384,7 @@ export function CommentComposer({
     if (richIsEmpty(json)) return;
     if (richToText(json).length > 2000) return;
     if (sending) return;
+    typing?.onSend();
     // Clear at once (the comment shows optimistically); if the send fails, put the draft back.
     editor.commands.clearContent(true);
     try {
@@ -401,7 +405,7 @@ export function CommentComposer({
   return (
     <div className="flex items-start gap-2.5 pt-2">
       <Avatar name={me.name} hue={me.hue} size={28} decorative />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5" onKeyDown={typing ? (e) => typing.onKeyDown(e) : undefined} onBlur={typing ? () => typing.onBlur() : undefined}>
         <EditorContent
           editor={editor}
           className="min-h-10 rounded-md border border-line-2 bg-surface px-3 py-2 text-[13px] leading-5 [&_.rich-editor]:min-h-6 transition-[border-color,box-shadow] focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-s)]"
