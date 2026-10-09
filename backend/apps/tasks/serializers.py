@@ -28,6 +28,7 @@ def task_data(t: Task) -> dict:
         "assigneeId": _id(t.assignee_id),
         "reporterId": _id(t.reporter_id) or "",
         "estimate": t.estimate,
+        "startDate": iso(t.start_date),
         "dueDate": iso(t.due_date),
         "epicId": _id(t.epic_id),
         "milestoneId": _id(t.milestone_id),
@@ -212,6 +213,9 @@ class TaskOut(serializers.Serializer):
     assigneeId = serializers.UUIDField(allow_null=True)
     reporterId = serializers.UUIDField()
     estimate = serializers.IntegerField(allow_null=True)
+    startDate = serializers.DateField(
+        allow_null=True, help_text="Board 32. Span = [startDate ?? dueDate, dueDate ?? startDate]."
+    )
     dueDate = serializers.DateField(allow_null=True)
     epicId = serializers.UUIDField(allow_null=True)
     milestoneId = serializers.UUIDField(allow_null=True)
@@ -260,6 +264,9 @@ class TaskWriteIn(serializers.Serializer):
     sprintId = serializers.UUIDField(required=False, allow_null=True)
     epicId = serializers.UUIDField(required=False, allow_null=True)
     milestoneId = serializers.UUIDField(required=False, allow_null=True)
+    startDate = serializers.DateField(
+        required=False, allow_null=True, help_text="On or before dueDate when both are set. Not bulk-editable."
+    )
     dueDate = serializers.DateField(required=False, allow_null=True)
     parentId = serializers.UUIDField(required=False, allow_null=True)
     labelIds = serializers.ListField(child=serializers.UUIDField(), required=False)

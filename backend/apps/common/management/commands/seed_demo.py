@@ -11,6 +11,10 @@ Board 39 (custom fields, dependencies, time) is loaded from the fixture's `custo
 `timeEntries` collections when present; otherwise the same PRJ data is built here from
 docs/v2/39-fields-dependencies-time.md §6.8.
 
+Board 32 (timeline & calendar) start dates and epic dates are read from the fixture's `startDate` / `dueDate` keys
+when present; then `load_board32` applies the mock's `ensureExt32` upgrade (docs/v2/32-timeline-calendar.md §6.9)
+with the same rules, so an older fixture gets the same PRJ dates as mock mode.
+
 Every demo account uses DEMO_PASSWORD. The command refuses to run when DEBUG is off.
 """
 
@@ -163,6 +167,7 @@ class Command(BaseCommand):
         self.load_planning(data)
         self.load_tasks(data)
         self.load_board39(data)
+        self.load_board32()
         self.load_collaboration(data)
 
     def load_projects(self, data: dict[str, Any]) -> None:
@@ -234,6 +239,8 @@ class Command(BaseCommand):
                 owner=self.users.get(e.get("ownerId")),
                 milestone=self.milestones.get(e.get("milestoneId")),
                 archived_at=self.ts(e.get("archivedAt")),
+                start_date=self.date(e.get("startDate")),
+                due_date=self.date(e.get("dueDate")),
             )
         for s in data["sprints"]:
             start, end = self.day(s["startDate"]), self.day(s["endDate"])
@@ -269,6 +276,7 @@ class Command(BaseCommand):
                 assignee=self.users.get(t["assigneeId"]),
                 reporter=self.users.get(t["reporterId"]),
                 estimate=t["estimate"],
+                start_date=self.date(t.get("startDate")),
                 due_date=self.date(t["dueDate"]),
                 epic=self.epics.get(t["epicId"]),
                 milestone=self.milestones.get(t["milestoneId"]),
@@ -510,6 +518,35 @@ class Command(BaseCommand):
         if ext["fill"]:
             self.timesheet_fill(data, skip={e["taskId"] for e in ext["timeEntries"]})
 
+    # ── board 32: timeline & calendar ──
+
+    def load_board32(self) -> None:
+        """A port of the mock's `ensureExt32`: PRJ start dates where the task has none and its due date is still
+        the seeded one, the four design epic dates where the epic has none, and PRJ-50 blocks PRJ-52."""
+        if "p_prj" not in self.projects:
+            return
+        for number, start, due in PRJ_DATES:
+            task = self.tasks.get(f"p_prj-t{number}")
+            if task is None or task.start_date is not None or task.due_date != self.day(due):
+                continue
+            task.start_date = self.day(start)
+            Task.all_objects.filter(pk=task.pk).update(start_date=task.start_date)
+        for epic_id, (start, due) in EPIC_DATES.items():
+            epic = self.epics.get(epic_id)
+            if epic is None or epic.start_date is not None or epic.due_date is not None:
+                continue
+            epic.start_date, epic.due_date = self.day(start), self.day(due)
+            epic.save(update_fields=["start_date", "due_date"])
+        blocker, blocked = self.tasks.get("p_prj-t50"), self.tasks.get("p_prj-t52")
+        if blocker and blocked and not TaskDependency.objects.filter(blocker=blocker, blocked=blocked).exists():
+            TaskDependency.objects.create(
+                blocker=blocker,
+                blocked=blocked,
+                project=blocked.project,
+                created_by=self.users.get("u_jordan"),
+                created_at=timezone.now() - dt.timedelta(hours=2),
+            )
+
     def value_column(self, field: CustomField, value: Any, options: dict[str, CustomFieldOption]) -> dict[str, Any]:
         if field.type == "number":
             return {"number": Decimal(str(value))}
@@ -600,6 +637,27 @@ class Command(BaseCommand):
             out.write(f"    {email}")
         for email, link in getattr(self, "invite_links", []):
             out.write(f"  Pending invite for {email}: {link}")
+
+
+# ───────────────────────── board 32 seed data (docs/v2/32-timeline-calendar.md §6.9) ─────────────────────────
+
+# (PRJ task number, startDate, dueDate as seeded in v1), design dates relative to ANCHOR.
+PRJ_DATES = [
+    (31, "2026-09-24", "2026-09-30"), (33, "2026-10-02", "2026-10-14"), (34, "2026-10-06", "2026-10-10"),
+    (38, "2026-10-09", "2026-10-16"), (40, "2026-09-22", "2026-10-02"), (42, "2026-10-01", "2026-10-21"),
+    (44, "2026-10-05", "2026-10-08"), (48, "2026-10-05", "2026-10-09"), (49, "2026-09-03", "2026-09-10"),
+    (50, "2026-09-29", "2026-10-06"), (52, "2026-10-14", "2026-10-20"), (53, "2026-09-25", "2026-09-29"),
+    (54, "2026-10-12", "2026-10-14"), (57, "2026-10-05", "2026-10-15"), (58, "2026-10-12", "2026-10-17"),
+    (60, "2026-09-01", "2026-09-08"), (61, "2026-09-24", "2026-10-01"), (62, "2026-09-21", "2026-09-28"),
+    (65, "2026-10-01", "2026-10-05"), (66, "2026-10-13", "2026-10-18"), (67, "2026-10-20", "2026-10-26"),
+    (71, "2026-10-14", "2026-10-19"),
+]  # fmt: skip
+EPIC_DATES = {
+    "ep_auth": ("2026-09-14", "2026-10-23"),
+    "ep_board": ("2026-09-21", "2026-11-06"),
+    "ep_sprint": ("2026-09-01", "2026-10-30"),
+    "ep_bill": ("2026-09-01", "2026-11-20"),
+}
 
 
 # ───────────────────────── board 39 seed data ─────────────────────────

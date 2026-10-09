@@ -21,6 +21,7 @@ from apps.audit.services import change, record
 from apps.common import fractional
 from apps.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from apps.common.richtext import doc_text, mention_ids, sanitize_doc
+from apps.common.utils import iso_date
 from apps.notifications.events import emit
 from apps.planning.models import Epic, Milestone, Objective, Sprint, SprintScopeChange
 from apps.projects.models import CustomField, Label, Project, ProjectMember, Status
@@ -153,13 +154,34 @@ def _type(value: Any) -> str:
     return value
 
 
-def _due(value: Any) -> dt.date | None:
-    if value is None:
-        return None
-    try:
-        return dt.date.fromisoformat(str(value))
-    except ValueError as exc:
-        raise invalid({"dueDate": "Pick a date"}) from exc
+START_AFTER_DUE = "Start date must be on or before the due date"
+DUE_BEFORE_START = "Due date must be on or after the start date"
+
+
+DatePair = tuple[dt.date | None, dt.date | None]
+
+
+def _task_dates(data: dict[str, Any], start: dt.date | None, due: dt.date | None) -> DatePair:
+    """Board 32: the resulting (start_date, due_date) after applying the sent `startDate` / `dueDate` to the
+    stored pair. Format errors first (both keys reported), then the order of the resulting pair: the error goes
+    on `startDate` when it was sent, else on `dueDate`."""
+    errors: dict[str, str] = {}
+    for key in ("startDate", "dueDate"):
+        if key not in data:
+            continue
+        value = data[key]
+        parsed = None if value is None else iso_date(value)
+        if value is not None and parsed is None:
+            errors[key] = "Pick a date"
+        elif key == "startDate":
+            start = parsed
+        else:
+            due = parsed
+    if errors:
+        raise invalid(errors)
+    if start is not None and due is not None and start > due:
+        raise invalid({"startDate": START_AFTER_DUE} if "startDate" in data else {"dueDate": DUE_BEFORE_START})
+    return start, due
 
 
 def last_position(project_id: Any, status_id: Any, *, exclude: Any = None) -> str:
@@ -245,6 +267,7 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         epic = epic or parent.epic
     labels = _labels(project, data["labelIds"]) if data.get("labelIds") else []
     description = sanitize_doc(data.get("description"))
+    start_date, due_date = _task_dates(data, None, None)
 
     locked = Project.objects.select_for_update().get(pk=project.pk)  # serialises key allocation
     locked.task_seq += 1
@@ -261,7 +284,8 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         assignee=assignee,
         reporter=actor,
         estimate=_estimate(data.get("estimate")),
-        due_date=_due(data.get("dueDate")),
+        start_date=start_date,
+        due_date=due_date,
         epic=epic,
         milestone=milestone,
         sprint=sprint,
@@ -314,7 +338,7 @@ def _emit_mentions(task: Task, actor: Any, now: list[str], before: list[str]) ->
 # ───────────────────────── update ─────────────────────────
 
 EDITABLE = {
-    "title", "type", "priority", "statusId", "assigneeId", "estimate", "dueDate", "epicId", "milestoneId",
+    "title", "type", "priority", "statusId", "assigneeId", "estimate", "startDate", "dueDate", "epicId", "milestoneId",
     "sprintId", "objectiveIds", "labelIds", "description", "customFields", "timeEstimateMinutes",
 }  # fmt: skip
 
@@ -372,8 +396,11 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
         if estimate != task.estimate:
             changes.append(change("Estimate", task.estimate, estimate))
             task.estimate = estimate
-    if "dueDate" in keys:
-        due = _due(data["dueDate"])
+    if {"startDate", "dueDate"} & keys:
+        start, due = _task_dates(data, task.start_date, task.due_date)
+        if start != task.start_date:
+            changes.append(change("Start date", task.start_date, start))
+            task.start_date = start
         if due != task.due_date:
             changes.append(change("Due date", task.due_date, due))
             task.due_date = due
@@ -738,6 +765,7 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
     unknown = set(patch) - BULK_FIELDS
     if unknown:
         raise invalid({f"patch.{sorted(unknown)[0]}": "This field can’t be bulk-edited"})
+    _check_bulk_due(patch, tasks)
     if "assigneeId" in patch and not access.can(actor, "task.assign", project):
         raise forbidden("You can’t reassign tasks.", {"permission": "task.assign"})
     for task in tasks:
@@ -755,6 +783,19 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
         single["version"] = task.version
         out.append(update_task(actor, task, single))
     return out
+
+
+def _check_bulk_due(patch: dict[str, Any], tasks: list[Task]) -> None:
+    """Board 32: a bulk due date must not fall before any selected task's start (all-or-nothing). Null is
+    always allowed (the tasks become start-only)."""
+    if "dueDate" not in patch or patch["dueDate"] is None:
+        return
+    due = iso_date(patch["dueDate"])
+    if due is None:
+        raise invalid({"patch.dueDate": "Pick a date"})
+    late = sorted((t for t in tasks if t.start_date is not None and t.start_date > due), key=lambda t: t.number)
+    if late:
+        raise invalid({"patch.dueDate": f"{late[0].key} starts after this date"})
 
 
 # ───────────────────────── dependencies (board 39) ─────────────────────────

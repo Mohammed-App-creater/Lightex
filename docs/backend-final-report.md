@@ -301,3 +301,52 @@ logged), weekday timesheet entries for PRJ, MOB and INF members over the current
 
 No notifications for dependency, field or time events; no editing of time entries; no timer pause; no
 cross-project dependencies; custom-field filtering is not added to `GET projects/{id}/tasks` (clients filter).
+
+### 8.3 v2 · Board 32: timeline & calendar
+
+Built from `docs/v2/32-timeline-calendar.md` (the contract), on branch `v2`, after board 39. No new endpoint, app or
+permission.
+
+| Check | Result |
+|---|---|
+| `ruff check` / `ruff format --check` / `mypy apps config` | clean |
+| `makemigrations --check` | no pending migrations |
+| `pytest` | 1,364 tests passing (PostgreSQL 17); 52 of them are new for board 32 (`tasks/tests/test_schedule.py`, `planning/tests/test_epic_dates.py`, one seed test) |
+| Coverage | 97.1 % overall (gate 85 %); 99 % on `apps/access` (gate 95 %) |
+| OpenAPI | `docs/openapi.yaml` regenerated and validated |
+
+**Data model.** `Task.start_date` with `task_dates_ordered` and the `task_due` / `task_start` indexes
+(`tasks 0003_task_start_date`); `Epic.start_date` / `Epic.due_date` with the both-or-neither `epic_dates_ordered`
+check (`planning 0003_epic_dates`). No data migration: existing rows are `NULL`.
+
+**Endpoints.** `GET projects/{id}/tasks` takes `filter[from]`, `filter[to]` (inclusive overlap with the effective span
+`[start ?? due, due ?? start]`, at most 400 days) and `filter[scheduled]`, and sorts by `startDate` / `-startDate`
+(empty dates last ascending, first descending, the `dueDate` sentinel). `PATCH tasks/{id}` and `POST
+projects/{id}/tasks` accept `startDate`, with the order checked on the resulting pair and the field-specific messages;
+the version is still checked first and bumped once. Bulk refuses `patch.startDate` and fails the whole request when
+`patch.dueDate` falls before any selected task's start (first offending key by number). Epic create / patch accept
+`startDate` / `dueDate` under `epic.manage`. Every `Task` payload carries `startDate`; every `Epic` payload carries
+`startDate` and `dueDate`.
+
+**Side effects.** `task.updated` audits `Start date` alongside `Due date` (so the activity feed shows the v1
+"updated" entry); `epic.updated` audits `Start date` and `Target date`. No notifications.
+
+**Seed.** `seed_demo` reads `startDate` (tasks) and `startDate` / `dueDate` (epics) from the fixture when present, then
+runs a port of the mock's `ensureExt32`: the 22 PRJ start dates of §6.9 where the task has no start and its due date is
+still the seeded one, the four design epic dates where the epic has none, and PRJ-50 blocks PRJ-52. That link makes
+PRJ-52 blocked, so the seeded "Blocked" view now counts 5 (the board 39 seed test was updated to match).
+
+**Shared vectors.** `apps/tasks/tests/data/span_vectors.json` is a verbatim copy of the frontend's
+`frontend/src/features/schedule/span-vectors.json`, and every case runs against the real filter.
+
+### 8.4 Board 32 decisions where the contract was silent or ambiguous
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | Date format | `startDate`, `dueDate` (task and epic) and `filter[from]` / `filter[to]` must be exactly `YYYY-MM-DD` and a real date. v1's `dueDate` parser also accepted other ISO forms such as `20261009`; they are now `Pick a date`, which matches the mock. |
+| 2 | Deleted task PATCH | As in board 39 (§8.1 #3): the `tasks/{id}` route hides soft-deleted tasks (404). The service still refuses with 409 `task_deleted`, which is tested at the service level. |
+| 3 | Bulk check order | The date checks (`patch.startDate` refusal, bad `patch.dueDate` format, start after due) run before the permission and deleted-task checks, as in the mock. A bad bulk `dueDate` format is keyed `patch.dueDate`; v1 keyed it `dueDate`. |
+| 4 | Repeated range params | Only the first non-empty `filter[from]` / `filter[to]` / `filter[scheduled]` is used, and empty values count as absent. When either date is malformed, both format errors are reported and the order and length checks are skipped. |
+| 5 | Epic errors | The one-sided error is always on `startDate`, even when only `dueDate` was sent (as in the contract's table and the mock). Format errors skip the pair checks. Creating an epic with dates writes only `epic.created`, with no date changes. |
+| 6 | Sort scope | `startDate` joins the shared sort table, so `me/tasks` and `workspaces/{slug}/tasks` accept it too. The range filters are only on `projects/{id}/tasks` (contract §9 #1). |
+| 7 | Migration graph | `tasks 0003` depends on `planning 0003` (as Django generated it). |

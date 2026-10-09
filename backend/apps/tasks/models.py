@@ -27,6 +27,8 @@ class Task(SoftDeleteModel):
     )
     estimate = models.PositiveSmallIntegerField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
+    # Board 32: planned start (wire `startDate`). Not `started_at`, which records when work began.
+    start_date = models.DateField(null=True, blank=True)
     epic = models.ForeignKey("planning.Epic", null=True, blank=True, on_delete=models.SET_NULL, related_name="tasks")
     milestone = models.ForeignKey(
         "planning.Milestone", null=True, blank=True, on_delete=models.SET_NULL, related_name="tasks"
@@ -58,6 +60,12 @@ class Task(SoftDeleteModel):
             models.CheckConstraint(
                 condition=models.Q(time_estimate_minutes__lte=60000), name="task_time_estimate_range"
             ),
+            models.CheckConstraint(
+                condition=models.Q(start_date__isnull=True)
+                | models.Q(due_date__isnull=True)
+                | models.Q(start_date__lte=models.F("due_date")),
+                name="task_dates_ordered",
+            ),
         ]
         indexes = [
             models.Index(fields=["project", "status", "position"], name="task_board_order"),
@@ -66,6 +74,8 @@ class Task(SoftDeleteModel):
             models.Index(fields=["sprint", "deleted_at"], name="task_sprint"),
             models.Index(fields=["project", "completed_at"], name="task_completed"),
             models.Index(fields=["parent"], name="task_parent"),
+            models.Index(fields=["project", "due_date"], name="task_due"),
+            models.Index(fields=["project", "start_date"], name="task_start"),
             GinIndex(fields=["search_vector"], name="task_search_gin"),
         ]
 

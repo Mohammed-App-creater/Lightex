@@ -1,3 +1,4 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
@@ -39,11 +40,27 @@ LIST_PARAMS = [
     OpenApiParameter("filter[label]", str, many=True),
     OpenApiParameter("filter[parent]", str, many=True),
     OpenApiParameter("filter[blocked]", str, enum=["true", "false"], description="has at least one open blocker"),
+    OpenApiParameter(
+        "filter[from]",
+        OpenApiTypes.DATE,
+        description="YYYY-MM-DD. Keeps tasks whose span (startDate ?? dueDate → dueDate ?? startDate) ends on or "
+        "after this day. Undated tasks never match. With filter[to]: at most 400 days, inclusive.",
+    ),
+    OpenApiParameter(
+        "filter[to]", OpenApiTypes.DATE, description="YYYY-MM-DD. Keeps tasks whose span starts on or before this day."
+    ),
+    OpenApiParameter(
+        "filter[scheduled]",
+        str,
+        enum=["true", "false"],
+        description="true: startDate or dueDate set; false: neither set",
+    ),
     OpenApiParameter("q", str),
     OpenApiParameter(
         "sort",
         str,
-        description="number, title, priority, dueDate, estimate, createdAt, updatedAt or position; - for descending",
+        description="number, title, priority, dueDate, startDate, estimate, createdAt, updatedAt or position; "
+        "- for descending (dates: empty last ascending, first descending)",
     ),
     OpenApiParameter("cursor", str),
     OpenApiParameter("limit", int),

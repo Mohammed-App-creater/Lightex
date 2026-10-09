@@ -1887,6 +1887,14 @@ paths:
           items:
             type: string
       - in: query
+        name: filter[from]
+        schema:
+          type: string
+          format: date
+        description: 'YYYY-MM-DD. Keeps tasks whose span (startDate ?? dueDate → dueDate
+          ?? startDate) ends on or after this day. Undated tasks never match. With
+          filter[to]: at most 400 days, inclusive.'
+      - in: query
         name: filter[label]
         schema:
           type: array
@@ -1911,6 +1919,14 @@ paths:
           items:
             type: integer
       - in: query
+        name: filter[scheduled]
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: 'true: startDate or dueDate set; false: neither set'
+      - in: query
         name: filter[sprint]
         schema:
           type: array
@@ -1923,6 +1939,12 @@ paths:
           type: array
           items:
             type: string
+      - in: query
+        name: filter[to]
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD. Keeps tasks whose span starts on or before this day.
       - in: query
         name: limit
         schema:
@@ -1941,8 +1963,9 @@ paths:
         name: sort
         schema:
           type: string
-        description: number, title, priority, dueDate, estimate, createdAt, updatedAt
-          or position; - for descending
+        description: 'number, title, priority, dueDate, startDate, estimate, createdAt,
+          updatedAt or position; - for descending (dates: empty last ascending, first
+          descending)'
       tags:
       - tasks
       responses:
@@ -4088,6 +4111,16 @@ components:
           nullable: true
         archived:
           type: boolean
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Set both dates or neither; null clears.
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. On or after startDate.
     EpicOut:
       type: object
       properties:
@@ -4115,11 +4148,22 @@ components:
           type: string
           format: date-time
           nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Both or neither with dueDate.
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Target date; both or neither.
         progress:
           $ref: '#/components/schemas/ProgressOut'
       required:
       - archivedAt
       - description
+      - dueDate
       - hue
       - id
       - milestoneId
@@ -4127,6 +4171,7 @@ components:
       - ownerId
       - progress
       - projectId
+      - startDate
     GlyphEnum:
       enum:
       - backlog
@@ -4615,6 +4660,16 @@ components:
           nullable: true
         archived:
           type: boolean
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Set both dates or neither; null clears.
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. On or after startDate.
     PatchedLabelInRequest:
       type: object
       properties:
@@ -4783,6 +4838,11 @@ components:
           type: string
           format: uuid
           nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: On or before dueDate when both are set. Not bulk-editable.
         dueDate:
           type: string
           format: date
@@ -5389,6 +5449,11 @@ components:
         estimate:
           type: integer
           nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Span = [startDate ?? dueDate, dueDate ?? startDate].
         dueDate:
           type: string
           format: date
@@ -5499,6 +5564,7 @@ components:
       - projectId
       - reporterId
       - sprintId
+      - startDate
       - statusId
       - subtaskCount
       - subtaskDoneCount
@@ -5591,6 +5657,11 @@ components:
         estimate:
           type: integer
           nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Board 32. Span = [startDate ?? dueDate, dueDate ?? startDate].
         dueDate:
           type: string
           format: date
@@ -5689,6 +5760,7 @@ components:
       - projectId
       - reporterId
       - sprintId
+      - startDate
       - statusId
       - subtaskCount
       - subtaskDoneCount
@@ -5755,6 +5827,11 @@ components:
           type: string
           format: uuid
           nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: On or before dueDate when both are set. Not bulk-editable.
         dueDate:
           type: string
           format: date

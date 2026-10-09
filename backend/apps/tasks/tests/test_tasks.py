@@ -42,7 +42,7 @@ def test_create_task_payload_and_side_effects(owner, project, st):
         "estimate", "dueDate", "epicId", "milestoneId", "sprintId", "parentId", "objectiveIds", "labelIds",
         "position", "version", "createdAt", "updatedAt", "completedAt", "deletedAt", "subtaskCount",
         "subtaskDoneCount", "commentCount", "attachmentCount",
-        "customFields", "isBlocked", "openBlockers", "timeEstimateMinutes", "loggedMinutes",
+        "customFields", "isBlocked", "openBlockers", "timeEstimateMinutes", "loggedMinutes", "startDate",
     }  # fmt: skip
     second = new(client, project, title="Second")
     assert second["key"] == "PRJ-2"

@@ -1,5 +1,7 @@
 import datetime as dt
+import re
 import secrets
+from typing import Any
 
 from django.utils import timezone
 
@@ -18,6 +20,19 @@ def iso(value: dt.datetime | dt.date | None) -> str | None:
     if isinstance(value, dt.datetime):
         return value.astimezone(dt.UTC).isoformat().replace("+00:00", "Z")
     return value.isoformat()
+
+
+_ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}", re.ASCII)
+
+
+def iso_date(value: Any) -> dt.date | None:
+    """A real calendar date written exactly YYYY-MM-DD, else None (2026-02-30, 2026-1-5, 20261005 are refused)."""
+    if not isinstance(value, str) or not _ISO_DATE.fullmatch(value):
+        return None
+    try:
+        return dt.date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def as_list(value) -> list[str]:
