@@ -18,10 +18,13 @@ from .models import Task
 from .serializers import (
     ActivityOut,
     BulkIn,
+    DependencyIn,
+    TaskDependenciesOut,
     TaskDetailOut,
     TaskOut,
     TaskPageOut,
     TaskWriteIn,
+    dependencies_data,
     task_data,
     task_detail_data,
 )
@@ -35,6 +38,7 @@ LIST_PARAMS = [
     OpenApiParameter("filter[priority]", int, many=True),
     OpenApiParameter("filter[label]", str, many=True),
     OpenApiParameter("filter[parent]", str, many=True),
+    OpenApiParameter("filter[blocked]", str, enum=["true", "false"], description="has at least one open blocker"),
     OpenApiParameter("q", str),
     OpenApiParameter(
         "sort",
@@ -198,6 +202,32 @@ class TaskLabelsView(TaskScopedView):
     def put(self, request, task_id):
         task = services.set_task_labels(request.user, self.task, body(request).get("labelIds"))
         return Response(task_data(fresh(task.pk)))
+
+
+class TaskDependenciesView(TaskScopedView):
+    """Board 39: blocked by / blocks. Readable on a deleted task; writes there are 409 `task_deleted`."""
+
+    required = {"GET": "project.view", "POST": MEMBER}
+    include_deleted = True
+
+    @extend_schema(tags=["dependencies"], responses={200: TaskDependenciesOut})
+    def get(self, request, task_id):
+        return Response(dependencies_data(self.task))
+
+    @extend_schema(tags=["dependencies"], request=DependencyIn, responses={201: TaskDependenciesOut})
+    def post(self, request, task_id):
+        services.add_dependency(request.user, self.task, body(request))
+        return Response(dependencies_data(self.task), status=status.HTTP_201_CREATED)
+
+
+class TaskDependencyDetailView(TaskScopedView):
+    required = {"DELETE": MEMBER}
+    include_deleted = True
+
+    @extend_schema(tags=["dependencies"], responses={204: None})
+    def delete(self, request, task_id, dependency_id):
+        services.remove_dependency(request.user, self.task, dependency_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TaskActivityView(TaskScopedView):

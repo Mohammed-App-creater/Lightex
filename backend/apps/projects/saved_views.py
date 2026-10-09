@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Max, Q, QuerySet
+from django.db.models import Exists, Max, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from apps.access import services as access
@@ -26,30 +26,69 @@ OPS = {
     "sprint": ("is", "not", "any", "empty"),
     "epic": ("is", "not", "any", "empty"),
     "due": ("before", "after", "empty"),
+    "blocked": ("is",),
 }
+# Board 39: `cf.<fieldId>` rules, by field type.
+CF_OPS = {
+    "text": ("set", "empty"),
+    "number": ("gt", "lt", "set", "empty"),
+    "select": ("is", "not", "any", "empty"),
+    "user": ("is", "not", "any", "empty"),
+    "date": ("before", "after", "empty"),
+}
+NO_VALUES = ("empty", "set")
 VALUE_RE = re.compile(r"^[\w.-]{1,80}$")
 MAX_RULES = 12
 MAX_NAME = 40
 
 
-def clean_rules(raw: Any) -> list[dict[str, Any]]:
+def _number(value: str) -> bool:
+    try:
+        float(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _field_types(project: Project | None) -> dict[str, str]:
+    """{"cf.<id>": type} for the project's custom fields."""
+    if project is None:
+        return {}
+    from .models import CustomField
+
+    return {f"cf.{pk}": t for pk, t in CustomField.objects.filter(project=project).values_list("pk", "type")}
+
+
+def clean_rules(raw: Any, project: Project | None = None) -> list[dict[str, Any]]:
+    """Keeps the valid rows. `cf.<id>` rows need a field of `project` and an op valid for its type."""
     if not isinstance(raw, list):
         raise invalid({"filters": "Filters must be a list"})
+    field_types = (
+        _field_types(project)
+        if any(isinstance(i, dict) and str(i.get("field", "")).startswith("cf.") for i in raw[:MAX_RULES])
+        else {}
+    )
     rules = []
     for item in raw[:MAX_RULES]:
         if not isinstance(item, dict):
             continue
         field, op = item.get("field"), item.get("op")
-        if field not in OPS or op not in OPS[field]:
+        field_type = field_types.get(field) if isinstance(field, str) else None
+        allowed = CF_OPS[field_type] if field_type else OPS.get(field) if isinstance(field, str) else None
+        if not allowed or op not in allowed:
             continue
         raw_values = item.get("values")
         values: list[Any] = raw_values if isinstance(raw_values, list) else []
         clean = list(dict.fromkeys(str(v) for v in values if VALUE_RE.match(str(v))))
-        if op == "empty":
+        if op in NO_VALUES:
             clean = []
         elif op != "any":
             clean = clean[:1]
-        if op == "empty" or clean:  # incomplete rows are dropped
+        if field == "blocked":
+            clean = [v for v in clean if v in ("true", "false")]
+        elif op in ("gt", "lt"):
+            clean = [v for v in clean if _number(v)]
+        if op in NO_VALUES or clean:  # incomplete rows are dropped
             rules.append({"field": field, "op": op, "values": clean})
     return rules
 
@@ -77,8 +116,18 @@ def apply_rules(qs: QuerySet, rules: list[dict[str, Any]], user: Any, project: P
 
     today = timezone.now().date()
     sprint_end = Sprint.objects.filter(project=project, state="active").values_list("end_date", flat=True).first()
+    field_types = _field_types(project) if any(r["field"].startswith("cf.") for r in rules) else {}
     for r in rules:
         field, op, values = r["field"], r["op"], r["values"]
+        if field == "blocked":
+            from apps.tasks.selectors import is_blocked
+
+            qs = qs.filter(is_blocked() if values == ["true"] else ~is_blocked())
+            continue
+        if field.startswith("cf."):
+            if field in field_types:  # a rule whose field was deleted is ignored
+                qs = _apply_cf_rule(qs, field[3:], field_types[field], op, values, user, today, sprint_end)
+            continue
         if field == "due":
             if op == "empty":
                 qs = qs.filter(due_date__isnull=True)
@@ -109,6 +158,30 @@ def apply_rules(qs: QuerySet, rules: list[dict[str, Any]], user: Any, project: P
             cond = Q(**{f"{column}__in": [v for v in ids if _uuid(v)]})
         qs = qs.exclude(cond) if op == "not" else qs.filter(cond)
     return qs.distinct()
+
+
+def _apply_cf_rule(
+    qs: QuerySet, field_id: str, field_type: str, op: str, values: list[str], user: Any, today: dt.date, sprint_end: Any
+) -> QuerySet:
+    """`cf.<id>` semantics (board 39): `not` matches tasks with no value; before/after/gt/lt don't."""
+    from apps.tasks.models import TaskFieldValue
+
+    def has(**lookup: Any) -> Exists:
+        return Exists(TaskFieldValue.objects.filter(task=OuterRef("pk"), **{"field_id": field_id}, **lookup))
+
+    if op == "set":
+        return qs.filter(has())
+    if op == "empty":
+        return qs.filter(~has())
+    if op in ("gt", "lt"):
+        return qs.filter(has(**{f"number__{op}": values[0]}))
+    if op in ("before", "after"):
+        date = _resolve_due(values[0], today, sprint_end)
+        return qs.none() if date is None else qs.filter(has(**{"date__lt" if op == "before" else "date__gt": date}))
+    column = "option_id" if field_type == "select" else "user_id"
+    ids = [str(user.pk) if (field_type == "user" and v == "me") else v for v in values]
+    match = has(**{f"{column}__in": [v for v in ids if _uuid(v)]})
+    return qs.filter(~match) if op == "not" else qs.filter(match)
 
 
 def _uuid(value: Any) -> bool:
@@ -199,7 +272,7 @@ def create_view(user: Any, workspace: Any, data: dict[str, Any]) -> SavedView:
     name = _name(data.get("name"))
     if _name_taken(user, workspace, name):
         raise invalid({"name": "A view with this name exists"})
-    rules = clean_rules(data.get("filters"))
+    rules = clean_rules(data.get("filters"), project)
     if not rules:
         raise invalid({"filters": "Add at least one filter"})
     view = SavedView.objects.create(
@@ -245,7 +318,7 @@ def update_view(user: Any, view: SavedView, data: dict[str, Any]) -> SavedView:
     if isinstance(icon, str) and icon in ICONS:
         view.icon = icon
     if "filters" in data:
-        rules = clean_rules(data.get("filters"))
+        rules = clean_rules(data.get("filters"), view.project)
         if not rules:
             raise invalid({"filters": "Add at least one filter"})
         view.filters = rules

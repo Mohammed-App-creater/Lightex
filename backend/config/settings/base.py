@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.audit",
     "apps.search",
+    "apps.timetracking",
 ]
 
 MIDDLEWARE = [

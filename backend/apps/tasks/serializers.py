@@ -1,10 +1,13 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from apps.access import services as access
 from apps.access.catalogue import ordered
 from apps.common.utils import iso
 
-from .models import Task
+from . import selectors
+from .models import Task, TaskDependency, TaskFieldValue
 
 
 def _id(value) -> str | None:
@@ -46,7 +49,50 @@ def task_data(t: Task) -> dict:
         ),
         "commentCount": _counter(t, "comment_count", lambda: _comments(t)),
         "attachmentCount": _counter(t, "attachment_count", lambda: _attachments(t)),
+        **_board39(t),
     }
+
+
+def number_out(value: Decimal) -> int | float:
+    return int(value) if value == value.to_integral_value() else float(value)
+
+
+def field_value(v: TaskFieldValue) -> str | int | float | None:
+    """Wire value: select → option id, user → user id, date → ISO, number → number, text → string."""
+    if v.option_id:
+        return str(v.option_id)
+    if v.user_id:
+        return str(v.user_id)
+    if v.date is not None:
+        return v.date.isoformat()
+    if v.number is not None:
+        return number_out(v.number)
+    return v.text
+
+
+def _board39(t: Task) -> dict:
+    """Custom-field values, blockers and time. Uses selectors.annotated() prefetches (falls back to queries)."""
+    links = getattr(t, "open_blocker_links", None)
+    if links is None:
+        links = list(
+            selectors.open_blocker_links().filter(blocked=t).select_related("blocker").order_by("blocker__number")
+        )
+    blockers = [{"id": str(d.blocker.pk), "key": d.blocker.key, "title": d.blocker.title} for d in links]
+    return {
+        "customFields": {str(v.field_id): field_value(v) for v in t.field_values.all()},
+        "isBlocked": bool(blockers),
+        "openBlockers": blockers,
+        "timeEstimateMinutes": t.time_estimate_minutes,
+        "loggedMinutes": _counter(t, "logged_minutes", lambda: _logged(t)),
+    }
+
+
+def _logged(t: Task) -> int:
+    from django.db.models import Sum
+
+    from apps.timetracking.models import TimeEntry
+
+    return TimeEntry.objects.filter(task=t).aggregate(s=Sum("minutes"))["s"] or 0
 
 
 def _comments(t: Task) -> int:
@@ -66,12 +112,45 @@ def _counter(t: Task, attr: str, fallback) -> int:
     return value if value is not None else fallback()
 
 
+def dependency_task_data(t: Task) -> dict:
+    return {
+        "id": str(t.pk),
+        "key": t.key,
+        "title": t.title,
+        "statusId": str(t.status_id),
+        "status": {"name": t.status.name, "glyph": t.status.glyph, "category": t.status.category},
+        "assigneeId": _id(t.assignee_id),
+    }
+
+
+def _dependency_item(d: TaskDependency, other: Task) -> dict:
+    return {
+        "id": str(d.pk),
+        "task": dependency_task_data(other),
+        "createdAt": iso(d.created_at),
+        "createdById": _id(d.created_by_id),
+    }
+
+
+def dependencies_data(task: Task) -> dict:
+    """The client's `TaskDependencies` shape."""
+    blocked_by, blocks = selectors.dependencies_of(task)
+    blocked_by_items = list(blocked_by)
+    return {
+        "taskId": str(task.pk),
+        "isBlocked": any(d.blocker.status.category != "done" for d in blocked_by_items),
+        "blockedBy": [_dependency_item(d, d.blocker) for d in blocked_by_items],
+        "blocks": [_dependency_item(d, d.blocked) for d in blocks],
+    }
+
+
 def task_detail_data(t: Task, user, subtasks) -> dict:
     project = t.project
     return {
         **task_data(t),
         "description": t.description,
         "subtasks": [task_data(s) for s in subtasks],
+        "dependencies": dependencies_data(t),
         "project": {
             "id": str(project.pk),
             "key": project.key,
@@ -80,6 +159,43 @@ def task_detail_data(t: Task, user, subtasks) -> dict:
             "my_permissions": ordered(access.project_permissions(user, project)),
         },
     }
+
+
+class TaskRefOut(serializers.Serializer):
+    id = serializers.UUIDField()
+    key = serializers.CharField()
+    title = serializers.CharField()
+
+
+class DependencyStatusOut(serializers.Serializer):
+    name = serializers.CharField()
+    glyph = serializers.CharField()
+    category = serializers.CharField()
+
+
+class DependencyTaskOut(TaskRefOut):
+    statusId = serializers.UUIDField()
+    status = DependencyStatusOut()
+    assigneeId = serializers.UUIDField(allow_null=True)
+
+
+class DependencyItemOut(serializers.Serializer):
+    id = serializers.UUIDField()
+    task = DependencyTaskOut()
+    createdAt = serializers.DateTimeField()
+    createdById = serializers.UUIDField(allow_null=True)
+
+
+class TaskDependenciesOut(serializers.Serializer):
+    taskId = serializers.UUIDField()
+    isBlocked = serializers.BooleanField()
+    blockedBy = DependencyItemOut(many=True)
+    blocks = DependencyItemOut(many=True)
+
+
+class DependencyIn(serializers.Serializer):
+    relation = serializers.ChoiceField(choices=["blocked_by", "blocks"])
+    taskId = serializers.UUIDField()
 
 
 class TaskOut(serializers.Serializer):
@@ -113,6 +229,14 @@ class TaskOut(serializers.Serializer):
     subtaskDoneCount = serializers.IntegerField()
     commentCount = serializers.IntegerField()
     attachmentCount = serializers.IntegerField()
+    customFields = serializers.DictField(
+        help_text="Set values only, keyed by custom field id: select → option id, user → user id, "
+        "date → ISO date, number → number, text → string."
+    )
+    isBlocked = serializers.BooleanField()
+    openBlockers = TaskRefOut(many=True)
+    timeEstimateMinutes = serializers.IntegerField(allow_null=True)
+    loggedMinutes = serializers.IntegerField()
 
 
 class TaskPageOut(serializers.Serializer):
@@ -124,6 +248,7 @@ class TaskDetailOut(TaskOut):
     description = serializers.JSONField(allow_null=True)
     subtasks = TaskOut(many=True)
     project = serializers.JSONField()
+    dependencies = TaskDependenciesOut()
 
 
 class TaskWriteIn(serializers.Serializer):
@@ -141,6 +266,12 @@ class TaskWriteIn(serializers.Serializer):
     objectiveIds = serializers.ListField(child=serializers.UUIDField(), required=False)
     description = serializers.JSONField(required=False, allow_null=True)
     estimate = serializers.IntegerField(required=False, allow_null=True)
+    customFields = serializers.DictField(
+        required=False, help_text="PATCH only. Merge: listed field ids are set, null clears, others are untouched."
+    )
+    timeEstimateMinutes = serializers.IntegerField(
+        required=False, allow_null=True, help_text="PATCH only. 1–60000 minutes; null or 0 clears."
+    )
     version = serializers.IntegerField(required=False)
 
 

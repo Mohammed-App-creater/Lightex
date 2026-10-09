@@ -46,6 +46,8 @@ class Task(SoftDeleteModel):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
     search_vector = SearchVectorField(null=True, editable=False)
+    # Board 39: planned effort in minutes (separate from `estimate`, which is story points).
+    time_estimate_minutes = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta(SoftDeleteModel.Meta):
         constraints = [
@@ -53,6 +55,9 @@ class Task(SoftDeleteModel):
             models.CheckConstraint(condition=models.Q(priority__lte=4), name="task_priority_range"),
             models.CheckConstraint(condition=models.Q(estimate__lte=99), name="task_estimate_range"),
             models.CheckConstraint(condition=~models.Q(parent=models.F("id")), name="task_not_own_parent"),
+            models.CheckConstraint(
+                condition=models.Q(time_estimate_minutes__lte=60000), name="task_time_estimate_range"
+            ),
         ]
         indexes = [
             models.Index(fields=["project", "status", "position"], name="task_board_order"),
@@ -117,3 +122,63 @@ class ExternalLink(BaseModel):
     url = models.URLField(max_length=500)
     type = models.CharField(max_length=16, choices=TYPES)
     external_id = models.CharField(max_length=120)
+
+
+VALUE_COLUMNS = ("text", "number", "date", "option", "user")
+
+
+def _exactly_one(columns: tuple[str, ...]) -> models.Q:
+    """Exactly one of `columns` is non-null."""
+    q = models.Q()
+    for chosen in columns:
+        q |= models.Q(**{f"{c}__isnull": c != chosen for c in columns})
+    return q
+
+
+class TaskFieldValue(BaseModel):
+    """A task's value for one custom field. Exactly one value column is set; no row means empty."""
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="field_values")
+    field = models.ForeignKey("projects.CustomField", on_delete=models.CASCADE, related_name="values")
+    text = models.CharField(max_length=120, null=True, blank=True)
+    number = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    option = models.ForeignKey(
+        "projects.CustomFieldOption", null=True, blank=True, on_delete=models.CASCADE, related_name="+"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="+"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["task", "field"], name="task_field_value_unique"),
+            models.CheckConstraint(condition=_exactly_one(VALUE_COLUMNS), name="task_field_value_one"),
+            models.CheckConstraint(
+                condition=models.Q(number__isnull=True) | models.Q(number__gte=0, number__lte=1_000_000_000),
+                name="task_field_value_number_range",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["field", "option"], name="field_value_option"),
+            models.Index(fields=["field", "user"], name="field_value_user"),
+            models.Index(fields=["field", "date"], name="field_value_date"),
+            models.Index(fields=["field", "number"], name="field_value_number"),
+        ]
+
+
+class TaskDependency(BaseModel):
+    """`blocker` blocks `blocked` ("blocked is blocked by blocker"). Both tasks are in `project`."""
+
+    blocker = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="blocks_links")
+    blocked = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="blocked_by_links")
+    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["blocker", "blocked"], name="task_dependency_unique"),
+            models.CheckConstraint(condition=~models.Q(blocker=models.F("blocked")), name="task_dependency_not_self"),
+        ]

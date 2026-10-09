@@ -6,13 +6,22 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from django.db.models import Count, OuterRef, Q, QuerySet, Subquery
+from django.db.models import Count, OuterRef, Prefetch, Q, QuerySet, Subquery
 
 from apps.access import services as access
 from apps.access.catalogue import PROJECT_ADMIN_PERMISSION
 from apps.common.exceptions import ApiError, not_found
 
-from .models import AccessRequest, Label, Project, ProjectKeyAlias, ProjectMember, Status
+from .models import (
+    AccessRequest,
+    CustomField,
+    CustomFieldOption,
+    Label,
+    Project,
+    ProjectKeyAlias,
+    ProjectMember,
+    Status,
+)
 
 
 def _uuid(value: Any) -> bool:
@@ -156,3 +165,31 @@ def admin_count(project: Project, *, excluding_user: Any = None) -> int:
     if excluding_user is not None:
         qs = qs.exclude(user_id=excluding_user)
     return qs.values("user_id").distinct().count()
+
+
+# ───────────────────────── custom fields (board 39) ─────────────────────────
+
+
+def with_field_details(qs: QuerySet[CustomField]) -> QuerySet[CustomField]:
+    """Options in order plus `task_count` (live tasks with a value)."""
+    return qs.annotate(
+        task_count=Count("values", filter=Q(values__task__deleted_at__isnull=True), distinct=True)
+    ).prefetch_related(Prefetch("options", queryset=CustomFieldOption.objects.order_by("position", "created_at")))
+
+
+def custom_fields_of(project: Project) -> QuerySet[CustomField]:
+    return with_field_details(CustomField.objects.filter(project=project)).order_by("position", "created_at")
+
+
+def custom_field_for(user: Any, field_id: Any) -> CustomField:
+    """A field in a project the user is on. Unknown and invisible ids are both 404."""
+    field = (
+        CustomField.objects.select_related("project", "project__workspace")
+        .filter(pk=field_id, project__deleted_at__isnull=True, project__workspace__deleted_at__isnull=True)
+        .first()
+        if _uuid(field_id)
+        else None
+    )
+    if field is None or not access.project_permissions(user, field.project):
+        raise not_found("Custom field not found.")
+    return field

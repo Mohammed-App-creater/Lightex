@@ -75,3 +75,33 @@ def test_concurrent_edits_with_same_version_conflict():
     assert outcomes.count("ok") == 1
     assert outcomes.count("version_conflict") == 5
     assert Task.objects.get(pk=task.pk).version == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_concurrent_opposite_dependencies_cannot_close_a_loop():
+    """A blocks B and B blocks A at the same time: the project row lock lets exactly one through."""
+    from apps.tasks.models import TaskDependency
+    from apps.tasks.services import add_dependency
+
+    owner = UserFactory()
+    ws = make_workspace(owner, slug="race3")
+    project = make_project(ws, owner, key="DEP")
+    a = create_task(owner, project, {"title": "A"})
+    b = create_task(owner, project, {"title": "B"})
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def link(i):
+        task, other = (a, b) if i % 2 == 0 else (b, a)
+        try:
+            add_dependency(owner, Task.objects.get(pk=task.pk), {"relation": "blocks", "taskId": str(other.pk)})
+            result = "ok"
+        except ApiError as exc:
+            result = exc.code
+        with lock:
+            outcomes.append(result)
+
+    errors = _run_parallel(2, link)
+    assert not errors, errors
+    assert sorted(outcomes) == ["dependency_cycle", "ok"]
+    assert TaskDependency.objects.count() == 1

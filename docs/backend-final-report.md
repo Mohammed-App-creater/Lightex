@@ -241,3 +241,63 @@ The frontend (unchanged) ran with `NEXT_PUBLIC_API_MODE=live` against this API s
    and optionally `process_outbox`.
 6. Point the client at the API: `NEXT_PUBLIC_API_MODE=live`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_UPLOAD_ORIGIN`
    (and add the upload origin to the client's `img-src`).
+
+---
+
+## 8. v2 · Board 39: custom fields, dependencies, time tracking
+
+Built from `docs/v2/39-fields-dependencies-time.md` (the contract), on branch `v2`.
+
+| Check | Result |
+|---|---|
+| `ruff check` / `ruff format --check` / `mypy apps config` | clean |
+| `makemigrations --check` | no pending migrations |
+| `pytest` | 1,312 tests passing (PostgreSQL 17), 104 of them in the new board-39 test files plus new matrix, IDOR, seed and concurrency cases |
+| Coverage | 97.0 % overall (gate 85 %); 99 % on `apps/access` (gate 95 %) |
+| OpenAPI | `docs/openapi.yaml` regenerated and validated: 114 paths, 160 operations |
+
+**Data model.** `projects.CustomField` / `CustomFieldOption` (migration `projects 0003_custom_fields`);
+`tasks.TaskFieldValue`, `tasks.TaskDependency` and `Task.time_estimate_minutes` (`tasks 0002_fields_dependencies_time`);
+new app `apps.timetracking` with `TimeEntry` and `RunningTimer` (`timetracking 0001_initial`). Every constraint of §2
+is in the database (case-insensitive unique names, exactly one value column, number and estimate ranges, dependency
+unique + not-self, entry minutes 1–1440, one timer per user). `access 0003_board39_permissions` is an idempotent data
+migration that creates `field.manage`, `time.log`, `time.delete_any` if missing and grants them to existing system
+roles by `system_key` (Project Admin and Manager: all three; project Member: `time.log`); custom roles are untouched.
+
+**Endpoints.** F1–F5 (`projects/{id}/custom-fields`, `…/order`, `custom-fields/{id}`), T1 (`PATCH tasks/{id}` accepts
+`customFields` as a merge and `timeEstimateMinutes`), D1–D3 (`tasks/{id}/dependencies[/{dependencyId}]`), E1–E3
+(`tasks/{id}/time-entries`, `time-entries/{id}`), R1–R3 (`me/timer`, `tasks/{id}/timer`, `me/timer/stop`) and S1
+(`workspaces/{slug}/timesheet`). Every `Task` payload gains `customFields`, `isBlocked`, `openBlockers`,
+`timeEstimateMinutes`, `loggedMinutes`; `TaskDetail` gains `dependencies`. `GET projects/{id}/tasks` takes
+`filter[blocked]`. Saved views understand `blocked` and `cf.<fieldId>` rules (rules for deleted fields match
+everything), and their counts include them. The board keeps a constant query count (tested with 5 and 50 tasks
+carrying values, entries and blockers). Dependency adds lock the project row before the cycle BFS (tested with two
+real concurrent transactions). All writes are audited as listed in §5.2 of the contract; `task.dependency_added` and
+`task.dependency_removed` feed the activity feeds (`dependency_added` / `dependency_removed`).
+
+**Seed.** `seed_demo` adds the PRJ custom fields, values, dependencies, PRJ-42's estimate and entries (255 minutes
+logged), weekday timesheet entries for PRJ, MOB and INF members over the current and previous week, and a pinned
+"Blocked" view for every PRJ member. No timer is seeded.
+
+### 8.1 Decisions where the contract was silent or ambiguous
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | `seed_demo` source | The exported fixture (`demo_seed.json`) has no board-39 collections yet (the frontend mock is being built in parallel). `seed_demo` builds the §6.8 PRJ data itself, and loads the mock's `customFields` / `dependencies` / `timeEntries` collections (plus `TaskRec.customFields` / `timeEstimateMinutes`) instead once the fixture is regenerated. The timesheet fill is a port of the mock's `seedTimesheet` (same hash, same task, note and source choices, real dates), so the live timesheet matches mock mode; PRJ-42 is excluded, so its total stays 255 minutes. |
+| 2 | Invisible ids | A custom field or time entry in a project the caller isn't on is 404 (`Custom field not found.` / `Time entry not found.`), as F3/E3 say, rather than v1's 403 `project_membership_required`. |
+| 3 | Deleted tasks | The new task-scoped routes (dependencies, time entries, timer) resolve soft-deleted tasks, so reads work and writes return 409 `task_deleted`. `PATCH tasks/{id}` keeps v1's lookup, which hides deleted tasks (404); the service itself still refuses with 409. |
+| 4 | Text values | A non-string value for a text field is 422 `Up to 120 characters` (the contract has no message for it; this matches the mock). |
+| 5 | Create and bulk | `POST projects/{id}/tasks` ignores `customFields` / `timeEstimateMinutes` (v1 ignores unknown keys); bulk refuses them with the v1 message. |
+| 6 | Option errors | `options.N.*` indices refer to the submitted array (before blank rows are dropped). An option `id` sent on create is `options.N.id: Unknown option`. Colour-only option edits are saved and audited with an empty diff. |
+| 7 | Number values | Returned as JSON integers when whole (`1240`), otherwise as decimals (`12.35`). |
+| 8 | Cycle path | The loop starts at the task that would become blocked: on PRJ-42, "blocked by PRJ-47" when PRJ-42 blocks PRJ-47 gives `["PRJ-42","PRJ-47","PRJ-42"]`. |
+| 9 | Remove a link | When the other task is soft-deleted the link is hidden, so `DELETE …/dependencies/{id}` is 404 until it is restored. |
+| 10 | Timer stop order | 404 (no timer) → 409 / 403 (timer discarded, and the discard commits) → 422 on a bad `date` (timer kept) → log. Durations round half up (30 s → 1 minute), as JavaScript's `Math.round` does. |
+| 11 | Timesheet filter | `filter[project]` from another workspace is 404; a project where a custom role lacks `project.view` is 403 `forbidden`. |
+| 12 | Routing | `apps.timetracking.urls` is included before `apps.tasks.urls`, and the dependency routes sit before `tasks/<str:task_ref>`. |
+| 13 | OpenAPI drift | Regenerating also picked up an earlier, unregenerated change: `GET/PATCH auth/me` now reference the `Me` schema. |
+
+### 8.2 Not in this release (per the contract)
+
+No notifications for dependency, field or time events; no editing of time entries; no timer pause; no
+cross-project dependencies; custom-field filtering is not added to `GET projects/{id}/tasks` (clients filter).

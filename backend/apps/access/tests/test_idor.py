@@ -18,8 +18,12 @@ from .test_permission_matrix import PUBLIC, all_rows
 NO_SCOPE = {
     "auth-me", "auth-change-password", "workspace-list", "permission-catalogue", "my-tasks", "my-recents", "search",
     "notifications", "notifications-unread-count", "notifications-read-all", "notification-preferences",
+    "my-timer", "my-timer-stop",
 }  # fmt: skip
-PROJECT_KWARGS = {"project_id", "task_id", "task_ref", "item_id", "comment_id", "attachment_id", "sprint_id", "view_id"}
+PROJECT_KWARGS = {
+    "project_id", "task_id", "task_ref", "item_id", "comment_id", "attachment_id", "sprint_id", "view_id",
+    "field_id", "entry_id",
+}  # fmt: skip
 
 
 def _rows(predicate):

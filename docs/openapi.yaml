@@ -139,7 +139,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/Me'
           description: ''
     patch:
       operationId: auth_me_partial_update
@@ -155,7 +155,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/Me'
           description: ''
   /api/v1/auth/me/password:
     put:
@@ -255,6 +255,46 @@ paths:
         required: true
       tags:
       - comments
+      responses:
+        '204':
+          description: No response body
+  /api/v1/custom-fields/{field_id}:
+    patch:
+      operationId: custom_fields_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: field_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - custom fields
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomFieldPatchInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldOut'
+          description: ''
+    delete:
+      operationId: custom_fields_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: field_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - custom fields
       responses:
         '204':
           description: No response body
@@ -410,6 +450,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskPageOut'
+          description: ''
+  /api/v1/me/timer:
+    get:
+      operationId: me_timer_retrieve
+      tags:
+      - time
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimerStateOut'
+          description: ''
+  /api/v1/me/timer/stop:
+    post:
+      operationId: me_timer_stop_create
+      description: Needs `time.log` on the timer's project (checked by the service,
+        which also discards stale timers).
+      tags:
+      - time
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerStopInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimerStopOut'
           description: ''
   /api/v1/milestones/{item_id}:
     get:
@@ -989,6 +1060,84 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Board'
+          description: ''
+  /api/v1/projects/{project_id}/custom-fields:
+    get:
+      operationId: projects_custom_fields_list
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - custom fields
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomFieldOut'
+          description: ''
+    post:
+      operationId: projects_custom_fields_create
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - custom fields
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomFieldInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldOut'
+          description: ''
+  /api/v1/projects/{project_id}/custom-fields/order:
+    put:
+      operationId: projects_custom_fields_order_update
+      description: Scope = the project in the URL; workspace non-members get 404,
+        non-members 403.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - custom fields
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdsInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomFieldOut'
           description: ''
   /api/v1/projects/{project_id}/epics:
     get:
@@ -1724,6 +1873,14 @@ paths:
             type: string
         description: user id, `me` or `none`
       - in: query
+        name: filter[blocked]
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+        description: has at least one open blocker
+      - in: query
         name: filter[epic]
         schema:
           type: array
@@ -2233,6 +2390,75 @@ paths:
               schema:
                 $ref: '#/components/schemas/Comment'
           description: ''
+  /api/v1/tasks/{task_id}/dependencies:
+    get:
+      operationId: tasks_dependencies_retrieve
+      description: 'Board 39: blocked by / blocks. Readable on a deleted task; writes
+        there are 409 `task_deleted`.'
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dependencies
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDependenciesOut'
+          description: ''
+    post:
+      operationId: tasks_dependencies_create
+      description: 'Board 39: blocked by / blocks. Readable on a deleted task; writes
+        there are 409 `task_deleted`.'
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dependencies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DependencyInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDependenciesOut'
+          description: ''
+  /api/v1/tasks/{task_id}/dependencies/{dependency_id}:
+    delete:
+      operationId: tasks_dependencies_destroy
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: dependency_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dependencies
+      responses:
+        '204':
+          description: No response body
   /api/v1/tasks/{task_id}/labels:
     put:
       operationId: tasks_labels_update
@@ -2377,6 +2603,80 @@ paths:
               schema:
                 $ref: '#/components/schemas/TaskOut'
           description: ''
+  /api/v1/tasks/{task_id}/time-entries:
+    get:
+      operationId: tasks_time_entries_list
+      description: A task's time entries. Readable on a deleted task; logging there
+        is 409 `task_deleted`.
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - time
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeEntryOut'
+          description: ''
+    post:
+      operationId: tasks_time_entries_create
+      description: A task's time entries. Readable on a deleted task; logging there
+        is 409 `task_deleted`.
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - time
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryOut'
+          description: ''
+  /api/v1/tasks/{task_id}/timer:
+    post:
+      operationId: tasks_timer_create
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - time
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerStartInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimerStartOut'
+          description: ''
   /api/v1/tasks/{task_ref}:
     get:
       operationId: tasks_retrieve
@@ -2430,6 +2730,23 @@ paths:
         required: true
       tags:
       - tasks
+      responses:
+        '204':
+          description: No response body
+  /api/v1/time-entries/{entry_id}:
+    delete:
+      operationId: time_entries_destroy
+      description: Own entry with `time.log`, anyone's with `time.delete_any` (decided
+        by the service).
+      parameters:
+      - in: path
+        name: entry_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - time
       responses:
         '204':
           description: No response body
@@ -3131,6 +3448,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/TaskDetailOut'
           description: ''
+  /api/v1/workspaces/{slug}/timesheet:
+    get:
+      operationId: workspaces_timesheet_retrieve
+      description: Any workspace member; the data comes only from projects where they
+        have `project.view`.
+      parameters:
+      - in: query
+        name: filter[project]
+        schema:
+          type: string
+        description: One project id; omitted = every visible project
+      - in: query
+        name: filter[week]
+        schema:
+          type: string
+        description: Any date in the week (snapped to its Monday)
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - time
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimesheetOut'
+          description: ''
   /api/v1/workspaces/{slug}/trash:
     get:
       operationId: workspaces_trash_retrieve
@@ -3543,6 +3890,162 @@ components:
           format: uuid
       required:
       - uploadId
+    CustomFieldInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          $ref: '#/components/schemas/TypeC32Enum'
+        required:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldOptionInRequest'
+      required:
+      - name
+      - type
+    CustomFieldOptionInRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        color:
+          type: string
+          minLength: 1
+      required:
+      - color
+      - name
+    CustomFieldOptionOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+        position:
+          type: integer
+      required:
+      - color
+      - id
+      - name
+      - position
+    CustomFieldOut:
+      type: object
+      description: Schema for the CustomField payload (built by custom_field_data).
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeC32Enum'
+        required:
+          type: boolean
+        position:
+          type: integer
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldOptionOut'
+        taskCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - id
+      - name
+      - options
+      - position
+      - projectId
+      - required
+      - taskCount
+      - type
+    DependencyInRequest:
+      type: object
+      properties:
+        relation:
+          $ref: '#/components/schemas/RelationEnum'
+        taskId:
+          type: string
+          format: uuid
+      required:
+      - relation
+      - taskId
+    DependencyItemOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        task:
+          $ref: '#/components/schemas/DependencyTaskOut'
+        createdAt:
+          type: string
+          format: date-time
+        createdById:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - createdAt
+      - createdById
+      - id
+      - task
+    DependencyStatusOut:
+      type: object
+      properties:
+        name:
+          type: string
+        glyph:
+          type: string
+        category:
+          type: string
+      required:
+      - category
+      - glyph
+      - name
+    DependencyTaskOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        title:
+          type: string
+        statusId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/DependencyStatusOut'
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - assigneeId
+      - id
+      - key
+      - status
+      - statusId
+      - title
     DownloadUrl:
       type: object
       properties:
@@ -3759,6 +4262,45 @@ components:
       properties:
         read:
           type: boolean
+    Me:
+      type: object
+      description: |-
+        The signed-in user's own profile. hasPassword is false for accounts made with Google sign-in,
+        which can set a password without knowing a current one.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 60
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        hue:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        avatarUrl:
+          type: string
+          readOnly: true
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        hasPassword:
+          type: boolean
+          readOnly: true
+      required:
+      - avatarUrl
+      - createdAt
+      - email
+      - hasPassword
+      - id
+      - name
     MemberInRequest:
       type: object
       properties:
@@ -4041,6 +4583,18 @@ components:
       type: object
       properties:
         body: {}
+    PatchedCustomFieldPatchInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        required:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldOptionInRequest'
     PatchedEpicInRequest:
       type: object
       properties:
@@ -4252,6 +4806,15 @@ components:
         estimate:
           type: integer
           nullable: true
+        customFields:
+          type: object
+          additionalProperties: {}
+          description: 'PATCH only. Merge: listed field ids are set, null clears,
+            others are untouched.'
+        timeEstimateMinutes:
+          type: integer
+          nullable: true
+          description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
     PatchedWorkspaceCreateInRequest:
@@ -4489,6 +5052,11 @@ components:
           type: string
         name:
           type: string
+    RelationEnum:
+      enum:
+      - blocked_by
+      - blocks
+      type: string
     ReportKpis:
       type: object
       properties:
@@ -4574,6 +5142,28 @@ components:
       - workspace
       - project
       type: string
+    RunningTimerOut:
+      type: object
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        taskKey:
+          type: string
+        taskTitle:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        startedAt:
+          type: string
+          format: date-time
+      required:
+      - projectId
+      - startedAt
+      - taskId
+      - taskKey
+      - taskTitle
     SlugAvailability:
       type: object
       properties:
@@ -4584,6 +5174,11 @@ components:
       required:
       - available
       - slug
+    SourceEnum:
+      enum:
+      - manual
+      - timer
+      type: string
     SprintCompleteRequest:
       type: object
       properties:
@@ -4738,6 +5333,27 @@ components:
           type: string
           nullable: true
           minLength: 1
+    TaskDependenciesOut:
+      type: object
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        isBlocked:
+          type: boolean
+        blockedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/DependencyItemOut'
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DependencyItemOut'
+      required:
+      - blockedBy
+      - blocks
+      - isBlocked
+      - taskId
     TaskDetailOut:
       type: object
       description: Schema for the Task payload (built by task_data).
@@ -4829,6 +5445,22 @@ components:
           type: integer
         attachmentCount:
           type: integer
+        customFields:
+          type: object
+          additionalProperties: {}
+          description: 'Set values only, keyed by custom field id: select → option
+            id, user → user id, date → ISO date, number → number, text → string.'
+        isBlocked:
+          type: boolean
+        openBlockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskRefOut'
+        timeEstimateMinutes:
+          type: integer
+          nullable: true
+        loggedMinutes:
+          type: integer
         description:
           nullable: true
         subtasks:
@@ -4836,23 +5468,30 @@ components:
           items:
             $ref: '#/components/schemas/TaskOut'
         project: {}
+        dependencies:
+          $ref: '#/components/schemas/TaskDependenciesOut'
       required:
       - assigneeId
       - attachmentCount
       - commentCount
       - completedAt
       - createdAt
+      - customFields
       - deletedAt
+      - dependencies
       - description
       - dueDate
       - epicId
       - estimate
       - id
+      - isBlocked
       - key
       - labelIds
+      - loggedMinutes
       - milestoneId
       - number
       - objectiveIds
+      - openBlockers
       - parentId
       - position
       - priority
@@ -4864,6 +5503,7 @@ components:
       - subtaskCount
       - subtaskDoneCount
       - subtasks
+      - timeEstimateMinutes
       - title
       - type
       - updatedAt
@@ -5007,22 +5647,42 @@ components:
           type: integer
         attachmentCount:
           type: integer
+        customFields:
+          type: object
+          additionalProperties: {}
+          description: 'Set values only, keyed by custom field id: select → option
+            id, user → user id, date → ISO date, number → number, text → string.'
+        isBlocked:
+          type: boolean
+        openBlockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskRefOut'
+        timeEstimateMinutes:
+          type: integer
+          nullable: true
+        loggedMinutes:
+          type: integer
       required:
       - assigneeId
       - attachmentCount
       - commentCount
       - completedAt
       - createdAt
+      - customFields
       - deletedAt
       - dueDate
       - epicId
       - estimate
       - id
+      - isBlocked
       - key
       - labelIds
+      - loggedMinutes
       - milestoneId
       - number
       - objectiveIds
+      - openBlockers
       - parentId
       - position
       - priority
@@ -5032,6 +5692,7 @@ components:
       - statusId
       - subtaskCount
       - subtaskDoneCount
+      - timeEstimateMinutes
       - title
       - type
       - updatedAt
@@ -5049,6 +5710,20 @@ components:
       required:
       - data
       - nextCursor
+    TaskRefOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        title:
+          type: string
+      required:
+      - id
+      - key
+      - title
     TaskWriteInRequest:
       type: object
       properties:
@@ -5103,8 +5778,243 @@ components:
         estimate:
           type: integer
           nullable: true
+        customFields:
+          type: object
+          additionalProperties: {}
+          description: 'PATCH only. Merge: listed field ids are set, null clears,
+            others are untouched.'
+        timeEstimateMinutes:
+          type: integer
+          nullable: true
+          description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
+    TimeEntryInRequest:
+      type: object
+      properties:
+        minutes:
+          type: integer
+          maximum: 1440
+          minimum: 1
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+          maxLength: 140
+      required:
+      - date
+      - minutes
+    TimeEntryOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        minutes:
+          type: integer
+          maximum: 1440
+          minimum: 1
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - date
+      - id
+      - minutes
+      - note
+      - projectId
+      - source
+      - taskId
+      - userId
+    TimerStartInRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Local work date, used if another timer is stopped
+    TimerStartOut:
+      type: object
+      properties:
+        timer:
+          $ref: '#/components/schemas/RunningTimerOut'
+        stopped:
+          allOf:
+          - $ref: '#/components/schemas/TimeEntryOut'
+          nullable: true
+      required:
+      - stopped
+      - timer
+    TimerStateOut:
+      type: object
+      properties:
+        timer:
+          allOf:
+          - $ref: '#/components/schemas/RunningTimerOut'
+          nullable: true
+      required:
+      - timer
+    TimerStopInRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+    TimerStopOut:
+      type: object
+      properties:
+        entry:
+          $ref: '#/components/schemas/TimeEntryOut'
+      required:
+      - entry
+    TimesheetCellOut:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        minutes:
+          type: integer
+        breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimesheetSliceOut'
+      required:
+      - breakdown
+      - date
+      - minutes
+    TimesheetOut:
+      type: object
+      properties:
+        weekStart:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            type: string
+            format: date
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimesheetProjectOut'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimesheetRowOut'
+        dayTotals:
+          type: array
+          items:
+            type: integer
+        totalMinutes:
+          type: integer
+      required:
+      - dayTotals
+      - days
+      - projects
+      - rows
+      - totalMinutes
+      - weekStart
+    TimesheetProjectOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        name:
+          type: string
+        hue:
+          type: integer
+        my_permissions:
+          type: array
+          items:
+            type: string
+      required:
+      - hue
+      - id
+      - key
+      - my_permissions
+      - name
+    TimesheetRowOut:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/TimesheetUserOut'
+        cells:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimesheetCellOut'
+        totalMinutes:
+          type: integer
+      required:
+      - cells
+      - totalMinutes
+      - user
+    TimesheetSliceOut:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        key:
+          type: string
+        name:
+          type: string
+        hue:
+          type: integer
+        minutes:
+          type: integer
+      required:
+      - hue
+      - key
+      - minutes
+      - name
+      - projectId
+      - taskId
+    TimesheetUserOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hue:
+          type: integer
+        avatarUrl:
+          type: string
+          nullable: true
+      required:
+      - avatarUrl
+      - hue
+      - id
+      - name
     TrashItemsRequest:
       type: object
       properties:
@@ -5136,6 +6046,14 @@ components:
       required:
       - id
       - kind
+    TypeC32Enum:
+      enum:
+      - text
+      - number
+      - select
+      - date
+      - user
+      type: string
     TypeDc0Enum:
       enum:
       - feature

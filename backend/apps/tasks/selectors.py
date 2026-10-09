@@ -6,7 +6,7 @@ import datetime as dt
 import uuid
 from typing import Any
 
-from django.db.models import Count, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Value
+from django.db.models import Count, Exists, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 
 from apps.common.exceptions import invalid, not_found
@@ -14,7 +14,7 @@ from apps.planning.models import Objective
 from apps.projects.models import Label, ProjectMember
 from apps.projects.selectors import project_for
 
-from .models import Task
+from .models import Task, TaskDependency, TaskFieldValue
 
 
 def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
@@ -22,8 +22,26 @@ def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
     return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
 
 
+def open_blocker_links() -> QuerySet[TaskDependency]:
+    """Dependency rows whose blocker is live and not closed (Done and Canceled both close it)."""
+    return TaskDependency.objects.filter(blocker__deleted_at__isnull=True).exclude(blocker__status__category="done")
+
+
+def is_blocked() -> Exists:
+    """`isBlocked` as an expression on Task querysets (filters and saved views)."""
+    return Exists(open_blocker_links().filter(blocked=OuterRef("pk")))
+
+
+def _sum_minutes() -> Coalesce:
+    from apps.timetracking.models import TimeEntry
+
+    sub = TimeEntry.objects.filter(task=OuterRef("pk")).order_by().values("task").annotate(s=Sum("minutes")).values("s")
+    return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
+
+
 def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
-    """Adds the counters the Task payload carries, using subqueries (no join fan-out)."""
+    """Adds the counters the Task payload carries, using subqueries (no join fan-out), and prefetches the
+    custom-field values and open blockers (one query each, whatever the number of tasks)."""
     from apps.collaboration.models import Attachment, Comment
 
     live_subtasks = Task.objects.all()
@@ -33,10 +51,38 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
         subtask_done_count=_count(done_subtasks, "parent"),
         comment_count=_count(Comment.objects.all()),
         attachment_count=_count(Attachment.objects.filter(status="ready")),
+        logged_minutes=_sum_minutes(),
     ).prefetch_related(
         Prefetch("objectives", queryset=Objective.objects.only("id")),
         Prefetch("labels", queryset=Label.objects.only("id")),
+        Prefetch(
+            "field_values",
+            queryset=TaskFieldValue.objects.only("id", "task", "field", "text", "number", "date", "option", "user"),
+        ),
+        Prefetch(
+            "blocked_by_links",
+            queryset=open_blocker_links()
+            .select_related("blocker")
+            .only("id", "blocked", "blocker__id", "blocker__key", "blocker__title", "blocker__number")
+            .order_by("blocker__number"),
+            to_attr="open_blocker_links",
+        ),
     )
+
+
+def dependencies_of(task: Task) -> tuple[QuerySet[TaskDependency], QuerySet[TaskDependency]]:
+    """(blocked by, blocks) for a task, oldest first. Rows whose other task is soft-deleted are hidden."""
+    blocked_by = (
+        TaskDependency.objects.filter(blocked=task, blocker__deleted_at__isnull=True)
+        .select_related("blocker__status")
+        .order_by("created_at", "id")
+    )
+    blocks = (
+        TaskDependency.objects.filter(blocker=task, blocked__deleted_at__isnull=True)
+        .select_related("blocked__status")
+        .order_by("created_at", "id")
+    )
+    return blocked_by, blocks
 
 
 def is_uuid(value: Any) -> bool:
@@ -137,6 +183,13 @@ def filter_tasks(qs: QuerySet[Task], params: Any, user: Any) -> QuerySet[Task]:
             qs = qs.filter(priority__in=[int(p) for p in priorities])
         except ValueError as exc:
             raise invalid({"filter[priority]": "Priority is 0–4"}) from exc
+    blocked = set(values("blocked"))
+    if blocked - {"true", "false"}:
+        raise invalid({"filter[blocked]": "Use true or false"})
+    if blocked == {"true"}:
+        qs = qs.filter(is_blocked())
+    elif blocked == {"false"}:
+        qs = qs.filter(~is_blocked())
     types = values("type")
     if types:
         qs = qs.filter(type__in=types)

@@ -457,6 +457,77 @@ ROWS = [
         for name in ("kpis", "burndown", "velocity", "cycle-time", "throughput", "progress")
     ],
     _row("project-summary", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    # ── custom fields, dependencies, time (board 39) ──
+    _row("project-custom-fields", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "project-custom-fields",
+        "POST",
+        P,
+        allow=("owner", "manager"),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"name": "Found in", "type": "text"},
+    ),
+    _row(
+        "project-custom-fields-order",
+        "PUT",
+        P,
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"ids": [str(w.field.id)]},
+    ),
+    _row(
+        "custom-field-detail",
+        "PATCH",
+        lambda w: {"field_id": w.field.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_member", "outsider"),
+        body=lambda w: {"required": True},
+    ),
+    _row(
+        "custom-field-detail",
+        "DELETE",
+        lambda w: {"field_id": w.field.id},
+        allow=("owner",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row("task-dependencies", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row(
+        "task-dependencies",
+        "POST",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "ws_admin", "outsider"),
+        body=lambda w: {"relation": "blocks", "taskId": str(w.own_task.id)},
+    ),
+    _row(
+        "task-dependency-detail",
+        "DELETE",
+        lambda w: {"task_id": w.task.id, "dependency_id": w.dependency.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
+    _row("task-time-entries", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
+    _row(
+        "task-time-entries",
+        "POST",
+        T("task"),
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+        body=lambda w: {"minutes": 30, "date": w.entry.date.isoformat()},
+    ),
+    _row(
+        "time-entry-detail",
+        "DELETE",
+        lambda w: {"entry_id": w.entry.id},
+        allow=("pmember", "manager"),
+        deny=("viewer", "ws_member", "outsider"),
+    ),
+    _row(
+        "task-timer", "POST", T("task"), allow=("pmember",), deny=("viewer", "ws_member", "outsider"), body=lambda w: {}
+    ),
+    _row("my-timer", "GET", allow=ANY_USER, deny=("anon",)),
+    _row("my-timer-stop", "POST", allow=("owner",), deny=("anon",), body=lambda w: {}),
+    _row("workspace-timesheet", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
     # ── saved views ──
     _row("workspace-views", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
     _row(

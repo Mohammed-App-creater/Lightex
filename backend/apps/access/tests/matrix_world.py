@@ -85,6 +85,7 @@ def _add_project(w: World) -> None:
     _add_collaboration(w)
     _add_notifications(w)
     _add_views(w)
+    _add_board39(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -144,3 +145,23 @@ def _add_views(w: World) -> None:
         workspace=w.ws, project=w.project, owner=w.users["owner"], name="Shared", visibility="project",
         filters=[{"field": "priority", "op": "is", "values": ["3"]}],
     )  # fmt: skip
+
+
+def _add_board39(w: World) -> None:
+    """Custom field, dependency, time entry and a running timer (board 39)."""
+    from apps.common.utils import today
+    from apps.projects.custom_fields import create_field
+    from apps.tasks.services import add_dependency, create_task
+    from apps.timetracking.models import RunningTimer
+    from apps.timetracking.services import log_time
+
+    owner = w.users["owner"]
+    w.extra["field"] = create_field(
+        owner,
+        w.project,
+        {"name": "Browser", "type": "select", "options": [{"name": "Chrome", "color": "var(--low)"}]},
+    )
+    blocker = create_task(owner, w.project, {"title": "Blocker"})
+    w.extra["dependency"] = add_dependency(owner, w.task, {"relation": "blocked_by", "taskId": str(blocker.id)})
+    w.extra["entry"] = log_time(w.users["pmember"], w.task, {"minutes": 30, "date": today().isoformat()})
+    RunningTimer.objects.create(user=owner, task=w.task, started_at=w.task.created_at)

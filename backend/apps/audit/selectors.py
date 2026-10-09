@@ -24,6 +24,8 @@ ACTIVITY_VERBS = {
     "sprint.completed": "sprint_completed",
     "attachment.created": "attached",
     "project_member.added": "member_added",
+    "task.dependency_added": "dependency_added",
+    "task.dependency_removed": "dependency_removed",
 }
 
 
