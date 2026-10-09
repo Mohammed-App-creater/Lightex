@@ -15,6 +15,7 @@ import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { apiMode, devToolsEnabled } from "@/lib/env";
 import { mockControls } from "@/lib/mock/controls";
+import { useRealtimeStatus } from "@/lib/realtime/status-store";
 import { useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 
@@ -47,6 +48,7 @@ function DevToolsInner() {
   const route = useRouteInfo();
   const search = useSearchParams();
   const controls = useSyncExternalStore(mockControls.subscribe, mockControls.get, mockControls.get);
+  const realtime = useRealtimeStatus();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const isMock = apiMode === "mock";
@@ -91,6 +93,11 @@ function DevToolsInner() {
             <h2 className="m-0 text-[14px] font-semibold">Developer tools</h2>
             <p className="m-0 text-meta text-fg-3">
               {isMock ? "Mock API · data lives in your browser" : "Live API"} · not shown in live production builds
+            </p>
+            {/* Board 33: the realtime mode is only visible here (polling is a working mode, not an error). */}
+            <p className="m-0 mt-1 flex items-center gap-1.5 text-meta text-fg-2" role="status">
+              <span aria-hidden className={cn("size-2 rounded-full", realtime === "live" ? "bg-ok" : realtime === "off" ? "bg-danger" : "bg-warn")} />
+              Realtime: {realtime}
             </p>
           </div>
 
@@ -172,10 +179,22 @@ function DevToolsInner() {
                 }}
               />
               <Switch
-                label="Teammates edit tasks every ~45s"
+                label="Teammates: presence every 7s, edits every ~45s"
                 checked={controls.teammates}
                 onChange={(e) => mockControls.set((c) => ({ ...c, teammates: e.target.checked }))}
               />
+              <div className="flex items-center justify-between gap-2 text-[13px]">
+                <span>Realtime</span>
+                <Segmented
+                  label="Realtime"
+                  value={controls.realtime}
+                  onChange={(v) => mockControls.set((c) => ({ ...c, realtime: v }))}
+                  options={[
+                    { value: "live", label: "Live (SSE)" },
+                    { value: "polling", label: "Polling" },
+                  ]}
+                />
+              </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"

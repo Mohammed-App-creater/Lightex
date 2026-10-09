@@ -9,6 +9,7 @@ import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
 import { checkBulkDates, checkTaskDates, dateSortValue, ensureExt32, scheduleFilter } from "./schedule";
 import { markTaskDeleted, trashComment } from "./trash";
+import { publishAttachment, publishBulk, publishComment, publishTask } from "../realtime";
 import {
   fail,
   filterValues,
@@ -264,6 +265,7 @@ export function registerTasks() {
     ctx.db.tasks.push(t);
     logActivity(ctx.db, ctx.userId, "created", p.id, t);
     if (t.assigneeId) notify(ctx.db, t.assigneeId, "assigned", ctx.userId, t, p.id);
+    publishTask(ctx.db, ctx.userId, t, "created");
     return toTask(ctx.db, t);
   });
 
@@ -344,6 +346,9 @@ export function registerTasks() {
         if (!mentionIds(before.description).includes(m)) notify(ctx.db, m, "mention", userId, t, t.projectId, { quote: richText(b.description).slice(0, 140) });
       }
     }
+    // Board 33: task.changed with the camelCase field names of the change (custom fields as customFields.<id>).
+    const fields = keys.flatMap((k) => (k === "customFields" ? Object.keys(b.customFields ?? {}).map((id) => `customFields.${id}`) : [k as string]));
+    publishTask(ctx.db, userId, t, "updated", fields);
     return toTask(ctx.db, t);
   });
 
@@ -356,6 +361,7 @@ export function registerTasks() {
     markTaskDeleted(ctx.db, t.id, ctx.userId);
     ctx.db.tasks.filter((x) => x.parentId === t.id).forEach((x) => (x.deletedAt = now));
     logActivity(ctx.db, ctx.userId, "deleted", t.projectId, t);
+    publishTask(ctx.db, ctx.userId, t, "deleted");
     return undefined;
   });
 
@@ -368,6 +374,7 @@ export function registerTasks() {
     t.version += 1;
     ctx.db.tasks.filter((x) => x.parentId === t.id && x.deletedAt === when).forEach((x) => (x.deletedAt = null));
     logActivity(ctx.db, ctx.userId, "restored", t.projectId, t);
+    publishTask(ctx.db, ctx.userId, t, "restored");
     return toTask(ctx.db, t);
   });
 
@@ -385,6 +392,8 @@ export function registerTasks() {
         t.version += 1;
         if (b.delete) markTaskDeleted(ctx.db, t.id, userId);
       });
+      // Board 33: one bulk event instead of N task events.
+      publishBulk(ctx.db, userId, p.id, tasks.map((t) => t.id), b.delete ? "deleted" : "restored");
       return tasks.map((t) => toTask(ctx.db, t));
     }
     const patch = b.patch ?? {};
@@ -419,6 +428,7 @@ export function registerTasks() {
       t.version += 1;
       t.updatedAt = nowISO();
     }
+    publishBulk(ctx.db, userId, p.id, tasks.map((t) => t.id), "updated");
     return tasks.map((t) => toTask(ctx.db, t));
   });
 
@@ -469,6 +479,7 @@ export function registerTasks() {
       logActivity(ctx.db, ctx.userId, "status_changed", t.projectId, t, { from: statusName(ctx.db, from), to: statusName(ctx.db, t.statusId) });
       if (t.assigneeId) notify(ctx.db, t.assigneeId, "status", ctx.userId, t, t.projectId, { fromStatus: statusName(ctx.db, from), toStatus: statusName(ctx.db, t.statusId) });
     }
+    publishTask(ctx.db, ctx.userId, t, "moved", ["statusId", "position", ...(b.sprintId !== undefined ? ["sprintId"] : [])]);
     return toTask(ctx.db, t);
   });
 
@@ -504,6 +515,7 @@ export function registerTasks() {
     new Set([t.assigneeId, t.reporterId].filter((x): x is string => Boolean(x) && !c.mentions.includes(x!))).forEach((r) =>
       notify(ctx.db, r, "comment", ctx.userId, t, t.projectId, { quote }),
     );
+    publishComment(ctx.db, ctx.userId, t, c.id, "created");
     return c;
   });
   route("PATCH", "/comments/:id", (ctx) => {
@@ -518,6 +530,7 @@ export function registerTasks() {
     c.body = body;
     c.mentions = mentionIds(body);
     c.editedAt = nowISO();
+    publishComment(ctx.db, userId, t, c.id, "updated");
     return c;
   });
   route("DELETE", "/comments/:id", (ctx) => {
@@ -530,6 +543,7 @@ export function registerTasks() {
     if (!own && !perms.includes("comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "comment.delete_any" });
     trashComment(ctx.db, c, userId); // board 29: deleted comments go to the Trash for 30 days
     ctx.db.comments = ctx.db.comments.filter((x) => x.id !== c.id);
+    publishComment(ctx.db, userId, t, c.id, "deleted");
     return undefined;
   });
 
@@ -573,6 +587,7 @@ export function registerTasks() {
     ctx.db.attachments.push(a);
     uploads.delete(uploadId);
     logActivity(ctx.db, ctx.userId, "attached", t.projectId, t, { file: a.fileName });
+    publishAttachment(ctx.db, ctx.userId, t, "created");
     return toAttachment(a);
   });
   route("DELETE", "/attachments/:id", (ctx) => {
@@ -584,6 +599,7 @@ export function registerTasks() {
     if (!(a.uploaderId === userId && perms.includes("attachment.upload")) && !perms.includes("attachment.delete_any"))
       fail(403, "forbidden", "You can’t delete this file.", { permission: "attachment.delete_any" });
     ctx.db.attachments = ctx.db.attachments.filter((x) => x.id !== a.id);
+    publishAttachment(ctx.db, userId, t, "deleted");
     return undefined;
   });
 }

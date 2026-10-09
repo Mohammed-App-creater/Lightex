@@ -49,6 +49,9 @@ export const PROJECT_PERMISSIONS = [
   "comment.delete_any",
   "attachment.upload",
   "attachment.delete_any",
+  /* Board 33 (v2): dashboards. */
+  "dashboard.create",
+  "dashboard.manage",
   "report.view",
 ] as const;
 
@@ -602,6 +605,8 @@ export interface ProgressRow {
   percent: number;
   expected: number | null;
   dueDate?: ISODate | null;
+  /** Board 33 (additive): the objective's quarter; null on milestone rows. Optional so older payloads parse. */
+  quarter?: string | null;
 }
 
 export interface Paginated<T> {
@@ -997,4 +1002,96 @@ export interface ImportJobSummary {
   finishedAt: ISODateTime | null;
   expiresAt: ISODateTime | null;
   error: { code: string; message: string } | null;
+}
+
+/* ───────────────────────── Dashboards (v2, board 33) ───────────────────────── */
+
+export type WidgetType = "burndown" | "my_tasks" | "objectives" | "workload" | "velocity" | "activity";
+export interface WidgetConfigMap {
+  burndown: { sprintId: ID | null };
+  my_tasks: { showDone: boolean };
+  objectives: { quarter: string | null };
+  workload: { unit: "points" | "hours"; sprintId: ID | null; personField: ID | null };
+  velocity: { range: "last2" | "last6" };
+  activity: Record<string, never>;
+}
+/** One widget; the array order of `Dashboard.widgets` is the layout order (positions are computed by `pack`). */
+export type DashboardWidget = {
+  [T in WidgetType]: { id: ID; type: T; w: number; h: number; config: WidgetConfigMap[T] };
+}[WidgetType];
+/** A layout item for `PUT /dashboards/:id/layout`: no `id` means "create". */
+type WithOptionalId<W> = W extends { id: ID } ? Omit<W, "id"> & { id?: ID } : never;
+export type DashboardWidgetInput = WithOptionalId<DashboardWidget>;
+export type DashboardVisibility = "shared" | "personal";
+export type DashboardTemplate = "blank" | "sprint_health";
+export interface Dashboard {
+  id: ID;
+  projectId: ID;
+  name: string;
+  visibility: DashboardVisibility;
+  ownerId: ID;
+  owner: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
+  version: number;
+  widgets: DashboardWidget[];
+  createdAt: ISODateTime;
+  updatedAt: ISODateTime;
+}
+export interface DashboardSummary {
+  id: ID;
+  projectId: ID;
+  name: string;
+  visibility: DashboardVisibility;
+  ownerId: ID;
+  widgetCount: number;
+  updatedAt: ISODateTime;
+}
+
+/* Workload report (W1). Hours are minutes on the wire. */
+export interface WorkloadRow {
+  user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
+  inProgress: number;
+  todo: number;
+  capacity: number | null;
+  unestimated: number;
+}
+export interface WorkloadReport {
+  sprint: { id: ID; name: string; number: number; startDate: ISODate; endDate: ISODate } | null;
+  unit: "points" | "hours";
+  personField: { id: ID; name: string } | null;
+  scale: number;
+  rows: WorkloadRow[];
+  unassigned: { inProgress: number; todo: number; unestimated: number };
+}
+
+/* ───────────────────────── Presence (v2, board 33) ───────────────────────── */
+
+export type PresenceLocationKind = "board" | "dashboard" | "task";
+export interface PresenceLocation {
+  kind: PresenceLocationKind;
+  id: ID;
+}
+export interface PresencePerson {
+  user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
+  state: "viewing" | "editing";
+  field: string | null;
+  typing: boolean;
+  since: ISODateTime;
+}
+export interface PresenceRoster {
+  projectId: ID;
+  /** Server time of the snapshot; clients drop older snapshots. */
+  at: ISODateTime;
+  /** Only non-empty locations. */
+  locations: { location: PresenceLocation; people: PresencePerson[] }[];
+}
+export interface PresenceUpdate {
+  location: PresenceLocation;
+  state: "viewing" | "editing";
+  field: string | null;
+  typing: boolean;
+}
+export interface PresenceHeartbeat {
+  expiresAt: ISODateTime;
+  heartbeatSec: number;
+  roster: PresenceRoster;
 }

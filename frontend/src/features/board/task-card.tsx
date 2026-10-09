@@ -1,10 +1,12 @@
 "use client";
 
 import { memo, type CSSProperties, type KeyboardEvent, type MouseEvent, type Ref } from "react";
+import { groupLabel } from "@/features/presence/presence-lib";
+import { PresenceStack } from "@/features/presence/presence-stack";
 import { LabelChip } from "@/components/ui/badge";
 import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { Label, Status, Task, User } from "@/lib/api/types";
+import type { Label, PresencePerson, Status, Task, User } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/features/tasks/task-bits";
 import { BlockedBadge, blockedTitle } from "@/features/dependencies/blocked-badge";
@@ -19,6 +21,8 @@ export type CardProps = {
   assignee: User | null;
   labels: Label[];
   selected?: boolean;
+  /** Board 33: other people with this task open (avatars on the card's top-right edge, live border). */
+  present?: readonly PresencePerson[];
   dragging?: boolean;
   overlay?: boolean;
   /** Show the done toggle on the status glyph (user can change status). */
@@ -40,6 +44,7 @@ export const TaskCard = memo(function TaskCard({
   assignee,
   labels,
   selected,
+  present,
   dragging,
   overlay,
   canToggle,
@@ -58,10 +63,11 @@ export const TaskCard = memo(function TaskCard({
   const timing = timer?.taskId === task.id;
   const extras = task.isBlocked || timing || chip;
   const open = (e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) => onOpen?.(task, e.currentTarget);
+  const live = !overlay && present && present.length > 0 ? present : null;
   return (
     <div
       ref={cardRef}
-      style={style}
+      style={live ? ({ ...style, "--hue": live[0]!.user.hue } as CSSProperties) : style}
       {...dragHandleProps}
       role="button"
       tabIndex={0}
@@ -87,11 +93,17 @@ export const TaskCard = memo(function TaskCard({
         "cursor-grab active:cursor-grabbing",
         selected && "border-accent bg-accent-s",
         task.isBlocked && !selected && "border-[color-mix(in_srgb,var(--danger)_30%,transparent)]",
+        live && !selected && "card-live",
         dragging && !overlay && "opacity-0",
         overlay &&
           "-translate-y-1 -rotate-[1.5deg] scale-[1.03] cursor-grabbing border-line-2 shadow-modal motion-reduce:translate-y-0 motion-reduce:rotate-0 motion-reduce:scale-100",
       )}
     >
+      {live && (
+        <span className="pointer-events-none absolute -top-[9px] right-2 z-[2]">
+          <PresenceStack others={live} size={20} max={3} label={groupLabel(live)} bg="var(--surface)" dot={false} />
+        </span>
+      )}
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] font-medium text-fg-3">{task.key}</span>
         <AssigneeAvatar user={assignee} />

@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import type {
+  Dashboard,
   Permission,
   Project,
   ProjectPermission,
@@ -83,6 +84,22 @@ export function canEditTask(
 ) {
   if (can("task.edit_any", perms)) return true;
   return can("task.edit_own", perms) && !!userId && (task.assigneeId === userId || task.reporterId === userId);
+}
+
+/*
+ * Board 33 object rules (spec §4.3), derived from my_permissions plus the dashboard's owner and
+ * visibility, exactly like the backend's dashboards.services.can_edit.
+ */
+type DashboardRef = Pick<Dashboard, "ownerId" | "visibility">;
+
+/** Owner with dashboard.create, or a shared dashboard with dashboard.manage. */
+export function canEditDashboard(d: DashboardRef, perms: readonly string[] | undefined, meId: string | undefined) {
+  return (!!meId && d.ownerId === meId && can("dashboard.create", perms)) || (d.visibility === "shared" && can("dashboard.manage", perms));
+}
+
+/** Only the owner (holding dashboard.create) can switch shared ↔ personal. */
+export function canChangeVisibility(d: DashboardRef, perms: readonly string[] | undefined, meId: string | undefined) {
+  return !!meId && d.ownerId === meId && can("dashboard.create", perms);
 }
 
 export function Can({

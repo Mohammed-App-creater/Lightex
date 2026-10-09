@@ -30,6 +30,8 @@ export function projectTabs(p: Pick<Project, "my_permissions">): { view: Project
     { view: "objectives", label: "Objectives", show: true },
     { view: "milestones", label: "Milestones", show: true },
     { view: "reports", label: "Reports", show: can("report.view", perms) },
+    // Board 33 (v2): everyone on the project; widgets are gated by report.view / project.view.
+    { view: "dashboards", label: "Dashboards", show: true },
     {
       view: "settings",
       label: "Settings",

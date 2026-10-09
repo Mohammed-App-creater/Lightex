@@ -22,7 +22,7 @@ export function setTransport(t: Transport) {
   transportPromise = Promise.resolve(t);
 }
 
-type Opts = Pick<RequestOptions, "signal" | "anonymous">;
+type Opts = Pick<RequestOptions, "signal" | "anonymous" | "keepalive">;
 
 async function request<T>(options: RequestOptions) {
   const t = await getTransport();

@@ -21,6 +21,9 @@ const VIEW_LABEL: Record<string, string> = {
   milestones: "Milestones",
   epics: "Epics",
   reports: "Reports",
+  dashboards: "Dashboards",
+  timeline: "Timeline",
+  calendar: "Calendar",
   settings: "Settings",
 };
 const PAGE_LABEL: Record<string, string> = {

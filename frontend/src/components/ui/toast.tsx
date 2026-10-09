@@ -25,6 +25,8 @@ export type ToastInput = {
   duration?: number;
   /** De-duplicate: a toast with the same id replaces the previous one. */
   id?: string;
+  /** Board 33: replaces the tone glyph (the live-ringed avatar of "Updated just now by …"). */
+  icon?: ReactNode;
 };
 
 type ToastItem = ToastInput & { id: string; createdAt: number };
@@ -83,7 +85,7 @@ function ToastCard({ item }: { item: ToastItem }) {
       onBlur={start}
       className="pointer-events-auto flex w-[380px] max-w-[calc(100vw-32px)] items-center gap-3 rounded-[10px] border border-line-2 bg-raised py-3 pl-3.5 pr-2.5 shadow-pop"
     >
-      <ToastGlyph tone={tone} />
+      {item.icon ?? <ToastGlyph tone={tone} />}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="font-medium">{item.title}</span>
         {item.body && <span className="text-[12px] leading-4 text-fg-2">{item.body}</span>}

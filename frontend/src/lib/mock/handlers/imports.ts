@@ -26,6 +26,7 @@ import { detectPreset, suggestColumns } from "../import/presets";
 import { buildReport, reportFileName } from "../import/report";
 import { fail, filterValues, requireUser, route, str, type Ctx } from "../router";
 import { logActivity } from "./common";
+import { publishBulk } from "../realtime";
 import { DEP_LIMIT, findCycle } from "./extensions";
 import { memberProject } from "./projects";
 import { applyStatusSideEffects, lastPosition, mockUploads, registerMockUpload } from "./tasks";
@@ -902,6 +903,8 @@ function finishJob(db: MockDB, rec: ImportJobRec, project: ProjectRec, status: "
   recordAudit(db, rec, project, "project.import_completed", rec.file.name, null);
   logActivity(db, rec.createdById, "imported", project.id, null, { imported: rec.result.imported, fileName: rec.file.name, status });
   notifyFinished(db, rec, project);
+  // Board 33: one tasks.bulk_changed ("many") at the end of an import (spec §6.2).
+  publishBulk(db, rec.createdById, project.id, null, "created");
   return true;
 }
 
@@ -924,6 +927,7 @@ function failJob(db: MockDB, rec: ImportJobRec, project: ProjectRec | undefined,
   if (project) {
     recordAudit(db, rec, project, "project.import_completed", rec.file.name, null);
     notifyFinished(db, rec, project);
+    if (rec.result?.imported) publishBulk(db, rec.createdById, project.id, null, "created");
   }
   return true;
 }

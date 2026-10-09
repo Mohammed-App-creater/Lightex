@@ -11,6 +11,7 @@ import { useProjectMembers } from "@/features/projects/queries";
 import type { CustomField, CustomFieldValue, TaskDetail, TaskPatch } from "@/lib/api/types";
 import { can, useCurrentWorkspace } from "@/lib/permissions/can";
 import { routes } from "@/lib/routes";
+import { PresenceField } from "@/features/presence/presence-ui";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { displayValue, hasValue, TEXT_MAX, validateValue, visibleRows } from "./field-lib";
@@ -84,9 +85,9 @@ export function TaskCustomFields({ task, canEdit, revealed, onPatch }: { task: T
           {CF_TYPE_ICON[f.type]}
           <span className="truncate">{f.name}</span>
         </span>
-        <span className="min-w-0">
+        <PresenceField field={`cf.${f.id}`} as="span" className="min-w-0">
           <ValueCell field={f} value={task.customFields?.[f.id]} canEdit={canEdit} members={memberMap} onSet={(v) => set(f, v)} />
-        </span>
+        </PresenceField>
       </div>
     )),
   );

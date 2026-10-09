@@ -4,6 +4,7 @@ import { keysBetween } from "@/lib/utils/fractional-index";
 import { ensureExt39 } from "./handlers/extensions";
 import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
+import { ensureExt33 } from "./handlers/dashboards";
 import type {
   AttachmentRec,
   MockDB,
@@ -735,6 +736,8 @@ export function createSeed(): MockDB {
   ensureExt32(db);
   // Board 40: import jobs (lazy collections) and project.import on cached roles.
   ensureExt40(db);
+  // Board 33 (v2): dashboard.create / dashboard.manage on system roles and the PRJ dashboards.
+  ensureExt33(db);
   return db;
 }
 

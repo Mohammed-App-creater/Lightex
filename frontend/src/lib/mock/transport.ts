@@ -14,6 +14,10 @@ import { registerHome } from "./handlers/home";
 import { registerTrash } from "./handlers/trash";
 import { registerExtensions } from "./handlers/extensions";
 import { registerImports } from "./handlers/imports";
+import { registerDashboards } from "./handlers/dashboards";
+import { registerPresence } from "./handlers/presence";
+import { mockBus } from "./realtime";
+import { prepareRoutePublish } from "./publish-routes";
 import { match } from "./router";
 import { startTeammates } from "./teammates";
 
@@ -33,6 +37,8 @@ function ensureRoutes() {
   registerTrash();
   registerExtensions();
   registerImports();
+  registerDashboards();
+  registerPresence();
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>
@@ -85,17 +91,25 @@ export class MockTransport implements Transport {
     }
     // Round-trip the query through the wire format so filters behave exactly like live mode.
     const parsedQuery = parseQueryString(buildQueryString(query).slice(1));
+    // Board 33: realtime events published by the handler go out only if it succeeds (on commit).
+    const afterCommit = prepareRoutePublish(method, found.route.pattern, found.params, body, db, userId);
+    const batch = mockBus.begin();
     try {
-      const result = await found.route.handler({
+      const pending = found.route.handler({
         params: found.params,
         query: parsedQuery,
         body: body === undefined ? undefined : structuredClone(body),
         userId,
         db,
       });
+      mockBus.release(batch);
+      const result = await pending;
       if (method !== "GET") persist();
+      mockBus.commit(batch);
+      afterCommit?.();
       return (result === undefined ? undefined : structuredClone(result)) as T;
     } catch (e) {
+      mockBus.rollback(batch);
       if (e instanceof ApiError) {
         e.request = label;
         if (e.status >= 500) e.ref ??= refId();

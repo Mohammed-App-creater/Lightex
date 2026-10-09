@@ -34,6 +34,15 @@ import type {
   ProjectMember,
   ProjectSummary,
   ProgressRow,
+  Dashboard,
+  DashboardSummary,
+  DashboardTemplate,
+  DashboardVisibility,
+  DashboardWidgetInput,
+  PresenceHeartbeat,
+  PresenceRoster,
+  PresenceUpdate,
+  WorkloadReport,
   RichDoc,
   Role,
   SearchResult,
@@ -277,6 +286,11 @@ export const reports = {
   throughput: (projectId: string, range: ReportRange, from?: string, to?: string) =>
     http.get<{ points: ThroughputPoint[]; insufficient: boolean }>(`/projects/${enc(projectId)}/reports/throughput`, rq(range, from, to)),
   progress: (projectId: string) => http.get<ProgressRow[]>(`/projects/${enc(projectId)}/reports/progress`),
+  /** Board 33 (W1, requested addition): open work per person in a sprint, points or hours (minutes). */
+  workload: (projectId: string, q: { sprintId?: string | null; unit: "points" | "hours"; person?: string | null }) =>
+    http.get<WorkloadReport>(`/projects/${enc(projectId)}/reports/workload`, {
+      filter: { sprint: q.sprintId ?? undefined, unit: q.unit, person: q.person ?? undefined },
+    }),
 };
 
 export type NotificationTab = "all" | "mentions" | "assigned";
@@ -377,7 +391,45 @@ export const imports = {
   errorReport: (id: string) => http.get<{ url: string; fileName: string; expiresAt: ISODateTime }>(`/imports/${enc(id)}/error-report`),
 };
 
+/* ───────── Board 33 (v2): dashboards, presence, realtime. Requested API additions (docs/v2/33-dashboards-presence.md §5). ───────── */
+
+export const dashboards = {
+  /** DB1: shared (A–Z), then the caller's personal ones (A–Z). */
+  list: (projectId: string) => http.get<DashboardSummary[]>(`/projects/${enc(projectId)}/dashboards`),
+  /** DB2: 201 Dashboard (version 1). */
+  create: (projectId: string, body: { name: string; visibility: DashboardVisibility; template?: DashboardTemplate }) =>
+    http.post<Dashboard>(`/projects/${enc(projectId)}/dashboards`, body),
+  /** DB3 */
+  get: (id: string) => http.get<Dashboard>(`/dashboards/${enc(id)}`),
+  /** DB4: rename / visibility; `version` required (409 version_conflict with details.current). */
+  update: (id: string, body: { name?: string; visibility?: DashboardVisibility; version: number }) =>
+    http.patch<Dashboard>(`/dashboards/${enc(id)}`, body),
+  /** DB5: the complete ordered widget list (items without id are created, missing ones deleted). */
+  saveLayout: (id: string, version: number, widgets: DashboardWidgetInput[]) =>
+    http.put<Dashboard>(`/dashboards/${enc(id)}/layout`, { version, widgets }),
+  /** DB6 */
+  remove: (id: string) => http.del(`/dashboards/${enc(id)}`),
+};
+
+export const presence = {
+  /** P1: heartbeat (every 20 s while visible) and location / field / typing changes; returns the project roster. */
+  put: (slug: string, sessionId: string, body: PresenceUpdate) =>
+    http.put<PresenceHeartbeat>(`/workspaces/${enc(slug)}/presence/${enc(sessionId)}`, body),
+  /** P2: idempotent; `keepalive` on pagehide. */
+  leave: (slug: string, sessionId: string, opts?: { keepalive?: boolean }) =>
+    http.del(`/workspaces/${enc(slug)}/presence/${enc(sessionId)}`, undefined, opts),
+  /** P3 */
+  roster: (slug: string, projectId: string) =>
+    http.get<PresenceRoster>(`/workspaces/${enc(slug)}/presence`, { filter: { project: projectId } }),
+};
+
+/** S1. The stream is not a JSON request: src/lib/realtime opens it. The path is kept here for the paper trail. */
+export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };
+
 export const api = {
+  dashboards,
+  presence,
+  realtime,
   imports,
   customFields,
   dependencies,

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, Maximize2, Minimize2, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/choice";
@@ -34,6 +34,43 @@ import { TaskCustomFields } from "@/features/fields/task-custom-fields";
 import { TaskTime } from "@/features/time/task-time";
 import { triggerSpark } from "./task-origin";
 import { useSparking } from "./task-bits";
+import { liveUpdateToast } from "@/features/presence/live-toast";
+import { canonicalField, editingLabel, editors, fieldFlags, firstName, peopleAt, typingLabel } from "@/features/presence/presence-lib";
+import { PresenceStack } from "@/features/presence/presence-stack";
+import { EditingPill, FieldFlagProvider, PresenceField } from "@/features/presence/presence-ui";
+import { useEditingField } from "@/features/presence/use-editing-field";
+import { usePresence, useRoster } from "@/features/presence/use-presence";
+import { fieldLabel } from "@/lib/realtime/apply-event";
+import { claimLiveToast, remoteMarks, type RemoteMark } from "@/lib/realtime/remote";
+import { onScreen } from "@/lib/realtime/screen-registry";
+import { useIsLive } from "@/lib/realtime/status-store";
+
+const NO_FLASH: ReadonlySet<string> = new Set();
+
+/**
+ * Board 33: when the open task's version moves because of someone else's change (a remote mark from
+ * the event applier), flash the changed fields and toast "Updated just now by Riley · PRJ-42 · Due".
+ * Off in polling mode.
+ */
+function useTaskLiveUpdate(task: TaskDetail) {
+  const live = useIsLive();
+  const { data: members = [] } = useProjectMembers(task.projectId);
+  const [seen, setSeen] = useState<{ v: number; flash: ReadonlySet<string>; mark: RemoteMark | null }>({ v: task.version, flash: NO_FLASH, mark: null });
+  if (task.version !== seen.v) {
+    const mark = live ? remoteMarks.get(`t:${task.id}`) : null;
+    setSeen({ v: task.version, flash: mark ? new Set(mark.fields.map(canonicalField)) : NO_FLASH, mark });
+  }
+  useEffect(() => {
+    const mark = seen.mark;
+    if (!mark) return;
+    const person = members.find((m) => m.userId === mark.actorId)?.user;
+    if (person && claimLiveToast()) liveUpdateToast(person, `${task.key} · ${fieldLabel(mark.fields[0])}`);
+    const t = setTimeout(() => setSeen((s) => ({ ...s, flash: NO_FLASH, mark: null })), 1600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per version change
+  }, [seen.v]);
+  return seen.flash;
+}
 
 export type DetailMode = "panel" | "full" | "sheet";
 
@@ -100,6 +137,27 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const [editingDesc, setEditingDesc] = useState(false);
   const [addingSub, setAddingSub] = useState(false);
   const full = mode === "full";
+
+  // Board 33 presence: who has this task open, who edits which field, who is typing a comment.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const domField = useEditingField(rootRef);
+  const [typing, setTyping] = useState(false);
+  const [composer, setComposer] = useState(false);
+  const myField = editingDesc ? "description" : typing ? "comment" : domField;
+  usePresence({ projectId: task.projectId, location: { kind: "task", id: task.id }, state: myField ? "editing" : "viewing", field: myField, typing: typing && !editingDesc, composer });
+  const roster = useRoster(task.projectId);
+  const { others } = peopleAt(roster.data, { kind: "task", id: task.id }, me.id);
+  const flags = fieldFlags(roster.data, task.id, me.id);
+  const descEditor = flags.get("description") ?? null;
+  const editorsNow = editors(others, me.id);
+  const pill = editingLabel(others, me.id);
+  const flash = useTaskLiveUpdate(task);
+  useEffect(() => {
+    onScreen.taskId = task.id;
+    return () => {
+      if (onScreen.taskId === task.id) onScreen.taskId = null;
+    };
+  }, [task.id]);
   // Sub-tasks can't have sub-tasks (the server rejects it), so a sub-task gets no composer.
   const canAddSub = canCreate && !deleted && !task.parentId;
   // New tasks can't go into a completed sprint (the server answers 422); copies and sub-tasks fall back to the backlog.
@@ -192,12 +250,15 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col" onKeyDown={onKeyDown}>
+    <div ref={rootRef} className="flex h-full min-h-0 flex-col" onKeyDown={onKeyDown}>
       <header className="flex h-12 flex-none items-center gap-1 border-b border-line pl-3.5 pr-2">
-        <span className={cn("max-w-[150px] truncate text-[12px] text-fg-3", mode === "sheet" && "hidden")}>{task.project.name}</span>
-        <span className={cn("mx-0.5 text-fg-3", mode === "sheet" && "hidden")}>/</span>
+        {/* Board 33: when people are here, the project name gives way to their avatars (and the editing pill). */}
+        <span className={cn("max-w-[150px] truncate text-[12px] text-fg-3", (mode === "sheet" || (mode === "panel" && others.length > 0)) && "hidden")}>{task.project.name}</span>
+        <span className={cn("mx-0.5 text-fg-3", (mode === "sheet" || (mode === "panel" && others.length > 0)) && "hidden")}>/</span>
         <CopyKeyButton value={task.key} />
-        <span className="flex-1" />
+        <span className="min-w-0 flex-1" />
+        {pill && editorsNow[0] && <EditingPill person={editorsNow[0]} label={pill} className="mr-1 min-w-0 max-w-[180px] overflow-hidden text-ellipsis max-[760px]:hidden" />}
+        {others.length > 0 && <PresenceStack others={others} me={me} size={mode === "sheet" ? 20 : 26} max={3} className="mr-1.5" bg="var(--surface)" dot={false} />}
         {canStatus && (
           <Tooltip content={isDone ? "Reopen" : "Mark done"} keys={["⌘", "⇧", "D"]}>
             <button
@@ -205,7 +266,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               aria-pressed={isDone}
               onClick={toggleDone}
               className={cn(
-                "mr-1 inline-flex h-7 items-center gap-[7px] rounded-[7px] border border-line-2 bg-raised px-2.5 text-[12px] font-medium transition-[border-color,background-color,color,transform] duration-[var(--dur-fast)] hover:border-ok active:scale-[.97]",
+                "mr-1 inline-flex h-7 flex-none items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-line-2 bg-raised px-2.5 text-[12px] font-medium transition-[border-color,background-color,color,transform] duration-[var(--dur-fast)] hover:border-ok active:scale-[.97]",
                 isDone && "border-transparent bg-ok-s text-ok",
               )}
             >
@@ -276,14 +337,18 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
           style={full ? undefined : undefined}
         >
           <div className="flex flex-col gap-2 [grid-area:title]">
-            <InlineEditText
-              value={task.title}
-              canEdit={canEdit}
-              label="Task title"
-              as="h2"
-              onSave={(title) => patch({ title })}
-              className="ml-[-9px] text-[22px] font-semibold leading-[30px] tracking-[-0.015em] max-[760px]:text-[18px] max-[760px]:leading-[26px]"
-            />
+            <FieldFlagProvider flags={flags} flash={flash}>
+              <PresenceField field="title" className="-ml-[9px] pl-[9px]">
+                <InlineEditText
+                  value={task.title}
+                  canEdit={canEdit}
+                  label="Task title"
+                  as="h2"
+                  onSave={(title) => patch({ title })}
+                  className="ml-[-9px] text-[22px] font-semibold leading-[30px] tracking-[-0.015em] max-[760px]:text-[18px] max-[760px]:leading-[26px]"
+                />
+              </PresenceField>
+            </FieldFlagProvider>
             {!canEdit && !deleted && (
               <p className="m-0 flex w-fit items-center gap-2 rounded-md bg-raised px-2.5 py-2 text-[12px] text-fg-2">
                 <Eye size={14} aria-hidden /> {can("task.edit_own", perms) ? "You can only edit tasks you reported or are assigned." : "View only"}
@@ -291,6 +356,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
             )}
           </div>
 
+          <FieldFlagProvider flags={flags} flash={flash}>
           <div className={cn("flex flex-col gap-3 [grid-area:props]", full && "self-start border-l border-line pl-6 [grid-area:rail] max-[1023px]:border-l-0 max-[1023px]:pl-0 max-[1023px]:[grid-area:props]")}>
             <TaskChips task={task} statuses={statuses} canEdit={canEdit} canStatus={canStatus} canAssign={canAssign} onPatch={patch} />
             <TaskFields task={task} statuses={statuses} canEdit={canEdit} canStatus={canStatus} canAssign={canAssign} onPatch={patch} forced={forced} />
@@ -321,9 +387,19 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               }}
             />
           </div>
+          </FieldFlagProvider>
 
           <div className="flex min-w-0 flex-col gap-6 [grid-area:main]">
-            <section aria-label="Description">
+            <section
+              aria-label={descEditor ? `Description, ${firstName(descEditor.user.name)} is editing` : "Description"}
+              className={cn("relative rounded-md", descEditor && "pf-desc-live", flash.has("description") && "hl")}
+              style={descEditor ? ({ "--hue": descEditor.user.hue } as CSSProperties) : undefined}
+            >
+              {descEditor && (
+                <span className="pf-flag" style={{ left: -7, bottom: "calc(100% + 7px)" }}>
+                  {firstName(descEditor.user.name)}
+                </span>
+              )}
               {editingDesc ? (
                 <DescriptionEditor
                   initial={task.description}
@@ -365,7 +441,14 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
             <TaskTime task={task} canEdit={canEdit} deleted={deleted} forceEstimate={forced.has("timeEstimate")} onPatch={patch} />
             <Subtasks task={task} statuses={statuses} canCreate={canAddSub} sprintId={openSprintId} adding={addingSub} onAddingChange={setAddingSub} />
             <TaskAttachments task={task} canUpload={can("attachment.upload", perms)} deleted={deleted} />
-            <TaskConversation task={task} deleted={deleted} />
+            <TaskConversation
+              task={task}
+              deleted={deleted}
+              typingLabel={typingLabel(others, me.id)}
+              typingPeople={others.filter((p) => p.typing)}
+              onTyping={setTyping}
+              onComposer={setComposer}
+            />
           </div>
         </div>
       </div>
@@ -385,7 +468,7 @@ function CopyKeyButton({ value }: { value: string }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1400);
         }}
-        className="inline-flex h-[26px] items-center gap-1.5 rounded-sm px-1.5 font-mono text-[12px] font-medium text-fg-2 hover:bg-hover hover:text-fg"
+        className="inline-flex h-[26px] items-center gap-1.5 whitespace-nowrap rounded-sm px-1.5 font-mono text-[12px] font-medium text-fg-2 hover:bg-hover hover:text-fg"
       >
         {value}
         <Copy size={12} strokeWidth={1.5} aria-hidden />

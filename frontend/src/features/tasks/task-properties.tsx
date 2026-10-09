@@ -18,6 +18,7 @@ import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/lib/ap
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 import { daysUntil } from "@/lib/domain/progress";
+import { PresenceField } from "@/features/presence/presence-ui";
 
 /* Task properties (board 14 §2.8): 3 chips · 4 fields · Planning folded · empty = hidden. */
 
@@ -60,6 +61,7 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
   const assignee = members.find((m) => m.userId === task.assigneeId)?.user;
   return (
     <div className="flex flex-wrap items-center gap-1.5 max-[760px]:flex-nowrap max-[760px]:overflow-x-auto">
+      <PresenceField field="statusId" as="span" className="inline-flex">
       <Menu>
         <Chip editable={canStatus} label={`Status: ${status?.name ?? ""}`}>
           {status && <StatusGlyph kind={status.glyph} />}
@@ -75,8 +77,10 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
           </MenuRadioGroup>
         </MenuContent>
       </Menu>
+      </PresenceField>
 
       {(task.priority > 0 || canEdit) && (
+        <PresenceField field="priority" as="span" className="inline-flex">
         <Menu>
           <Chip editable={canEdit} ghost={task.priority === 0} label={`Priority: ${priorityMeta[task.priority].label}`}>
             {task.priority === 0 ? (
@@ -100,9 +104,11 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
             </MenuRadioGroup>
           </MenuContent>
         </Menu>
+        </PresenceField>
       )}
 
       {(assignee || canAssign) && (
+        <PresenceField field="assigneeId" as="span" className="inline-flex">
         <Menu>
           <Chip editable={canAssign} ghost={!assignee} label={`Assignee: ${assignee?.name ?? "Unassigned"}`}>
             {assignee ? (
@@ -134,6 +140,7 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
             )}
           </MenuContent>
         </Menu>
+        </PresenceField>
       )}
       {/* Board 32: the task's span when it has both dates. */}
       {task.startDate && task.dueDate && (
@@ -216,8 +223,9 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
         </MenuContent>
       </Menu>
 
-      {showEst &&
-        (editingEst ? (
+      {showEst && (
+        <PresenceField field="estimate">
+        {editingEst ? (
           <div className={fieldBtn}>
             <FieldLabel>Estimate</FieldLabel>
             <span className="flex items-center gap-1.5">
@@ -260,10 +268,20 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
             <FieldLabel>Estimate</FieldLabel>
             <FieldValue>{task.estimate} pts</FieldValue>
           </div>
-        ))}
+        )}
+        </PresenceField>
+      )}
 
-      {showStart && <StartField task={task} canEdit={canEdit} onPatch={onPatch} />}
-      {showDue && <DueField task={task} canEdit={canEdit} onPatch={onPatch} sprintEnd={sprint?.endDate} />}
+      {showStart && (
+        <PresenceField field="startDate">
+          <StartField task={task} canEdit={canEdit} onPatch={onPatch} />
+        </PresenceField>
+      )}
+      {showDue && (
+        <PresenceField field="dueDate">
+          <DueField task={task} canEdit={canEdit} onPatch={onPatch} sprintEnd={sprint?.endDate} />
+        </PresenceField>
+      )}
     </div>
   );
 }
@@ -358,7 +376,7 @@ export function TaskPlanning({ task, canEdit, onPatch, open, onOpenChange, force
   const row = (label: string, current: string | undefined, items: { id: string; name: string }[], key: "sprintId" | "milestoneId" | "epicId", value: string | null, noneLabel: string, force: string) => {
     if (!current && !canEdit && !forced.has(force)) return null;
     return (
-      <div className="grid min-h-[30px] grid-cols-[84px_minmax(0,1fr)] items-center px-2.5">
+      <PresenceField field={key} className="grid min-h-[30px] grid-cols-[84px_minmax(0,1fr)] items-center px-2.5">
         <span className="text-[12px] font-medium text-fg-3">{label}</span>
         {canEdit ? (
           <Menu>
@@ -381,7 +399,7 @@ export function TaskPlanning({ task, canEdit, onPatch, open, onOpenChange, force
         ) : (
           <span className="truncate text-[13px] font-medium">{current ?? "—"}</span>
         )}
-      </div>
+      </PresenceField>
     );
   };
 
@@ -492,7 +510,7 @@ export function TaskLabels({ task, canEdit, onPatch }: Props) {
   const on = labels.filter((l) => task.labelIds.includes(l.id));
   if (!on.length && !canEdit) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <PresenceField field="labels" className="flex flex-wrap items-center gap-1.5">
       {on.map((l) => (
         <span key={l.id} className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-line bg-raised px-2 text-[12px] font-medium">
           <span className="size-[7px] rounded-full" style={{ background: l.color }} aria-hidden />
@@ -528,7 +546,7 @@ export function TaskLabels({ task, canEdit, onPatch }: Props) {
           </MenuContent>
         </Menu>
       )}
-    </div>
+    </PresenceField>
   );
 }
 

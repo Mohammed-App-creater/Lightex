@@ -14,7 +14,7 @@ export type Ctx = {
 };
 type Handler = (ctx: Ctx) => unknown | Promise<unknown>;
 
-type Route = { method: HttpMethod; re: RegExp; keys: string[]; handler: Handler; anonymous: boolean };
+type Route = { method: HttpMethod; pattern: string; re: RegExp; keys: string[]; handler: Handler; anonymous: boolean };
 const routes: Route[] = [];
 
 export function route(method: HttpMethod, pattern: string, handler: Handler, opts: { anonymous?: boolean } = {}) {
@@ -27,7 +27,7 @@ export function route(method: HttpMethod, pattern: string, handler: Handler, opt
       }) +
       "$",
   );
-  routes.push({ method, re, keys, handler, anonymous: Boolean(opts.anonymous) });
+  routes.push({ method, pattern, re, keys, handler, anonymous: Boolean(opts.anonymous) });
 }
 
 export function match(method: HttpMethod, path: string) {

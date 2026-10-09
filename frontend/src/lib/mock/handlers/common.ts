@@ -1,6 +1,7 @@
 import type { ActivityVerb, NotificationEvent, NotificationType } from "@/lib/api/types";
 import { nowISO, uid } from "../db";
 import type { MockDB, TaskRec } from "../db-types";
+import { publishInbox } from "../realtime";
 
 export function logActivity(
   db: MockDB,
@@ -65,4 +66,6 @@ export function notify(
     createdAt: nowISO(),
     readAt: null,
   });
+  // Board 33: inbox.changed to the recipient with the new unread count.
+  publishInbox(db, recipientId, project.workspaceId);
 }

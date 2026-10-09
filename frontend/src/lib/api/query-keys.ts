@@ -63,6 +63,14 @@ export const qk = {
   importJob: (id: string) => ["import", id] as const,
   importRows: (id: string, outcome: string, revision: number) => ["import", id, "rows", outcome, revision] as const,
 
+  /* Board 33 (v2). The list sits under ["p", id] so qk.scope invalidation reaches it. */
+  dashboards: (projectId: string) => ["p", projectId, "dashboards"] as const,
+  dashboard: (id: string) => ["dashboard", id] as const,
+  /** Project presence roster; outside ["p", id] so qk.scope invalidation doesn't refetch it. */
+  presence: (slug: string, projectId: string) => ["presence", slug, projectId] as const,
+  /** My-tasks widget: the viewer's tasks in one project (under ["p", id], so task patches reach it). */
+  myProjectTasks: (projectId: string) => ["p", projectId, "tasks", "mine"] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,

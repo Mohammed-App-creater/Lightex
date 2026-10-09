@@ -7,8 +7,10 @@ export type MockControls = {
   latencyMin: number;
   latencyMax: number;
   offline: boolean;
-  /** Simulated teammates occasionally edit tasks (drives polling + version conflicts). */
+  /** Simulated teammates occasionally edit tasks (drives polling + version conflicts) and, board 33, show presence. */
   teammates: boolean;
+  /** Board 33: "polling" makes the simulated stream answer "unavailable" (exercises the v1 fallback). */
+  realtime: "live" | "polling";
 };
 
 const STORAGE_KEY = "lightex-mock-controls";
@@ -30,6 +32,7 @@ export const mockControls = createStore<MockControls>({
   latencyMax: mockConfig.latencyMax,
   offline: false,
   teammates: true,
+  realtime: "live",
   ...saved(),
 });
 

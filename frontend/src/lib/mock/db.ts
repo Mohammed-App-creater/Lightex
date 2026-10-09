@@ -2,6 +2,7 @@ import type { MockDB } from "./db-types";
 import { ensureExt39 } from "./handlers/extensions";
 import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
+import { ensureExt33 } from "./handlers/dashboards";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -45,6 +46,11 @@ export function getDB(): MockDB {
           // Board 40: project.import on cached system roles, once.
           if (!db.ext40) {
             ensureExt40(db);
+            persist();
+          }
+          // Board 33: dashboard keys on cached system roles and the PRJ dashboards, once.
+          if (!db.ext33) {
+            ensureExt33(db);
             persist();
           }
           return db;

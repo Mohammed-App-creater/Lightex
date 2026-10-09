@@ -212,13 +212,14 @@ export function registerReports() {
       .forEach((o) => {
         const created = o.createdAt.slice(0, 10);
         const expected = o.dueDate ? expectedBetween(created, o.dueDate) : null;
-        rows.push({ id: o.id, kind: "objective", name: o.title, percent: o.progress.percent, expected });
+        // Board 33 (additive): the objective's quarter, for the dashboard's objectives widget.
+        rows.push({ id: o.id, kind: "objective", name: o.title, percent: o.progress.percent, expected, quarter: o.quarter ?? null });
       });
     ctx.db.milestones
       .filter((m) => m.projectId === p.id)
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
       .map((m) => toMilestone(ctx.db, m))
-      .forEach((m) => rows.push({ id: m.id, kind: "milestone", name: m.name, percent: m.progress.percent, expected: m.progress.expected, ...{ dueDate: m.dueDate } }));
+      .forEach((m) => rows.push({ id: m.id, kind: "milestone", name: m.name, percent: m.progress.percent, expected: m.progress.expected, ...{ dueDate: m.dueDate }, quarter: null }));
     return rows;
   });
 }

@@ -25,6 +25,7 @@ import type {
   ImportOutcome,
   ImportTaskType,
   TimeEntry,
+  Dashboard,
 } from "@/lib/api/types";
 
 /* Stored shapes. Derived fields (progress, counts, my_permissions) are computed per request. */
@@ -133,7 +134,14 @@ export interface MockDB {
   importRows?: ImportRowRec[];
   /** Board 40 upgrade marker (project.import on cached system roles). */
   ext40?: boolean;
+  /* Board 33 (v2). Optional, created by ensureExt33 (handlers/dashboards.ts), so no SCHEMA bump. Presence lives in memory only. */
+  dashboards?: DashboardRec[];
+  /** Board 33 upgrade marker (dashboard keys on cached system roles, PRJ dashboards). */
+  ext33?: boolean;
 }
+
+/** Board 33: the wire dashboard without the derived `owner`. */
+export type DashboardRec = Omit<Dashboard, "owner">;
 
 /** Board 40: the wire job plus server-side state (never sent as-is; handlers/imports.ts strips it). */
 export type ImportJobRec = ImportJob & {

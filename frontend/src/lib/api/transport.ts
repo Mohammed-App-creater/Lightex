@@ -27,6 +27,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Skip auth + refresh handling (login, refresh, public invite lookups). */
   anonymous?: boolean;
+  /** Board 33: let the request outlive the page (presence leave on `pagehide`). Ignored by the mock. */
+  keepalive?: boolean;
 }
 
 export interface Transport {

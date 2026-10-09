@@ -7,8 +7,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   Tooltip,
   XAxis,
@@ -83,6 +83,9 @@ const tipProps = {
   allowEscapeViewBox: { x: false, y: true },
   wrapperStyle: { zIndex: 6, outline: "none" },
 } as const;
+
+/** Board 33 widgets: the chart fills its card body. */
+const FILL = { width: "100%", height: "100%" } as const;
 
 const LINE_CURSOR = { stroke: "var(--text-3)", strokeWidth: 1 };
 const ACTIVE_DOT = {
@@ -215,12 +218,21 @@ export function BurndownCard({
   );
 }
 
-function BurndownChart({
+/**
+ * The burndown chart body. Board 33: exported for the dashboard widget, which passes `fill` (the
+ * chart takes its card's size instead of the design aspect ratio), a shorter tooltip label and
+ * the widget's aria text.
+ */
+export function BurndownChart({
   points,
   name,
   reduce,
   mobile,
-}: Common & { points: BurndownPoint[]; name: string }) {
+  fill,
+  remainingLabel = "pts remaining",
+  ariaText,
+  area,
+}: Common & { points: BurndownPoint[]; name: string; fill?: boolean; remainingLabel?: string; ariaText?: string; area?: boolean }) {
   const n = points.length;
   const start = points[0]?.ideal ?? 0;
   const { text, todayIdx } = burndownSummary(name, points);
@@ -266,12 +278,12 @@ function BurndownChart({
   };
 
   return (
-    <LineChart
+    <ComposedChart
       responsive
       data={rows}
       margin={{ ...MARGIN, right: 14 }}
-      style={chartStyle(w, h)}
-      title={text}
+      style={fill ? FILL : chartStyle(w, h)}
+      title={ariaText ?? text}
       accessibilityLayer
     >
       <Grid />
@@ -307,7 +319,7 @@ function BurndownChart({
                       {
                         kind: "line" as const,
                         value: d.remaining,
-                        label: "pts remaining",
+                        label: remainingLabel,
                       },
                     ]
                   : []),
@@ -328,6 +340,9 @@ function BurndownChart({
         activeDot={false}
         {...anim(reduce)}
       />
+      {area && (
+        <Area dataKey="remaining" type="linear" stroke="none" fill="var(--c1)" fillOpacity={0.1} connectNulls={false} activeDot={false} isAnimationActive={false} tooltipType="none" />
+      )}
       <Line
         dataKey="remaining"
         name="Remaining"
@@ -341,7 +356,7 @@ function BurndownChart({
         activeDot={ACTIVE_DOT}
         {...anim(reduce)}
       />
-    </LineChart>
+    </ComposedChart>
   );
 }
 
@@ -420,12 +435,15 @@ export function VelocityCard({
   );
 }
 
-function VelocityChart({
+/** The velocity chart body. Board 33: exported for the dashboard widget (`fill`, aria text). */
+export function VelocityChart({
   pts,
   avg,
   reduce,
   mobile,
-}: Common & { pts: VelocityPoint[]; avg: number }) {
+  fill,
+  ariaText,
+}: Common & { pts: VelocityPoint[]; avg: number; fill?: boolean; ariaText?: string }) {
   const max = niceMax(
     Math.max(...pts.flatMap((p) => [p.committed, p.completed])),
     10,
@@ -435,15 +453,15 @@ function VelocityChart({
   const last = pts[pts.length - 1]?.sprint ?? "";
   const [ref, barSize] = useBarSize(pts.length, 0.3, 5);
   return (
-    <div ref={ref} className="min-w-0">
+    <div ref={ref} className={fill ? "h-full min-h-0 min-w-0" : "min-w-0"}>
       <BarChart
         responsive
         data={pts}
         margin={MARGIN}
-        style={chartStyle(w, h)}
+        style={fill ? FILL : chartStyle(w, h)}
         barGap={2}
         barSize={barSize || undefined}
-        title={`Velocity ${first}–${last}: average ${avg} points completed per sprint.`}
+        title={ariaText ?? `Velocity ${first}–${last}: average ${avg} points completed per sprint.`}
         accessibilityLayer
       >
         <Grid />

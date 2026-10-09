@@ -7,11 +7,13 @@ import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
 import type { SavedView, SavedViewInput } from "@/lib/api/types";
 import { POLL_MS } from "@/features/workspace/queries";
+import { useLiveInterval } from "@/lib/realtime/status-store";
 
 /* Saved views (board 30): list, create, edit, pin, reorder, delete with Undo. */
 
 export function useViews(slug: string) {
-  return useQuery({ queryKey: qk.views(slug), queryFn: () => api.views.list(slug), staleTime: 15_000, refetchInterval: POLL_MS });
+  const interval = useLiveInterval(POLL_MS);
+  return useQuery({ queryKey: qk.views(slug), queryFn: () => api.views.list(slug), staleTime: 15_000, refetchInterval: interval });
 }
 
 export const pinnedOf = (views: SavedView[]) => views.filter((v) => v.pinned).sort((a, b) => a.position - b.position);

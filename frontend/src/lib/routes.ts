@@ -14,6 +14,7 @@ export type ProjectView =
   | "objectives"
   | "milestones"
   | "reports"
+  | "dashboards"
   | "settings";
 
 export type SettingsSection = "general" | "members" | "roles" | "notifications" | "profile" | "audit";
@@ -32,6 +33,8 @@ export const routes = {
   trash: (ws: string) => `/${ws}/trash`,
   /** Board 39 (v2): workspace timesheet. */
   timesheet: (ws: string) => `/${ws}/timesheet`,
+  /** Board 33 (v2): one project dashboard. */
+  dashboard: (ws: string, key: string, id: string) => `/${ws}/projects/${key}/dashboards/${encodeURIComponent(id)}`,
 };
 
 /** Adds or removes ?task=KEY on the current URL (task side panel). */

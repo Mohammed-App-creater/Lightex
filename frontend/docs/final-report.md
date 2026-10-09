@@ -8,7 +8,7 @@ Each step passed its checks before it was committed.
 | `npm run build` | passes |
 | `npm run typecheck` | clean (TypeScript strict) |
 | `npm run lint` | 0 errors, 1 warning (expected React Compiler note on TanStack Virtual's `useVirtualizer`) |
-| `npm test` | 16 files, 107 tests passing |
+| `npm test` | 46 files, 610+ tests passing (after board 33; run with `--maxWorkers=2` on this machine) |
 | `npm run test:e2e` | 8 Playwright tests passing (sign-in → board → task panel → palette; role-hiding matrix) |
 | Route sweep | 29 routes × {navy 1440, light 1440, near-black 390, light 390}: all render, no console errors, no horizontal scroll |
 
@@ -85,6 +85,10 @@ Each step passed its checks before it was committed.
 | `@tanstack/react-virtual` | The brief requires virtualized long lists (list view). |
 | `clsx`, `tailwind-merge` | Class composition with Tailwind conflict resolution in the `cn()` helper. Tiny. |
 | `@tiptap/extension-{mention,placeholder}`, `@tiptap/suggestion`, `@hookform/resolvers` | Parts of the chosen Tiptap and react-hook-form + zod stack, not new libraries. |
+
+Board 33 (realtime, dashboards) adds **no** dependency: the SSE parser is hand-written, the stream uses `fetch`,
+leader election uses the Web Locks and BroadcastChannel browser APIs (with a per-tab fallback), drag and resize are
+pointer events, and the widget charts reuse Recharts.
 
 ---
 
@@ -339,6 +343,76 @@ the mock API"); parsed rows live in memory only, so a reload fails `ready` / `qu
   `src/lib/mock/import/fixtures/sample.ts` (the design's 48-row sample).
 - `public/import-template.csv`: the live-mode "Download template" file.
 
+### v2 · Board 33: dashboards, presence and realtime
+
+The contract is `docs/v2/33-dashboards-presence.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
+`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.dashboards.*`, `api.reports.workload`,
+`api.presence.*`, `api.realtime.streamPath`) and `qk` (`dashboards`, `dashboard`, `presence`, `myProjectTasks`), and
+implemented in the mock (`src/lib/mock/handlers/dashboards.ts`, `handlers/presence.ts`, `mock/realtime.ts`; tested in
+`src/lib/mock/dashboards.test.ts`).
+
+**Endpoints** (all under `/api/v1`; same codes and messages as the contract)
+
+| # | Method | Path | Permission | Response | Client |
+|---|---|---|---|---|---|
+| DB1 | GET | `/projects/:id/dashboards` | `project.view` | 200 `DashboardSummary[]` (shared A–Z, then your personal A–Z) | `api.dashboards.list` · `qk.dashboards` |
+| DB2 | POST | `/projects/:id/dashboards` `{ name, visibility, template? }` | `dashboard.create` | 201 `Dashboard` (`version: 1`) | `api.dashboards.create` |
+| DB3 | GET | `/dashboards/:id` | can_view (someone else's personal → 404) | 200 `Dashboard` (every widget) | `api.dashboards.get` · `qk.dashboard` |
+| DB4 | PATCH | `/dashboards/:id` `{ name?, visibility?, version }` | can_edit (visibility: owner + `dashboard.create`) | 200 `Dashboard` | `api.dashboards.update` |
+| DB5 | PUT | `/dashboards/:id/layout` `{ version, widgets }` (the complete ordered list) | can_edit | 200 `Dashboard` | `api.dashboards.saveLayout` |
+| DB6 | DELETE | `/dashboards/:id` | can_edit | 204 (sent when the 5 s Undo toast expires) | `api.dashboards.remove` |
+| W1 | GET | `/projects/:id/reports/workload` `filter[sprint]`, `filter[unit]=points\|hours`, `filter[person]=assignee\|<customFieldId>` | `report.view` | 200 `WorkloadReport` (hours in minutes) | `api.reports.workload` · `qk.reports(id, "workload", sprint, unit, person)` |
+| P1 | PUT | `/workspaces/:slug/presence/:sessionId` `{ location, state, field, typing }` | member + `project.view` on the location | 200 `{ expiresAt, heartbeatSec, roster }` (the whole project's roster) | `api.presence.put` |
+| P2 | DELETE | `/workspaces/:slug/presence/:sessionId` | member | 204, idempotent (`fetch` `keepalive` on `pagehide`) | `api.presence.leave` |
+| P3 | GET | `/workspaces/:slug/presence?filter[project]=` | `project.view` | 200 `PresenceRoster` | `api.presence.roster` · `qk.presence` |
+| S1 | GET | `/workspaces/:slug/stream?v=1` (`Accept: text/event-stream`, `Authorization: Bearer`, `Last-Event-ID`) | member | 200 `text/event-stream` | `src/lib/realtime/http-source.ts` |
+
+**Types:** `WidgetType`, `WidgetConfigMap`, `DashboardWidget`, `DashboardWidgetInput`, `DashboardVisibility`,
+`DashboardTemplate`, `Dashboard`, `DashboardSummary`, `WorkloadRow`, `WorkloadReport`, `PresenceLocationKind`,
+`PresenceLocation`, `PresencePerson`, `PresenceRoster`, `PresenceUpdate`, `PresenceHeartbeat` (§5.1, §5.3, §7.2); the
+envelope `RealtimeEnvelope`, the `RealtimeEvent` union and `RealtimeStatus` (§2.4).
+
+**Event catalogue (protocol v1, §2.4):** `hello`; `reset` (`unknown_cursor | gap | slow_consumer | broker_restart`);
+`reconnect` (`lifetime | token_expiry | access_changed | shutdown`, `retryMs`); the durable `task.changed` (`taskId,
+key, op, version, fields`), `tasks.bulk_changed` (`taskIds | null, op`), `comment.changed`, `attachment.changed`,
+`project.changed` (`areas`), `dashboard.changed` (`dashboardId, op, version`), `inbox.changed` (`unread`) and
+`access.changed` (`projectId`); the volatile `presence.updated` (`location, people, at`). `import.progress` is
+reserved and not used. Unknown types and fields are ignored.
+
+**Changed payloads (additive)**
+
+- New project permissions `dashboard.create` ("Create dashboards") and `dashboard.manage` ("Manage shared
+  dashboards"), group Reports, right before `report.view` in the catalogue, `PROJECT_PERMISSIONS` and
+  `my_permissions` (the §4.4 order). Project Admin and Manager get both, Member gets `dashboard.create`, Viewer neither.
+  Cached mock databases get them through `ensureExt33` (marker `ext33`, custom roles untouched).
+- `ProgressRow.quarter` (`string | null`; null on milestone rows) on `GET /projects/:id/reports/progress`.
+- Audit actions `dashboard.created`, `dashboard.updated`, `dashboard.layout_updated` and `dashboard.deleted` (entity
+  type `dashboard`; audit only, not in activity feeds).
+- `RequestOptions.keepalive` (passed to `fetch` by `HttpTransport`, ignored by the mock).
+
+**Errors:** 422 `validation_failed` with `details.fields` (DB2 / DB4 `name`, `visibility`, `template`; DB5 `widgets`,
+`widgets.N.id|type|w|h` and `widgets.N.config.<key>` with the §3.3 messages, plus "You can’t view this report"; W1
+`filter[unit]`, `filter[person]`; P1 `location.kind`, `location.id`, `state`, `field`, `typing`; P3
+`filter[project]`); 409 `version_conflict` with `details.current` (DB4, DB5); 409 `dashboard_limit` (20 shared per
+project, 10 personal per user per project); 403 `forbidden` with `details.permission` (`dashboard.create` or
+`dashboard.manage`, and "Only the owner can change who sees this dashboard."); 404 "Dashboard not found." and "Sprint
+not found.". Stream errors before streaming: 401, 404, 406, 429 `throttled` with `Retry-After`, and 503
+`realtime_unavailable` / `realtime_busy` with `Retry-After`.
+
+**Also needed from the backend for a cross-origin frontend:** `last-event-id` in `CORS_ALLOW_HEADERS` (§2.9), and
+`Retry-After` in `Access-Control-Expose-Headers`, so the client can read the 503 / 429 back-off. Without the second,
+the client uses its own exponential backoff.
+
+**Mock specifics:** presence sessions live in memory only (never in `lightex-mock-db`). `MockRealtimeSource` plays
+the stream in-process, with no network: hello, replay from the last 500 durable events (an older cursor gets
+`reset`), a ping every 15 s, and `reconnect` after 5 minutes. The mock control "Realtime: polling" answers
+`realtime_unavailable` with `Retry-After: 300`, and the loop is woken at once when the control changes back. The
+presence field pattern also accepts `_`, because mock ids contain it (`cf.p_prj-cf-qaowner`).
+
+**Shared test vectors:** `src/features/dashboards/pack-vectors.json` (first-fit packing, §8.3). The backend copy is
+`backend/apps/dashboards/tests/pack_vectors.json`; `src/features/dashboards/layout-lib.test.ts` hashes both and fails
+when they differ (they are identical today).
+
 ---
 
 ## 6. Known gaps
@@ -450,8 +524,8 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 
 ## 8. v2
 
-The user lifted the "no v2 features" rule for boards 39, 32 and 40. The remaining v2 boards are planned next: **33**
-Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push.
+The user lifted the "no v2 features" rule for boards 39, 32, 40 and 33. The remaining v2 boards are planned next:
+**37** Integrations, **38** Telegram / SMS / Push.
 
 ### Board 39: custom fields, dependencies, time tracking (built)
 
@@ -653,3 +727,129 @@ Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Boa
 - An error report larger than 200 KB lives in memory only; after a reload I8 returns 404 for it.
 - The finish toast only fires while a project view is open (the watcher lives in the project shell); the inbox row
   covers the rest.
+
+### Board 33: dashboards & presence, realtime over SSE (built)
+
+Spec: `docs/v2/33-dashboards-presence.md`. API additions are listed in §5 ("v2 · Board 33"). Code:
+`src/features/dashboards/` (UI), `src/features/presence/` (presence UI and hooks), `src/lib/realtime/` (the stream
+client), `src/lib/domain/dashboards.ts` (widget catalogue and `pack()`), and in the mock `handlers/dashboards.ts`,
+`handlers/presence.ts`, `mock/realtime.ts`, `mock/publish-routes.ts` and the presence part of `mock/teammates.ts`.
+
+- **Rules lifted:** SSE is the agreed exception to "no WebSockets" (`frontend/CLAUDE.md` freshness rule rewritten;
+  board 33 moved to "in scope"). There is still no WebSocket anywhere.
+- **Dashboards tab** (after Reports, everyone on the project): `/dashboards` opens the last dashboard you opened in
+  this project (localStorage), else the first shared one, else your first personal one, else "No dashboards yet"
+  (**New dashboard** with `dashboard.create`, otherwise "Ask a project admin to create one").
+  `/dashboards/[dashboardId]` shows one dashboard.
+- **Header:** crumb picker "Dashboards / Sprint 14 health ▾" (Shared and Personal sections, ✓ on the current one,
+  New dashboard…, Rename…, Share with project / Make personal, Delete… with the `alertdialog` copy and a 5 s Undo),
+  "Jordan is editing the layout" pill, the "Viewing now" stack (others with the pulsing ring and green dot, you last,
+  at most 4 + "+N"), and **Edit layout** (only for editors per §4.3, above 760 px, not on archived projects).
+- **Grid:** 12 columns, first-fit `pack()` of the ordered layout, row unit 152 px at ≥ 1024 px grid width (128 px
+  below), cards placed with `transform: translate` (the only animated property). Widgets the viewer can't read
+  (`report.view`) are not rendered and packing skips them; "Nothing to show" when none remain.
+- **Edit mode:** guides, dimmed widget bodies, grip ⠿ (pointer drag with capture, 4 px threshold, touch
+  press-and-hold 200 ms; ←/↑ →/↓ reorder with focus kept on the grip), × remove, corner resize (pointer snapping and
+  arrow keys, size badge, 900 ms after a key), a settings gear per type with options (sprint, show done, quarter, unit
+  / sprint / person field, range), **Add widget** gallery (dialog; "N of 6 added", "✓ Added" tiles `aria-disabled`,
+  first free tile focused, Esc closes; unreadable types not shown), Cancel (snapshot restored) and **Save layout**
+  (no request when unchanged; one PUT with `version`; "Layout saved · 6 widgets"; 409 "Someone else changed this
+  dashboard" with **Reload**, the draft kept until Reload or Cancel; 422 shows the first message and stays). All six
+  live-region messages are announced verbatim.
+- **Widgets** (each with its own query, skeleton, inline "Couldn’t load" + Retry and empty copy): Burndown
+  (Recharts, remaining line with a light area, dashed ideal, Today rule, end dot, the spec's aria text), My tasks
+  (open by due date then done in the last 7 days, rows by height, complete / reopen through `useUpdateTask` with the
+  status-only rule, plain glyph without permission, row opens `?task=`), Objective progress (quarter filter, expected
+  tick, danger when > 10 behind), Workload by person (stacked in progress / to do, capacity tick, `11/10` in danger
+  when over, points or hours, a Person custom field), Velocity (grouped bars, "avg N", "Velocity needs 3 completed
+  sprints"), Recent activity (v1 activity text, mono key, "now" in the live tone, "live" meta only while live).
+  Burndown and Velocity reuse the Reports chart bodies, now exported as `BurndownChart` / `VelocityChart` with a
+  `fill` mode (Reports looks the same).
+- **Phones (≤ 760 px):** widgets stack in layout order at the design's stack heights; no edit mode; the presence
+  stack moves into `TopBarActions`; the empty state's **Add widget** opens the gallery as a sheet and saves at once.
+- **Presence:** each tab claims one location (board, dashboard, task; the most specific wins) and the tab's engine
+  sends the heartbeat PUT every 20 s while visible and 300 ms after a change, DELETE after 30 s hidden and on
+  `pagehide` (keepalive). Board: header stack (in `TopBarActions`) and, on each card, the people with that task open
+  (20 px live avatars on the top edge, the card border in the first person's hue). Task panel / page / sheet: header
+  stack, "Jordan is editing" / "Jordan and 1 other are editing" pill, a name flag and inset ring on the property
+  being edited (status, priority, assignee, estimate, start, due, sprint, milestone, epic, labels, title, custom
+  fields), a ring and flag on the description while someone edits it (no streamed characters), and "Sam is typing" /
+  "Sam and Riley are typing" / "3 people are typing" under the comments (live only). Which inline editor is open is
+  read from the DOM (`data-pf` rows with an open popover or focused input), so no editor had to change.
+- **Realtime client:** fetch-based SSE (`http-source.ts`: Bearer header, `Last-Event-ID`, refresh before connecting
+  without a token, refresh once on 401, `?v=1`) and an incremental parser (`sse-parser.ts`: every field, CR / LF /
+  CRLF across chunks, BOM, multi-byte splits). `loop.ts`: hello → live; 3 failed connects, 503, 404 or the watchdog
+  twice in 2 min → polling (keeps retrying with 1–30 s full-jitter backoff or `Retry-After`); `reconnect` waits
+  `retryMs` + 0–2 s and refreshes the token first after `token_expiry`; 401 after a refresh → off + the v1 re-auth
+  modal; 45 s without bytes aborts; the failure count resets after 60 s up; offline aborts, online reconnects at
+  once. `leader.ts` + `client.ts`: one stream per browser per workspace through Web Locks, events / status / last id
+  to the other tabs over BroadcastChannel, followers report visibility every 20 s, the stream closes when every tab
+  has been hidden 2 minutes and reconnects with `Last-Event-ID` when one becomes visible; without those APIs every
+  tab streams. `apply-event.ts` implements the §7.8 table (batched per frame + 150 ms, `refetchType: "active"`,
+  version skip for echoes, paused during a board drag, stale presence snapshots ignored). `useLiveInterval` replaces
+  the literal 30 s in the board, inbox, unread count and saved views, and drives the widget queries.
+- **"Updated just now by Riley · Burndown"** (live only, someone else's change, at most one per 4 s) with the changed
+  rows flashing 1.6 s (static under reduced motion); in the task panel the toast names the field ("PRJ-42 · Due")
+  and the field flashes.
+- **Dev pill:** "Realtime: live / polling / off" and the new **Realtime** control (Live (SSE) / Polling); the
+  teammates switch now also drives presence every 7 s.
+- **Tests:** SSE parser (incl. every byte split), backoff and `useLiveInterval`, the loop (live, 3 failures →
+  polling → recovery with one invalidation, Retry-After, token refresh order, unauthorized → off, watchdog, hidden /
+  visible with `Last-Event-ID`, online / offline, build flag, failure reset), the HTTP source, leader election with two
+  simulated tabs, every §7.8 row, presence labels / flags / roster merge, `pack` vectors and layout / widget helpers,
+  the §4.3 truth table and §4.2 grants, and the mock: DB1–DB6 (every 422, both 409 limits, version conflicts,
+  personal 404, archived), W1, progress `quarter`, P1–P3, publish-on-commit, the §6.2 events, `MockRealtimeSource`
+  replay / reset / polling / offline / access change, `ensureExt33` once, and the simulator off / on.
+
+### Deviations (board 33)
+
+- **`RealtimeSource.run`** resolves `{ kind, retryAfterMs? }` (`ended | unauthorized | unavailable | failed |
+  aborted`) instead of the three strings, so the loop can honour `Retry-After` and tell a watchdog abort from an
+  error.
+- **First hello of a page load** also triggers the blanket invalidation (the §7.8 row read literally: "hello after
+  connecting"). It costs one refetch of the active queries when the stream starts.
+- **Cache keys:** the activity widget uses `[...qk.activity(id), "widget"]` (10 rows) because the overview already
+  keeps 8 rows under `qk.activity(id)`; it is still under that prefix, so every activity invalidation reaches it.
+  The velocity widget key `qk.reports(id, "velocity", range)` is not shared with the Reports screen's
+  `(range, from, to)` key.
+- **Reopen** in My tasks moves the task to the first *todo*-category status that isn't Backlog (the seed's Backlog
+  is todo-category and comes first).
+- **"Editing" excludes `comment`:** someone typing a comment shows in the typing row, not as "X is editing".
+- **Field names:** flags use the §3.4 Task field names (`statusId`, `assigneeId`, …, `cf.<id>`); the §1.5 short
+  names (`status`, `assignee`, `sprint`, `epic`) and `customFields.<id>` map onto them.
+- **"Updated just now" toast** uses the app's toast stack (bottom right, one id, replaced in place) with a new
+  `icon` option on `toast()` for the live avatar, rather than a separate dashboard toast; the save toast is the
+  normal success toast ("Layout saved · 6 widgets").
+- **Description editor flag** is an outline with a 6 px offset in the editor's hue (no layout shift) rather than
+  a border.
+- **Task panel header:** in the side panel the project name gives way to the avatars when people are present; the
+  editing pill is hidden at ≤ 760 px (the sheet keeps the avatars).
+- **Presence stacks** show only when someone else is present on the board and in the task header too (the spec says
+  so for dashboards).
+- **Workload** doesn't draw the `unassigned` bucket (the design has no row for it). In the mock, capacity comes from
+  PRJ's only two completed sprints, so most people show as over capacity.
+- **Mock publishing:** planning and settings routes publish `project.changed` / `access.changed` from one route table
+  in the transport (`mock/publish-routes.ts`) instead of a call in each handler; dependency and time changes publish
+  `task.changed` with `version: null` (the task's version doesn't move), so they always refetch.
+- **Simulator:** typists need `comment.create`, field editors need edit rights on the task, and changes (the 7 s
+  dashboard tick and v1's ~45 s edit) are made by teammates with `task.move`, so a Viewer never appears to act.
+- **Files:** the editing pill, field flag and typing indicator live in `features/presence/presence-ui.tsx` (not three
+  files), the toast in `features/presence/live-toast.tsx`.
+- **Delete** from the picker sends you to the index, which opens the next dashboard; **Undo** puts it back in the
+  list and returns to it.
+- **Top bar:** the crumb now names Dashboards, and also Timeline and Calendar (they were blank).
+
+### Known gaps (board 33)
+
+- The Playwright smoke suite (`e2e/smoke.spec.ts`) is not extended. The two-user flows of §8.2 (Alex and Jordan in two
+  contexts) can't run against the mock, because each browser context has its own in-browser database. Verified
+  instead with scripted Playwright runs at 1440 and 390, dark and light, as `u_alex`, `u_taylor` and `u_sam`, with no
+  console errors and no horizontal scroll: pointer drag, keyboard move and resize, remove, Cancel, Save and reload,
+  the 409 path (rename while editing, then save), new blank dashboard → Add widget, delete with Undo, the phone sheet
+  that saves at once, live presence (board cards, panel stack, pill, field flag, description flag, typing row) and
+  polling mode (avatars through the heartbeat, no typing row).
+- Live mode is untested against the backend (built in parallel); it needs the CORS items in §5.
+- Board presence covers the board view only (§10 #9); list, backlog and timeline report nothing.
+- No character-level co-editing, remote cursors or remote selections (out of scope, §9 #8 and #9).
+- `import.progress` is not used; the import wizard keeps its 1 s poll (§10 #8).
+- Objectives and the time estimate in the task panel have no field flag.

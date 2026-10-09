@@ -1,3 +1,4 @@
+import { publishInbox } from "../realtime";
 import type { NotificationPreferences } from "@/lib/api/types";
 import { nowISO } from "../db";
 import { defaultPrefs } from "../seed";
@@ -42,6 +43,7 @@ export function registerNotifications() {
     if (!n) fail(404, "not_found", "Notification not found.");
     const read = (ctx.body as { read?: boolean })?.read !== false;
     n.readAt = read ? nowISO() : null;
+    publishInbox(ctx.db, userId);
     const { recipientId: _r, ...rest } = n;
     return rest;
   });
@@ -63,6 +65,7 @@ export function registerNotifications() {
           changed.push(n.id);
         }
       });
+    if (changed.length) publishInbox(ctx.db, userId);
     return { ids: changed };
   });
 

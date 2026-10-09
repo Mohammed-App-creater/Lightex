@@ -48,7 +48,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **`src/app/`** — routes. Pages are thin and render a screen from `src/features/<area>/`.
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
-    milestones, reports, settings.
+    milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
   - Also: `trash`, `settings/{general,members,roles,notifications,profile,audit}`, `tasks/[taskKey]`, `my-tasks`,
     `search`, `inbox`, `timesheet` (v2, board 39).
   - Import wizard (v2, board 40): no route; `?import=new|<jobId>` on any project view (`ImportWizardHost` in the
@@ -63,8 +63,15 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Screens call `api.<group>.<fn>` from `endpoints.ts`, with query keys from `qk` in `query-keys.ts`.
   - `getTransport()` picks `HttpTransport` (live) or `MockTransport` (mock) based on `NEXT_PUBLIC_API_MODE`.
   - Errors: `ApiError { code, message, details, status }`.
+- **`src/lib/realtime/`** (v2, board 33) — the one SSE stream and presence. `RealtimeProvider` (mounted by
+  `app/[workspace]/layout.tsx`) elects a leader tab (Web Locks + BroadcastChannel); the leader runs the fetch-based
+  stream (`http-source.ts`, or `MockRealtimeSource` in mock mode, in-process) and every tab applies events to its
+  cache (`apply-event.ts`). `useLiveInterval(ms)` is `false` while live, `ms` otherwise; use it instead of a literal
+  `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`features/presence`).
 - **`src/lib/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts`. Each handler file exports `register<Area>()`,
   which is called from `mock/transport.ts`.
+  - Realtime: handlers publish events through `mockBus` (`mock/realtime.ts`); the transport emits a request's events
+    only when its handler succeeds. Planning and settings routes publish from the table in `mock/publish-routes.ts`.
   - The mock enforces permissions and `version` conflicts server-side. Keep the UI's gating identical.
   - Data is cached in localStorage (`lightex-mock-db`). Bump `SCHEMA` in `seed.ts` only when the seed shape really
     changes; new collections are added as optional fields instead.
@@ -84,7 +91,9 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Mock mode: the session is a user id in `lightex-mock-session`. It is not a token.
 - **Mutations:** optimistic, with rollback and a toast (`src/features/tasks/mutations.ts`, `src/lib/api/optimistic.ts`).
   Board moves send `version`; a 409 shows "Someone else changed this card".
-- **Freshness:** no WebSockets. Refetch on window focus; poll the board and inbox every 30s, only while visible.
+- **Freshness:** No WebSockets. One SSE stream (`src/lib/realtime/`) invalidates queries while live; otherwise
+  refetch on window focus and poll the board and inbox every 30s while visible. SSE is the agreed exception (board 33);
+  any failure, or the server saying realtime is off, falls back to that polling.
 - **Every screen** has loading (skeleton), empty and error (retry) states. It must work at 390px and in the navy,
   black and light themes.
   - Colours come from token classes only (`bg-surface text-fg-2 border-line` …).
@@ -94,13 +103,15 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **Rich text** is Tiptap JSON rendered by a safe JSON→React renderer. Never use `innerHTML`.
 - **v2 features, only as scoped:**
   - In scope: **board 39** (custom fields, dependencies, time tracking), built from `docs/v2/39-fields-dependencies-time.md`;
-    **board 32** (timeline & calendar), built from `docs/v2/32-timeline-calendar.md`; and **board 40** (import wizard,
-    CSV and Jira/Linear/Asana CSV exports), built from `docs/v2/40-import-wizard.md` (all at the repo root); see
-    `docs/final-report.md` §8.
+    **board 32** (timeline & calendar), built from `docs/v2/32-timeline-calendar.md`; **board 40** (import wizard,
+    CSV and Jira/Linear/Asana CSV exports), built from `docs/v2/40-import-wizard.md`; and **board 33** (dashboards and
+    presence, realtime over Server-Sent Events), built from `docs/v2/33-dashboards-presence.md` (all at the repo root);
+    see `docs/final-report.md` §8.
   - Import: the CSV parser lives only in `src/lib/mock/import/` (the lazily loaded mock chunk); the live client never
     parses CSV. Trello and every API connector stay "Coming soon".
-  - Planned next, still not built: dashboards and presence (33), GitHub/GitLab (37), Telegram/SMS/push sending (38).
-    No WebSockets or live presence.
+  - Dashboards and presence: realtime is one SSE stream per browser per workspace (never a WebSocket). No
+    character-level co-editing, remote cursors or remote selections (spec §9 #8, #9); typing indicators only.
+  - Planned next, still not built: GitHub/GitLab (37), Telegram/SMS/push sending (38).
   - Until a board is in scope, where a design puts it inside an in-scope screen, it is hidden or marked "Coming soon".
 - **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
   `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
@@ -136,8 +147,10 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 | `u_casey` | casey@team.dev | Admin | not a member (sees the 403 + request access screen) |
 
 - **Dev pill** (bottom right, on in mock mode): role switcher, mock controls (error rate, latency, offline, simulated
-  teammates) and a data reset.
+  teammates, realtime live / polling) and a data reset. It also shows the realtime status ("Realtime: live").
   - Mock controls persist in `lightex-mock-controls`.
+  - Simulated teammates also show presence every 7 s (viewers, field edits, typing) and, on a dashboard, make a real
+    change every third tick.
   - e2e sets `{ errorRate: 0, teammates: false }` there to stay deterministic.
 - **Galleries:** component gallery at `/dev/ui`, email previews at `/dev/emails`.
 
