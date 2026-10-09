@@ -107,7 +107,10 @@ sh scripts/check.sh   # everything CI runs, in order, stopping at the first fail
 ```
 
 Tests need PostgreSQL (full-text search, partial unique indexes and row locks are Postgres features). Point
-`DATABASE_URL` (or `TEST_DATABASE_URL`) at a server where the user may create databases.
+`DATABASE_URL` (or `TEST_DATABASE_URL`) at a server where the user may create databases. The test settings
+(also loaded by mypy) refuse any host other than `localhost`, `127.0.0.1`, `::1` or `db`, so a production
+`DATABASE_URL` in `.env` can't be used by accident: set `TEST_DATABASE_URL` to a local server, for example
+`postgres://postgres@localhost:5433/lightex`. `ALLOW_REMOTE_TEST_DATABASE=true` overrides the check.
 
 Highlights of the suite:
 

@@ -13,6 +13,16 @@ DATABASES = {
         "TEST_DATABASE_URL", default=env("DATABASE_URL", default="postgres://postgres@localhost:5433/lightex")
     )
 }
+# Tests create, flush and drop databases. `.env` may hold the production DATABASE_URL, so refuse any
+# host that isn't local (CI and docker-compose use localhost / db) unless explicitly allowed.
+_TEST_DB_HOST = str(DATABASES["default"].get("HOST") or "localhost")
+if _TEST_DB_HOST not in {"localhost", "127.0.0.1", "::1", "db"} and not env.bool(
+    "ALLOW_REMOTE_TEST_DATABASE", default=False
+):
+    raise RuntimeError(
+        f"Refusing to run tests against non-local database host {_TEST_DB_HOST!r}. "
+        "Set TEST_DATABASE_URL to a local Postgres (e.g. postgres://postgres@localhost:5433/lightex)."
+    )
 DATABASES["default"]["CONN_MAX_AGE"] = 0
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
