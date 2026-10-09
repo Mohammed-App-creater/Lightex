@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CircleAlert, FileText, Inbox, Link2, Moon, Plus, SearchX, Settings } from "lucide-react";
+import { ArrowRight, CircleAlert, FileText, Inbox, Link2, Moon, Plus, SearchX, Settings, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
@@ -22,6 +22,8 @@ import { toast } from "@/components/ui/toast";
 import { cycleTheme } from "@/components/shell/global-hotkeys";
 import { shell, useShell, type PaletteScope } from "@/components/shell/shell-state";
 import { useSession } from "@/features/auth/session";
+import { canImportInto } from "@/features/import/import-lib";
+import { openImportWizard } from "@/features/import/import-wizard-host";
 import { useProjects, useWsMembers, useRoles } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { qk } from "@/lib/api/query-keys";
@@ -137,6 +139,15 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         icon: <Plus size={12} aria-hidden />,
         run: () => shell.openCreateTask(currentProject && can("task.create", currentProject.my_permissions) ? { projectId: currentProject.id } : {}),
         allowed: canCreateAnywhere,
+      },
+      {
+        // Board 40 (E4): project context only, with project.import + task.create on an active project.
+        id: "import",
+        label: "Import tasks…",
+        keys: [],
+        icon: <Upload size={12} aria-hidden />,
+        run: () => openImportWizard(),
+        allowed: Boolean(currentProject && canImportInto(currentProject)),
       },
       { id: "board", label: "Go to board", keys: ["G", "B"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("board"), allowed: projects.length > 0 },
       {

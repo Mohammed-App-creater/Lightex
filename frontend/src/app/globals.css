@@ -1165,3 +1165,200 @@
   }
 }
 /* ── end board 32 ── */
+
+/* ── Board 40 (v2): import wizard. Token colours only; motion is transform / opacity only. ── */
+/* Native select for the mapping tables (design .iw-sel): chevron drawn with a mask in --text-3. */
+.iw-sel {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border-radius: 7px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.iw-selw {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.iw-selbox {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.iw-selbox::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -5px;
+  pointer-events: none;
+  border: solid var(--text-3);
+  border-width: 0 1.6px 1.6px 0;
+  transform: rotate(45deg);
+}
+.iw-sel:hover {
+  border-color: var(--control);
+}
+.iw-sel:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.iw-sel[data-skip] {
+  color: var(--text-3);
+}
+.iw-sel[data-need] {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-s);
+}
+.iw-sel option,
+.iw-sel optgroup {
+  background: var(--raised);
+  color: var(--text);
+}
+@media (max-width: 760px) {
+  .iw-sel {
+    height: 40px;
+    font-size: 14px;
+  }
+}
+/* Footer reason shake when Next is pressed while blocked (two names so a repeat restarts it). */
+@keyframes iw-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+@keyframes iw-shake2 {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.iw-shake {
+  animation: iw-shake 360ms var(--ease);
+}
+.iw-shake2 {
+  animation: iw-shake2 360ms var(--ease);
+}
+/* Log lines slide in (design .iw-ll). */
+@keyframes iw-line {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.iw-ll {
+  animation: iw-line 200ms var(--ease);
+}
+/* Stepper fill and progress bar: scaleX; the running shimmer is a translated overlay. */
+.iw-fill {
+  transform-origin: left center;
+  transition: transform 500ms var(--ease);
+}
+.iw-bar-fill {
+  transform-origin: left center;
+  transition: transform 300ms var(--ease);
+}
+@keyframes iw-run {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.iw-run::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent-t), transparent);
+  opacity: 0.55;
+  animation: iw-run 1.2s linear infinite;
+}
+.iw-tile {
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    transform 150ms var(--spring);
+}
+.iw-tile:not([aria-disabled="true"]):hover {
+  transform: translateY(-1px);
+}
+@keyframes iw-pop {
+  0% {
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.iw-pop {
+  animation: iw-pop 360ms var(--spring) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .iw-shake,
+  .iw-shake2,
+  .iw-ll,
+  .iw-run::after,
+  .iw-pop {
+    animation: none;
+  }
+  .iw-fill,
+  .iw-bar-fill,
+  .iw-tile {
+    transition: none;
+  }
+  .iw-tile:not([aria-disabled="true"]):hover {
+    transform: none;
+  }
+}
+/* ── end board 40 ── */

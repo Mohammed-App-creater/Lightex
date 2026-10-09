@@ -1,7 +1,7 @@
 import { validateUpload } from "@/lib/files";
-import { attachments } from "./endpoints";
+import { attachments, imports } from "./endpoints";
 import { ApiError } from "./errors";
-import type { Attachment, UploadTicket } from "./types";
+import type { Attachment, ImportJob, ImportSource, UploadTicket } from "./types";
 
 /**
  * Upload flow: 1) request a signed URL, 2) PUT the file directly to storage with progress,
@@ -23,6 +23,27 @@ export async function uploadAttachment(
   });
   await putToSignedUrl(ticket, file, onProgress, signal);
   return attachments.confirm(taskId, ticket.uploadId);
+}
+
+/**
+ * Board 40 import upload: 1) create the draft job and get a signed URL (I1), 2) PUT the CSV to
+ * storage with progress (same path as attachments, including the mock-upload:// branch), 3) ask the
+ * server to analyze it (I2). Resolves with the analysed job (`ready`) or rejects with the ApiError
+ * (422 `details.file` for analysis errors). The client pre-checks (extension, size, empty) run in the
+ * wizard before this is called. `onCreated` hands back the draft so the caller can discard it later.
+ */
+export async function uploadImportFile(
+  projectId: string,
+  source: ImportSource,
+  file: File,
+  onProgress: (pct: number) => void,
+  signal?: AbortSignal,
+  onCreated?: (job: ImportJob) => void,
+): Promise<ImportJob> {
+  const { job, upload } = await imports.create(projectId, { source, fileName: file.name, size: file.size });
+  onCreated?.(job);
+  await putToSignedUrl(upload, file, onProgress, signal);
+  return imports.analyze(job.id);
 }
 
 async function putToSignedUrl(ticket: UploadTicket, file: File, onProgress: (pct: number) => void, signal?: AbortSignal) {

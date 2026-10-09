@@ -44,6 +44,9 @@ export function auditActionKind(e: Pick<AuditEntry, "action" | "entityType">): A
       return "commented";
     case "created":
       return auditEntity(e) === "comment" ? "commented" : "created";
+    // Board 40: task.imported → created; project.import_started / import_completed fall through to "updated".
+    case "imported":
+      return "created";
     default:
       // Board 39: custom_field_created → created; *_deleted (custom_field_deleted, time_entry_deleted) → deleted.
       if (verb.endsWith("_created")) return "created";

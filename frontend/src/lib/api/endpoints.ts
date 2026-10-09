@@ -12,9 +12,15 @@ import type {
   CustomFieldInput,
   CustomFieldPatch,
   CycleBin,
+  ISODateTime,
   DependencyRelation,
   Epic,
   EpicWrite,
+  ImportJob,
+  ImportJobSummary,
+  ImportMapping,
+  ImportRowPreview,
+  ImportSource,
   Invite,
   Label,
   Milestone,
@@ -347,7 +353,32 @@ export const time = {
     http.get<Timesheet>(`/workspaces/${enc(slug)}/timesheet`, { filter: { week, project: projectId } }),
 };
 
+/* ───────── Board 40 (v2): import wizard. Requested API additions (docs/v2/40-import-wizard.md §4). ───────── */
+
+export const imports = {
+  /** I9: newest first, max 20, drafts excluded. */
+  list: (projectId: string) => http.get<ImportJobSummary[]>(`/projects/${enc(projectId)}/imports`),
+  /** I1: creates a draft job and returns a signed upload ticket for the CSV. */
+  create: (projectId: string, body: { source: ImportSource; fileName: string; size: number }) =>
+    http.post<{ job: ImportJob; upload: UploadTicket }>(`/projects/${enc(projectId)}/imports`, body),
+  /** I3: the job (polled every 1 s while queued / running). */
+  get: (id: string) => http.get<ImportJob>(`/imports/${enc(id)}`),
+  /** I2: parses the uploaded file and suggests a mapping (draft → ready). */
+  analyze: (id: string) => http.post<ImportJob>(`/imports/${enc(id)}/analyze`),
+  /** I4: the whole mapping, with `revision` incremented per PUT. */
+  saveMapping: (id: string, mapping: ImportMapping) => http.put<ImportJob>(`/imports/${enc(id)}/mapping`, mapping),
+  /** I5: dry run before start, actual outcomes after. filter[outcome], limit, cursor. */
+  rows: (id: string, query?: ListQuery) => http.get<Paginated<ImportRowPreview>>(`/imports/${enc(id)}/rows`, query),
+  /** I6: 202, queued (also the retry of a failed job). */
+  start: (id: string) => http.post<ImportJob>(`/imports/${enc(id)}/start`),
+  /** I7: cancels a draft / ready / queued / failed job; a running job stops after its batch. */
+  cancel: (id: string) => http.post<ImportJob>(`/imports/${enc(id)}/cancel`),
+  /** I8: a short-lived download URL for the CSV error report. */
+  errorReport: (id: string) => http.get<{ url: string; fileName: string; expiresAt: ISODateTime }>(`/imports/${enc(id)}/error-report`),
+};
+
 export const api = {
+  imports,
   customFields,
   dependencies,
   time,

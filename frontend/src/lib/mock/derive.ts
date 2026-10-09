@@ -115,6 +115,7 @@ export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
     activeSprintId: db.sprints.find((s) => s.projectId === p.id && s.state === "active")?.id ?? null,
     myRoleId: m?.roleId ?? null,
     my_permissions: projectPermissions(db, userId, p.id),
+    nextTaskNumber: p.taskSeq + 1,
   };
 }
 

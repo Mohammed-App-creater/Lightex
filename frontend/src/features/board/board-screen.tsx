@@ -30,6 +30,8 @@ import { Segmented } from "@/components/ui/choice";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { shell } from "@/components/shell/shell-state";
 import { useMe } from "@/features/auth/session";
+import { ImportCsvButton } from "@/features/import/import-wizard-host";
+import { canImportInto } from "@/features/import/import-lib";
 import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
 import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
@@ -314,7 +316,7 @@ export function BoardScreen() {
               align="center"
               icon={<ListTodo size={20} aria-hidden />}
               title={scope === "active" && sprint ? `No tasks in ${sprint.name}` : "No tasks yet"}
-              body={scope === "active" && sprint ? "Pull work in from the backlog, or create a task." : "Create the first task for this project."}
+              body={scope === "active" && sprint ? "Pull work in from the backlog, or create a task." : canImportInto(project) ? "Create the first task for this project, or import a CSV." : "Create the first task for this project."}
               actions={
                 <>
                   {canCreate && (
@@ -322,6 +324,7 @@ export function BoardScreen() {
                       New task
                     </Button>
                   )}
+                  <ImportCsvButton project={project} />
                   <Button variant="ghost" asChild>
                     <Link href={routes.project(ws.slug, project.key, "backlog")}>Open backlog</Link>
                   </Button>

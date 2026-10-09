@@ -14,6 +14,7 @@ import { qk } from "@/lib/api/query-keys";
 import type { Notification, TaskDetail, User } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { agoLong, dueTone, shortDate } from "@/lib/utils/dates";
+import { importNotificationText } from "@/features/import/import-lib";
 import { dueLabel, glyphForStatusName, isSystem } from "./events";
 import { ArrowRightIcon, CheckIcon, CloseIcon, HollowCircleIcon } from "./icons";
 import { WhoTile } from "./notification-row";
@@ -21,6 +22,12 @@ import { WhoTile } from "./notification-row";
 /** Access requests are reviewed on the project's Members settings tab. */
 export const accessHref = (ws: string, n: Pick<Notification, "type" | "payload">) =>
   n.type === "access" && n.payload.projectKey ? `/${ws}/projects/${n.payload.projectKey.toUpperCase()}/settings?tab=members` : null;
+
+/** Board 40: a finished import reopens its result step on the project board. */
+export const importHref = (ws: string, n: Pick<Notification, "type" | "payload">) =>
+  n.type === "import" && n.payload.projectKey && n.payload.importId
+    ? `/${ws}/projects/${n.payload.projectKey.toUpperCase()}/board?import=${encodeURIComponent(n.payload.importId)}`
+    : null;
 
 export const taskHref = (ws: string, taskKey: string, projectKey?: string) =>
   `/${ws}/projects/${(projectKey ?? taskKey.split("-")[0] ?? "").toUpperCase()}/board?task=${encodeURIComponent(taskKey)}`;
@@ -88,6 +95,7 @@ export function PreviewContent({
   const assignee = task?.assigneeId ? members.get(task.assigneeId) ?? null : null;
   const href = n.taskKey && !gone ? taskHref(slug, n.taskKey, task?.project.key) : null;
   const review = accessHref(slug, n);
+  const importLink = importHref(slug, n);
   const tone = task ? dueTone(task.dueDate, status?.category === "done") : "none";
   const title = task?.title ?? n.taskTitle ?? n.payload.sprintName ?? n.projectName;
 
@@ -172,7 +180,12 @@ export function PreviewContent({
       </div>
 
       <div className="flex flex-none items-center gap-2 border-t border-line px-[18px] pb-4 pt-3">
-        {review ? (
+        {importLink ? (
+          <Button variant="primary" data-open-task onClick={() => onOpenTask(importLink)} className={phone ? "h-11 flex-1" : undefined}>
+            Open import
+            {!phone && <Kbd>↵</Kbd>}
+          </Button>
+        ) : review ? (
           <Button variant="primary" data-open-task onClick={() => onOpenTask(review)} className={phone ? "h-11 flex-1" : undefined}>
             Review request
             {!phone && <Kbd>↵</Kbd>}
@@ -197,9 +210,14 @@ export function PreviewContent({
   );
 }
 
+function importVerb(n: Notification) {
+  const t = importNotificationText(n.payload);
+  return `· ${t.lead} · ${t.rest}`;
+}
+
 function EventCard({ n, actor, me }: { n: Notification; actor: User | null; me: User }) {
   const system = isSystem(n) || !actor;
-  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : n.type === "access" ? `requested access to ${n.projectName}` : "commented";
+  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : n.type === "access" ? `requested access to ${n.projectName}` : n.type === "import" ? importVerb(n) : "commented";
   return (
     <div className="flex flex-col gap-2.5 rounded-[10px] border border-line bg-bg p-3">
       <div className="flex items-center gap-2 text-[12.5px] text-fg-2">

@@ -10,13 +10,15 @@ import { TabPanel, Tabs } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { CustomFieldsPanel } from "@/features/fields/custom-fields-settings";
 import { useCustomFields } from "@/features/fields/queries";
+import { ImportHistoryPanel } from "@/features/import/import-history";
+import { canImport } from "@/features/import/import-lib";
 import { useLabels, useProjectMembers } from "@/features/projects/queries";
 import { useRoles } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { errorMessage } from "@/lib/api/errors";
 import { qk } from "@/lib/api/query-keys";
 import type { Project } from "@/lib/api/types";
-import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
 import { replaceUrl, routes } from "@/lib/routes";
 import { GeneralPanel } from "./project-general";
 import { LabelsPanel } from "./project-labels";
@@ -25,9 +27,9 @@ import { MembersPanel } from "./project-members";
 import { ReadOnlyNote } from "./project-parts";
 import { WorkflowPanel } from "./project-workflow";
 
-type Tab = "general" | "workflow" | "labels" | "fields" | "members";
-const TABS: Tab[] = ["general", "workflow", "labels", "fields", "members"];
-const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", fields: "Custom fields", members: "Members" };
+type Tab = "general" | "workflow" | "labels" | "fields" | "members" | "import";
+const TABS: Tab[] = ["general", "workflow", "labels", "fields", "members", "import"];
+const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", fields: "Custom fields", members: "Members", import: "Import" };
 
 /**
  * Project settings (board 28): General / Workflow / Labels / Custom fields (board 39) / Members tabs. Each tab edits only
@@ -55,11 +57,16 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   const qc = useQueryClient();
   const pathname = usePathname();
   const params = useSearchParams();
+  // Board 40: the Import tab (last) only for people who may import; someone who can only import
+  // (a project Member) lands on it.
+  const importer = canImport(project.my_permissions);
+  const v1Settings = can("project.update", project.my_permissions) || can("project.manage_members", project.my_permissions) || can("status.manage", project.my_permissions);
+  const tabs = TABS.filter((t) => t !== "import" || importer);
   const tabParam = params.get("tab") as Tab | null;
-  const tab: Tab = tabParam && TABS.includes(tabParam) ? tabParam : "general";
+  const tab: Tab = tabParam && tabs.includes(tabParam) ? tabParam : importer && !v1Settings ? "import" : "general";
   const setTab = (t: Tab) => {
     const sp = new URLSearchParams(params.toString());
-    if (t === "general") sp.delete("tab");
+    if (t === "general" && (v1Settings || !importer)) sp.delete("tab");
     else sp.set("tab", t);
     const qs = sp.toString();
     replaceUrl(qs ? `${pathname}?${qs}` : pathname);
@@ -78,6 +85,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
     labels: canUpdate && !archived,
     fields: canFields && !archived,
     members: canMembers && !archived,
+    import: true,
   };
 
   const roles = useRoles(ws.slug);
@@ -91,13 +99,14 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   const fullAdmin = canUpdate && canStatuses && canMembers;
 
   const reason: Record<Tab, string> = archived
-    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", fields: "archived projects are read-only", members: "archived projects are read-only" }
+    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", fields: "archived projects are read-only", members: "archived projects are read-only", import: "archived projects are read-only" }
     : {
         general: "your role can’t edit project details",
         workflow: "your role can’t change the workflow",
         labels: "your role can’t edit labels",
         fields: "your role can’t edit custom fields",
         members: "your role can’t manage members",
+        import: "",
       };
 
   const [unarchiving, setUnarchiving] = useState(false);
@@ -127,7 +136,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
           value={tab}
           onChange={setTab}
           className="border-b-0 [&_[role=tab]]:h-[42px] max-[760px]:[&_[role=tab]]:h-[46px]"
-          items={TABS.map((t) => ({
+          items={tabs.map((t) => ({
             value: t,
             label: <span className="whitespace-nowrap">{TAB_LABEL[t]}</span>,
             count: t === "labels" ? labels.data?.length : t === "fields" ? fieldsQ.data?.length : t === "members" ? (members.data?.length ?? project.memberCount) : undefined,
@@ -164,6 +173,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
           {tab === "labels" && <LabelsPanel project={project} canEdit={edit.labels} />}
           {tab === "fields" && <CustomFieldsPanel project={project} canEdit={edit.fields} />}
           {tab === "members" && <MembersPanel project={project} canEdit={edit.members} />}
+          {tab === "import" && <ImportHistoryPanel project={project} />}
         </TabPanel>
       </div>
     </div>

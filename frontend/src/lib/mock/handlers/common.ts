@@ -33,6 +33,7 @@ const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
   due: "due_soon",
   sprint: "sprint_started",
   access: null,
+  import: null,
 };
 
 /** Creates an in-app notification when the recipient's preferences allow it. Never notifies the actor. */

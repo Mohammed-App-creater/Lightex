@@ -20,6 +20,10 @@ import type {
   Attachment,
   CustomField,
   CustomFieldValue,
+  ImportIssue,
+  ImportJob,
+  ImportOutcome,
+  ImportTaskType,
   TimeEntry,
 } from "@/lib/api/types";
 
@@ -58,7 +62,7 @@ export type InviteRec = {
 };
 export type ProjectRec = Omit<
   Project,
-  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId"
+  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber"
 > & { taskSeq: number };
 export type ProjectMemberRec = { projectId: string; userId: string; roleId: string; addedAt: string };
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
@@ -124,7 +128,40 @@ export interface MockDB {
   ext39?: boolean;
   /** Board 32 upgrade marker (start dates, epic dates, one extra dependency). */
   ext32?: boolean;
+  /* Board 40 (v2). Optional, created lazily by handlers/imports.ts, so no SCHEMA bump. Job records hold no file content. */
+  imports?: ImportJobRec[];
+  importRows?: ImportRowRec[];
+  /** Board 40 upgrade marker (project.import on cached system roles). */
+  ext40?: boolean;
 }
+
+/** Board 40: the wire job plus server-side state (never sent as-is; handlers/imports.ts strips it). */
+export type ImportJobRec = ImportJob & {
+  workspaceId: string;
+  /** Explicit value choices (keys present = the user's choice); everything else is suggested. */
+  userMaps: { statuses: Record<string, string | null>; types: Record<string, ImportTaskType | null>; people: Record<string, string | null> };
+  phase: "preparing" | "rows" | "links" | "finishing" | null;
+  numberBase: number | null;
+  plannedTasks: number;
+  /** Next planned-row index (0-based) of the rows phase. */
+  cursor: number;
+  /** Objects created while preparing: labels by lower-case name, epics by "row:<n>" / "name:<lower>", options by field id → name. */
+  setup: { done: boolean; labels: Record<string, string>; epics: Record<string, string>; options: Record<string, Record<string, string>> } | null;
+  requestId: string;
+  /** Error report body (no BOM), kept when it is small enough for the localStorage cache. */
+  reportCsv: string | null;
+};
+export type ImportRowRec = {
+  jobId: string;
+  row: number;
+  outcome: ImportOutcome;
+  taskId: string | null;
+  epicId: string | null;
+  key: string | null;
+  title: string;
+  refs: string[];
+  issues: ImportIssue[];
+};
 
 export type CustomFieldRec = Omit<CustomField, "taskCount"> & { createdById?: string | null };
 /** One row means `blockerId` blocks `blockedId`. */

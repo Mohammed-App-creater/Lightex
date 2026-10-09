@@ -4,6 +4,8 @@ import { Suspense, type ReactNode } from "react";
 import { ErrorScreen, NotFoundScreen, ProjectForbidden } from "@/components/shell/edge-screens";
 import { Skeleton } from "@/components/ui/feedback";
 import { NavTabs } from "@/components/ui/tabs";
+import { canImport } from "@/features/import/import-lib";
+import { ImportWizardHost } from "@/features/import/import-wizard-host";
 import { TaskPanelHost } from "@/features/tasks/task-panel-host";
 import { isForbidden, isNotFound, isApiError } from "@/lib/api/errors";
 import type { Project, ProjectAccessInfo } from "@/lib/api/types";
@@ -31,7 +33,8 @@ export function projectTabs(p: Pick<Project, "my_permissions">): { view: Project
     {
       view: "settings",
       label: "Settings",
-      show: can("project.update", perms) || can("project.manage_members", perms) || can("status.manage", perms),
+      // Board 40: the Import tab (history) is reachable by anyone who may import.
+      show: can("project.update", perms) || can("project.manage_members", perms) || can("status.manage", perms) || canImport(perms),
     },
   ];
   return tabs.filter((t) => t.show);
@@ -87,6 +90,10 @@ export function ProjectShell({ projectKey, children }: { projectKey: string; chi
       </div>
       <Suspense fallback={null}>
         <TaskPanelHost />
+      </Suspense>
+      {/* Board 40: ?import=new|<jobId> opens the import wizard on any project view. */}
+      <Suspense fallback={null}>
+        <ImportWizardHost />
       </Suspense>
     </ProjectScope>
   );

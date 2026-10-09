@@ -12,6 +12,8 @@ import { Panel } from "@/components/ui/card";
 import { CountUp, ErrorState, ProgressBar, ProgressRing, Skeleton } from "@/components/ui/feedback";
 import { StatusGlyph } from "@/components/ui/glyphs";
 import { shell } from "@/components/shell/shell-state";
+import { canImportInto } from "@/features/import/import-lib";
+import { ImportCsvButton } from "@/features/import/import-wizard-host";
 import { activityText } from "@/features/tasks/activity-text";
 import { useEpics, useMilestones, useObjectives, useProjectMembers, useSprints, useStatuses } from "./queries";
 import { api } from "@/lib/api/endpoints";
@@ -546,7 +548,18 @@ function SetupChecklist({
     { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", allowed: can("project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}?tab=members`) },
     { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", allowed: can("objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
     { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", allowed: can("milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
-    { id: "tasks", title: "Create your first tasks", desc: "Type them in, one per line or one at a time", done: tasks > 0, cta: "New task", kbd: "C", allowed: can("task.create", perms), run: () => shell.openCreateTask({ projectId: project.id }) },
+    {
+      id: "tasks",
+      title: "Create your first tasks",
+      // Board 40 (E1): with import rights the desc mentions the CSV and "Import CSV" sits next to "New task".
+      desc: canImportInto(project) ? "Type them or import a CSV" : "Type them in, one per line or one at a time",
+      done: tasks > 0,
+      cta: "New task",
+      kbd: "C",
+      allowed: can("task.create", perms),
+      run: () => shell.openCreateTask({ projectId: project.id }),
+      extra: <ImportCsvButton project={project} variant="secondary" size="sm" className="max-[760px]:w-full" />,
+    },
     { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", allowed: can("sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
   ];
   const doneCount = steps.filter((s) => s.done).length;
@@ -600,6 +613,7 @@ function SetupChecklist({
                 <span className={cn("font-semibold", s.done && "text-fg-3 line-through")}>{s.title}</span>
                 <span className="text-[12px] leading-[18px] text-fg-3">{s.desc}</span>
               </div>
+              {!s.done && s.allowed && "extra" in s && s.extra}
               {!s.done && s.allowed && s.cta && (
                 <Button size="sm" variant={isNext ? "primary" : "secondary"} kbd={s.kbd} onClick={s.run} className="max-[760px]:w-full">
                   {s.cta}

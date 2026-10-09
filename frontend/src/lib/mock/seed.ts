@@ -2,6 +2,7 @@ import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, Task
 import { DEFAULT_ROLES } from "@/lib/permissions/catalogue";
 import { keysBetween } from "@/lib/utils/fractional-index";
 import { ensureExt39 } from "./handlers/extensions";
+import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import type {
   AttachmentRec,
@@ -732,6 +733,8 @@ export function createSeed(): MockDB {
   ensureExt39(db);
   // Board 32 (v2): PRJ start dates, epic dates and one extra dependency (after board 39's).
   ensureExt32(db);
+  // Board 40: import jobs (lazy collections) and project.import on cached roles.
+  ensureExt40(db);
   return db;
 }
 

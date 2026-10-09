@@ -102,7 +102,9 @@ The rule applied was: docs win for behaviour, design wins for appearance.
    on Overview and Milestones is unchanged (a progress visual, not a scheduling view).
 4. **"Blocked" pinned view** (design) depends on task dependencies, which were v2. Dropped in v1; **back in v2**
    (board 39, §8) as a seeded personal saved view "Blocked" (`blocked is true`) for every PRJ member.
-5. **"Import CSV"** (design, new-project flow) is v2 import. Omitted.
+5. **"Import CSV"** (design, new-project flow) was v2 import, omitted in v1. **Back in v2** (board 40, §8): a fresh
+   project's overview checklist offers "Import CSV" next to "New task" (contract E1); the wizard doesn't create
+   projects.
 6. **Members & roles** is a single page in the design, but the brief's routes require separate `settings/members` and
    `settings/roles`. Built as two pages that share a header and a tab strip.
 
@@ -277,6 +279,66 @@ dependency PRJ-50 → PRJ-52 (a non-conflict arrow next to the PRJ-48 → PRJ-42
 and the mock filter test. The contract wants the backend copy at `backend/apps/tasks/tests/data/span_vectors.json`;
 that path is the backend's to add (this frontend change doesn't touch `backend/`).
 
+### v2 · Board 40: import wizard
+
+The contract is `docs/v2/40-import-wizard.md` (repo root). Every item is typed in `src/lib/api/types.ts`, reachable
+through `endpoints.ts` (`api.imports.*`, `uploadImportFile` in `uploads.ts`) and `qk` (`imports`, `importJob`,
+`importRows`), and implemented in the mock (`src/lib/mock/handlers/imports.ts` + `src/lib/mock/import/*`; tested in
+`src/lib/mock/imports.test.ts` and `src/lib/mock/import/import.test.ts`).
+
+**Endpoints** (all under `/api/v1`; same codes and messages as the contract)
+
+| # | Method | Path | Permission | Response | Client |
+|---|---|---|---|---|---|
+| I1 | POST | `/projects/:id/imports` `{ source, fileName, size }` | `project.import` + `task.create` | 201 `{ job, upload: UploadTicket }` (`Content-Type: text/csv`) | `api.imports.create` |
+| — | PUT | `upload.url` (signed storage URL, not the API) | signature | 200 | `putToSignedUrl` (existing, incl. `mock-upload://`) |
+| I2 | POST | `/imports/:id/analyze` | creator | 200 `ImportJob` (`ready`) | `api.imports.analyze` |
+| I3 | GET | `/imports/:id` | `project.import` | 200 `ImportJob` (polled 1 s while queued / running) | `api.imports.get` · `qk.importJob` |
+| I4 | PUT | `/imports/:id/mapping` (whole mapping, `revision` + 1) | creator | 200 `ImportJob` | `api.imports.saveMapping` |
+| I5 | GET | `/imports/:id/rows` `filter[outcome]`, `limit` ≤ 100, `cursor` | `project.import` | 200 `Paginated<ImportRowPreview>` | `api.imports.rows` · `qk.importRows` |
+| I6 | POST | `/imports/:id/start` (also the retry of a failed job) | creator | 202 `ImportJob` (`queued`) | `api.imports.start` |
+| I7 | POST | `/imports/:id/cancel` | creator or `project.update` | 200 `ImportJob` | `api.imports.cancel` |
+| I8 | GET | `/imports/:id/error-report` | `project.import` | 200 `{ url, fileName, expiresAt }` | `api.imports.errorReport` |
+| I9 | GET | `/projects/:id/imports` | `project.import` + `task.create` | 200 `ImportJobSummary[]` (newest 20, no drafts) | `api.imports.list` · `qk.imports` |
+
+**Types:** `ImportSource`, `ImportPreset`, `ImportStatus`, `ImportField`, `ImportTaskType`, `ImportColumnType`,
+`ImportDateOrder`, `ImportTimeUnit`, `ImportFileInfo`, `ImportColumn`, `ImportColumnMapping`, `ImportMapping`,
+`ImportValue`, `ImportBlocker(Code)`, `ImportValidation`, `ImportIssue`, `ImportOutcome`, `ImportRowValues`,
+`ImportRowPreview`, `ImportLogLine`, `ImportProgress`, `ImportResult`, `ImportJob`, `ImportJobSummary` (§6.1 shapes).
+
+**Changed payloads (additive)**
+
+- New project permission `project.import` (group Tasks, "Import tasks"), placed after `task.move` in
+  `PROJECT_PERMISSIONS` and `my_permissions`; granted to the Project Admin, Manager and Member system roles, not
+  Viewer. Cached mock databases get it through `ensureExt40` (marker `ext40`, custom roles untouched).
+- `Project.nextTaskNumber` (`task_seq + 1`) on every project payload: the picker's next key (`PRJ-73`).
+- `NotificationType` gains `"import"`; `Notification.payload` gains `importId`, `imported`, `skipped`,
+  `importStatus` (+ the existing `projectKey`). One in-app row to the job's creator, no email, no preference row.
+- `ActivityVerb` gains `"imported"` (`project.import_completed` in project / workspace feeds; `task.imported` in the
+  task's own feed only).
+- `AuditEntry.source` gains `"import"`; new audit actions `project.import_started`, `task.imported`,
+  `project.import_completed` (plus `label.created`, `epic.created`, `project.custom_field_updated` from the run).
+
+**Errors:** 422 `validation_failed` with `details.fields` (I1 `source` / `file`; I2 `file` + `details.file.reason`
+from the §4.3 table; I4 `columns`, `columns.N.field|customFieldId`, `statuses.<key>`, `types.<key>`,
+`people.<key>`; I6 `mapping` + `details.blockers`); 403 `forbidden` with `details.permission` (or none for "Only the
+person who started this import can change it."); 409 `import_state`, `mapping_conflict` (`details.current`),
+`import_in_progress` (`details.jobId`); 404 "This import has no error report."; 429 `rate_limited` (20 jobs / hour).
+
+**Mock specifics:** 1,000-row cap (`too_many_rows` with `details.file.mock: true`, meta "1,240 rows · max 1,000 in
+the mock API"); parsed rows live in memory only, so a reload fails `ready` / `queued` / `running` jobs with
+`file_missing`; the runner ticks every 150 ms, 4 rows per tick; the report is a `blob:` URL revoked after 60 s.
+
+**Shared test vectors and fixtures** (the contract puts the backend copies under
+`backend/apps/imports/tests/data/`; this change doesn't touch `backend/`):
+
+- `src/lib/mock/import/fixtures/import_vectors.json`: decoding, delimiter sniffing, parsing, header synonyms,
+  suggestions, presets, status / type / people / priority matching, dates and `dateOrder`, numbers, durations,
+  `csv_safe`.
+- `src/lib/mock/import/fixtures/jira-export.csv` (the contract's 6-row Jira export) and
+  `src/lib/mock/import/fixtures/sample.ts` (the design's 48-row sample).
+- `public/import-template.csv`: the live-mode "Download template" file.
+
 ---
 
 ## 6. Known gaps
@@ -321,7 +383,7 @@ into `design/clean/24-…40-*.html`, next to boards 01–23.
 | 37 Integrations (GitHub/GitLab) | **Not built.** v2. |
 | 38 Telegram / SMS / Push | **Not built.** v2. These stay "Coming soon" in notification preferences. |
 | 39 Custom fields, dependencies, time | **Built in v2** (see §8). |
-| 40 Import wizard | **Not built.** v2. |
+| 40 Import wizard | **Built in v2** (see §8). |
 
 ### Conflicts (the brief wins on behaviour)
 
@@ -388,8 +450,8 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 
 ## 8. v2
 
-The user lifted the "no v2 features" rule for boards 39 and 32. The remaining v2 boards are planned next: **33**
-Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push, **40** Import wizard.
+The user lifted the "no v2 features" rule for boards 39, 32 and 40. The remaining v2 boards are planned next: **33**
+Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push.
 
 ### Board 39: custom fields, dependencies, time tracking (built)
 
@@ -502,3 +564,92 @@ Spec: `docs/v2/32-timeline-calendar.md`. API additions are listed in §5 ("v2 ·
   range filters.
 - Start date is not in the filter builder (contract §9 #6) or the create dialog (§9 #7); epic writes are last-write-wins.
 - A keyboard burst still inside its 600 ms window when the page closes is lost.
+
+### Board 40: import wizard (built)
+
+Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Board 40"). Code: `src/features/import/`
+(UI), `src/lib/mock/import/` (parser, presets, matching, conversion, planner, report) and
+`src/lib/mock/handlers/imports.ts` (I1–I9, the runner).
+
+- **Wizard** (`?import=new`, then `?import=<jobId>` with `replaceUrl`): a `DialogShell` modal (new bare dialog
+  primitive in `components/ui/modal.tsx`), 760 × 640 on desktop, a full-height sheet at ≤ 760 px. Head (icon,
+  "Import", "into" project badge, ×), 4-step stepper (done / current / spinning dot, back-navigation only during
+  setup), body, footer (warning reason line with `role=status` that shakes when Next is pressed while blocked;
+  Next is `aria-disabled` + `aria-describedby`).
+- **Step 1 · Source:** Trello (disabled "Coming soon", reason in a tooltip and `aria-describedby`), Jira ("Issues ·
+  CSV export"), CSV tiles as a radiogroup with roving focus (arrows skip Trello); "Import into" picker of projects
+  where the viewer can import (key badge, name, next key).
+- **Step 2 · Upload:** drop zone ("Drop to upload" while dragging), Jira helper line, client pre-checks with the
+  design copy, "Uploading … · 42%" and "Reading …" notes, 422 alerts built from `details.file`, file card (meta with
+  delimiter and encoding suffixes, Replace, ×), preset note, "Detected columns" chips. Mock: "Use sample file"; live:
+  "Download template". Changing the project or source after a file was chosen discards the draft and re-uploads the
+  same `File`.
+- **Step 3 · Map:** Fields table (native selects with "More fields" / "Custom fields" optgroups, `auto` tag,
+  duplicate tint, unit select for numeric time-estimate columns), Statuses / Types / People value tables
+  (Epic type only with `epic.manage`; people limited to "You" without `task.assign`), Preview of the first 5 rows
+  (status glyphs, avatars, priority bars, `3 pts`, `Oct 14`, label pills, `Missing title` / `Unmapped` in danger
+  italics, skipped rows tinted with "Will skip: …"). Saves are debounced 300 ms, one PUT in flight, latest wins,
+  409 `mapping_conflict` adopts the server copy.
+- **Step 4 · Import:** summary (Tasks / Will skip / Statuses / People tiles, route with key range, skip summary,
+  "Creates 1 label"), running (progress bar via `scaleX`, `processed / total rows`, %, last 7 log lines, shimmer
+  overlay on the stepper, "Runs in the background", **Stop import** for the creator or `project.update`, "Stopping
+  after the current batch…"), result (complete / stopped / failed with Retry; Imported / Skipped tiles, error table
+  with the first 50 issues, "and N more in the report", **Download report**, **Import more**, **Open project**).
+- **Polling:** `useImportJob` polls I3 every 1 s while queued / running and the tab is visible; a terminal job runs
+  the §6.3 invalidation once. Jobs started in this tab are watched after the wizard closes and toast "Import
+  finished · 44 tasks added to PRJ · 4 skipped" with **View**.
+- **Entry points** (rendered only with `project.import` + `task.create` on an active project): overview setup
+  checklist ("Type them or import a CSV" + **Import CSV**), board and list empty states (**Import CSV**), project
+  settings → **Import** tab (history: status pill, file, key range, counts, who, when, Report, Open, **New import**;
+  skeleton, empty, error + Retry), command palette **Import tasks…**, and the inbox `import` row ("Open import").
+- **Lock panel** for a hand-typed `?import=` without permission: the design's lock layout with "Your role (Viewer)
+  can’t import tasks into Platform Rebuild" and the project admins; no "Ask an admin".
+- **Mock:** hand-written decoder (UTF-8 BOM, UTF-16 LE/BE, strict UTF-8, Windows-1252), delimiter sniffing,
+  RFC 4180 reader with the §1.5 limits, Jira / Linear / Asana presets, matching and conversion rules, planner and
+  validation (the design's sample → 44 tasks, 4 skipped; the Jira export → 1 epic, 4 tasks, 1 skip, 1 warning),
+  batched runner, formula-safe report (`csvSafe`), notification, audit and activity.
+- **Tests:** 171 parser / planner tests against the shared vectors, 17 mock-endpoint tests, 16 client helper tests.
+
+### Deviations (board 40)
+
+- **Open project** opens the List view, not the board: imports land in the backlog (§9 #27), so the active-sprint
+  board wouldn't show them. The inbox row and the toast's **View** still open `board?import=<id>` as specified.
+- **Settings tab visibility:** the project Settings tab now also shows for anyone who can import, so a project
+  Member reaches the Import tab (they land on it; the other tabs stay read-only, as for any role without their
+  permission).
+- **Wide mapping step:** at ≥ 1280 px viewports step 3 widens the modal to 1180 × 860 for the design's two-column
+  S3 frame; every other step keeps 760 × 640. Below 1280 px the mapping stacks.
+- **`auto` tags on columns** are tracked per job in `sessionStorage` (columns the user touched), not from the API;
+  after a new browser session every mapped column shows `auto` again. Value tables use the server's `auto` flag.
+- **Analysis errors discard the draft at once** (the contract discards it on Replace); the alert stays.
+- **Changing the source tile** after an upload also re-uploads (the contract names only the project change).
+- **A job that never started** (canceled, or failed because the file is gone) reopens at step 2 with "Couldn’t
+  read file" and the server message.
+- **Start import** is disabled ("Saving the mapping…") while a mapping save is pending, so the run never uses a
+  stale mapping.
+- **Lock panel** is 620 × 420 and keeps the wizard head (title and ×) but no stepper.
+- **History** labels the report button "Report" (row space); the result step keeps "Download report".
+- **Parser details recorded in the vectors:** CR inside a quoted cell is stripped like any C0 control, so an
+  embedded CRLF becomes LF; a quote closed early keeps the rest of the field (lenient, not `strict=True`); the
+  `list` inference uses the contract's ≥ 30 % rule, so the sample's Tags column infers `text` (the contract's
+  abridged example says `list`; suggestions are unaffected).
+- **Run-time warnings** in the mock: "Status was deleted · used Todo" (without the deleted status's name, which is
+  gone by then) and "Assignee left the project · left unassigned" (the contract names the case but not the copy).
+- **Delimiter meta** also covers `|` (" · | separated").
+- **`uploadImportFile`** takes an optional sixth argument, `onCreated(job)`, so the wizard can discard a draft
+  whose analysis failed.
+- **Task feed entry** "imported this task from …" is derived in the mock from the import rows instead of being
+  stored per task, so a 1,000-row import doesn't flush the 500-entry mock activity log.
+
+### Known gaps (board 40)
+
+- The Playwright smoke suite (`e2e/smoke.spec.ts`) is not extended. The flows (sample and Jira imports, Stop,
+  close-while-running toast, palette, keyboard tiles, oversized / non-CSV files, Sam's Epic and people gating,
+  viewer lock, reload of a finished job, Open project) were verified with scripted Playwright runs and screenshots
+  at 1440 and 390 in dark and light, with no console errors.
+- Live mode is untested against the backend until `docs/openapi.yaml` includes the import endpoints.
+- The mock has no retention purge (`purge_imports`), no runner recovery after a reload (jobs fail `file_missing`
+  instead) and no Linear / Asana file fixtures (their presets are covered by header vectors only).
+- An error report larger than 200 KB lives in memory only; after a reload I8 returns 404 for it.
+- The finish toast only fires while a project view is open (the watcher lives in the project shell); the inbox row
+  covers the rest.

@@ -26,6 +26,8 @@ import { toast } from "@/components/ui/toast";
 import { shell } from "@/components/shell/shell-state";
 import { TopBarActions } from "@/components/shell/top-bar";
 import { useMe } from "@/features/auth/session";
+import { ImportCsvButton } from "@/features/import/import-wizard-host";
+import { canImportInto } from "@/features/import/import-lib";
 import { epicSwatch } from "@/features/epics/epic-model";
 import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
@@ -355,8 +357,17 @@ export function ListScreen() {
             align="center"
             icon={<Plus size={20} aria-hidden />}
             title="No tasks yet"
-            body="Create the first task for this project."
-            actions={canCreate ? <Button variant="primary" kbd="C" onClick={() => shell.openCreateTask({ projectId: project.id })}>New task</Button> : undefined}
+            body={canImportInto(project) ? "Create the first task for this project, or import a CSV." : "Create the first task for this project."}
+            actions={
+              canCreate ? (
+                <>
+                  <Button variant="primary" kbd="C" onClick={() => shell.openCreateTask({ projectId: project.id })}>
+                    New task
+                  </Button>
+                  <ImportCsvButton project={project} />
+                </>
+              ) : undefined
+            }
           />
         </div>
       ) : (

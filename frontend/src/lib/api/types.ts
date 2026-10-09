@@ -41,6 +41,7 @@ export const PROJECT_PERMISSIONS = [
   "task.delete",
   "task.assign",
   "task.move",
+  "project.import",
   "time.log",
   "time.delete_any",
   "comment.create",
@@ -151,6 +152,8 @@ export interface Project {
   activeSprintId: ID | null;
   myRoleId: ID | null;
   my_permissions: ProjectPermission[];
+  /** Board 40: `task_seq + 1`, the number the next task gets (import picker "next key" PRJ-61). */
+  nextTaskNumber: number;
 }
 
 /** Board 24 "Not on any project": a member asks workspace admins to be added to a project. */
@@ -467,7 +470,9 @@ export type ActivityVerb =
   | "attached"
   | "member_added"
   | "dependency_added"
-  | "dependency_removed";
+  | "dependency_removed"
+  /** Board 40: `task.imported` (task feed) and `project.import_completed` (project / workspace feeds). */
+  | "imported";
 
 export interface ActivityEntry {
   id: ID;
@@ -482,7 +487,8 @@ export interface ActivityEntry {
 }
 
 /** "access": someone asked to join a project you manage (no task; payload.projectKey, optional quote). */
-export type NotificationType = "assigned" | "mention" | "status" | "comment" | "due" | "sprint" | "access";
+/** "import" (board 40): an import you started finished, stopped or failed (system row, no task). */
+export type NotificationType = "assigned" | "mention" | "status" | "comment" | "due" | "sprint" | "access" | "import";
 
 export interface Notification {
   id: ID;
@@ -494,7 +500,19 @@ export interface Notification {
   taskId: ID | null;
   taskKey: string | null;
   taskTitle: string | null;
-  payload: { quote?: string; fromStatus?: string; toStatus?: string; dueDate?: ISODate; sprintName?: string; projectKey?: string };
+  payload: {
+    quote?: string;
+    fromStatus?: string;
+    toStatus?: string;
+    dueDate?: ISODate;
+    sprintName?: string;
+    projectKey?: string;
+    /* Board 40 ("import"). */
+    importId?: ID;
+    imported?: number;
+    skipped?: number;
+    importStatus?: "completed" | "canceled" | "failed";
+  };
   createdAt: ISODateTime;
   readAt: ISODateTime | null;
 }
@@ -523,7 +541,8 @@ export interface AuditEntry {
   entityType?: string;
   /** Task key ("PRJ-42") or project key ("PRJ") when the entity has one. */
   entityKey?: string | null;
-  source?: "web" | "api";
+  /** Board 40 adds "import" (rows written by an import job). */
+  source?: "web" | "api" | "import";
   requestId?: string | null;
   changes?: AuditChange[];
 }
@@ -792,3 +811,190 @@ export interface Timesheet {
 export type TimelineZoom = "week" | "month" | "quarter";
 export type TimelineGroup = "epic" | "assignee";
 export type CalendarMode = "month" | "week";
+
+/* ───────────────────────── Import (board 40, v2) ───────────────────────── */
+
+export type ImportSource = "csv" | "jira";
+export type ImportPreset = "generic" | "jira" | "linear" | "asana";
+export type ImportStatus = "draft" | "ready" | "queued" | "running" | "completed" | "failed" | "canceled";
+export type ImportField =
+  | "title"
+  | "description"
+  | "status"
+  | "assignee"
+  | "priority"
+  | "estimate"
+  | "dueDate"
+  | "labels"
+  | "type"
+  | "timeEstimate"
+  | "startDate"
+  | "epic"
+  | "sprint"
+  | "parent"
+  | "sourceId"
+  | "blockedBy"
+  | "blocks"
+  | "customField"
+  | "skip";
+export type ImportTaskType = TaskType | "epic";
+export type ImportColumnType = "empty" | "text" | "number" | "date" | "duration" | "list" | "person";
+export type ImportDateOrder = "ymd" | "mdy" | "dmy" | "jira" | "text";
+export type ImportTimeUnit = "minutes" | "hours" | "seconds";
+
+export interface ImportFileInfo {
+  name: string;
+  size: number;
+  encoding: "" | "utf-8" | "utf-16" | "windows-1252";
+  delimiter: "" | "," | ";" | "	" | "|";
+  rowCount: number;
+  columnCount: number;
+}
+export interface ImportColumn {
+  index: number;
+  name: string;
+  samples: string[];
+  inferredType: ImportColumnType;
+  emptyCount: number;
+  distinctCount: number;
+  dateOrder: ImportDateOrder | null;
+}
+export interface ImportColumnMapping {
+  field: ImportField;
+  customFieldId?: ID;
+  unit?: ImportTimeUnit;
+}
+export interface ImportMapping {
+  revision: number;
+  columns: ImportColumnMapping[];
+  statuses: Record<string, ID | null>;
+  types: Record<string, ImportTaskType | null>;
+  people: Record<string, ID | null>;
+}
+export interface ImportValue {
+  key: string;
+  value: string;
+  count: number;
+  target: string | null;
+  auto: boolean;
+  matchedBy?: "email" | "name" | "initial" | null;
+}
+export type ImportBlockerCode =
+  | "title_unmapped"
+  | "duplicate_field"
+  | "status_unmapped"
+  | "type_unmapped"
+  | "too_many_values"
+  | "too_many_creates"
+  | "nothing_to_import";
+export interface ImportBlocker {
+  code: ImportBlockerCode;
+  message: string;
+  field?: ImportField;
+}
+export interface ImportValidation {
+  ready: boolean;
+  blockers: ImportBlocker[];
+  values: { statuses: ImportValue[]; types: ImportValue[]; people: ImportValue[] };
+  counts: { rows: number; tasks: number; epics: number; skipped: number; warnings: number; statuses: number; people: number };
+  skipReasons: { reason: string; count: number }[];
+  creates: { labels: string[]; epics: string[]; options: { customFieldId: ID; names: string[] }[] };
+  keyRange: { first: string; last: string } | null;
+}
+export interface ImportIssue {
+  severity: "skip" | "warning";
+  field: ImportField | null;
+  reason: string;
+  value: string;
+}
+export type ImportOutcome = "task" | "epic" | "skipped";
+export interface ImportRowValues {
+  title: string;
+  type: ImportTaskType;
+  statusId: ID | null;
+  assigneeId: ID | null;
+  priority: Priority;
+  estimate: number | null;
+  timeEstimateMinutes: number | null;
+  startDate: ISODate | null;
+  dueDate: ISODate | null;
+  labels: string[];
+  epic: { id?: ID; name: string; new?: boolean } | null;
+  sprintId: ID | null;
+  parent: { ref: string; row?: number; taskId?: ID } | null;
+  customFields: Record<ID, CustomFieldValue>;
+}
+export interface ImportRowPreview {
+  row: number;
+  outcome: ImportOutcome;
+  key: string | null;
+  issues: ImportIssue[];
+  values: ImportRowValues;
+}
+export interface ImportLogLine {
+  row: number;
+  outcome: ImportOutcome;
+  key: string | null;
+  title: string;
+  reason: string | null;
+}
+export interface ImportProgress {
+  phase: "preparing" | "rows" | "links" | "finishing";
+  total: number;
+  processed: number;
+  imported: number;
+  epics: number;
+  skipped: number;
+  warnings: number;
+  recent: ImportLogLine[];
+}
+export interface ImportResult {
+  imported: number;
+  epics: number;
+  skipped: number;
+  warnings: number;
+  firstKey: string | null;
+  lastKey: string | null;
+  created: { labels: number; epics: number; options: number };
+  hasErrorReport: boolean;
+  issueCount: number;
+  issues: (ImportIssue & { row: number })[];
+}
+export interface ImportJob {
+  id: ID;
+  projectId: ID;
+  source: ImportSource;
+  preset: ImportPreset;
+  status: ImportStatus;
+  cancelRequested: boolean;
+  file: ImportFileInfo;
+  analysis: { columns: ImportColumn[] } | null;
+  mapping: ImportMapping | null;
+  validation: ImportValidation | null;
+  progress: ImportProgress | null;
+  result: ImportResult | null;
+  error: { code: string; message: string } | null;
+  createdById: ID | null;
+  createdAt: ISODateTime;
+  startedAt: ISODateTime | null;
+  finishedAt: ISODateTime | null;
+  expiresAt: ISODateTime | null;
+}
+export interface ImportJobSummary {
+  id: ID;
+  projectId: ID;
+  source: ImportSource;
+  status: ImportStatus;
+  fileName: string;
+  imported: number;
+  skipped: number;
+  firstKey: string | null;
+  lastKey: string | null;
+  hasErrorReport: boolean;
+  createdById: ID | null;
+  createdAt: ISODateTime;
+  startedAt: ISODateTime | null;
+  finishedAt: ISODateTime | null;
+  expiresAt: ISODateTime | null;
+  error: { code: string; message: string } | null;
+}

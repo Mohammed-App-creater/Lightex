@@ -58,6 +58,11 @@ export const qk = {
   schedules: (projectId: string) => ["p", projectId, "schedule"] as const,
   unscheduled: (projectId: string) => ["p", projectId, "unscheduled"] as const,
 
+  /* Board 40 (v2). The history sits under ["p", id] so qk.scope invalidation reaches it. */
+  imports: (projectId: string) => ["p", projectId, "imports"] as const,
+  importJob: (id: string) => ["import", id] as const,
+  importRows: (id: string, outcome: string, revision: number) => ["import", id, "rows", outcome, revision] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,

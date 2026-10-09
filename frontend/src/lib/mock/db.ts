@@ -1,5 +1,6 @@
 import type { MockDB } from "./db-types";
 import { ensureExt39 } from "./handlers/extensions";
+import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import { SCHEMA, createSeed } from "./seed";
 
@@ -39,6 +40,11 @@ export function getDB(): MockDB {
           // Board 32: start dates, epic dates and the extra dependency, once (needs board 39's data first).
           if (!db.ext32) {
             ensureExt32(db);
+            persist();
+          }
+          // Board 40: project.import on cached system roles, once.
+          if (!db.ext40) {
+            ensureExt40(db);
             persist();
           }
           return db;

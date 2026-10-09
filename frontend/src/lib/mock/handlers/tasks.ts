@@ -1,4 +1,4 @@
-import type { Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/lib/api/types";
+import type { ActivityEntry, Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/lib/api/types";
 import { validateUpload } from "@/lib/files";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { nowISO, uid } from "../db";
@@ -47,7 +47,7 @@ function statusName(db: MockDB, id: string) {
   return db.statuses.find((s) => s.id === id)?.name ?? "";
 }
 
-function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
+export function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
   const s = db.statuses.find((x) => x.id === nextStatusId);
   if (!s) invalid({ statusId: "Unknown status" });
   if (s.projectId !== t.projectId) invalid({ statusId: "Unknown status" });
@@ -56,7 +56,7 @@ function applyStatusSideEffects(db: MockDB, t: TaskRec, nextStatusId: string) {
   if (s.category === "in_progress") t.startedAt ??= nowISO();
 }
 
-function lastPosition(db: MockDB, projectId: string, statusId: string) {
+export function lastPosition(db: MockDB, projectId: string, statusId: string) {
   const sorted = db.tasks.filter((x) => x.projectId === projectId && x.statusId === statusId && !x.deletedAt).sort(comparePosition);
   return keyBetween(sorted.at(-1)?.position ?? null, null);
 }
@@ -102,6 +102,11 @@ function richText(doc: RichDoc | null | undefined): string {
 /* Uploaded bodies live only in memory (never in localStorage). */
 const uploads = new Map<string, { taskId: string; fileName: string; size: number; mimeType: string; blob?: Blob }>();
 export const mockUploads = uploads;
+
+/** Board 40: the import ticket (I1) reuses the signed-upload map; the blob arrives through mockUpload(). */
+export function registerMockUpload(id: string, fileName: string, size: number, mimeType = "text/csv") {
+  uploads.set(id, { taskId: "", fileName: fileName.slice(0, 120), size, mimeType });
+}
 
 function kindOf(fileName: string, mime: string): AttachmentRec["kind"] {
   if (/^image\/(png|jpe?g|gif|webp)$/.test(mime) || /\.(png|jpe?g|gif|webp)$/i.test(fileName)) return "image";
@@ -419,7 +424,10 @@ export function registerTasks() {
 
   route("GET", "/tasks/:id/activity", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    return ctx.db.activity.filter((a) => a.taskId === t.id);
+    // Board 40: the task's own feed starts with "imported this task from …" (task.imported), derived
+    // from the import rows so a 1,000-row import doesn't flood the shared activity log.
+    const imported = importedActivity(ctx.db, t);
+    return [...ctx.db.activity.filter((a) => a.taskId === t.id), ...(imported ? [imported] : [])];
   });
 
   /* board + backlog */
@@ -578,6 +586,23 @@ export function registerTasks() {
     ctx.db.attachments = ctx.db.attachments.filter((x) => x.id !== a.id);
     return undefined;
   });
+}
+
+function importedActivity(db: MockDB, t: TaskRec): ActivityEntry | null {
+  const row = db.importRows?.find((r) => r.taskId === t.id);
+  const job = row && db.imports?.find((j) => j.id === row.jobId);
+  if (!row || !job) return null;
+  return {
+    id: `act_imp_${t.id}`,
+    actorId: job.createdById,
+    verb: "imported",
+    projectId: t.projectId,
+    taskId: t.id,
+    taskKey: t.key,
+    taskTitle: t.title,
+    data: { fileName: job.file.name, row: row.row },
+    createdAt: t.createdAt,
+  };
 }
 
 export function recordRecent(db: MockDB, userId: string, kind: "task" | "project", id: string) {

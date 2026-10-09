@@ -254,7 +254,7 @@ export function EventCard({ e, people, open, onToggle }: { e: AuditEntry; people
             </div>
           ))}
           <span className="mt-1 flex items-center gap-1 font-mono text-[11.5px] text-fg-3">
-            via {e.source === "api" ? "API" : "web"}
+            via {e.source === "api" ? "API" : e.source === "import" ? "import" : "web"}
             {e.requestId ? ` · ${e.requestId}` : ""}
             {e.requestId && <CopyRequestId id={e.requestId} />}
           </span>

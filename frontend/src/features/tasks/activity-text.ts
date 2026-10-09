@@ -21,6 +21,13 @@ const VERB: Record<ActivityEntry["verb"], (a: ActivityEntry) => string> = {
   dependency_added: (a) =>
     a.data.relation === "blocks" ? `marked this as blocking ${a.data.otherKey ?? "a task"}` : `marked this blocked by ${a.data.otherKey ?? "a task"}`,
   dependency_removed: (a) => `removed the dependency on ${a.data.otherKey ?? "a task"}`,
+  // Board 40: the task feed (task.imported) vs the project / workspace feeds (project.import_completed).
+  imported: (a) => {
+    const from = a.data.fileName ? ` from ${a.data.fileName}` : "";
+    if (a.taskId) return `imported this task${from}`;
+    const n = Number(a.data.imported ?? 0);
+    return `imported ${n} ${n === 1 ? "task" : "tasks"}${from}`;
+  },
 };
 
 export function activityText(a: ActivityEntry, subject?: string) {
