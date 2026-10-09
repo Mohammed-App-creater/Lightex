@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowUp, ArrowUpRight, ChevronRight, Columns3, Copy, Filter, Layers, MoreHorizontal, Plus, Tag, Trash2, UserRound, X, MoveRight } from "lucide-react";
+import { ArrowUp, ArrowUpRight, Ban, ChevronRight, Columns3, Copy, Filter, Layers, MoreHorizontal, Plus, Tag, Trash2, UserRound, X, MoveRight } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import {
   MenuCheckboxItem,
   MenuContent,
   MenuItem,
+  MenuLabel,
   MenuRadioGroup,
   MenuRadioItem,
   MenuSeparator,
@@ -30,6 +31,9 @@ import { applyFilters, completeRules } from "@/features/filters/filter-model";
 import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
 import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
 import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
+import { blockedTitle } from "@/features/dependencies/blocked-badge";
+import { displayValue } from "@/features/fields/field-lib";
+import { useCustomFields } from "@/features/fields/queries";
 import { useCreateTask, useDeleteTask, useUpdateTask } from "@/features/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
 import { useSparking } from "@/features/tasks/task-bits";
@@ -44,16 +48,18 @@ import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/lib/
 import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, dueTone, shortDate, todayISO } from "@/lib/utils/dates";
-import { COLUMNS, clampWidth, groupTasks, labelSlots, sortTasks, type ColumnId, type Ctx, type Group, type GroupBy, type SortState } from "./list-model";
+import { COLUMNS, cfColumn, clampWidth, groupTasks, isCfColumn, labelSlots, sortTasks, type ColumnDef, type ColumnId, type Ctx, type Group, type GroupBy, type SortState } from "./list-model";
 
 type Row = { kind: "group"; group: Group } | { kind: "task"; task: Task; groupId: string } | { kind: "empty"; group: Group };
 
 const PREFS_KEY = (id: string) => `lightex-list-${id}`;
 
-type Prefs = { widths: Record<ColumnId, number>; hidden: ColumnId[]; groupBy: GroupBy };
+/** `cf`: custom-field columns the user turned on (board 39: hidden by default). */
+type Prefs = { widths: Record<ColumnId, number>; hidden: ColumnId[]; groupBy: GroupBy; cf: string[] };
+const widthOf = (widths: Record<ColumnId, number>, c: ColumnDef) => widths[c.id] ?? c.width;
 
 function loadPrefs(projectId: string): Prefs {
-  const base: Prefs = { widths: Object.fromEntries(COLUMNS.map((c) => [c.id, c.width])) as Record<ColumnId, number>, hidden: [], groupBy: "status" };
+  const base: Prefs = { widths: Object.fromEntries(COLUMNS.map((c) => [c.id, c.width])) as Record<ColumnId, number>, hidden: [], groupBy: "status", cf: [] };
   try {
     const raw = typeof window !== "undefined" ? localStorage.getItem(PREFS_KEY(projectId)) : null;
     return raw ? { ...base, ...(JSON.parse(raw) as Partial<Prefs>) } : base;
@@ -81,6 +87,7 @@ export function ListScreen() {
   const { data: sprints = [] } = useSprints(project.id);
   const { data: milestones = [] } = useMilestones(project.id);
   const { data: epics = [] } = useEpics(project.id);
+  const { data: fields = [] } = useCustomFields(project.id);
 
   const [prefs, setPrefs] = useState<Prefs>(() => loadPrefs(project.id));
   useEffect(() => {
@@ -111,13 +118,18 @@ export function ListScreen() {
       meId: me.id,
       today: t,
       weekEnd: addDaysISO(t, 7),
+      fields,
     };
-  }, [statuses, members, sprints, milestones, epics, labels, me.id]);
+  }, [statuses, members, sprints, milestones, epics, labels, me.id, fields]);
 
-  const visibleCols = COLUMNS.filter((c) => c.id === "title" || !prefs.hidden.includes(c.id));
+  const visibleCols: ColumnDef[] = [
+    ...COLUMNS.filter((c) => c.id === "title" || !prefs.hidden.includes(c.id)),
+    ...fields.filter((f) => prefs.cf.includes(f.id)).map(cfColumn),
+  ];
+  const totalCols = COLUMNS.length + fields.length;
   const selW = canBulk ? 36 : 14;
-  const template = `${selW}px ${visibleCols.map((c) => `${prefs.widths[c.id]}px`).join(" ")} minmax(0,1fr)`;
-  const minWidth = selW + visibleCols.reduce((a, c) => a + prefs.widths[c.id], 0) + 120;
+  const template = `${selW}px ${visibleCols.map((c) => `${widthOf(prefs.widths, c)}px`).join(" ")} minmax(0,1fr)`;
+  const minWidth = selW + visibleCols.reduce((a, c) => a + widthOf(prefs.widths, c), 0) + 120;
 
   const filtered = useMemo(() => applyFilters(tasksQ.data ?? [], rules, filterOpts.ctx), [tasksQ.data, rules, filterOpts.ctx]);
   const groups = useMemo(() => groupTasks(filtered, prefs.groupBy, ctx).map((g) => ({ ...g, tasks: sortTasks(g.tasks, sort, ctx) })), [filtered, prefs.groupBy, ctx, sort]);
@@ -249,7 +261,7 @@ export function ListScreen() {
           <Button size="sm" variant="ghost" className="max-[760px]:hidden">
             <Columns3 size={13} aria-hidden /> Columns
             <span className="font-mono text-[11px] text-fg-3">
-              {visibleCols.length}/{COLUMNS.length}
+              {visibleCols.length}/{totalCols}
             </span>
           </Button>
         </MenuTrigger>
@@ -264,6 +276,22 @@ export function ListScreen() {
               {c.label}
             </MenuCheckboxItem>
           ))}
+          {fields.length > 0 && (
+            <>
+              <MenuSeparator />
+              <MenuLabel>Custom fields</MenuLabel>
+              {fields.map((f) => (
+                <MenuCheckboxItem
+                  key={f.id}
+                  checked={prefs.cf.includes(f.id)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(on) => setPrefs((p) => ({ ...p, cf: on ? [...p.cf.filter((x) => x !== f.id), f.id] : p.cf.filter((x) => x !== f.id) }))}
+                >
+                  {f.name}
+                </MenuCheckboxItem>
+              ))}
+            </>
+          )}
           <MenuSeparator />
           <MenuItem onSelect={() => setPrefs((p) => ({ ...p, widths: Object.fromEntries(COLUMNS.map((c) => [c.id, c.width])) as Record<ColumnId, number> }))}>Reset widths</MenuItem>
         </MenuContent>
@@ -447,7 +475,7 @@ function HeaderRow({
   onResize,
 }: {
   template: string;
-  cols: typeof COLUMNS;
+  cols: ColumnDef[];
   widths: Record<ColumnId, number>;
   sort: SortState;
   onSort: (c: ColumnId) => void;
@@ -474,7 +502,7 @@ function HeaderRow({
                 className={cn("opacity-0 transition-[opacity,transform] duration-150 group-hover/h:opacity-50", active && "text-accent-t opacity-100 group-hover/h:opacity-100", active && sort!.dir === "desc" && "rotate-180")}
               />
             </button>
-            <Resizer id={c.id} label={c.label} width={widths[c.id]} onResize={onResize} />
+            <Resizer col={c} width={widthOf(widths, c)} onResize={onResize} />
           </div>
         );
       })}
@@ -483,10 +511,10 @@ function HeaderRow({
   );
 }
 
-function Resizer({ id, label, width, onResize }: { id: ColumnId; label: string; width: number; onResize: (c: ColumnId, w: number) => void }) {
+function Resizer({ col, width, onResize }: { col: ColumnDef; width: number; onResize: (c: ColumnId, w: number) => void }) {
   const start = useRef<{ x: number; w: number } | null>(null);
   const [on, setOn] = useState(false);
-  const col = COLUMNS.find((c) => c.id === id)!;
+  const { id, label } = col;
   return (
     <span
       role="separator"
@@ -645,6 +673,17 @@ const TaskRow = memo(function TaskRow({
   const tone = dueTone(task.dueDate, done);
 
   const cell = (id: ColumnId): ReactNode => {
+    if (isCfColumn(id)) {
+      const f = ctx.fields?.find((x) => `cf.${x.id}` === id);
+      const shown = f ? displayValue(f, task.customFields?.[f.id], ctx.users, ctx.today) : null;
+      return (
+        <span className={cellStatic} title={shown?.text}>
+          {shown?.color && <span aria-hidden className="size-[7px] flex-none rounded-full" style={{ background: shown.color }} />}
+          {shown?.user && <Avatar name={shown.user.name} hue={shown.user.hue} size={18} decorative />}
+          <span className={cn("truncate", (!shown || shown.muted) && "text-fg-3", f?.type === "number" && "font-mono text-[12px] tabular-nums")}>{shown?.text ?? "—"}</span>
+        </span>
+      );
+    }
     switch (id) {
       case "key":
         return <span className={cn(cellStatic, "font-mono text-[12px] font-medium text-fg-3")}>{task.key}</span>;
@@ -675,11 +714,13 @@ const TaskRow = memo(function TaskRow({
           );
         }
         return canEdit ? (
-          <button type="button" aria-label={`Title: ${task.title}`} title={task.title} onClick={() => { setDraft(task.title); setEditingTitle(true); }} className={cellBtn}>
+          <button type="button" aria-label={`Title: ${task.title}${task.isBlocked ? ", blocked" : ""}`} title={task.title} onClick={() => { setDraft(task.title); setEditingTitle(true); }} className={cellBtn}>
+            {task.isBlocked && <BlockedGlyph task={task} />}
             <span className={cn("truncate font-medium", done && status?.glyph === "done" && "text-fg-3 line-through")}>{task.title}</span>
           </button>
         ) : (
           <span className={cellStatic} title={task.title}>
+            {task.isBlocked && <BlockedGlyph task={task} />}
             <span className="truncate font-medium">{task.title}</span>
           </span>
         );
@@ -1145,7 +1186,7 @@ function ListSkeleton({ template, selW, cols }: { template: string; selW: number
               {cols.map((c, ci) => (
                 <span key={c} className="flex items-center gap-2 px-2.5">
                   {(c === "status" || c === "asg") && <Skeleton className="size-3.5 flex-none rounded-full" />}
-                  <Skeleton className="h-[9px]" style={{ width: `${presets[c][(i + ci) % presets[c].length]}%` }} />
+                  <Skeleton className="h-[9px]" style={{ width: `${(presets[c] ?? CF_PRESET)[(i + ci) % (presets[c] ?? CF_PRESET).length]}%` }} />
                 </span>
               ))}
             </div>
@@ -1153,5 +1194,16 @@ function ListSkeleton({ template, selW, cols }: { template: string; selW: number
         </div>
       ))}
     </div>
+  );
+}
+
+const CF_PRESET = [58, 44, 66];
+
+/** Board 39: "Blocked" glyph next to a list title (tooltip lists the open blockers). */
+function BlockedGlyph({ task }: { task: Task }) {
+  return (
+    <span title={blockedTitle(task, true)} className="inline-flex flex-none text-danger">
+      <Ban size={12} strokeWidth={2} aria-label="Blocked" />
+    </span>
   );
 }

@@ -123,16 +123,38 @@ function stripSeq({ taskSeq: _taskSeq, ...rest }: ProjectRec) {
 }
 
 export function toTask(db: MockDB, t: TaskRec): Task {
-  const { description: _d, startedAt: _s, ...rest } = t;
+  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, ...rest } = t;
   const statuses = statusesOf(db, t.projectId);
   const subs = db.tasks.filter((x) => x.parentId === t.id && !x.deletedAt);
+  const openBlockers = openBlockersOf(db, t.id);
   return {
     ...rest,
     subtaskCount: subs.length,
     subtaskDoneCount: subs.filter((x) => isDoneStatus(x.statusId, statuses)).length,
     commentCount: db.comments.filter((c) => c.taskId === t.id).length,
     attachmentCount: db.attachments.filter((a) => a.taskId === t.id).length,
+    customFields: { ...(customFields ?? {}) },
+    isBlocked: openBlockers.length > 0,
+    openBlockers,
+    timeEstimateMinutes: timeEstimateMinutes ?? null,
+    loggedMinutes: (db.timeEntries ?? []).reduce((a, e) => (e.taskId === t.id ? a + e.minutes : a), 0),
   };
+}
+
+/**
+ * Board 39: live blockers of a task whose status category is not done (Done and Canceled both
+ * close a blocker), ordered by task number. Rows touching a soft-deleted task are ignored.
+ */
+export function openBlockersOf(db: MockDB, taskId: string) {
+  const out: TaskRec[] = [];
+  for (const d of db.dependencies ?? []) {
+    if (d.blockedId !== taskId) continue;
+    const b = db.tasks.find((x) => x.id === d.blockerId);
+    if (!b || b.deletedAt) continue;
+    const cat = db.statuses.find((s) => s.id === b.statusId)?.category;
+    if (cat !== "done") out.push(b);
+  }
+  return out.sort((a, b) => a.number - b.number).map((b) => ({ id: b.id, key: b.key, title: b.title }));
 }
 
 export function toObjective(db: MockDB, o: ObjectiveRec): Objective {

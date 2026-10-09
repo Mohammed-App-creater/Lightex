@@ -5,6 +5,7 @@ import { nowISO, uid } from "../db";
 import type { AttachmentRec, MockDB, TaskRec } from "../db-types";
 import { projectPermissions, statusesOf, toProject, toTask } from "../derive";
 import { logActivity, notify } from "./common";
+import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
 import { markTaskDeleted, trashComment } from "./trash";
 import {
@@ -70,6 +71,7 @@ export function toDetail(db: MockDB, t: TaskRec, userId: string): TaskDetail {
       .sort((a, b) => a.number - b.number)
       .map((x) => toTask(db, x)),
     project: { id: p.id, key: p.key, name: p.name, hue: p.hue, my_permissions: proj.my_permissions },
+    dependencies: dependenciesOf(db, t.id),
   };
 }
 
@@ -156,6 +158,9 @@ export function registerTasks() {
     const p = memberProject(ctx, ctx.params.id!);
     const q = String(ctx.query.q ?? "").toLowerCase();
     const f = (k: string) => filterValues(ctx.query, k);
+    const blocked = f("blocked")[0];
+    if (blocked !== undefined && blocked !== "true" && blocked !== "false") invalid({ "filter[blocked]": "Use true or false" });
+    ensureExt39(ctx.db);
     const [status, assignee, sprint, epic, milestone, priority, label, parent] = [
       f("status"),
       f("assignee").map((a) => (a === "me" ? ctx.userId! : a)),
@@ -186,7 +191,9 @@ export function registerTasks() {
       const r = av < bv ? -1 : av > bv ? 1 : 0;
       return desc ? -r : r;
     });
-    return paginate(list.map((t) => toTask(ctx.db, t)), ctx.query, 500);
+    let out = list.map((t) => toTask(ctx.db, t));
+    if (blocked !== undefined) out = out.filter((t) => t.isBlocked === (blocked === "true"));
+    return paginate(out, ctx.query, 500);
   });
 
   route("POST", "/projects/:id/tasks", (ctx) => {
@@ -272,6 +279,8 @@ export function registerTasks() {
     if ("assigneeId" in b && b.assigneeId !== t.assigneeId && !perms.includes("task.assign")) {
       fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
     }
+    // Board 39: customFields / timeEstimateMinutes are validated before anything is written.
+    const applyExt = keys.some((k) => k === "customFields" || k === "timeEstimateMinutes") ? prepareTaskExtPatch(ctx.db, t, b as Record<string, unknown>) : null;
     const before = { ...t };
     if (b.title !== undefined) {
       if (!b.title.trim()) invalid({ title: "Give the task a title" });
@@ -293,6 +302,7 @@ export function registerTasks() {
     if (b.objectiveIds !== undefined) t.objectiveIds = [...new Set(b.objectiveIds)];
     if (b.labelIds !== undefined) t.labelIds = [...new Set(b.labelIds)];
     if (b.description !== undefined) t.description = b.description;
+    applyExt?.(userId);
     t.version += 1;
     t.updatedAt = nowISO();
 
@@ -358,6 +368,8 @@ export function registerTasks() {
       return tasks.map((t) => toTask(ctx.db, t));
     }
     const patch = b.patch ?? {};
+    if ("customFields" in patch) invalid({ customFields: "This field can’t be bulk-edited" });
+    if ("timeEstimateMinutes" in patch) invalid({ timeEstimateMinutes: "This field can’t be bulk-edited" });
     const perms = projectPermissions(ctx.db, userId, p.id);
     if ("assigneeId" in patch && !perms.includes("task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
     const statusOnly = Object.keys(patch).every((k) => k === "statusId");

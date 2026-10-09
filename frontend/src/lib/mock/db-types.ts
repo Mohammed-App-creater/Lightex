@@ -18,6 +18,9 @@ import type {
   User,
   Comment,
   Attachment,
+  CustomField,
+  CustomFieldValue,
+  TimeEntry,
 } from "@/lib/api/types";
 
 /* Stored shapes. Derived fields (progress, counts, my_permissions) are computed per request. */
@@ -63,9 +66,15 @@ export type MilestoneRec = Omit<Milestone, "progress">;
 // Board 27 fields are optional on the record (older seeds lack them); toEpic normalizes to null.
 export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archivedAt"> & Partial<Pick<Epic, "ownerId" | "milestoneId" | "archivedAt">>;
 export type SprintRec = Omit<Sprint, "progress">;
-export type TaskRec = Omit<Task, "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount"> & {
+export type TaskRec = Omit<
+  Task,
+  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes"
+> & {
   description: RichDoc | null;
   startedAt: string | null;
+  /** Board 39: set custom-field values (optional so v1-cached records still load). */
+  customFields?: Record<string, CustomFieldValue>;
+  timeEstimateMinutes?: number | null;
 };
 export type AttachmentRec = Attachment & { content?: string };
 export type NotificationRec = Notification & { recipientId: string };
@@ -102,7 +111,18 @@ export interface MockDB {
   viewPins?: { userId: string; viewId: string; position: number }[];
   /** Trash (board 29). Optional: created lazily by handlers/trash.ts, so no SCHEMA bump. */
   trash?: TrashStore;
+  /* Board 39 (v2). Optional, created by ensureExt39 (handlers/extensions.ts), so no SCHEMA bump. */
+  customFields?: CustomFieldRec[];
+  dependencies?: DependencyRec[];
+  timeEntries?: TimeEntry[];
+  timers?: { userId: string; taskId: string; startedAt: string }[];
+  /** Board 39 upgrade marker for databases cached before v2. */
+  ext39?: boolean;
 }
+
+export type CustomFieldRec = Omit<CustomField, "taskCount"> & { createdById?: string | null };
+/** One row means `blockerId` blocks `blockedId`. */
+export type DependencyRec = { id: string; projectId: string; blockerId: string; blockedId: string; createdById: string | null; createdAt: string };
 
 /* Trash (board 29): deleted comments and whole projects live here; tasks keep TaskRec.deletedAt. */
 export type TrashedCommentRec = Comment & { deletedAt: string; deletedBy: string | null };

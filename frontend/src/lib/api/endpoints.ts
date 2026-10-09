@@ -8,7 +8,11 @@ import type {
   AuditPage,
   BurndownPoint,
   Comment,
+  CustomField,
+  CustomFieldInput,
+  CustomFieldPatch,
   CycleBin,
+  DependencyRelation,
   Epic,
   EpicWrite,
   Invite,
@@ -31,12 +35,16 @@ import type {
   Status,
   Task,
   TaskCreate,
+  TaskDependencies,
   TaskDetail,
   TaskMove,
   TaskPatch,
   TrashList,
   TrashRef,
   ThroughputPoint,
+  TimeEntry,
+  Timesheet,
+  RunningTimer,
   UploadTicket,
   User,
   VelocityPoint,
@@ -301,7 +309,38 @@ export const trash = {
   purge: (slug: string, items: TrashRef[]) => http.post<{ purged: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/purge`, { items }),
 };
 
+/* ───────── Board 39 (v2): custom fields, dependencies, time tracking. Requested API additions. ───────── */
+
+export const customFields = {
+  list: (projectId: string) => http.get<CustomField[]>(`/projects/${enc(projectId)}/custom-fields`),
+  create: (projectId: string, body: CustomFieldInput) => http.post<CustomField>(`/projects/${enc(projectId)}/custom-fields`, body),
+  update: (id: string, body: CustomFieldPatch) => http.patch<CustomField>(`/custom-fields/${enc(id)}`, body),
+  remove: (id: string) => http.del(`/custom-fields/${enc(id)}`),
+  reorder: (projectId: string, ids: string[]) => http.put<CustomField[]>(`/projects/${enc(projectId)}/custom-fields/order`, { ids }),
+};
+
+export const dependencies = {
+  list: (taskId: string) => http.get<TaskDependencies>(`/tasks/${enc(taskId)}/dependencies`),
+  add: (taskId: string, relation: DependencyRelation, otherTaskId: string) =>
+    http.post<TaskDependencies>(`/tasks/${enc(taskId)}/dependencies`, { relation, taskId: otherTaskId }),
+  remove: (taskId: string, dependencyId: string) => http.del(`/tasks/${enc(taskId)}/dependencies/${enc(dependencyId)}`),
+};
+
+export const time = {
+  entries: (taskId: string) => http.get<TimeEntry[]>(`/tasks/${enc(taskId)}/time-entries`),
+  log: (taskId: string, body: { minutes: number; date: string; note?: string }) => http.post<TimeEntry>(`/tasks/${enc(taskId)}/time-entries`, body),
+  remove: (entryId: string) => http.del(`/time-entries/${enc(entryId)}`),
+  timer: () => http.get<{ timer: RunningTimer | null }>("/me/timer"),
+  startTimer: (taskId: string, date: string) => http.post<{ timer: RunningTimer; stopped: TimeEntry | null }>(`/tasks/${enc(taskId)}/timer`, { date }),
+  stopTimer: (date: string, note?: string) => http.post<{ entry: TimeEntry }>("/me/timer/stop", { date, note }),
+  timesheet: (slug: string, week: string, projectId?: string) =>
+    http.get<Timesheet>(`/workspaces/${enc(slug)}/timesheet`, { filter: { week, project: projectId } }),
+};
+
 export const api = {
+  customFields,
+  dependencies,
+  time,
   trash,
   auth,
   workspaces,

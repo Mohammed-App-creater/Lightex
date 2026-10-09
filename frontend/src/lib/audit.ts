@@ -45,6 +45,9 @@ export function auditActionKind(e: Pick<AuditEntry, "action" | "entityType">): A
     case "created":
       return auditEntity(e) === "comment" ? "commented" : "created";
     default:
+      // Board 39: custom_field_created → created; *_deleted (custom_field_deleted, time_entry_deleted) → deleted.
+      if (verb.endsWith("_created")) return "created";
+      if (verb.endsWith("_deleted")) return "deleted";
       return "updated";
   }
 }

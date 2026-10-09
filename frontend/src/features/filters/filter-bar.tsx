@@ -1,19 +1,19 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { Bookmark, Calendar, ChevronDown, CircleDashed, Filter, Hexagon, Plus, RefreshCcw, SignalHigh, Tag, UserRound, X } from "lucide-react";
+import { Ban, Bookmark, Calendar, CalendarDays, ChevronDown, CircleDashed, Filter, Hash, Hexagon, ListChecks, Plus, RefreshCcw, SignalHigh, Tag, Type, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import type { FilterField, FilterRule } from "@/lib/api/types";
+import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import type { CustomFieldType, FilterField, FilterRule } from "@/lib/api/types";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { cn } from "@/lib/utils/cn";
 import { shortDate } from "@/lib/utils/dates";
-import { FILTER_FIELDS, MAX_RULES, OP_LABEL, completeRules, fieldLabel, isComplete, isMulti, newRule, opsFor, withOp } from "./filter-model";
+import { FILTER_FIELDS, MAX_RULES, OP_LABEL, cfField, cfFieldId, completeRules, fieldLabel, isCfField, isComplete, isMulti, isValueless, newRule, opsFor, withOp, type FieldDef } from "./filter-model";
 import type { FilterOptions } from "./use-filters";
 
-export const FIELD_ICON: Record<FilterField, ReactNode> = {
+const BASE_ICON: Record<string, ReactNode> = {
   status: <CircleDashed size={13} strokeWidth={1.6} aria-hidden />,
   priority: <SignalHigh size={13} strokeWidth={1.6} aria-hidden />,
   assignee: <UserRound size={13} strokeWidth={1.6} aria-hidden />,
@@ -21,7 +21,25 @@ export const FIELD_ICON: Record<FilterField, ReactNode> = {
   sprint: <RefreshCcw size={13} strokeWidth={1.6} aria-hidden />,
   due: <Calendar size={13} strokeWidth={1.6} aria-hidden />,
   epic: <Hexagon size={13} strokeWidth={1.6} aria-hidden />,
+  blocked: <Ban size={13} strokeWidth={1.6} aria-hidden />,
 };
+
+/** Icons for the five custom-field types (board 39). */
+export const CF_TYPE_ICON: Record<CustomFieldType, ReactNode> = {
+  text: <Type size={13} strokeWidth={1.6} aria-hidden />,
+  number: <Hash size={13} strokeWidth={1.6} aria-hidden />,
+  select: <ListChecks size={13} strokeWidth={1.6} aria-hidden />,
+  date: <CalendarDays size={13} strokeWidth={1.6} aria-hidden />,
+  user: <UserRound size={13} strokeWidth={1.6} aria-hidden />,
+};
+
+export function fieldIcon(field: FilterField, fields?: readonly FieldDef[]): ReactNode {
+  if (isCfField(field)) {
+    const def = fields?.find((f) => f.id === cfFieldId(field));
+    return def ? CF_TYPE_ICON[def.type] : <X size={13} strokeWidth={1.6} aria-hidden />;
+  }
+  return BASE_ICON[field];
+}
 
 const pickBtn =
   "inline-flex h-7 min-w-0 items-center gap-1.5 rounded-[7px] border border-line-2 bg-surface px-2.5 text-[12.5px] font-medium text-fg transition-[border-color,background-color] duration-[var(--dur-fast)] hover:border-control hover:bg-hover data-[state=open]:border-control data-[state=open]:bg-hover [&_svg]:flex-none [&_svg]:text-fg-3 max-[760px]:h-9";
@@ -118,10 +136,10 @@ export function FilterBar({
                 }}
                 className="inline-flex h-6 items-center gap-[5px] whitespace-nowrap rounded-l-[6px] pl-2 pr-1 text-[12px] font-medium text-fg [&_svg]:text-fg-3"
               >
-                {FIELD_ICON[r.field]}
-                {fieldLabel(r.field)}
+                {fieldIcon(r.field, opts.fields)}
+                {fieldLabel(r.field, opts.fields)}
                 <span className="font-normal text-fg-3">{OP_LABEL[r.op]}</span>
-                {r.op !== "empty" && <span className="max-w-[180px] truncate">{opts.valuesText(r)}</span>}
+                {!isValueless(r.op) && <span className="max-w-[180px] truncate">{opts.valuesText(r)}</span>}
               </button>
               <button
                 type="button"
@@ -159,9 +177,10 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
   const [customDate, setCustomDate] = useState<number | null>(null);
   const set = (i: number, r: FilterRule) => onChange(rules.map((x, j) => (j === i ? r : x)));
 
+  const fields = opts.fields;
   const addField = (field: FilterField) => {
     const i = rules.length;
-    onChange([...rules, newRule(field)]);
+    onChange([...rules, newRule(field, fields)]);
     // After the Add menu has closed (it resets openMenu), open the new row's value picker.
     setTimeout(() => setOpenMenu(`v-${i}`), 0);
   };
@@ -183,9 +202,9 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
             <span className="pr-1 text-right font-mono text-[11px] font-medium text-fg-3 max-[560px]:hidden">{i === 0 ? "Where" : "and"}</span>
             <Menu open={openMenu === `f-${i}`} onOpenChange={(o) => setOpenMenu(o ? `f-${i}` : null)}>
               <MenuTrigger asChild>
-                <button type="button" aria-label={`Field: ${fieldLabel(r.field)}`} className={pickBtn}>
-                  {FIELD_ICON[r.field]}
-                  {fieldLabel(r.field)}
+                <button type="button" aria-label={`Field: ${fieldLabel(r.field, fields)}`} className={pickBtn}>
+                  {fieldIcon(r.field, fields)}
+                  <span className="min-w-0 truncate">{fieldLabel(r.field, fields)}</span>
                 </button>
               </MenuTrigger>
               <MenuContent align="start" width={200} aria-label="Field">
@@ -193,13 +212,19 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
                   value={r.field}
                   onValueChange={(f) => {
                     if (f === r.field) return;
-                    set(i, newRule(f as FilterField));
+                    set(i, newRule(f as FilterField, fields));
                     setTimeout(() => setOpenMenu(`v-${i}`), 0);
                   }}
                 >
                   {FILTER_FIELDS.map((f) => (
-                    <MenuRadioItem key={f.id} value={f.id} icon={<span className="flex size-4 items-center justify-center text-fg-3">{FIELD_ICON[f.id]}</span>}>
+                    <MenuRadioItem key={f.id} value={f.id} icon={<span className="flex size-4 items-center justify-center text-fg-3">{fieldIcon(f.id)}</span>}>
                       {f.label}
+                    </MenuRadioItem>
+                  ))}
+                  {fields.length > 0 && <MenuLabel>Custom fields</MenuLabel>}
+                  {fields.map((f) => (
+                    <MenuRadioItem key={f.id} value={cfField(f.id)} icon={<span className="flex size-4 items-center justify-center text-fg-3">{CF_TYPE_ICON[f.type]}</span>}>
+                      {f.name}
                     </MenuRadioItem>
                   ))}
                 </MenuRadioGroup>
@@ -214,7 +239,7 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
               </MenuTrigger>
               <MenuContent align="start" width={170} aria-label="Operator">
                 <MenuRadioGroup value={r.op} onValueChange={(op) => set(i, withOp(r, op as FilterRule["op"]))}>
-                  {opsFor(r.field).map((op) => (
+                  {opsFor(r.field, fields).map((op) => (
                     <MenuRadioItem key={op} value={op}>
                       {OP_LABEL[op]}
                     </MenuRadioItem>
@@ -222,9 +247,11 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
                 </MenuRadioGroup>
               </MenuContent>
             </Menu>
-            {r.op === "empty" ? (
+            {isValueless(r.op) ? (
               <span />
-            ) : r.field === "due" && customDate === i ? (
+            ) : r.op === "gt" || r.op === "lt" ? (
+              <NumberValue key={`n-${i}-${r.field}`} value={r.values[0] ?? ""} label={fieldLabel(r.field, fields)} onCommit={(v) => set(i, { ...r, values: v ? [v] : [] })} />
+            ) : (r.field === "due" || isDateCf(r.field, fields)) && customDate === i ? (
               <DatePicker
                 defaultOpen
                 value={/^\d{4}/.test(r.values[0] ?? "") ? r.values[0] : opts.ctx.today}
@@ -252,7 +279,7 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
                 <MenuContent
                   align="start"
                   width={230}
-                  aria-label={fieldLabel(r.field)}
+                  aria-label={fieldLabel(r.field, fields)}
                   className="max-h-[320px] overflow-y-auto"
                 >
                   {values.length === 0 && <p className="m-0 px-2 py-2 text-[12.5px] text-fg-3">Nothing to pick yet</p>}
@@ -280,7 +307,7 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
                         ))}
                       </MenuRadioGroup>
                     )}
-                  {r.field === "due" && (
+                  {(r.field === "due" || isDateCf(r.field, fields)) && (
                     <>
                       <MenuSeparator />
                       <MenuItem icon={<Calendar size={13} aria-hidden />} onSelect={() => setCustomDate(i)}>
@@ -293,7 +320,7 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
             )}
             <button
               type="button"
-              aria-label={`Remove ${fieldLabel(r.field)} filter`}
+              aria-label={`Remove ${fieldLabel(r.field, fields)} filter`}
               onClick={() => onChange(rules.filter((_, j) => j !== i))}
               className="flex size-[26px] items-center justify-center rounded-sm text-fg-3 hover:bg-hover hover:text-fg max-[760px]:size-8"
             >
@@ -312,8 +339,14 @@ function Builder({ rules, onChange, opts, count, highlight }: { rules: FilterRul
             </MenuTrigger>
             <MenuContent align="start" width={200} aria-label="Field">
               {FILTER_FIELDS.map((f) => (
-                <MenuItem key={f.id} icon={FIELD_ICON[f.id]} onSelect={() => addField(f.id)}>
+                <MenuItem key={f.id} icon={fieldIcon(f.id)} onSelect={() => addField(f.id)}>
                   {f.label}
+                </MenuItem>
+              ))}
+              {fields.length > 0 && <MenuLabel>Custom fields</MenuLabel>}
+              {fields.map((f) => (
+                <MenuItem key={f.id} icon={CF_TYPE_ICON[f.type]} onSelect={() => addField(cfField(f.id))}>
+                  {f.name}
                 </MenuItem>
               ))}
             </MenuContent>
@@ -337,4 +370,34 @@ function FocusHighlight({ index }: { index: number | null }) {
     row?.querySelector<HTMLElement>("button[aria-label^='Value'], button[aria-label^='Operator']")?.focus();
   }, [index]);
   return <span ref={ref} hidden />;
+}
+
+const isDateCf = (field: FilterField, fields: readonly FieldDef[]) => isCfField(field) && fields.find((f) => f.id === cfFieldId(field))?.type === "date";
+
+/** Value box for "greater than" / "less than" on a number field: commits on Enter or blur. */
+function NumberValue({ value, label, onCommit }: { value: string; label: string; onCommit: (v: string) => void }) {
+  const [draft, setDraft] = useState(value);
+  const commit = () => {
+    const n = Number(draft.trim().replace(/,/g, ""));
+    onCommit(draft.trim() === "" || Number.isNaN(n) ? "" : String(Math.round(n * 100) / 100));
+  };
+  return (
+    <input
+      type="number"
+      inputMode="decimal"
+      min={0}
+      aria-label={`${label} value`}
+      placeholder="Number"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commit();
+        }
+      }}
+      className={cn(pickBtn, "w-full font-mono outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-s)]")}
+    />
+  );
 }

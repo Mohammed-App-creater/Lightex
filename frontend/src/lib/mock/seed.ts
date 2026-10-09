@@ -1,6 +1,7 @@
 import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, TaskType, Priority } from "@/lib/api/types";
 import { DEFAULT_ROLES } from "@/lib/permissions/catalogue";
 import { keysBetween } from "@/lib/utils/fractional-index";
+import { ensureExt39 } from "./handlers/extensions";
 import type {
   AttachmentRec,
   MockDB,
@@ -726,6 +727,8 @@ export function createSeed(): MockDB {
   /* ── end board 27 ── */
 
   db.prefs = db.users.map((u) => ({ userId: u.id, prefs: defaultPrefs() }));
+  // Board 39 (v2): custom fields, dependencies, time entries and the "Blocked" pinned view.
+  ensureExt39(db);
   return db;
 }
 

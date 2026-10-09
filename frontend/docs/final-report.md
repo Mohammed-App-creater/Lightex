@@ -99,7 +99,8 @@ The rule applied was: docs win for behaviour, design wins for appearance.
    permission-matrix grouping and layout are kept.
 3. **Project "Timeline" tab** (design) vs the brief's "no timeline/calendar views in v1": the tab is hidden. The
    milestone timeline strip on Overview and Milestones is kept, because it is a progress visual, not a scheduling view.
-4. **"Blocked" pinned view** (design) depends on task dependencies, which are v2. Dropped.
+4. **"Blocked" pinned view** (design) depends on task dependencies, which were v2. Dropped in v1; **back in v2**
+   (board 39, §8) as a seeded personal saved view "Blocked" (`blocked is true`) for every PRJ member.
 5. **"Import CSV"** (design, new-project flow) is v2 import. Omitted.
 6. **Members & roles** is a single page in the design, but the brief's routes require separate `settings/members` and
    `settings/roles`. Built as two pages that share a header and a tab strip.
@@ -179,6 +180,54 @@ banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 - Search task results include `status { name, glyph }`.
 - Paging beyond 500 items for the board and milestone task lists.
 
+### v2 · Board 39: custom fields, dependencies, time tracking
+
+The contract is `docs/v2/39-fields-dependencies-time.md` (repo root); the backend builds the same document in
+parallel. Every item below is typed in `src/lib/api/types.ts`, has an `endpoints.ts` function and a `qk` key, and is
+implemented in the mock (`src/lib/mock/handlers/extensions.ts`, tested in `src/lib/mock/extensions.test.ts`).
+
+**Endpoints**
+
+| # | Method | Path | Permission | Client |
+|---|---|---|---|---|
+| F1 | GET | `/projects/:id/custom-fields` | `project.view` | `api.customFields.list` · `qk.customFields` |
+| F2 | POST | `/projects/:id/custom-fields` | `field.manage` | `api.customFields.create` |
+| F3 | PATCH | `/custom-fields/:fieldId` (options = complete ordered list; removed options clear their values) | `field.manage` | `api.customFields.update` |
+| F4 | DELETE | `/custom-fields/:fieldId` (hard delete; client waits out a 5 s Undo first) | `field.manage` | `api.customFields.remove` |
+| F5 | PUT | `/projects/:id/custom-fields/order` `{ ids }` | `field.manage` | `api.customFields.reorder` |
+| T1 | PATCH | `/tasks/:id` gains `customFields` (merge, `null` clears) and `timeEstimateMinutes` | v1 edit rule | `api.tasks.update` |
+| D1 | GET | `/tasks/:id/dependencies` | `project.view` | `api.dependencies.list` (data also embedded in `TaskDetail`) |
+| D2 | POST | `/tasks/:id/dependencies` `{ relation, taskId }` → 201 `TaskDependencies` | can edit `:id` | `api.dependencies.add` |
+| D3 | DELETE | `/tasks/:id/dependencies/:dependencyId` | can edit either task | `api.dependencies.remove` |
+| E1 | GET | `/tasks/:id/time-entries` | `project.view` | `api.time.entries` · `qk.timeEntries` |
+| E2 | POST | `/tasks/:id/time-entries` `{ minutes, date, note }` | `time.log` | `api.time.log` |
+| E3 | DELETE | `/time-entries/:entryId` | own + `time.log`, or `time.delete_any` | `api.time.remove` |
+| R1 | GET | `/me/timer` → `{ timer }` | signed in | `api.time.timer` · `qk.myTimer` |
+| R2 | POST | `/tasks/:id/timer` `{ date }` → `{ timer, stopped }` (switching logs the old timer) | `time.log` | `api.time.startTimer` |
+| R3 | POST | `/me/timer/stop` `{ date, note }` → `{ entry }` | `time.log` | `api.time.stopTimer` |
+| S1 | GET | `/workspaces/:slug/timesheet?filter[week]=&filter[project]=` | workspace member | `api.time.timesheet` · `qk.timesheet` |
+| — | GET | `/projects/:id/tasks?filter[blocked]=true\|false` | `project.view` | (mock + contract; the UI filters client-side) |
+
+Error codes the client handles: 422 `validation_failed` with the §4 messages, 409 `field_limit`,
+`dependency_exists`, `dependency_cycle` (`details.path`, shown in a toast), `dependency_limit`, `task_deleted`,
+and 403 / 409 on timer stop (timer discarded).
+
+**Fields**
+
+- `Task.customFields`, `Task.isBlocked`, `Task.openBlockers[]`, `Task.timeEstimateMinutes`, `Task.loggedMinutes` on
+  every task payload; `TaskDetail.dependencies`.
+- `TaskPatch.customFields`, `TaskPatch.timeEstimateMinutes` (not accepted by create or bulk).
+- New types `CustomField`, `CustomFieldOption`, `CustomFieldInput/Patch`, `TaskDependencies`, `DependencyItem`,
+  `TimeEntry`, `RunningTimer`, `Timesheet` (+ rows, cells, slices), `FIELD_COLORS` (the 8-token palette).
+- Permissions `field.manage`, `time.log`, `time.delete_any` in `PROJECT_PERMISSIONS` (exact §3.3 order) and the
+  catalogue; default roles: Project Admin and Manager get all three, project Member gets `time.log`.
+- `ActivityVerb` gains `dependency_added` and `dependency_removed`; new audit actions
+  `task.dependency_added|removed`, `task.time_logged`, `task.time_entry_deleted`,
+  `project.custom_field_created|updated|deleted`, `project.custom_fields_reordered`.
+- Saved-view rules: `FilterField` gains `blocked` and `cf.<fieldId>`; `FilterOp` gains `set`, `gt`, `lt`. The server
+  drops `cf` rules for unknown fields or ops that don't suit the type, ignores rules on fields deleted after saving,
+  and counts views on the derived task (`isBlocked`, `customFields`).
+
 ---
 
 ## 6. Known gaps
@@ -222,7 +271,7 @@ into `design/clean/24-…40-*.html`, next to boards 01–23.
 | 33 Dashboards & presence | **Not built.** Live presence needs realtime updates (no WebSockets in v1), and dashboards are not in the brief. |
 | 37 Integrations (GitHub/GitLab) | **Not built.** v2. |
 | 38 Telegram / SMS / Push | **Not built.** v2. These stay "Coming soon" in notification preferences. |
-| 39 Custom fields, dependencies, time | **Not built.** v2. |
+| 39 Custom fields, dependencies, time | **Built in v2** (see §8). |
 | 40 Import wizard | **Not built.** v2. |
 
 ### Conflicts (the brief wins on behaviour)
@@ -285,3 +334,57 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 - **Saved views** each belong to one project.
 - **The audit log's filters** aren't kept in the URL.
 - **The shared `ActivityFeed`** isn't on any screen yet. The overview keeps its compact panel from board 11.
+
+---
+
+## 8. v2
+
+The user lifted the "no v2 features" rule for board 39. The remaining v2 boards are planned next: **32** Timeline &
+calendar, **33** Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push, **40** Import wizard.
+
+### Board 39: custom fields, dependencies, time tracking (built)
+
+Spec: `docs/v2/39-fields-dependencies-time.md`. API additions are listed in §5 ("v2 · Board 39").
+
+- **Task panel** (`?task=`, full page, mobile sheet): "Blocked" and running-timer chips next to status/priority/
+  assignee; a "Custom fields" group after Labels (rows with a value, required rows, rows revealed through
+  "Add property"; per-type editors; "Manage" link for `field.manage`); "Add property" gains "Time estimate" and a
+  "Custom fields" heading; main column order Description → Dependencies → Time → Sub-tasks → Attachments → Comments.
+- **Dependencies:** Blocked by / Blocks groups, task picker (combobox over `GET /projects/:id/tasks?q=`, 6 results,
+  ↑↓ ↵ Esc), remove buttons; cycle errors toast the loop.
+- **Time:** total / estimate with bar and "+… over", Start/Stop timer with a live clock (1 s tick only while running and
+  visible), Log time form (`1h 30m`, `1:30`, `1.5`, …), entries with delete by permission.
+- **Project settings → Custom fields** (`?tab=fields`): list, drag or Alt+↑↓ reorder, create/edit dialog, delete with a
+  5 s Undo (pending-delete pattern), read-only note without `field.manage`.
+- **Timesheet** at `/[ws]/timesheet` (sidebar item for every member): week × person heat grid, project selector, week
+  navigation, hover/focus breakdown, CSV export gated on `report.view`. Week and project live in the URL.
+- **Board card:** Blocked badge (tooltip lists open blockers), running-timer chip (click stops and logs), first select
+  field chip. **List:** a "Blocked" glyph by the title and one optional, sortable column per custom field (hidden by
+  default, "Custom fields" in the Columns menu). **Filters:** "Blocked" and one entry per custom field under a
+  "Custom fields" heading; "greater/less than" takes a typed number.
+- **Mock:** `ensureExt39` upgrades browsers with v1 data once (marker `ext39`): new permissions on cached system roles,
+  PRJ seed (5 fields, values, 5 dependencies, time entries, a deterministic two-week timesheet), and the "Blocked"
+  pinned view. No `SCHEMA` bump.
+
+### Deviations (board 39)
+
+- **Header chips** sit in the property chip row (with status, priority and assignee), where the existing panel keeps
+  its chips; the design draws the same chips in that row.
+- **Board card extras** (Blocked, timer, field chip) get their own row above the glyph/priority row instead of
+  sharing it, so v1 cards keep their layout at 272 px column width.
+- **List custom-field cells are read-only** (values are edited in the panel); sorting works.
+- **Timesheet export** is a button in the page header at every width (no top-bar portal).
+- **Heat text colour:** cells keep `text-fg` in every theme (the design switches to white at ≥ 60 % in dark themes;
+  `--text` is already near-white there).
+- **Time entry delete** has no Undo (the design has none); deleting an entry asks no confirmation.
+- **Dependency rows** open the linked task when the title is clicked (the design rows are inert).
+- **Dependency groups** sit side by side only on the full page; in the 520 px side panel and on mobile they stack,
+  so task titles stay readable.
+
+### Known gaps (board 39)
+
+- Custom-field filtering is client-side (the server only filters `blocked`), as in v1.
+- The archived-project rule (writes withheld) is not modelled by the mock's permission derivation; the backend
+  enforces it.
+- A field delete still waiting on its Undo is committed on `pagehide`; a crash inside the 5 s window loses it.
+- Live mode is untested against the backend until `docs/openapi.yaml` includes these endpoints.

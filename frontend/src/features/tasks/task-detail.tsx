@@ -28,7 +28,10 @@ import { useCreateTask, useDeleteTask, useUpdateTask } from "./mutations";
 import { DescriptionEditor, RichView } from "./rich-text";
 import { TaskAttachments } from "./task-attachments";
 import { TaskConversation } from "./task-comments";
-import { AddProperty, TaskChips, TaskFields, TaskLabels, TaskPlanning } from "./task-properties";
+import { AddProperty, CF_FORCE, TaskChips, TaskFields, TaskLabels, TaskPlanning } from "./task-properties";
+import { TaskDependencies } from "@/features/dependencies/task-dependencies";
+import { TaskCustomFields } from "@/features/fields/task-custom-fields";
+import { TaskTime } from "@/features/time/task-time";
 import { triggerSpark } from "./task-origin";
 import { useSparking } from "./task-bits";
 
@@ -91,6 +94,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const spark = useSparking(task.id);
   const [planOpen, setPlanOpen] = useState(false);
   const [forced, setForced] = useState<Set<string>>(new Set());
+  const revealedFields = new Set([...forced].filter((k) => k.startsWith(CF_FORCE)).map((k) => k.slice(CF_FORCE.length)));
   const [editingDesc, setEditingDesc] = useState(false);
   const [addingSub, setAddingSub] = useState(false);
   const full = mode === "full";
@@ -300,6 +304,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               onOpenChange={setPlanOpen}
             />
             <TaskLabels task={task} statuses={statuses} canEdit={canEdit} canStatus={canStatus} canAssign={canAssign} onPatch={patch} />
+            <TaskCustomFields task={task} canEdit={canEdit} revealed={revealedFields} onPatch={patch} />
             <AddProperty
               task={task}
               statuses={statuses}
@@ -353,6 +358,9 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               ) : null}
             </section>
 
+            {/* Board 39 order: Description → Dependencies → Time → Sub-tasks → Attachments → Comments. */}
+            <TaskDependencies task={task} canEdit={canEdit} wide={full} />
+            <TaskTime task={task} canEdit={canEdit} deleted={deleted} forceEstimate={forced.has("timeEstimate")} onPatch={patch} />
             <Subtasks task={task} statuses={statuses} canCreate={canAddSub} sprintId={openSprintId} adding={addingSub} onAddingChange={setAddingSub} />
             <TaskAttachments task={task} canUpload={can("attachment.upload", perms)} deleted={deleted} />
             <TaskConversation task={task} deleted={deleted} />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FilterRule, Task } from "@/lib/api/types";
-import { applyFilters, completeRules, matchRule, parseRule, parseRules, resolveDate, sameRules, serializeRule, withOp, withRules, type MatchCtx } from "./filter-model";
+import { applyFilters, cleanRulesFor, completeRules, fieldLabel, matchRule, opsFor, parseRule, parseRules, resolveDate, sameRules, serializeRule, withOp, withRules, type FieldDef, type MatchCtx } from "./filter-model";
 
 const ctx: MatchCtx = { meId: "u1", today: "2026-10-07", sprintEnd: "2026-10-14" };
 const t = (n: number, over: Partial<Task> = {}): Task =>
@@ -57,5 +57,75 @@ describe("filter model", () => {
     expect(withOp(r, "is").values).toEqual(["a"]);
     expect(withOp(r, "empty").values).toEqual([]);
     expect(completeRules([withOp(r, "empty"), { field: "label", op: "is", values: [] }])).toHaveLength(1);
+  });
+});
+
+describe("board 39 filters: blocked and custom fields (shared vectors with the backend)", () => {
+  const fields: FieldDef[] = [
+    { id: "br", type: "select", name: "Browser" },
+    { id: "n", type: "number", name: "Accounts" },
+    { id: "tx", type: "text", name: "Found in" },
+    { id: "d", type: "date", name: "QA sign-off" },
+    { id: "u", type: "user", name: "QA owner" },
+  ];
+  const c: MatchCtx = { ...ctx, fields };
+  const tasks = [
+    t(1, { isBlocked: true, customFields: { br: "safari", n: 1240, tx: "v2.3.1", u: "u1" } }),
+    t(2, { isBlocked: false, customFields: { br: "chrome", n: 12.5, d: "2026-10-01" } }),
+    t(3, { isBlocked: false, customFields: {} }),
+  ];
+  const ids = (rules: FilterRule[], x: MatchCtx = c) => applyFilters(tasks, rules, x).map((y) => y.number);
+
+  it("matches blocked is yes / no", () => {
+    expect(ids([{ field: "blocked", op: "is", values: ["true"] }])).toEqual([1]);
+    expect(ids([{ field: "blocked", op: "is", values: ["false"] }])).toEqual([2, 3]);
+  });
+
+  it("matches every custom-field operator, with not matching empty and comparisons not", () => {
+    expect(ids([{ field: "cf.tx", op: "set", values: [] }])).toEqual([1]);
+    expect(ids([{ field: "cf.tx", op: "empty", values: [] }])).toEqual([2, 3]);
+    expect(ids([{ field: "cf.n", op: "gt", values: ["100"] }])).toEqual([1]);
+    expect(ids([{ field: "cf.n", op: "lt", values: ["12.6"] }])).toEqual([2]);
+    expect(ids([{ field: "cf.br", op: "is", values: ["safari"] }])).toEqual([1]);
+    expect(ids([{ field: "cf.br", op: "any", values: ["safari", "chrome"] }])).toEqual([1, 2]);
+    expect(ids([{ field: "cf.br", op: "not", values: ["safari"] }])).toEqual([2, 3]);
+    expect(ids([{ field: "cf.u", op: "is", values: ["me"] }])).toEqual([1]);
+    expect(ids([{ field: "cf.d", op: "before", values: ["today"] }])).toEqual([2]);
+    expect(ids([{ field: "cf.d", op: "after", values: ["2026-09-01"] }])).toEqual([2]);
+    expect(ids([{ field: "cf.d", op: "empty", values: [] }])).toEqual([1, 3]);
+  });
+
+  it("ignores rules on deleted fields once definitions are known", () => {
+    expect(ids([{ field: "cf.gone", op: "set", values: [] }])).toEqual([1, 2, 3]);
+    expect(ids([{ field: "cf.gone", op: "set", values: [] }], ctx)).toEqual([]);
+    expect(fieldLabel("cf.gone", fields)).toBe("Removed field");
+    expect(fieldLabel("cf.br", fields)).toBe("Browser");
+  });
+
+  it("offers operators per type and round-trips cf rules through the URL", () => {
+    expect(opsFor("cf.tx", fields)).toEqual(["set", "empty"]);
+    expect(opsFor("cf.n", fields)).toEqual(["gt", "lt", "set", "empty"]);
+    expect(opsFor("cf.d", fields)).toEqual(["before", "after", "empty"]);
+    expect(opsFor("blocked")).toEqual(["is"]);
+    const rules: FilterRule[] = [
+      { field: "cf.p_prj-cf-accounts", op: "gt", values: ["12.5"] },
+      { field: "blocked", op: "is", values: ["true"] },
+      { field: "cf.tx", op: "set", values: [] },
+    ];
+    expect(parseRules(new URLSearchParams(withRules("", rules).slice(1)))).toEqual(rules);
+    expect(parseRule("blocked:is:maybe")).toBeNull();
+    expect(parseRule("cf.tx:set:junk")).toEqual({ field: "cf.tx", op: "set", values: [] });
+    expect(withOp({ field: "cf.n", op: "gt", values: ["3"] }, "set").values).toEqual([]);
+  });
+
+  it("cleans saved-view rules for a project", () => {
+    const raw: FilterRule[] = [
+      { field: "cf.tx", op: "gt", values: ["1"] },
+      { field: "cf.gone", op: "set", values: [] },
+      { field: "cf.n", op: "gt", values: ["1"] },
+      { field: "blocked", op: "is", values: ["true"] },
+      { field: "status", op: "is", values: ["x"] },
+    ];
+    expect(cleanRulesFor(raw, fields).map((r) => r.field)).toEqual(["cf.n", "blocked", "status"]);
   });
 });

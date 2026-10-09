@@ -24,6 +24,7 @@ import {
   Target,
   Users,
   X,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -301,6 +302,9 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
         <RailLink href={routes.myTasks(ws.slug)} label="My tasks" keys={["G", "T"]} active={route.page === "my-tasks"}>
           <CircleCheck size={16} strokeWidth={1.6} aria-hidden />
         </RailLink>
+        <RailLink href={routes.timesheet(ws.slug)} label="Timesheet" active={route.page === "timesheet"}>
+          <Clock size={16} strokeWidth={1.6} aria-hidden />
+        </RailLink>
         <span aria-hidden className="my-1.5 h-px w-7 bg-line" />
         {projects.slice(0, 6).map((p) => (
           <RailLink key={p.id} href={routes.project(ws.slug, p.key)} label={p.name} active={route.projectKey === p.key}>
@@ -407,6 +411,14 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           active={route.page === "my-tasks"}
           onNavigate={nav}
           trailing={<span className="font-mono text-[11px] font-medium text-fg-3">{openMine.length}</span>}
+        />
+        {/* Board 39 (v2): every workspace member; data is limited to projects they can see. */}
+        <NavItem
+          href={routes.timesheet(ws.slug)}
+          icon={<Clock size={16} strokeWidth={1.6} aria-hidden />}
+          label="Timesheet"
+          active={route.page === "timesheet"}
+          onNavigate={nav}
         />
 
         {/* Saved views pinned by me (board 30): Manage / Done, Alt+↑↓ reorder. */}

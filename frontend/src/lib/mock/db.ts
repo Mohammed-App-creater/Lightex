@@ -1,4 +1,5 @@
 import type { MockDB } from "./db-types";
+import { ensureExt39 } from "./handlers/extensions";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -29,6 +30,11 @@ export function getDB(): MockDB {
         const parsed = JSON.parse(raw) as MockDB;
         if (parsed.schema === SCHEMA) {
           db = parsed;
+          // Board 39: upgrade a database cached before v2 (roles, seed data, "Blocked" view), once.
+          if (!db.ext39) {
+            ensureExt39(db);
+            persist();
+          }
           return db;
         }
       }

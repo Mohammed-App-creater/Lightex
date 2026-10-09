@@ -1006,3 +1006,28 @@
   --ep-tc: 0.04;
 }
 /* ── end board 27 ── */
+
+/* Board 39: running-timer pulse (opacity only; static under reduced motion). */
+@keyframes tx-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.tx-pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: tx-pulse 1.2s var(--ease) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tx-pulse {
+    animation: none;
+  }
+}

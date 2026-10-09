@@ -18,6 +18,9 @@ const VERB: Record<ActivityEntry["verb"], (a: ActivityEntry) => string> = {
   sprint_completed: (a) => `completed ${a.data.sprint ?? "the sprint"}`,
   attached: (a) => `attached ${a.data.file ?? "a file"}`,
   member_added: (a) => `added ${a.data.member ?? "a member"}`,
+  dependency_added: (a) =>
+    a.data.relation === "blocks" ? `marked this as blocking ${a.data.otherKey ?? "a task"}` : `marked this blocked by ${a.data.otherKey ?? "a task"}`,
+  dependency_removed: (a) => `removed the dependency on ${a.data.otherKey ?? "a task"}`,
 };
 
 export function activityText(a: ActivityEntry, subject?: string) {

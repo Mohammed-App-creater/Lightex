@@ -34,12 +34,15 @@ export const PROJECT_PERMISSIONS = [
   "epic.manage",
   "sprint.manage",
   "status.manage",
+  "field.manage",
   "task.create",
   "task.edit_any",
   "task.edit_own",
   "task.delete",
   "task.assign",
   "task.move",
+  "time.log",
+  "time.delete_any",
   "comment.create",
   "comment.edit_own",
   "comment.delete_any",
@@ -329,6 +332,17 @@ export interface Task {
   subtaskDoneCount: number;
   commentCount: number;
   attachmentCount: number;
+  /* Board 39 (v2): requested API fields. */
+  /** Set custom-field values only, keyed by field id (select → option id, user → user id, date → ISO). */
+  customFields: Record<ID, CustomFieldValue>;
+  /** At least one open blocker (a live blocker not in a done-category status). Derived. */
+  isBlocked: boolean;
+  /** The open blockers, ordered by task number. */
+  openBlockers: TaskRef[];
+  /** Time estimate in minutes (separate from story points). */
+  timeEstimateMinutes: number | null;
+  /** Sum of the task's time entries, all users. */
+  loggedMinutes: number;
 }
 
 /** Full task as returned by GET /workspaces/:slug/tasks/:key. */
@@ -336,6 +350,8 @@ export interface TaskDetail extends Task {
   description: RichDoc | null;
   subtasks: Task[];
   project: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">;
+  /** Board 39: both sides of the task's dependencies. */
+  dependencies: TaskDependencies;
 }
 
 export type TaskPatch = Partial<
@@ -354,7 +370,13 @@ export type TaskPatch = Partial<
     | "objectiveIds"
     | "labelIds"
   >
-> & { description?: RichDoc | null };
+> & {
+  description?: RichDoc | null;
+  /** Board 39. Merge: listed keys are set, null clears, unlisted keys are untouched. */
+  customFields?: Record<ID, CustomFieldValue | null>;
+  /** Board 39. 1–60 000 minutes, or null to clear. */
+  timeEstimateMinutes?: number | null;
+};
 
 export interface TaskCreate {
   title: string;
@@ -430,7 +452,9 @@ export type ActivityVerb =
   | "sprint_started"
   | "sprint_completed"
   | "attached"
-  | "member_added";
+  | "member_added"
+  | "dependency_added"
+  | "dependency_removed";
 
 export interface ActivityEntry {
   id: ID;
@@ -560,8 +584,11 @@ export interface Session {
 
 /* ───────────────────────── Saved views (board 30) ───────────────────────── */
 
-export type FilterField = "status" | "priority" | "assignee" | "label" | "sprint" | "due" | "epic";
-export type FilterOp = "is" | "not" | "any" | "empty" | "before" | "after";
+export type BaseFilterField = "status" | "priority" | "assignee" | "label" | "sprint" | "due" | "epic";
+/** Board 39 adds `blocked` (is true/false) and `cf.<fieldId>` (custom fields). */
+export type FilterField = BaseFilterField | "blocked" | `cf.${string}`;
+/** Board 39 adds set ("is not empty"), gt and lt. */
+export type FilterOp = "is" | "not" | "any" | "empty" | "before" | "after" | "set" | "gt" | "lt";
 
 /**
  * One filter row; rows combine with AND. Values are ids (status, label, sprint, epic, user;
@@ -633,4 +660,116 @@ export interface TrashList {
   /** Kinds this user may see (Projects is admin-only). */
   kinds: TrashKind[];
   retentionDays: number;
+}
+
+/* ───────────────────────── Custom fields, dependencies, time (board 39, v2) ───────────────────────── */
+
+export type CustomFieldType = "text" | "number" | "select" | "date" | "user";
+export const FIELD_COLORS = [
+  "var(--low)",
+  "var(--accent-t)",
+  "var(--info)",
+  "var(--warn)",
+  "var(--orange)",
+  "var(--danger)",
+  "var(--ok)",
+  "var(--text-3)",
+] as const;
+export type FieldColor = (typeof FIELD_COLORS)[number];
+
+export interface CustomFieldOption {
+  id: ID;
+  name: string;
+  color: FieldColor;
+  position: number;
+}
+export interface CustomField {
+  id: ID;
+  projectId: ID;
+  name: string;
+  type: CustomFieldType;
+  required: boolean;
+  position: number;
+  options: CustomFieldOption[];
+  /** Live tasks with a value for this field. */
+  taskCount: number;
+  createdAt: ISODateTime;
+}
+export interface CustomFieldInput {
+  name: string;
+  type: CustomFieldType;
+  required?: boolean;
+  options?: { id?: ID; name: string; color: FieldColor }[];
+}
+export type CustomFieldPatch = Partial<Pick<CustomFieldInput, "name" | "required" | "options">>;
+/** select → option id, user → user id, date → ISODate, number → number, text → string. */
+export type CustomFieldValue = string | number;
+
+export type DependencyRelation = "blocked_by" | "blocks";
+export interface TaskRef {
+  id: ID;
+  key: string;
+  title: string;
+}
+export interface DependencyTask extends TaskRef {
+  statusId: ID;
+  status: Pick<Status, "name" | "glyph" | "category">;
+  assigneeId: ID | null;
+}
+export interface DependencyItem {
+  id: ID;
+  task: DependencyTask;
+  createdAt: ISODateTime;
+  createdById: ID | null;
+}
+export interface TaskDependencies {
+  taskId: ID;
+  isBlocked: boolean;
+  blockedBy: DependencyItem[];
+  blocks: DependencyItem[];
+}
+
+export interface TimeEntry {
+  id: ID;
+  taskId: ID;
+  projectId: ID;
+  userId: ID;
+  minutes: number;
+  date: ISODate;
+  note: string;
+  source: "manual" | "timer";
+  createdAt: ISODateTime;
+}
+export interface RunningTimer {
+  taskId: ID;
+  taskKey: string;
+  taskTitle: string;
+  projectId: ID;
+  startedAt: ISODateTime;
+}
+export interface TimesheetSlice {
+  projectId: ID;
+  taskId: ID | null;
+  key: string;
+  name: string;
+  hue: number;
+  minutes: number;
+}
+export interface TimesheetCell {
+  date: ISODate;
+  minutes: number;
+  breakdown: TimesheetSlice[];
+}
+export interface TimesheetRow {
+  user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
+  cells: TimesheetCell[];
+  totalMinutes: number;
+}
+export interface Timesheet {
+  weekStart: ISODate;
+  days: ISODate[];
+  projects: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">[];
+  rows: TimesheetRow[];
+  dayTotals: number[];
+  totalMinutes: number;
 }

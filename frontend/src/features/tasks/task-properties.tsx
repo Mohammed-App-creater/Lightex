@@ -7,7 +7,12 @@ import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/choice";
 import { DateChip, DatePicker } from "@/components/ui/date-picker";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
+import { BlockedChip } from "@/features/dependencies/blocked-badge";
+import { hasValue } from "@/features/fields/field-lib";
+import { useCustomFields } from "@/features/fields/queries";
+import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
+import { RunningTimerChip } from "@/features/time/task-time";
 import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/features/projects/queries";
 import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
@@ -130,6 +135,9 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
           </MenuContent>
         </Menu>
       )}
+      {/* Board 39: derived Blocked chip and the viewer's running timer (read-only). */}
+      <BlockedChip task={task} />
+      <RunningTimerChip taskId={task.id} />
     </div>
   );
 }
@@ -484,8 +492,15 @@ export function TaskLabels({ task, canEdit, onPatch }: Props) {
   );
 }
 
+/** Prefix for "Add property" keys that reveal a custom-field row (board 39). */
+export const CF_FORCE = "cf:";
+
 export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced: Set<string>; onForce: (k: string) => void }) {
+  const { data: fields = [] } = useCustomFields(task.projectId);
   if (!canEdit) return null;
+  // Board 39: hidden custom fields (no value, not required, not revealed) and the time estimate.
+  const hiddenFields = [...fields].sort((a, b) => a.position - b.position).filter((f) => !f.required && !hasValue(task.customFields?.[f.id]) && !forced.has(`${CF_FORCE}${f.id}`));
+  const showEstimate = task.timeEstimateMinutes === null && !forced.has("timeEstimate");
   const missing = [
     { k: "estimate", label: "Estimate", has: task.estimate !== null },
     { k: "due", label: "Due date", has: Boolean(task.dueDate) },
@@ -494,7 +509,7 @@ export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced
     { k: "epic", label: "Epic", has: Boolean(task.epicId) },
     { k: "objective", label: "Objective", has: task.objectiveIds.length > 0 },
   ].filter((m) => !m.has && !forced.has(m.k));
-  if (!missing.length) return null;
+  if (!missing.length && !hiddenFields.length && !showEstimate) return null;
   return (
     <Menu>
       <MenuTrigger asChild>
@@ -508,6 +523,18 @@ export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced
             {m.label}
           </MenuItem>
         ))}
+        {showEstimate && <MenuItem onSelect={() => onForce("timeEstimate")}>Time estimate</MenuItem>}
+        {hiddenFields.length > 0 && (
+          <>
+            <MenuSeparator />
+            <MenuLabel>Custom fields</MenuLabel>
+            {hiddenFields.map((f) => (
+              <MenuItem key={f.id} icon={CF_TYPE_ICON[f.type]} onSelect={() => onForce(`${CF_FORCE}${f.id}`)}>
+                {f.name}
+              </MenuItem>
+            ))}
+          </>
+        )}
       </MenuContent>
     </Menu>
   );

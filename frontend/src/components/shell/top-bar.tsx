@@ -30,6 +30,7 @@ const PAGE_LABEL: Record<string, string> = {
   search: "Search",
   settings: "Settings",
   trash: "Trash",
+  timesheet: "Timesheet",
 };
 
 /* Pages put their actions into the top bar through a portal slot. */

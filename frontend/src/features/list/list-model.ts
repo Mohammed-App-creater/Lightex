@@ -1,12 +1,16 @@
-import type { Epic, Label, Milestone, Sprint, Status, Task, User } from "@/lib/api/types";
+import { cfSortValue } from "@/features/fields/field-lib";
+import type { CustomField, Epic, Label, Milestone, Sprint, Status, Task, User } from "@/lib/api/types";
 
 /* Pure list-view logic (board 15): columns, grouping, sorting, filtering. Unit-tested. */
 
-export type ColumnId = "key" | "title" | "status" | "pri" | "asg" | "sprint" | "ms" | "due" | "labels";
+export type BaseColumnId = "key" | "title" | "status" | "pri" | "asg" | "sprint" | "ms" | "due" | "labels";
+/** Board 39: one optional column per custom field, id `cf.<fieldId>`. */
+export type ColumnId = BaseColumnId | `cf.${string}`;
+export type ColumnDef = { id: ColumnId; label: string; width: number; min: number };
 export type GroupBy = "status" | "epic" | "sprint" | "assignee";
 export type SortState = { col: ColumnId; dir: "asc" | "desc" } | null;
 
-export const COLUMNS: { id: ColumnId; label: string; width: number; min: number }[] = [
+export const COLUMNS: (ColumnDef & { id: BaseColumnId })[] = [
   { id: "key", label: "Key", width: 70, min: 56 },
   { id: "title", label: "Title", width: 300, min: 140 },
   { id: "status", label: "Status", width: 120, min: 48 },
@@ -19,6 +23,15 @@ export const COLUMNS: { id: ColumnId; label: string; width: number; min: number 
 ];
 export const MAX_COL = 480;
 
+export const isCfColumn = (id: ColumnId): id is `cf.${string}` => id.startsWith("cf.");
+/** Custom-field column: label = field name, width 140, min 90, hidden by default. */
+export const cfColumn = (f: Pick<CustomField, "id" | "name">): ColumnDef => ({ id: `cf.${f.id}`, label: f.name, width: 140, min: 90 });
+export const columnDef = (id: ColumnId, fields: readonly CustomField[] = []): ColumnDef | undefined => {
+  if (!isCfColumn(id)) return COLUMNS.find((c) => c.id === id);
+  const f = fields.find((x) => `cf.${x.id}` === id);
+  return f ? cfColumn(f) : undefined;
+};
+
 export type Ctx = {
   statuses: Status[];
   users: Map<string, User>;
@@ -29,6 +42,8 @@ export type Ctx = {
   meId: string;
   today: string;
   weekEnd: string;
+  /** Board 39: custom-field definitions (for cf columns). */
+  fields?: CustomField[];
 };
 
 export type Group = { id: string; name: string; tasks: Task[]; meta?: string; hue?: number; glyph?: Status["glyph"]; user?: User | null };
@@ -36,6 +51,10 @@ export type Group = { id: string; name: string; tasks: Task[]; meta?: string; hu
 const statusIndex = (ctx: Ctx, id: string) => ctx.statuses.find((s) => s.id === id)?.position ?? 99;
 
 export function sortValue(t: Task, col: ColumnId, ctx: Ctx): string | number {
+  if (isCfColumn(col)) {
+    const f = ctx.fields?.find((x) => `cf.${x.id}` === col);
+    return f ? cfSortValue(t, f, ctx.users) : 0;
+  }
   switch (col) {
     case "key":
       return t.number;
@@ -109,6 +128,6 @@ export function labelSlots(width: number) {
 }
 
 export function clampWidth(id: ColumnId, w: number) {
-  const c = COLUMNS.find((x) => x.id === id)!;
-  return Math.max(c.min, Math.min(MAX_COL, Math.round(w)));
+  const min = isCfColumn(id) ? 90 : COLUMNS.find((x) => x.id === id)!.min;
+  return Math.max(min, Math.min(MAX_COL, Math.round(w)));
 }

@@ -1,9 +1,9 @@
-import { completeRules, matchAll, parseRule, serializeRule } from "@/features/filters/filter-model";
+import { cleanRulesFor, completeRules, matchAll, parseRule, serializeRule } from "@/features/filters/filter-model";
 import type { FilterRule, SavedView, ViewIcon } from "@/lib/api/types";
 import { todayISO } from "@/lib/utils/dates";
 import { nowISO, uid } from "../db";
 import type { MockDB, SavedViewRec } from "../db-types";
-import { projectPermissions } from "../derive";
+import { projectPermissions, toTask } from "../derive";
 import { fail, invalid, requireUser, route, wsBySlug, type Ctx } from "../router";
 
 /*
@@ -18,7 +18,8 @@ import { fail, invalid, requireUser, route, wsBySlug, type Ctx } from "../router
 const ICONS: ViewIcon[] = ["filter", "star", "user", "calendar", "bolt", "flag"];
 const MAX_NAME = 40;
 
-function store(db: MockDB) {
+/** Views + pins, seeded on first use (exported for the board 39 upgrade, which appends "Blocked"). */
+export function store(db: MockDB) {
   if (!db.views) {
     db.views = [];
     db.viewPins = [];
@@ -57,9 +58,11 @@ function visibleTo(db: MockDB, userId: string, v: SavedViewRec) {
 
 function countFor(db: MockDB, userId: string, v: SavedViewRec) {
   const sprintEnd = db.sprints.find((s) => s.projectId === v.projectId && s.state === "active")?.endDate ?? null;
-  const ctx = { meId: userId, today: todayISO(), sprintEnd };
+  const fields = (db.customFields ?? []).filter((f) => f.projectId === v.projectId);
+  const ctx = { meId: userId, today: todayISO(), sprintEnd, fields };
   const rules = completeRules(v.filters);
-  return db.tasks.filter((t) => t.projectId === v.projectId && !t.deletedAt && matchAll(t, rules, ctx)).length;
+  // Board 39: match on the derived task (isBlocked, customFields), not the raw record.
+  return db.tasks.filter((t) => t.projectId === v.projectId && !t.deletedAt && matchAll(toTask(db, t), rules, ctx)).length;
 }
 
 function toView(db: MockDB, userId: string, v: SavedViewRec): SavedView {
@@ -75,12 +78,14 @@ function listFor(db: MockDB, userId: string, workspaceId: string) {
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || a.position - b.position || a.name.localeCompare(b.name));
 }
 
-function cleanFilters(raw: unknown): FilterRule[] {
+function cleanFilters(raw: unknown, db: MockDB, projectId: string): FilterRule[] {
   if (!Array.isArray(raw)) invalid({ filters: "Filters must be a list" });
-  return (raw as FilterRule[])
+  const rules = (raw as FilterRule[])
     .slice(0, 12)
     .map((r) => parseRule(serializeRule({ field: r?.field, op: r?.op, values: Array.isArray(r?.values) ? r.values.map(String) : [] } as FilterRule)))
     .filter((r): r is FilterRule => Boolean(r));
+  // Board 39: cf.<id> rules need a field of this project and an operator that suits its type.
+  return cleanRulesFor(rules, (db.customFields ?? []).filter((f) => f.projectId === projectId));
 }
 
 function cleanName(raw: unknown) {
@@ -129,7 +134,7 @@ export function registerViews() {
     if (visibility === "project" && !perms.includes("task.create")) fail(403, "forbidden", "Your role can’t share views with the project.", { permission: "task.create" });
     const name = cleanName(b.name);
     if (nameTaken(ctx.db, userId, ws.id, name)) invalid({ name: "A view with this name exists" });
-    const filters = cleanFilters(b.filters);
+    const filters = cleanFilters(b.filters, ctx.db, project.id);
     if (!completeRules(filters).length) invalid({ filters: "Add at least one filter" });
     const rec: SavedViewRec = {
       id: uid("vw"),
@@ -161,7 +166,7 @@ export function registerViews() {
     }
     if ("icon" in b && ICONS.includes(b.icon as ViewIcon)) v.icon = b.icon as ViewIcon;
     if ("filters" in b) {
-      const f = completeRules(cleanFilters(b.filters));
+      const f = completeRules(cleanFilters(b.filters, ctx.db, v.projectId));
       if (!f.length) invalid({ filters: "Add at least one filter" });
       v.filters = f;
     }

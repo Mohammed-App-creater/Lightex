@@ -28,6 +28,8 @@ export const routes = {
   task: (ws: string, key: string) => `/${ws}/tasks/${key}`,
   settings: (ws: string, section: SettingsSection = "general") => `/${ws}/settings/${section}`,
   trash: (ws: string) => `/${ws}/trash`,
+  /** Board 39 (v2): workspace timesheet. */
+  timesheet: (ws: string) => `/${ws}/timesheet`,
 };
 
 /** Adds or removes ?task=KEY on the current URL (task side panel). */
@@ -54,7 +56,7 @@ export function useRouteInfo() {
     taskKey: params.taskKey ?? null,
     view,
     section,
-    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash",
+    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash" | "timesheet",
     pathname,
   };
 }

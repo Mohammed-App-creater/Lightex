@@ -42,6 +42,15 @@ export const qk = {
   attachments: (taskId: string) => ["t", taskId, "attachments"] as const,
   taskActivity: (taskId: string) => ["t", taskId, "activity"] as const,
 
+  /* Board 39 (v2) */
+  customFields: (projectId: string) => ["p", projectId, "custom-fields"] as const,
+  dependencies: (taskId: string) => ["t", taskId, "dependencies"] as const,
+  timeEntries: (taskId: string) => ["t", taskId, "time"] as const,
+  myTimer: () => ["me", "timer"] as const,
+  /** Prefix for every week/project of a workspace's timesheet. */
+  timesheets: (slug: string) => ["workspace", slug, "timesheet"] as const,
+  timesheet: (slug: string, week: string, projectId?: string) => ["workspace", slug, "timesheet", week, projectId ?? "all"] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,

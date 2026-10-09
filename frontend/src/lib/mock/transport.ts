@@ -12,6 +12,7 @@ import { registerWorkspaces } from "./handlers/workspaces";
 import { registerViews } from "./handlers/views";
 import { registerHome } from "./handlers/home";
 import { registerTrash } from "./handlers/trash";
+import { registerExtensions } from "./handlers/extensions";
 import { match } from "./router";
 import { startTeammates } from "./teammates";
 
@@ -29,6 +30,7 @@ function ensureRoutes() {
   registerViews();
   registerHome();
   registerTrash();
+  registerExtensions();
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>

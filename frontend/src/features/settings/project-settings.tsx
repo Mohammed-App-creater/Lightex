@@ -8,6 +8,8 @@ import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
+import { CustomFieldsPanel } from "@/features/fields/custom-fields-settings";
+import { useCustomFields } from "@/features/fields/queries";
 import { useLabels, useProjectMembers } from "@/features/projects/queries";
 import { useRoles } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
@@ -23,12 +25,12 @@ import { MembersPanel } from "./project-members";
 import { ReadOnlyNote } from "./project-parts";
 import { WorkflowPanel } from "./project-workflow";
 
-type Tab = "general" | "workflow" | "labels" | "members";
-const TABS: Tab[] = ["general", "workflow", "labels", "members"];
-const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", members: "Members" };
+type Tab = "general" | "workflow" | "labels" | "fields" | "members";
+const TABS: Tab[] = ["general", "workflow", "labels", "fields", "members"];
+const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow", labels: "Labels", fields: "Custom fields", members: "Members" };
 
 /**
- * Project settings (board 28): General / Workflow / Labels / Members tabs. Each tab edits only
+ * Project settings (board 28): General / Workflow / Labels / Custom fields (board 39) / Members tabs. Each tab edits only
  * when the user holds its permission (project.update, status.manage, project.update,
  * project.manage_members); otherwise it renders read-only with the reason. Archive / delete
  * (project.archive / project.delete) live in General's danger zone; delete moves to the Trash.
@@ -67,18 +69,21 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   const canUpdate = useCan("project.update");
   const canStatuses = useCan("status.manage");
   const canMembers = useCan("project.manage_members");
+  const canFields = useCan("field.manage");
   const canArchive = useCan("project.archive");
   const canDelete = useCan("project.delete");
   const edit: Record<Tab, boolean> = {
     general: canUpdate && !archived,
     workflow: canStatuses && !archived,
     labels: canUpdate && !archived,
+    fields: canFields && !archived,
     members: canMembers && !archived,
   };
 
   const roles = useRoles(ws.slug);
   const members = useProjectMembers(project.id);
   const labels = useLabels(project.id);
+  const fieldsQ = useCustomFields(project.id);
   const roleName = roles.data?.find((r) => r.id === project.myRoleId)?.name ?? "Member";
   const admins = (members.data ?? [])
     .filter((m) => isAdminRole(roles.data?.find((r) => r.id === m.roleId)))
@@ -86,11 +91,12 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   const fullAdmin = canUpdate && canStatuses && canMembers;
 
   const reason: Record<Tab, string> = archived
-    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", members: "archived projects are read-only" }
+    ? { general: "archived projects are read-only", workflow: "archived projects are read-only", labels: "archived projects are read-only", fields: "archived projects are read-only", members: "archived projects are read-only" }
     : {
         general: "your role can’t edit project details",
         workflow: "your role can’t change the workflow",
         labels: "your role can’t edit labels",
+        fields: "your role can’t edit custom fields",
         members: "your role can’t manage members",
       };
 
@@ -123,8 +129,8 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
           className="border-b-0 [&_[role=tab]]:h-[42px] max-[760px]:[&_[role=tab]]:h-[46px]"
           items={TABS.map((t) => ({
             value: t,
-            label: TAB_LABEL[t],
-            count: t === "labels" ? labels.data?.length : t === "members" ? (members.data?.length ?? project.memberCount) : undefined,
+            label: <span className="whitespace-nowrap">{TAB_LABEL[t]}</span>,
+            count: t === "labels" ? labels.data?.length : t === "fields" ? fieldsQ.data?.length : t === "members" ? (members.data?.length ?? project.memberCount) : undefined,
           }))}
         />
         <span className="flex-1" />
@@ -156,6 +162,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
           )}
           {tab === "workflow" && <WorkflowPanel project={project} canEdit={edit.workflow} />}
           {tab === "labels" && <LabelsPanel project={project} canEdit={edit.labels} />}
+          {tab === "fields" && <CustomFieldsPanel project={project} canEdit={edit.fields} />}
           {tab === "members" && <MembersPanel project={project} canEdit={edit.members} />}
         </TabPanel>
       </div>
