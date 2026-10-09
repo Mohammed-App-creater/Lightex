@@ -25,6 +25,7 @@ from apps.common.utils import iso_date
 from apps.notifications.events import emit
 from apps.planning.models import Epic, Milestone, Objective, Sprint, SprintScopeChange
 from apps.projects.models import CustomField, Label, Project, ProjectMember, Status
+from apps.realtime.services import publish_bulk, publish_task_moved, suppress_audit_events
 
 from . import selectors
 from .domain import apply_status, initial_history
@@ -684,13 +685,14 @@ def move_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
         rebalance_column(project.pk, task.status_id)
         task.refresh_from_db()
     if before.pk != task.status_id:
-        _audit(
-            task,
-            actor,
-            "task.status_changed",
-            [change("Status", before.glyph, task.status.glyph, "status")],
-            {"from": before.name, "to": task.status.name},
-        )
+        with suppress_audit_events():  # a board move publishes one `moved` event instead
+            _audit(
+                task,
+                actor,
+                "task.status_changed",
+                [change("Status", before.glyph, task.status.glyph, "status")],
+                {"from": before.name, "to": task.status.name},
+            )
         emit(
             "status_change",
             workspace=project.workspace_id,
@@ -698,6 +700,7 @@ def move_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
             actor=actor,
             payload={"taskId": str(task.pk), "fromStatus": before.name, "toStatus": task.status.name},
         )
+    publish_task_moved(actor, task, ["statusId", "position", *(["sprintId"] if "sprintId" in data else [])])
     return task
 
 
@@ -753,11 +756,13 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
     if data.get("delete") or data.get("restore"):
         if not access.can(actor, "task.delete", project):
             raise forbidden(details={"permission": "task.delete"})
-        for task in tasks:
-            if data.get("delete") and task.deleted_at is None:
-                delete_task(actor, task)
-            elif data.get("restore") and task.deleted_at is not None:
-                restore_task(actor, task)
+        with suppress_audit_events():  # one tasks.bulk_changed instead of N events
+            for task in tasks:
+                if data.get("delete") and task.deleted_at is None:
+                    delete_task(actor, task)
+                elif data.get("restore") and task.deleted_at is not None:
+                    restore_task(actor, task)
+        publish_bulk(actor, project, [t.pk for t in tasks], "deleted" if data.get("delete") else "restored")
         return list(Task.all_objects.filter(pk__in=ids))
     patch = data.get("patch") or {}
     if not isinstance(patch, dict) or not patch:
@@ -773,15 +778,17 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
             raise conflict("task_deleted", f"{task.key} is deleted.")
         _authorize_patch(actor, task, set(patch))
     out = []
-    for task in tasks:
-        single = dict(patch)
-        if "labelIds" in single:  # bulk labels are added, not replaced
-            existing = [str(i) for i in TaskLabel.objects.filter(task=task).values_list("label_id", flat=True)]
-            single["labelIds"] = list(
-                dict.fromkeys(existing + [str(i) for i in _id_list(single["labelIds"], "labelIds")])
-            )
-        single["version"] = task.version
-        out.append(update_task(actor, task, single))
+    with suppress_audit_events():  # one tasks.bulk_changed instead of N events
+        for task in tasks:
+            single = dict(patch)
+            if "labelIds" in single:  # bulk labels are added, not replaced
+                existing = [str(i) for i in TaskLabel.objects.filter(task=task).values_list("label_id", flat=True)]
+                single["labelIds"] = list(
+                    dict.fromkeys(existing + [str(i) for i in _id_list(single["labelIds"], "labelIds")])
+                )
+            single["version"] = task.version
+            out.append(update_task(actor, task, single))
+    publish_bulk(actor, project, [t.pk for t in tasks], "updated")
     return out
 
 

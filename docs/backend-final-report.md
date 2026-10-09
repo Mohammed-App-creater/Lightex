@@ -455,3 +455,145 @@ of finished jobs after 30 days; the imported tasks stay. Purging a project from 
 | 12 | Celery | The task retries by hand (`self.retry`, 1/2/4 s, 3 times) instead of using `autoretry_for`, so that it can release the lease first. After the last failure the job is marked `import_failed`. |
 | 13 | Stored files | `parsed.json.gz` also stores `rawHeader` and `delimiter` (`v: 1`). Created select options are cut to 32 characters (board 39's limit) and take palette colours by position. `ImportJob.expires_at` is nullable, because the wire value is `null` while a job is queued or running. |
 | 14 | Deploy docs | `backend/README.md` now lists `purge_imports` (daily) and `resume_imports` (optional, every minute). `render.yaml` is outside `backend/`, so it was not edited; it defines no cron jobs today. |
+
+### 8.7 v2 · Board 33: dashboards, presence and realtime (SSE)
+
+Built from `docs/v2/33-dashboards-presence.md` (the contract) on branch `v2`, after boards 39, 32 and 40.
+
+| Check | Result |
+|---|---|
+| `ruff check` / `ruff format --check` / `mypy apps config` | clean |
+| `makemigrations --check` | no pending migrations |
+| `pytest` | 1,986 tests passing (PostgreSQL 17); 297 are new: 210 in the new board-33 test files (`apps/realtime/tests`, `apps/dashboards/tests`, `reports/tests/test_workload.py`, `access/tests/test_board33_permissions.py`, 8 of them on a real LISTEN connection), 86 permission-matrix and IDOR cases for the eleven new route/methods, and 1 seed test |
+| Coverage | 97.1 % overall (gate 85 %); 99 % on `apps/access` (gate 95 %); `apps/realtime` 93–100 % per module |
+| OpenAPI | `docs/openapi.yaml` regenerated and validated: 130 paths, 180 operations |
+| gunicorn smoke | `backend/scripts/sse_smoke.sh` passes against the real image (gthread, 1 worker × 4 threads, 2 streams max): two streams get `hello`, a third gets 503 `realtime_busy`, `/health` answers in under 0.1 s, a task PATCH reaches both streams through LISTEN/NOTIFY within a second, a restart (SIGTERM) ends both with `reconnect` (`shutdown`), and `Last-Event-ID` replays the missed event |
+| Manual smoke | `runserver` on a local database, `curl -N` on the stream: `retry`, `hello`, then `task.changed` (id 1) after a PATCH and `presence.updated` after a heartbeat, then pings |
+
+**Data model.**
+
+- New app `apps.dashboards`: `Dashboard` (shared / personal, `version`, case-insensitive name unique per owner and
+  project) and `DashboardWidget` (type unique per dashboard, deferrable unique position, `w` 3–12 and `h` 1–4 checks;
+  the per-type minimum height is a service rule). Migration `dashboards 0001_initial`.
+- New app `apps.realtime`: `RealtimeEvent` (big-int id = the SSE id; the envelope without its id; indexes
+  `(workspace, id)` and `(created_at)`) and `PresenceSession` (one row per tab, unique `(user, session_id)`).
+  Migration `realtime 0001_initial`.
+- `access 0005_board33_dashboard_permissions`: an idempotent data migration. It creates `dashboard.create` and
+  `dashboard.manage` if they are missing and grants them to the existing system roles by `system_key` (Project Admin
+  and Manager both; project Member `dashboard.create`). Custom roles are untouched.
+- No change to existing tables. `my_permissions` follows the §4.4 order; neither code is archive-safe, so archived
+  projects keep dashboards view-only.
+
+**Endpoints.**
+
+- DB1–DB6: `projects/{id}/dashboards` (GET, POST), `dashboards/{id}` (GET, PATCH, DELETE), `dashboards/{id}/layout`
+  (PUT). They implement the §4.3 object rules, the §5.2 messages and the 20 shared / 10 personal limits. `version` is
+  required on writes and bumped once per write, with 409 `version_conflict` and `details.current`. Configs are
+  validated per type (unknown keys dropped, missing keys defaulted); a deleted sprint or field reads back as `null`.
+- W1 `projects/{id}/reports/workload` (points or remaining minutes, assignee or a Person field, a capacity derived
+  from the last 3 completed sprints, a constant query count). `reports/progress` rows gain `quarter`.
+- P1–P3: `workspaces/{slug}/presence/{sessionId}` (PUT heartbeat → `{ expiresAt, heartbeatSec, roster }`; DELETE,
+  idempotent) and `workspaces/{slug}/presence?filter[project]=` (GET roster). The `presence` throttle scope applies.
+- S1 `workspaces/{slug}/stream`, `text/event-stream`, documented in OpenAPI with the full event catalogue.
+
+**Realtime.**
+
+- **Publishing.** `realtime.services.publish()` runs on `transaction.on_commit` and swallows (logs) failures.
+  `audit.services.record()` calls `publish_for_audit()`, which maps every audited action (§6.2):
+  - task actions → `task.changed` (camelCase `fields` from the audit diff; custom fields as `customFields.<id>`);
+  - comments, attachments → `comment.changed`, `attachment.changed`;
+  - statuses, labels, sprints, epics, objectives, milestones, project settings and custom fields → `project.changed`
+    with the matching area;
+  - membership and role changes → `access.changed` to the affected users, plus `project.changed` `["members"]`;
+  - import completion → `tasks.bulk_changed` with `taskIds: null`.
+
+  Explicit publishes cover the rest:
+  - a board move publishes one `task.changed` `moved` (its status audit is suppressed);
+  - bulk update / delete / restore publish one `tasks.bulk_changed` (the per-task audit hook is suppressed through a
+    context variable);
+  - notification delivery, read and read-all publish `inbox.changed` with the user's unread count;
+  - dashboard writes publish `dashboard.changed` (personal dashboards to the owner only);
+  - presence publishes `presence.updated`, volatile.
+- **Ordering.** Durable events are inserted in their own short transaction after `pg_advisory_xact_lock`, so ids
+  follow commit order, and `pg_notify`-ed in the same transaction. Payloads over 7,500 bytes go as
+  `{ id, ref: true }`, and the listener reads the row.
+- **Hub.** One per process. It admits at most `SSE_MAX_STREAMS_PER_PROCESS` streams (503 `realtime_busy`, Retry-After
+  60). Each stream has a bounded queue (256); a full queue means `reset` `slow_consumer` and then `reconnect`.
+- **Listener thread.** It holds one direct `LISTEN lightex_rt` connection (`REALTIME_LISTEN_DATABASE_URL`, default:
+  the default database's own settings) only while the process has streams, and closes it 60 s after the last one.
+  - It reconnects with 1–30 s backoff and then sends `reset` `broker_restart` to every stream.
+  - While it runs, it sweeps expired presence rows every 15 s (`DELETE … RETURNING`, then one `presence.updated` per
+    location) and deletes events past retention every 60 s.
+- **Brokers.** `REALTIME_BROKER` selects `postgres` (default), `redis` (rows in Postgres, `PUBLISH`/`SUBSCRIBE`) or
+  `local` (tests: rows stored, in-memory dispatch).
+- **Stream.**
+  - Errors before the stream starts are JSON:
+    - 401: v1 auth;
+    - 404: not a workspace member;
+    - 406: `not_acceptable`;
+    - 400: `unsupported_version`;
+    - 429: `stream` scope;
+    - 503: `realtime_unavailable` (kill switch, Retry-After 300) or `realtime_busy`.
+  - The body is `retry: 3000`, then `hello` (visible projects), then the replay after `Last-Event-ID`:
+    - up to 500 events, else `reset` `gap`;
+    - a non-numeric, purged or future cursor gets `reset` `unknown_cursor`.
+  - The stream then closes its DB connection, writes `: ping` after 15 s of silence and drops live events that the
+    replay already sent.
+  - It ends with `reconnect` on:
+    - lifetime (300 s + up to 30 s jitter);
+    - token expiry (less than 30 s left, from the access token's `exp`);
+    - an `access.changed` for this user;
+    - shutdown (gunicorn SIGTERM / `worker_int` / `worker_exit` hooks, and atexit).
+  - The slot is released in `finally`, on response close, and by a finalizer if the response is dropped unread.
+  - `REALTIME_ENABLED=false` also stops publishing.
+
+**Deployment (backend side, done).**
+
+- The Dockerfile CMD now runs gunicorn with `--worker-class gthread --threads ${GUNICORN_THREADS:-24} --workers
+  ${WEB_CONCURRENCY:-2} --timeout 30 --graceful-timeout 10 --keep-alive 5 --config gunicorn.conf.py`, and `exec`s it
+  so it receives SIGTERM.
+- `backend/gunicorn.conf.py` holds the shutdown hooks.
+- Settings:
+  - the realtime env vars of §2.9;
+  - a startup check that `SSE_MAX_STREAMS_PER_PROCESS < GUNICORN_THREADS`;
+  - `last-event-id` added to `CORS_ALLOW_HEADERS` (`Retry-After` was already in `CORS_EXPOSE_HEADERS`);
+  - the throttles `THROTTLE_STREAM` (30/min) and `THROTTLE_PRESENCE` (240/min).
+
+**Deployment (the user's part, outside `backend/`).**
+
+1. Render: redeploy the image (the gthread CMD ships with it). `WEB_CONCURRENCY=2` is already set in `render.yaml`.
+   Optionally set `GUNICORN_THREADS=24` and `SSE_MAX_STREAMS_PER_PROCESS=16` explicitly; those are the defaults.
+2. Neon behind the pooler (`DB_POOLED=true`): set `REALTIME_LISTEN_DATABASE_URL` to the same database's **direct**
+   connection string (the host without `-pooler`, keep `?sslmode=require`). The blueprint's Render Postgres URL is
+   already direct, so nothing is needed there.
+3. Check once on the real host: `curl -N -H "Authorization: Bearer …" -H "Accept: text/event-stream"
+   https://<api>/api/v1/workspaces/<slug>/stream` prints `hello` at once and a ping every 15 s.
+4. Kill switch, if ever needed: `REALTIME_ENABLED=false` (clients poll, no frontend deploy).
+
+**Seed.** `seed_demo` adds PRJ's shared "Sprint 14 health" (Alex, the design layout, objectives for `Q4`) and Sam's
+personal "My focus" (My tasks 6×2, Recent activity 6×2); MOB has none. A test checks that the shared layout packs
+exactly like the design-default packing vector.
+
+**Shared vectors.** `apps/dashboards/tests/pack_vectors.json` is a byte-for-byte copy of the web client's
+`frontend/src/features/dashboards/pack-vectors.json` (a test compares their hashes), and `widgets.pack()` passes
+every case. The server stores only order and sizes.
+
+### 8.8 Board 33 decisions where the contract was silent or ambiguous
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | Error codes | The stream's 401 and 429 use the v1 handler's codes (`unauthorized`, `rate_limited` with `Retry-After`) rather than `not_authenticated` / `throttled` in §2.3; the client keys on the status. |
+| 2 | `Connection: keep-alive` | Not sent: WSGI forbids hop-by-hop headers (wsgiref raises on it). The other three stream headers are sent. |
+| 3 | Broker down at connect | §2.3 says 503, §2.7 says connections still succeed with replay and are marked degraded. §2.7 wins: `hello.data.degraded: true` (an additive field) while the listener can't connect, and `reset` `broker_restart` once it reconnects. 503 `realtime_unavailable` is the kill switch only. |
+| 4 | Overflow `reconnect` reason | §2.4 fixes the reasons to four values; on overflow the stream sends `reset` `slow_consumer`, then `reconnect` with reason `lifetime` and `retryMs: 1000`. |
+| 5 | Personal dashboard events | `dashboard.changed` for a personal dashboard carries `projectId` (the client invalidates the list with it) and the owner as target. Delivery uses the target first, so other project members never receive it. Making a shared dashboard personal sends one event to the old audience and one to the owner. |
+| 6 | Dashboard publishing | Dashboard writes publish explicitly instead of through the audit hook, because the event needs the owner and the visibility (the deleted row is gone at commit). Every other §6.2 mapping goes through the hook. |
+| 7 | Unversioned task events | Dependencies and time entries don't bump the task version, so their `task.changed` carries `version: null` and `fields` `["dependencies"]` / `["loggedMinutes"]` (as the mock does); a `null` version always refetches. Deleted tasks also carry `null`. |
+| 8 | Extra hook mappings | A new project sends `access.changed` to its creator (their stream's project filter is stale). A custom role whose permissions change sends `access.changed` to every holder. Purges, saved views, invitations, access requests and workspace settings publish nothing. |
+| 9 | Presence errors | As in the mock: a location in a project the caller isn't on is 403 `project_membership_required`; an unknown, deleted, other-workspace or someone else's personal location is 404. `state` defaults to `viewing`; `since` resets when the location or state changes. The `presence` throttle replaces the default user throttle on P1–P3. |
+| 10 | Kill switch | `REALTIME_ENABLED=false` also makes `publish()` a no-op (no event rows). Clients reconnecting later get `reset` `unknown_cursor` if their cursor no longer matches. |
+| 11 | Layout and limits | DB4 checks the dashboard limits when visibility changes (as in the mock). `dashboard.updated` is audited only when the name or visibility actually changed; the version is bumped on every PATCH. |
+| 12 | Workload rounding | Capacity rounds half up (JavaScript `Math.round`), and the hours capacity counts time entries by the logging user. Rows are sorted by name case-insensitively. |
+| 13 | Removal hooks | Removing someone from a project, or from the workspace, deletes their personal dashboards there. |
+| 14 | Lost client connections | A stream notices a vanished client on its next write (a ping at most 15 s later). Some local port proxies (Docker Desktop) keep the upstream open, so such a stream holds its slot until its 5-minute lifetime. `sse_smoke.sh` therefore checks the shutdown path with a restart rather than relying on disconnects. |
+| 15 | `render.yaml` | Outside `backend/`, so it was not edited (see the user's deployment steps above). |

@@ -166,3 +166,41 @@ def test_seed_has_board32_dates():
     window = f"filter[from]={day('2026-09-01')}&filter[to]={day('2026-11-30')}"
     timeline = client.get(f"/api/v1/projects/{prj.id}/tasks?{window}&sort=startDate").json()["data"]
     assert timeline[0]["key"] == "PRJ-60"  # earliest start (Sep 1)
+
+
+@override_settings(DEBUG=True)
+def test_seed_has_board33_dashboards():
+    """The mock's ensureExt33 seed; the shared layout packs exactly like the design-default vector (§8.3)."""
+    import json
+    from pathlib import Path
+
+    from apps.common.testing import client_for
+    from apps.dashboards.models import Dashboard
+    from apps.dashboards.widgets import pack
+
+    call_command("seed_demo")
+    alex, sam = User.objects.get(email="alex@team.dev"), User.objects.get(email="sam@team.dev")
+    health = Dashboard.objects.get(name="Sprint 14 health")
+    assert (health.project.key, health.owner, health.visibility, health.version) == ("PRJ", alex, "shared", 1)
+    widgets = list(health.widgets.order_by("position"))
+    assert [(x.type, x.w, x.h) for x in widgets] == [
+        ("burndown", 6, 2), ("my_tasks", 3, 2), ("objectives", 3, 2), ("workload", 6, 2), ("velocity", 3, 2),
+        ("activity", 3, 2),
+    ]  # fmt: skip
+    assert widgets[2].config == {"quarter": "Q4"}
+    vectors = json.loads((Path(__file__).resolve().parents[2] / "dashboards/tests/pack_vectors.json").read_text())
+    default = next(c for c in vectors["cases"] if c["name"].startswith("design default"))
+    assert pack([(x.w, x.h) for x in widgets]) == default["rects"]
+    focus = Dashboard.objects.get(name="My focus")
+    assert (focus.owner, focus.visibility) == (sam, "personal")
+    assert [(x.type, x.w, x.h) for x in focus.widgets.order_by("position")] == [("my_tasks", 6, 2), ("activity", 6, 2)]
+    assert not Dashboard.objects.filter(project__key="MOB").exists()
+    # Sam lists the shared one and his own; Alex sees only the shared one.
+    project = health.project
+    assert [d["name"] for d in client_for(sam).get(f"/api/v1/projects/{project.pk}/dashboards").json()] == [
+        "Sprint 14 health",
+        "My focus",
+    ]
+    assert [d["name"] for d in client_for(alex).get(f"/api/v1/projects/{project.pk}/dashboards").json()] == [
+        "Sprint 14 health"
+    ]

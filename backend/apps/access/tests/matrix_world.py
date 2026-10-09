@@ -87,6 +87,7 @@ def _add_project(w: World) -> None:
     _add_views(w)
     _add_board39(w)
     _add_board40(w)
+    _add_board33(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -183,3 +184,15 @@ def _add_board40(w: World) -> None:
         file_name="tasks.csv", file_size=10, source_key=f"{base}/source.csv", report_key=f"{base}/report.csv",
         status="completed", phase="finishing", finished_at=timezone.now(), expires_at=timezone.now(),
     )  # fmt: skip
+
+
+def _add_board33(w: World) -> None:
+    """A shared dashboard (the owner's) and a personal one (the project member's) (board 33)."""
+    from apps.dashboards.models import Dashboard
+
+    w.extra["dashboard"] = Dashboard.objects.create(
+        project=w.project, owner=w.users["owner"], name="Sprint health", visibility="shared"
+    )
+    w.extra["personal_dashboard"] = Dashboard.objects.create(
+        project=w.project, owner=w.users["pmember"], name="My focus", visibility="personal"
+    )

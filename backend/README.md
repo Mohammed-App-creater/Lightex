@@ -2,7 +2,9 @@
 
 The v1 backend for Lightex, a project-management tool for software teams: workspaces, projects, boards,
 backlog and sprints, objectives, milestones and epics, comments and attachments, notifications, search,
-audit log, trash and reports.
+audit log, trash and reports. v2 adds custom fields, dependencies and time tracking (board 39), timeline dates
+(board 32), the import wizard (board 40), and dashboards, presence and realtime updates over Server-Sent Events
+(board 33).
 
 It implements the contract the web client in [`../frontend`](../frontend) was built against, so the client
 switches from its mock API to this one by changing environment variables only.
@@ -83,6 +85,15 @@ the repository. See [`.env.example`](.env.example).
 | `THROTTLE_*` | see `config/settings/base.py` | Rate limits (`THROTTLE_AUTH`, `THROTTLE_PASSWORD_RESET`, `THROTTLE_INVITATIONS`, …) |
 | `ADMIN_ENABLED` / `ADMIN_URL` | on in dev, off in prod / `admin/` | Django admin |
 | `LOG_LEVEL` | `INFO` | |
+| `REALTIME_ENABLED` | `true` | Board 33 kill switch: `false` makes the stream answer 503 `realtime_unavailable` and every client poll |
+| `REALTIME_BROKER` | `postgres` (`local` in tests) | `postgres` (LISTEN/NOTIFY), `redis` (needs `REDIS_URL`) or `local` (one process) |
+| `REALTIME_LISTEN_DATABASE_URL` | the default database | A **direct** (unpooled) Postgres URL for LISTEN. On Neon: the host without `-pooler` |
+| `REALTIME_EVENT_RETENTION_SECONDS` | `900` | How long stream events are kept for `Last-Event-ID` replay |
+| `PRESENCE_TTL_SECONDS` | `45` | A presence row expires this long after its last heartbeat |
+| `WEB_CONCURRENCY` / `GUNICORN_THREADS` | `2` / `24` | gunicorn processes and gthread threads per process (Docker image) |
+| `SSE_MAX_STREAMS_PER_PROCESS` | `16` | Streams per process; must be lower than `GUNICORN_THREADS` (checked at startup) |
+| `SSE_HEARTBEAT_SECONDS` / `SSE_MAX_LIFETIME_SECONDS` | `15` / `300` | Ping interval and stream lifetime (plus up to 30 s jitter) |
+| `THROTTLE_STREAM` / `THROTTLE_PRESENCE` | `30/min` / `240/min` | Stream connects and presence heartbeats per user |
 
 ## Tests and checks
 
@@ -134,6 +145,60 @@ Run these from cron, a platform scheduler, or a CI schedule:
 | `python manage.py resume_imports` | every minute (optional) | Board 40: re-dispatches imports whose runner stopped sending heartbeats (the import poll does this too) |
 | `python manage.py sync_permissions` | after deploys (runs on `migrate` too) | Syncs the permission catalogue |
 
+Board 33 needs no scheduled command: each web process sweeps expired presence rows and old stream events while it
+has open streams.
+
+## Realtime (board 33): the SSE stream
+
+`GET /api/v1/workspaces/{slug}/stream` is one Server-Sent Events stream per browser per workspace. It carries
+invalidation hints (ids, keys, versions, never record contents), presence rosters, and `hello` / `reset` /
+`reconnect` control events; the event catalogue is in [`../docs/openapi.yaml`](../docs/openapi.yaml) and
+[`../docs/v2/33-dashboards-presence.md`](../docs/v2/33-dashboards-presence.md) §2. Clients authenticate with the
+normal `Authorization: Bearer` header (never a token in the URL), and reconnect with `Last-Event-ID` to replay what
+they missed (15 minutes are kept). A stream pings every 15 s and ends itself with `reconnect` after 5 minutes, before
+its access token expires, when the user's access changes, or on shutdown.
+
+How it runs:
+
+- Services publish after their transaction commits (most through the audit hook). Durable events are inserted under
+  a Postgres advisory lock, so their ids follow commit order, and `NOTIFY`-ed in the same short transaction.
+- Each web process opens **one** direct `LISTEN` connection while it has streams (closed 60 s after the last one)
+  and fans events out to its streams through bounded queues. That process also deletes expired presence rows
+  (every 15 s) and old events (every 60 s).
+- The Docker image runs gunicorn with **gthread** workers: a stream holds one thread, never a process. Each process
+  takes at most `SSE_MAX_STREAMS_PER_PROCESS` streams (503 `realtime_busy` beyond that, and the client polls).
+- `REALTIME_ENABLED=false` switches realtime off without a client deploy; clients fall back to 30 s polling.
+
+### Run and check streaming locally
+
+`runserver` is threaded and serves streams as is. Point it at your **local** database:
+
+```bash
+cd backend
+DATABASE_URL=postgres://postgres@localhost:5433/lightex python manage.py runserver 8000
+```
+
+Get an access token (here with the demo data) and open the stream with `curl -N` (no buffering):
+
+```bash
+TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"alex@team.dev","password":"Lightex-demo-2026"}' \
+  | python -c 'import json,sys; print(json.load(sys.stdin)["accessToken"])')
+curl -N -H "Authorization: Bearer $TOKEN" -H "Accept: text/event-stream" \
+  localhost:8000/api/v1/workspaces/platform/stream
+```
+
+It prints `retry: 3000` and `event: hello` at once, then `: ping …` every 15 s. Change something in another
+terminal (edit a task in the web client, or `PATCH /api/v1/tasks/{id}`) and a `task.changed` event appears. Add
+`-H "Last-Event-ID: <id>"` to replay what came after an id.
+
+`bash scripts/sse_smoke.sh` runs the same checks against the real image (gunicorn gthread, LISTEN/NOTIFY, the stream
+cap, `/health` while streams are open, replay) with its own throwaway Postgres container.
+
+On a deployed API, check once that the platform doesn't buffer the stream:
+`curl -N -H "Authorization: Bearer …" -H "Accept: text/event-stream" https://<api>/api/v1/workspaces/<slug>/stream`
+must print `hello` immediately and a ping every 15 s.
+
 ## Connecting the web client
 
 In `frontend/.env.local`:
@@ -168,12 +233,19 @@ from that origin, so `img-src` in `frontend/next.config.ts` needs it too (see th
 
 ## Deployment
 
-The image (`Dockerfile`) runs migrations and then gunicorn on `$PORT`; static files are served by WhiteNoise.
+The image (`Dockerfile`) runs migrations and then gunicorn on `$PORT` with gthread workers
+(`--workers ${WEB_CONCURRENCY:-2} --worker-class gthread --threads ${GUNICORN_THREADS:-24} --timeout 30
+--graceful-timeout 10 --keep-alive 5 --config gunicorn.conf.py`); static files are served by WhiteNoise.
+`gunicorn.conf.py` ends open streams with `reconnect` when a worker shuts down (deploys).
 
 - **Render**: [`../render.yaml`](../render.yaml) is a blueprint for a free web service plus Postgres (no worker
   needed). Fill in the values marked `sync: false`.
 - **Any Docker host** (Fly.io, Railway, a VM): build `backend/`, set `DJANGO_SETTINGS_MODULE=config.settings.prod`
   and the variables above, and expose port 8000. Behind a TLS-terminating proxy, `X-Forwarded-Proto` is trusted.
+- **Realtime (board 33)**: behind Neon's pooler (`DB_POOLED=true`), set `REALTIME_LISTEN_DATABASE_URL` to the
+  same database's direct URL (the host without `-pooler`); LISTEN does not work through transaction pooling. Render
+  Postgres URLs are already direct. `last-event-id` is already in `CORS_ALLOW_HEADERS`. Don't add a gzip
+  middleware (it would buffer the stream).
 - Production checklist: `DJANGO_SECRET_KEY` and `JWT_SIGNING_KEY` set, `DJANGO_ALLOWED_HOSTS` set,
   `CORS_ALLOWED_ORIGINS` = the client origin only, SMTP configured, R2 configured, the scheduled commands
   running, `ADMIN_ENABLED` off unless needed. Without Redis the cache is per process, so rate limits are counted
@@ -194,7 +266,9 @@ apps/
   tasks/           tasks, status history, board, backlog, bulk, activity
   collaboration/   comments, attachments, storage backends
   notifications/   outbox events, notifications, preferences, email templates
-  reports/         burndown, velocity, cycle time, throughput, progress, KPIs
+  reports/         burndown, velocity, cycle time, throughput, progress, KPIs, workload
+  dashboards/      board 33: project dashboards (shared / personal) and their widget layouts
+  realtime/        board 33: the SSE stream, the per-process hub and brokers, events, presence
   audit/           audit log, activity feeds, trash
   search/          PostgreSQL full-text search
 ```

@@ -105,6 +105,10 @@ def deliver(
             "email_context": (email_context or {}) if email else {},
         },
     )
+    if created and in_app:
+        from apps.realtime.services import publish_inbox
+
+        publish_inbox(recipient, [event.workspace_id])
     if created and email:
         if prefs.email_delivery == "instant":
             queue_email(recipient.email, email_template, email_context or {})

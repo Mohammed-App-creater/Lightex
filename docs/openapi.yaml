@@ -298,6 +298,95 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/dashboards/{dashboard_id}:
+    get:
+      operationId: dashboards_retrieve
+      description: DB3 read; DB4 rename / visibility; DB6 delete. Edit rules are decided
+        by the service.
+      parameters:
+      - in: path
+        name: dashboard_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
+    patch:
+      operationId: dashboards_partial_update
+      description: DB3 read; DB4 rename / visibility; DB6 delete. Edit rules are decided
+        by the service.
+      parameters:
+      - in: path
+        name: dashboard_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDashboardPatchRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
+    delete:
+      operationId: dashboards_destroy
+      description: DB3 read; DB4 rename / visibility; DB6 delete. Edit rules are decided
+        by the service.
+      parameters:
+      - in: path
+        name: dashboard_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      responses:
+        '204':
+          description: No response body
+  /api/v1/dashboards/{dashboard_id}/layout:
+    put:
+      operationId: dashboards_layout_update
+      description: 'DB5: replace the ordered widget list (one version bump, one audit
+        row).'
+      parameters:
+      - in: path
+        name: dashboard_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardLayoutRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
   /api/v1/epics/{item_id}:
     get:
       operationId: epics_retrieve
@@ -1304,6 +1393,53 @@ paths:
                 items:
                   $ref: '#/components/schemas/CustomFieldOut'
           description: ''
+  /api/v1/projects/{project_id}/dashboards:
+    get:
+      operationId: projects_dashboards_list
+      description: DB1 list (shared, then your personal ones); DB2 create.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DashboardSummary'
+          description: ''
+    post:
+      operationId: projects_dashboards_create
+      description: DB1 list (shared, then your personal ones); DB2 create.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - dashboards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
   /api/v1/projects/{project_id}/epics:
     get:
       operationId: projects_epics_list
@@ -1869,6 +2005,44 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/projects/{project_id}/reports/workload:
+    get:
+      operationId: projects_reports_workload_retrieve
+      description: 'Board 33 W1: open sprint work per person (points or remaining
+        minutes) against a derived capacity.'
+      parameters:
+      - in: query
+        name: filter[person]
+        schema:
+          type: string
+        description: '`assignee` (default) or a Person custom field id'
+      - in: query
+        name: filter[sprint]
+        schema:
+          type: string
+        description: Sprint id; default = the active sprint
+      - in: query
+        name: filter[unit]
+        schema:
+          type: string
+          enum:
+          - hours
+          - points
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadReport'
+          description: ''
   /api/v1/projects/{project_id}/sprints:
     get:
       operationId: projects_sprints_list
@@ -3431,6 +3605,83 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/workspaces/{slug}/presence:
+    get:
+      operationId: workspaces_presence_retrieve
+      description: 'P3: the roster of one project (`filter[project]`, required).'
+      parameters:
+      - in: query
+        name: filter[project]
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - presence
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceRoster'
+          description: ''
+  /api/v1/workspaces/{slug}/presence/{session_id}:
+    put:
+      operationId: workspaces_presence_update
+      description: P1 heartbeat (upsert this tab's session, returns the project roster);
+        P2 leave (idempotent).
+      parameters:
+      - in: path
+        name: session_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - presence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresenceUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceHeartbeat'
+          description: ''
+    delete:
+      operationId: workspaces_presence_destroy
+      description: P1 heartbeat (upsert this tab's session, returns the project roster);
+        P2 leave (idempotent).
+      parameters:
+      - in: path
+        name: session_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - presence
+      responses:
+        '204':
+          description: No response body
   /api/v1/workspaces/{slug}/project-directory:
     get:
       operationId: workspaces_project_directory_list
@@ -3628,6 +3879,131 @@ paths:
               schema:
                 $ref: '#/components/schemas/SlugAvailability'
           description: ''
+  /api/v1/workspaces/{slug}/stream:
+    get:
+      operationId: workspaces_stream
+      description: |
+        Server-Sent Events for one workspace (docs/v2/33-dashboards-presence.md §2).
+
+        Authenticate with the normal `Authorization: Bearer <access>` header (fetch-based clients; never a token in the URL)
+        and send `Accept: text/event-stream`. Send `Last-Event-ID` to replay retained durable events (15 minutes) after that
+        id. Errors before the stream starts are JSON.
+
+        The body starts with `retry: 3000`, then `hello`, then the replay. A `: ping <time>` comment is written after 15 s of
+        silence. The stream ends itself with `reconnect` after 5 minutes (plus jitter), when the access token has less than
+        30 s left, when the caller's access changes, or on shutdown.
+
+        Every `data:` line is one envelope `{ v: 1, type, id?, ws?, projectId?, actorId?, at?, data }`. Clients must ignore
+        unknown types and fields. Events carry ids, keys, versions and field names only; refetch through the normal
+        endpoints.
+
+        Event catalogue (protocol version 1; durable events have an `id` and are replayable):
+
+        - `hello` (control): `{ connectionId, serverTime, heartbeatSec, maxLifetimeSec, projects: ID[], replayed,
+          degraded? }`.
+        - `reset` (control): `{ reason: unknown_cursor | gap | slow_consumer | broker_restart }`; refetch everything live.
+        - `reconnect` (control): `{ reason: lifetime | token_expiry | access_changed | shutdown, retryMs }`; the stream
+          then closes.
+        - `task.changed` (durable): `{ taskId, key, op: created | updated | moved | deleted | restored, version | null,
+          fields: string[] }`.
+        - `tasks.bulk_changed` (durable): `{ taskIds: ID[] | null (more than 200, or an import), op }`.
+        - `comment.changed` (durable): `{ taskId, key, commentId, op: created | updated | deleted }`.
+        - `attachment.changed` (durable): `{ taskId, key, op: created | deleted }`.
+        - `project.changed` (durable): `{ areas: (settings | statuses | labels | members | sprints | epics | objectives |
+          milestones | custom_fields | dependencies | time)[] }`.
+        - `dashboard.changed` (durable): `{ dashboardId, op: created | updated | layout | deleted, version | null }`;
+          personal dashboards reach their owner only.
+        - `inbox.changed` (durable, one user): `{ unread }`.
+        - `access.changed` (durable, one user): `{ projectId | null }`; the stream then ends with `reconnect`.
+        - `presence.updated` (volatile): `{ location: { kind, id }, people: PresencePerson[], at }`.
+        - `import.progress` (volatile): reserved, not emitted in this release.
+      parameters:
+      - in: header
+        name: Last-Event-ID
+        schema:
+          type: string
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - sse
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: v
+        schema:
+          type: integer
+        description: Protocol version the client speaks (default 1)
+      tags:
+      - realtime
+      responses:
+        '200':
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: The event stream
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: '`unsupported_version` (`details.supported`)'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: Not authenticated
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: Not a member of the workspace
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: '`not_acceptable`: send `Accept: text/event-stream`'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: More than 30 connects per minute (`Retry-After`)
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/RealtimeError'
+          description: '`realtime_unavailable` (kill switch, `Retry-After: 300`) or
+            `realtime_busy` (this process''s stream cap, `Retry-After: 60`): poll
+            instead'
   /api/v1/workspaces/{slug}/tasks:
     get:
       operationId: workspaces_tasks_retrieve
@@ -4216,6 +4592,174 @@ components:
       - required
       - taskCount
       - type
+    Dashboard:
+      type: object
+      properties:
+        owner:
+          $ref: '#/components/schemas/DashboardOwner'
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        ownerId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardWidget'
+          description: Array order = layout order
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - id
+      - name
+      - owner
+      - ownerId
+      - projectId
+      - updatedAt
+      - version
+      - visibility
+      - widgets
+    DashboardCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        template:
+          $ref: '#/components/schemas/DashboardCreateTemplateEnum'
+      required:
+      - name
+    DashboardCreateTemplateEnum:
+      enum:
+      - blank
+      - sprint_health
+      type: string
+    DashboardLayoutRequest:
+      type: object
+      properties:
+        version:
+          type: integer
+        widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardWidgetInputRequest'
+          maxItems: 6
+      required:
+      - version
+      - widgets
+    DashboardOwner:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hue:
+          type: integer
+        avatarUrl:
+          type: string
+          nullable: true
+      required:
+      - avatarUrl
+      - hue
+      - id
+      - name
+    DashboardSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        ownerId:
+          type: string
+          format: uuid
+        widgetCount:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - ownerId
+      - projectId
+      - updatedAt
+      - visibility
+      - widgetCount
+    DashboardWidget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/Type832Enum'
+        w:
+          type: integer
+          maximum: 12
+          minimum: 3
+        h:
+          type: integer
+          maximum: 4
+          minimum: 1
+        config:
+          description: 'Per type (§3.3): burndown { sprintId }, my_tasks { showDone
+            }, objectives { quarter }, workload { unit, sprintId, personField }, velocity
+            { range }, activity {}'
+      required:
+      - config
+      - h
+      - id
+      - type
+      - w
+    DashboardWidgetInputRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Omit to add a widget
+        type:
+          $ref: '#/components/schemas/Type832Enum'
+        w:
+          type: integer
+          maximum: 12
+          minimum: 3
+        h:
+          type: integer
+          maximum: 4
+          minimum: 1
+        config: {}
+      required:
+      - h
+      - type
+      - w
     DelimiterEnum:
       enum:
       - ','
@@ -4462,9 +5006,15 @@ components:
           type: string
           format: uuid
         unit:
-          $ref: '#/components/schemas/UnitEnum'
+          $ref: '#/components/schemas/ImportColumnMappingUnitEnum'
       required:
       - field
+    ImportColumnMappingUnitEnum:
+      enum:
+      - minutes
+      - hours
+      - seconds
+      type: string
     ImportCreateInRequest:
       type: object
       properties:
@@ -5220,6 +5770,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CustomFieldOptionInRequest'
+    PatchedDashboardPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        version:
+          type: integer
     PatchedEpicInRequest:
       type: object
       properties:
@@ -5483,6 +6044,57 @@ components:
       - key
       - label
       - scope
+    PresenceHeartbeat:
+      type: object
+      properties:
+        roster:
+          $ref: '#/components/schemas/PresenceRoster'
+        expiresAt:
+          type: string
+          format: date-time
+        heartbeatSec:
+          type: integer
+      required:
+      - expiresAt
+      - heartbeatSec
+      - roster
+    PresenceRoster:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        at:
+          type: string
+          format: date-time
+        locations:
+          description: '[{ location: { kind: board | dashboard | task, id }, people:
+            PresencePerson[] }] (non-empty locations only)'
+      required:
+      - at
+      - locations
+      - projectId
+    PresenceUpdateRequest:
+      type: object
+      properties:
+        location:
+          description: '{ kind: board | dashboard | task, id }'
+        state:
+          $ref: '#/components/schemas/PresenceUpdateStateEnum'
+        field:
+          type: string
+          nullable: true
+          minLength: 1
+        typing:
+          type: boolean
+      required:
+      - location
+      - state
+    PresenceUpdateStateEnum:
+      enum:
+      - viewing
+      - editing
+      type: string
     PresetEnum:
       enum:
       - generic
@@ -5681,6 +6293,18 @@ components:
             format: uuid
         unread:
           type: boolean
+    RealtimeError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details: {}
+      required:
+      - code
+      - details
+      - message
     Recent:
       type: object
       properties:
@@ -5876,7 +6500,7 @@ components:
           type: string
           format: date
         state:
-          $ref: '#/components/schemas/StateEnum'
+          $ref: '#/components/schemas/SprintOutStateEnum'
         completedAt:
           type: string
           format: date-time
@@ -5894,6 +6518,12 @@ components:
       - projectId
       - startDate
       - state
+    SprintOutStateEnum:
+      enum:
+      - planned
+      - active
+      - completed
+      type: string
     SprintProgressOut:
       type: object
       properties:
@@ -5913,12 +6543,6 @@ components:
       - percent
       - points
       - total
-    StateEnum:
-      enum:
-      - planned
-      - active
-      - completed
-      type: string
     Status:
       type: object
       properties:
@@ -6731,6 +7355,15 @@ components:
       required:
       - id
       - kind
+    Type832Enum:
+      enum:
+      - burndown
+      - my_tasks
+      - objectives
+      - workload
+      - velocity
+      - activity
+      type: string
     TypeC32Enum:
       enum:
       - text
@@ -6745,12 +7378,6 @@ components:
       - bug
       - chore
       - spike
-      type: string
-    UnitEnum:
-      enum:
-      - minutes
-      - hours
-      - seconds
       type: string
     UnreadCount:
       type: object
@@ -6830,6 +7457,41 @@ components:
       - email
       - id
       - name
+    VisibilityEnum:
+      enum:
+      - shared
+      - personal
+      type: string
+    WorkloadReport:
+      type: object
+      properties:
+        sprint:
+          nullable: true
+          description: '{ id, name, number, startDate, endDate }'
+        unit:
+          $ref: '#/components/schemas/WorkloadReportUnitEnum'
+        personField:
+          nullable: true
+          description: '{ id, name } when used'
+        scale:
+          type: integer
+        rows:
+          description: '[{ user: { id, name, hue, avatarUrl }, inProgress, todo, capacity
+            | null, unestimated }]'
+        unassigned:
+          description: '{ inProgress, todo, unestimated }'
+      required:
+      - personField
+      - rows
+      - scale
+      - sprint
+      - unassigned
+      - unit
+    WorkloadReportUnitEnum:
+      enum:
+      - points
+      - hours
+      type: string
     Workspace:
       type: object
       properties:

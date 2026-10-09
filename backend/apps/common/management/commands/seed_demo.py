@@ -169,6 +169,7 @@ class Command(BaseCommand):
         self.load_board39(data)
         self.load_board32()
         self.load_collaboration(data)
+        self.load_board33()
 
     def load_projects(self, data: dict[str, Any]) -> None:
         self.projects, self.statuses, self.labels = {}, {}, {}
@@ -547,6 +548,38 @@ class Command(BaseCommand):
                 created_at=timezone.now() - dt.timedelta(hours=2),
             )
 
+    # ── board 33: dashboards ──
+
+    def load_board33(self) -> None:
+        """The mock's `ensureExt33` seed (docs/v2/33-dashboards-presence.md §7.11): PRJ's shared "Sprint 14 health"
+        (Alex, the design's default layout, objectives for Q4) and Sam's personal "My focus". MOB has none."""
+        from apps.dashboards.models import Dashboard, DashboardWidget
+        from apps.dashboards.widgets import default_config
+
+        project = self.projects.get("p_prj")
+        if project is None:
+            return
+        for owner_id, name, visibility, created, layout in DASHBOARDS:
+            owner = self.users.get(owner_id)
+            if owner is None:
+                continue
+            dashboard = Dashboard.objects.create(
+                project=project, owner=owner, name=name, visibility=visibility, created_at=self.moment(created)
+            )
+            DashboardWidget.objects.bulk_create(
+                [
+                    DashboardWidget(
+                        dashboard=dashboard,
+                        type=kind,
+                        position=i,
+                        w=w,
+                        h=h,
+                        config={**default_config(kind), **extra},
+                    )
+                    for i, (kind, w, h, extra) in enumerate(layout)
+                ]
+            )
+
     def value_column(self, field: CustomField, value: Any, options: dict[str, CustomFieldOption]) -> dict[str, Any]:
         if field.type == "number":
             return {"number": Decimal(str(value))}
@@ -638,6 +671,26 @@ class Command(BaseCommand):
         for email, link in getattr(self, "invite_links", []):
             out.write(f"  Pending invite for {email}: {link}")
 
+
+# ───────────────────────── board 33 seed data (docs/v2/33-dashboards-presence.md §7.11) ─────────────────────────
+
+DASHBOARDS: list[tuple[str, str, str, str, list[tuple[str, int, int, dict[str, Any]]]]] = [
+    (
+        "u_alex",
+        "Sprint 14 health",
+        "shared",
+        "2026-10-01T09:00:00Z",
+        [
+            ("burndown", 6, 2, {}),
+            ("my_tasks", 3, 2, {}),
+            ("objectives", 3, 2, {"quarter": "Q4"}),
+            ("workload", 6, 2, {}),
+            ("velocity", 3, 2, {}),
+            ("activity", 3, 2, {}),
+        ],
+    ),
+    ("u_sam", "My focus", "personal", "2026-10-02T10:00:00Z", [("my_tasks", 6, 2, {}), ("activity", 6, 2, {})]),
+]
 
 # ───────────────────────── board 32 seed data (docs/v2/32-timeline-calendar.md §6.9) ─────────────────────────
 

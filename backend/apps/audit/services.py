@@ -1,4 +1,8 @@
-"""Writes audit rows. Called by every mutating service inside its transaction."""
+"""Writes audit rows. Called by every mutating service inside its transaction.
+
+`record()` also publishes the matching realtime event after commit (board 33, `realtime.services.publish_for_audit`).
+`record_many()` (imports) publishes nothing per row; the import publishes one `tasks.bulk_changed` at the end.
+"""
 
 from __future__ import annotations
 
@@ -49,7 +53,7 @@ def record(
     source: str = "web",
     request_id: str | None = None,
 ) -> AuditLog:
-    return AuditLog.objects.create(
+    row = AuditLog.objects.create(
         **_row(
             workspace=workspace,
             actor=actor,
@@ -65,6 +69,11 @@ def record(
             request_id=request_id,
         )
     )
+    # Board 33: the matching realtime event, sent after the surrounding transaction commits.
+    from apps.realtime.services import publish_for_audit
+
+    publish_for_audit(row, task=task if hasattr(task, "version") else None)
+    return row
 
 
 def record_many(rows: list[dict[str, Any]]) -> list[AuditLog]:

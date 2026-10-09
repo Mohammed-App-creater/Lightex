@@ -60,6 +60,8 @@ PERMISSIONS: list[PermissionDef] = [
     _prj("attachment.upload", "Collaboration", "Upload files", "Attach images and code files"),
     _prj("attachment.delete_any", "Collaboration", "Delete any file", "Remove anyone’s attachment"),
     _prj("project.manage_members", "Collaboration", "Manage members", "Add people and set their project role"),
+    _prj("dashboard.create", "Reports", "Create dashboards", "Build dashboards and edit the ones you created"),
+    _prj("dashboard.manage", "Reports", "Manage shared dashboards", "Edit, rearrange and delete any shared dashboard"),
     _prj("report.view", "Reports", "View reports", "Velocity, burndown, cycle time"),
     _prj("project.view", "Administration", "View project", "See the project, its board and tasks"),
     _prj("project.update", "Administration", "Project settings", "Rename, change key and description"),
@@ -109,6 +111,8 @@ PROJECT_ORDER = [
     "comment.delete_any",
     "attachment.upload",
     "attachment.delete_any",
+    "dashboard.create",
+    "dashboard.manage",
     "report.view",
 ]
 ORDER_INDEX = {c: i for i, c in enumerate(WORKSPACE_ORDER + PROJECT_ORDER)}
@@ -191,6 +195,7 @@ DEFAULT_ROLES: list[RoleDef] = [
             "comment.create",
             "comment.edit_own",
             "attachment.upload",
+            "dashboard.create",
             "report.view",
         ],
         core=["project.view"],

@@ -13,7 +13,8 @@ import statistics
 from collections import defaultdict
 from typing import Any
 
-from django.db.models import Min, Q, Sum
+from django.db.models import F, IntegerField, Min, OuterRef, Q, Subquery, Sum, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.common.exceptions import invalid, not_found
@@ -238,6 +239,7 @@ def progress_rows(project: Any) -> list[dict[str, Any]]:
                 "percent": p["percent"],
                 "expected": expected,
                 "dueDate": o.due_date.isoformat() if o.due_date else None,
+                "quarter": o.quarter or None,
             }
         )
     for m in milestones_of(project):
@@ -251,6 +253,7 @@ def progress_rows(project: Any) -> list[dict[str, Any]]:
                 "percent": percent,
                 "expected": expected_percent(m.start_date, m.due_date),
                 "dueDate": m.due_date.isoformat(),
+                "quarter": None,
             }
         )
     return rows
@@ -318,4 +321,132 @@ def summary(project: Any) -> dict[str, Any]:
         "dueThisWeek": live.filter(due_date__lte=today() + dt.timedelta(days=7))
         .exclude(status__category="done")
         .count(),
+    }
+
+
+# ───────────────────────── workload (board 33, W1) ─────────────────────────
+
+UNITS = ("points", "hours")
+CAPACITY_SPRINTS = 3
+
+
+def nice_max(value: float, step: int) -> int:
+    """A round maximum for the bars: 0 for nothing, else the next multiple of `step` (at least one step)."""
+    return 0 if value <= 0 else max(step, -(-int(value) // step) * step)
+
+
+def _round_half_up(value: float) -> int:
+    return int(value + 0.5)
+
+
+def _person_field(project: Any, raw: str | None) -> Any:
+    from apps.projects.models import CustomField
+    from apps.tasks.selectors import is_uuid
+
+    if raw in (None, "", "assignee"):
+        return None
+    field = CustomField.objects.filter(project=project, pk=raw).first() if is_uuid(raw) else None
+    if field is None or field.type != "user":
+        raise invalid({"filter[person]": "Pick a person field from this project"})
+    return field
+
+
+def workload(project: Any, sprint_id: str | None, unit: str | None, person: str | None) -> dict[str, Any]:
+    """Open work per person in a sprint (todo / in progress), with a capacity derived from the last 3 completed
+    sprints (docs/v2/33-dashboards-presence.md §5.4). A constant number of queries whatever the task count."""
+    from apps.accounts.models import User
+    from apps.projects.models import ProjectMember
+    from apps.tasks.models import TaskFieldValue
+    from apps.timetracking.models import TimeEntry
+
+    unit = unit or "points"
+    if unit not in UNITS:
+        raise invalid({"filter[unit]": "Pick points or hours"})
+    field = _person_field(project, person)
+    sprint = _sprint_or_active(project, sprint_id)
+    person_field = {"id": str(field.pk), "name": field.name} if field else None
+    zero = {"inProgress": 0, "todo": 0, "unestimated": 0}
+    if sprint is None:
+        return {"sprint": None, "unit": unit, "personField": person_field, "scale": 0, "rows": [], "unassigned": zero}
+
+    def with_person(qs):
+        if field is None:
+            return qs.annotate(person=F("assignee_id"))
+        value = TaskFieldValue.objects.filter(task=OuterRef("pk"), field=field).values("user_id")[:1]
+        return qs.annotate(person=Subquery(value))
+
+    logged = (
+        TimeEntry.objects.filter(task=OuterRef("pk")).values("task").annotate(total=Sum("minutes")).values("total")[:1]
+    )
+    open_tasks = with_person(
+        Task.objects.filter(sprint=sprint, status__category__in=("todo", "in_progress")).annotate(
+            logged=Coalesce(Subquery(logged, output_field=IntegerField()), Value(0))
+        )
+    ).values_list("person", "status__category", "estimate", "time_estimate_minutes", "logged")
+    work: dict[Any, dict[str, int]] = {}
+    for who, category, estimate, minutes, spent in open_tasks:
+        if unit == "points":
+            amount, unestimated = (0, True) if estimate is None else (estimate, False)
+        else:
+            amount, unestimated = (0, True) if minutes is None else (max(0, minutes - spent), False)
+        bucket = work.setdefault(who, dict(zero))
+        bucket["inProgress" if category == "in_progress" else "todo"] += amount
+        bucket["unestimated"] += int(unestimated)
+
+    done_sprints = list(
+        Sprint.objects.filter(project=project, state="completed").order_by("-end_date", "-number")[:CAPACITY_SPRINTS]
+    )
+    totals: dict[Any, int] = {}
+    if done_sprints and unit == "points":
+        completed = with_person(
+            Task.objects.filter(sprint__in=done_sprints, status__category="done").exclude(status__glyph="canceled")
+        )
+        for who, points in completed.values("person").annotate(points=Sum("estimate")).values_list("person", "points"):
+            if who is not None:
+                totals[who] = points or 0
+    elif done_sprints:
+        sums = {
+            f"s{i}": Sum("minutes", filter=Q(date__gte=s.start_date, date__lte=s.end_date))
+            for i, s in enumerate(done_sprints)
+        }
+        per_user: Any = TimeEntry.objects.filter(project=project).values("user_id").annotate(**sums)
+        for row in per_user:
+            totals[row["user_id"]] = sum(row[k] or 0 for k in sums)
+
+    members = list(ProjectMember.objects.filter(project=project).values_list("user_id", flat=True))
+    people = {who for who in work if who is not None} | (set(members) if done_sprints else set())
+    users = {u.pk: u for u in User.objects.filter(pk__in=people)}
+    rows: list[dict[str, Any]] = []
+    for who in people:
+        user = users.get(who)
+        bucket = work.get(who, zero)
+        rows.append(
+            {
+                "user": {
+                    "id": str(who),
+                    "name": user.name if user else "Former member",
+                    "hue": user.hue if user else 0,
+                    "avatarUrl": user.avatar_url if user else None,
+                },
+                "inProgress": bucket["inProgress"],
+                "todo": bucket["todo"],
+                "capacity": _round_half_up(totals.get(who, 0) / len(done_sprints)) if done_sprints else None,
+                "unestimated": bucket["unestimated"],
+            }
+        )
+    rows.sort(key=lambda r: (r["user"]["name"].lower(), r["user"]["name"], r["user"]["id"]))
+    top = max([max(r["inProgress"] + r["todo"], r["capacity"] or 0) for r in rows] or [0])
+    return {
+        "sprint": {
+            "id": str(sprint.pk),
+            "name": sprint.name,
+            "number": sprint.number,
+            "startDate": sprint.start_date.isoformat(),
+            "endDate": sprint.end_date.isoformat(),
+        },
+        "unit": unit,
+        "personField": person_field,
+        "scale": nice_max(top, 2 if unit == "points" else 120),
+        "rows": rows,
+        "unassigned": work.get(None, dict(zero)),
     }

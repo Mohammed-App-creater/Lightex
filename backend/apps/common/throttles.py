@@ -45,3 +45,15 @@ class ImportThrottle(_IdentThrottle):
     """Board 40: import job creation per user (THROTTLE_IMPORTS, 20/hour)."""
 
     scope = "imports"
+
+
+class StreamThrottle(_IdentThrottle):
+    """Board 33: realtime stream connects per user (THROTTLE_STREAM, 30/min)."""
+
+    scope = "stream"
+
+
+class PresenceThrottle(_IdentThrottle):
+    """Board 33: presence heartbeats per user (THROTTLE_PRESENCE, 240/min)."""
+
+    scope = "presence"

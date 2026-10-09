@@ -42,5 +42,16 @@ REST_FRAMEWORK = {
         "invite_token": "100000/min",
         "uploads": "100000/min",
         "imports": "100000/min",
+        "stream": "100000/min",
+        "presence": "100000/min",
     },
 }
+# Board 33: in-process realtime broker (rows are still stored for replay), fast heartbeats and short streams.
+REALTIME_ENABLED = True
+REALTIME_BROKER = "local"
+REALTIME_LISTEN_DATABASE_URL = ""
+SSE_HEARTBEAT_SECONDS = 0.05
+SSE_MAX_LIFETIME_SECONDS = 0.5
+SSE_LIFETIME_JITTER_SECONDS = 0.0
+REALTIME_LISTENER_BACKOFF_SECONDS = 0.1
+REALTIME_LISTEN_POLL_SECONDS = 0.2

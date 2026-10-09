@@ -49,9 +49,19 @@ def test_member_my_permissions_example(ws, owner):
     sam = add_project_member(project, key="project_member")
     body = client_for(sam).get(f"/api/v1/projects/{project.id}").json()
     assert body["my_permissions"] == [
-        "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "time.log",
-        "comment.create", "comment.edit_own", "attachment.upload", "report.view",
-    ]  # fmt: skip
+        "project.view",
+        "task.create",
+        "task.edit_own",
+        "task.assign",
+        "task.move",
+        "project.import",
+        "time.log",
+        "comment.create",
+        "comment.edit_own",
+        "attachment.upload",
+        "dashboard.create",
+        "report.view",
+    ]  # fmt: skip  (board 33 added dashboard.create)
 
 
 def test_archived_projects_drop_it(ws, owner):

@@ -4,6 +4,8 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from corsheaders.defaults import default_headers
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     "apps.search",
     "apps.timetracking",
     "apps.imports",
+    "apps.dashboards",
+    "apps.realtime",
 ]
 
 MIDDLEWARE = [
@@ -129,6 +133,8 @@ REST_FRAMEWORK = {
         "invite_token": env("THROTTLE_INVITE_TOKEN", default="30/min"),
         "uploads": env("THROTTLE_UPLOADS", default="60/min"),
         "imports": env("THROTTLE_IMPORTS", default="20/hour"),
+        "stream": env("THROTTLE_STREAM", default="30/min"),
+        "presence": env("THROTTLE_PRESENCE", default="240/min"),
     },
     "UNAUTHENTICATED_USER": "django.contrib.auth.models.AnonymousUser",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
@@ -170,6 +176,8 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOWED_ORIGINS: list[str] = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"])
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ["X-Request-ID", "Retry-After"]
+# Board 33: the realtime client sends Last-Event-ID on reconnect.
+CORS_ALLOW_HEADERS = (*default_headers, "last-event-id")
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # ───────────────────────── Cache / Celery ─────────────────────────
@@ -241,6 +249,36 @@ IMPORT_MAX_ROWS = 5000
 IMPORT_RETRIES = 2  # thread runner: a failed batch is retried twice, IMPORT_RETRY_DELAY_SECONDS apart
 IMPORT_RETRY_DELAY_SECONDS = 2.0
 IMPORT_REPORT_URL_TTL_SECONDS = 60
+
+# ───────────────────────── Realtime (board 33) ─────────────────────────
+# docs/v2/33-dashboards-presence.md §2.9. One SSE stream per browser per workspace; presence in Postgres.
+
+# Kill switch: false → the stream answers 503 realtime_unavailable and every client polls; nothing is published.
+REALTIME_ENABLED = env.bool("REALTIME_ENABLED", default=True)
+REALTIME_BROKER = env("REALTIME_BROKER", default="postgres")  # postgres | redis | local
+# Must be a direct (unpooled) connection: LISTEN doesn't survive PgBouncer transaction pooling (Neon "-pooler").
+# Empty = the default database's own settings (DATABASE_URL).
+REALTIME_LISTEN_DATABASE_URL = env("REALTIME_LISTEN_DATABASE_URL", default="")
+REALTIME_EVENT_RETENTION_SECONDS = env.int("REALTIME_EVENT_RETENTION_SECONDS", default=900)
+REALTIME_REPLAY_LIMIT = 500
+REALTIME_LISTENER_IDLE_SECONDS = 60.0  # close the LISTEN connection this long after the last stream ends
+REALTIME_LISTENER_BACKOFF_SECONDS = 1.0
+REALTIME_LISTENER_BACKOFF_MAX_SECONDS = 30.0
+REALTIME_LISTEN_POLL_SECONDS = 5.0
+REALTIME_LISTEN_WAIT_SECONDS = 2.0  # a new stream waits this long for LISTEN before its replay query
+REALTIME_SWEEP_SECONDS = 15.0  # expired presence rows
+REALTIME_PURGE_SECONDS = 60.0  # events past retention
+PRESENCE_TTL_SECONDS = env.int("PRESENCE_TTL_SECONDS", default=45)
+# gunicorn gthread: threads per process serve every request; streams may take at most SSE_MAX_STREAMS_PER_PROCESS.
+GUNICORN_THREADS = env.int("GUNICORN_THREADS", default=24)
+SSE_MAX_STREAMS_PER_PROCESS = env.int("SSE_MAX_STREAMS_PER_PROCESS", default=16)
+if SSE_MAX_STREAMS_PER_PROCESS >= GUNICORN_THREADS:
+    raise ImproperlyConfigured("SSE_MAX_STREAMS_PER_PROCESS must be lower than GUNICORN_THREADS.")
+SSE_HEARTBEAT_SECONDS = env.float("SSE_HEARTBEAT_SECONDS", default=15.0)
+SSE_MAX_LIFETIME_SECONDS = env.float("SSE_MAX_LIFETIME_SECONDS", default=300.0)
+SSE_LIFETIME_JITTER_SECONDS = 30.0
+SSE_QUEUE_SIZE = 256
+SSE_TEST_MAX_EVENTS: int | None = None  # tests: end the stream after this many events
 
 # ───────────────────────── Logging ─────────────────────────
 

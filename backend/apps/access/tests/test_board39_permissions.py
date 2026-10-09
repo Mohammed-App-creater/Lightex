@@ -37,13 +37,35 @@ def test_catalogue_endpoint_lists_the_new_codes_in_order(owner):
 
 def test_project_order_is_exactly_the_contract():
     assert catalogue.PROJECT_ORDER == [
-        "project.view", "project.update", "project.archive", "project.delete", "project.manage_members",
-        "objective.manage", "milestone.manage", "epic.manage", "sprint.manage", "status.manage", "field.manage",
-        "task.create", "task.edit_any", "task.edit_own", "task.delete", "task.assign", "task.move",
-        "project.import", "time.log", "time.delete_any",
-        "comment.create", "comment.edit_own", "comment.delete_any", "attachment.upload", "attachment.delete_any",
+        "project.view",
+        "project.update",
+        "project.archive",
+        "project.delete",
+        "project.manage_members",
+        "objective.manage",
+        "milestone.manage",
+        "epic.manage",
+        "sprint.manage",
+        "status.manage",
+        "field.manage",
+        "task.create",
+        "task.edit_any",
+        "task.edit_own",
+        "task.delete",
+        "task.assign",
+        "task.move",
+        "project.import",
+        "time.log",
+        "time.delete_any",
+        "comment.create",
+        "comment.edit_own",
+        "comment.delete_any",
+        "attachment.upload",
+        "attachment.delete_any",
+        "dashboard.create",
+        "dashboard.manage",
         "report.view",
-    ]  # fmt: skip
+    ]  # fmt: skip  (board 33 added the dashboard codes)
 
 
 def test_default_roles_hold_exactly_the_grants(ws):
@@ -59,9 +81,19 @@ def test_member_my_permissions_example(ws, owner):
     sam = add_project_member(project, key="project_member")
     body = client_for(sam).get(f"/api/v1/projects/{project.id}").json()
     assert body["my_permissions"] == [
-        "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "time.log",
-        "comment.create", "comment.edit_own", "attachment.upload", "report.view",
-    ]  # fmt: skip
+        "project.view",
+        "task.create",
+        "task.edit_own",
+        "task.assign",
+        "task.move",
+        "project.import",
+        "time.log",
+        "comment.create",
+        "comment.edit_own",
+        "attachment.upload",
+        "dashboard.create",
+        "report.view",
+    ]  # fmt: skip  (board 33 added dashboard.create)
 
 
 def test_archived_projects_drop_the_new_codes(ws, owner):
