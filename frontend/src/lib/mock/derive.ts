@@ -72,6 +72,7 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
     memberCount: db.wsMembers.filter((x) => x.workspaceId === w.id && x.status === "active").length,
     myRoleId: m.roleId,
     my_permissions: wsPermissions(db, userId, w.id),
+    notificationPolicy: { sms: w.smsEnabled !== false },
   };
 }
 

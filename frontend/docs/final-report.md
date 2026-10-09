@@ -8,7 +8,7 @@ Each step passed its checks before it was committed.
 | `npm run build` | passes |
 | `npm run typecheck` | clean (TypeScript strict) |
 | `npm run lint` | 0 errors, 1 warning (expected React Compiler note on TanStack Virtual's `useVirtualizer`) |
-| `npm test` | 49 files, 703 tests passing (after board 37; run with `--maxWorkers=2` on this machine) |
+| `npm test` | 52 files, 814 tests passing (after board 38; run with `--maxWorkers=2` on this machine) |
 | `npm run test:e2e` | 8 Playwright tests passing (sign-in → board → task panel → palette; role-hiding matrix) |
 | Route sweep | 29 routes × {navy 1440, light 1440, near-black 390, light 390}: all render, no console errors, no horizontal scroll |
 
@@ -63,7 +63,8 @@ Each step passed its checks before it was committed.
 - **Objectives and milestones.**
 - **Reports:** burndown, velocity, cycle time, throughput, progress and KPI tiles.
 - **Members and roles:** invites, a role editor and the permission matrix.
-- **Notifications:** inbox, plus email preferences. Telegram, SMS and Push show as "Coming soon".
+- **Notifications:** inbox, plus preferences. Since v2 board 38 (§8): Telegram, SMS and Web Push channels, a 6 × 5
+  preference matrix and quiet hours.
 - **Settings:** workspace general, profile, and project settings.
 - **Edge screens:** 404, 403 and 500 with a reference id, and a global error fallback.
 
@@ -92,6 +93,12 @@ pointer events, and the widget charts reuse Recharts.
 
 Board 37 (integrations) adds **no** dependency: key matching, branch names and the connect fragment are plain
 TypeScript, and the Create branch popover reuses Radix Popover.
+
+Board 38 (notification channels) adds **no** dependency. The spec (§8.10) proposes **`uqr`** (unjs, zero-dependency,
+~12 KB min, lazily loaded with the Telegram dialog) to draw the Telegram QR code. **Pending the user's decision; not
+installed.** Until it is approved the dialog has no QR (a TODO marks the spot in `telegram-dialog.tsx`); the
+"Open Telegram" deep link and the 6-character code cover every device. SHA-256 (the push "this browser" hash), the
+service worker and the OTP input are plain code.
 
 ---
 
@@ -485,6 +492,54 @@ and `src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.integra
 The spec's canonical copy is `docs/v2/vectors/37-dev.json` at the repo root, outside `frontend/`; the backend's copy
 should be created from this file, and the two must stay identical.
 
+### v2 · Board 38: Telegram, SMS and push notification channels
+
+The contract is `docs/v2/38-telegram-sms-push.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
+`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.channels.*`, the widened
+`api.notifications.preferences` / `savePreferences`, `api.workspaces.update`) and `qk` (`channels`, `telegramLink`;
+existing `prefs`, `workspace`), and implemented in the mock (`src/lib/mock/handlers/channels.ts`,
+`src/lib/mock/channels-dispatch.ts`, P1 in `handlers/notifications.ts`, W1 in `handlers/workspaces.ts` /
+`derive.ts`; tested in `src/lib/mock/channels.test.ts`).
+
+**Endpoints** (all under `/api/v1`, any signed-in user unless noted; the same codes and `details` as the contract)
+
+| # | Method | Path | Response / errors | Client |
+|---|---|---|---|---|
+| C1 | GET | `/me/notification-channels` | 200 `NotificationChannels` | `api.channels.get` · `qk.channels` (staleTime 30 s) |
+| C2 | POST | `/me/notification-channels/telegram/link` `{ timezone? }` | 201 `TelegramLink`; 409 `already_connected`; 429 `throttled`; 503 `channel_unavailable` | `api.channels.startTelegram` |
+| C3 | GET | `/me/notification-channels/telegram/link/:linkId` | 200 `TelegramLink` (no `code` / `deepLink` unless pending); 404 | `api.channels.telegramLink` · `qk.telegramLink` (2 s poll) |
+| C4 | DELETE | `/me/notification-channels/telegram/link/:linkId` | 204 | `api.channels.cancelTelegram` |
+| C5 | DELETE | `/me/notification-channels/telegram` | 204 (idempotent) | `api.channels.disconnectTelegram` |
+| C6 | POST | `/me/notification-channels/sms/verifications` `{ country, nationalNumber, timezone? }` | 201 `SmsVerification`; 422 `fields.nationalNumber` / `fields.country`; 409 `already_connected`; 429 `throttled` (`reason`: hourly / daily / phone / global limit, `retryAt`); 502 `channel_send_failed`; 503 | `api.channels.startSms` |
+| C7 | POST | `…/sms/verifications/:id/resend` | 200 `SmsVerification` (tries reset); 429 `resend_cooldown`; 410 `verification_closed`; 404 | `api.channels.resendSms` |
+| C8 | POST | `…/sms/verifications/:id/verify` `{ code }` | 200 `{ connection }`; 422 `invalid_code` (`attemptsLeft`) / `too_many_attempts` / `fields.code`; 410 `code_expired` | `api.channels.verifySms` |
+| C9 | DELETE | `/me/notification-channels/sms` | 204 | `api.channels.removeSms` |
+| C10 | GET | `/push/vapid-public-key` (**public**) | 200 `{ publicKey }`; 503 | `api.channels.vapidKey` (anonymous) |
+| C11 | PUT | `/me/push-subscriptions` `PushSubscriptionInput` | 200/201 `PushDevice`; 422 `subscription.endpoint` / `.keys.p256dh` / `.keys.auth`; refresh 404 | `api.channels.savePush` |
+| C12 | POST | `/me/push-subscriptions/remove` `{ endpoint }` | 204 (idempotent) | `api.channels.removePushByEndpoint` |
+| C13 | DELETE | `/me/push-subscriptions/:id` | 204; 404 for another user's | `api.channels.removePushDevice` |
+| C14 | POST | `/me/notification-channels/:channel/test` `{ deviceId?, workspace? }` | 200 `ChannelTestResult`; 409 `channel_not_connected`; 502 `channel_send_failed` (`reason`); 429 `throttled` (`test_limit` / `daily_cap`); 503 | `api.channels.test` |
+| P1 | GET / PUT | `/notification-preferences` | adds `telegram` / `sms` / `push` per event and `quietHours`; PUT merges per channel key, replaces `quietHours`; 422 `quietHours.from` / `.to` / `.timezone` / `.days` | `api.notifications.preferences` / `savePreferences` · `qk.prefs` |
+| W1 | GET / PATCH | `/workspaces/:slug` | `notificationPolicy: { sms }`; PATCH needs `workspace.update` (403 `details.permission`); audit `workspace.updated` with `changes` `smsNotifications` | `api.workspaces.update` · `qk.workspace` |
+| H1–H3 | POST | `/webhooks/telegram`, `/webhooks/twilio/sms`, `/webhooks/twilio/status` | provider-facing only; the client never calls them (the dev pill simulates them) | — |
+
+**Types:** `ExternalChannel`, `NotificationChannel` (widened), `QuietHours`, `NotificationPreferences.quietHours`
+(required), `TelegramConnection`, `SmsConnection`, `PushDevice`, `SmsCountry`, `NotificationChannels`, `TelegramLink`,
+`SmsVerification`, `PushSubscriptionInput`, `TestableChannel`, `ChannelTestResult`, `Workspace.notificationPolicy?`;
+the realtime `ChannelsChangedEvent`.
+
+**Realtime:** `channels.changed` `{ channel, op: "linked" | "disconnected" | "status" }`, durable and user-targeted
+(only the owner; published in each of the user's workspaces' streams). The client invalidates `qk.channels()` and
+refetches an open Telegram link at once. Polling stays the fallback.
+
+**C14 body:** the client sends the current workspace in the body (`{ workspace }`, as §8.3's code does); §6.4 words
+it as `?workspace=`. The backend should accept the body field (or say which it wants).
+
+**Shared test vectors:** `src/features/notifications/channels/phone-vectors.json` (formatting per pattern and the
+§5.6 validation table: NANP rules, trunk 0 for GB / DE, mobile prefixes, digit counts, IN only when allowed), read by
+`channels-lib.test.ts`. The spec names the backend copy `backend/apps/channels/tests/data/phone_vectors.json`, which
+doesn't exist yet: it should be created from this file, and the two must stay identical.
+
 ---
 
 ## 6. Known gaps
@@ -527,7 +582,7 @@ into `design/clean/24-…40-*.html`, next to boards 01–23.
 | 32 Timeline & calendar | **Built in v2** (see §8). |
 | 33 Dashboards & presence | **Not built.** Live presence needs realtime updates (no WebSockets in v1), and dashboards are not in the brief. |
 | 37 Integrations (GitHub/GitLab) | **Not built.** v2. |
-| 38 Telegram / SMS / Push | **Not built.** v2. These stay "Coming soon" in notification preferences. |
+| 38 Telegram / SMS / Push | **Built in v2** (see §8). The QR code waits on a dependency decision. |
 | 39 Custom fields, dependencies, time | **Built in v2** (see §8). |
 | 40 Import wizard | **Built in v2** (see §8). |
 
@@ -596,8 +651,7 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 
 ## 8. v2
 
-The user lifted the "no v2 features" rule for boards 39, 32, 40, 33 and 37. The remaining v2 board is planned next:
-**38** Telegram / SMS / Push.
+The user lifted the "no v2 features" rule for boards 39, 32, 40, 33, 37 and 38. No v2 board remains unbuilt.
 
 ### Board 39: custom fields, dependencies, time tracking (built)
 
@@ -1059,3 +1113,140 @@ tab), and in the mock `handlers/integrations.ts` (routes, fake provider, automat
   PRJ-58 empty), board chips, list, the project Development tab, the picker, GitLab dialog, disconnect, consent, first
   picker, and the connected and error states. No console errors and no horizontal scroll.
 - The "partial sync" tooltip (§7.4 `stats.partial`) isn't shown: the payload has no field for it.
+
+### Board 38: Telegram, SMS and push notification channels (built)
+
+Spec: `docs/v2/38-telegram-sms-push.md`. API additions are listed in §5 ("v2 · Board 38"). Code:
+`src/features/notifications/preferences.tsx` (the page) and `src/features/notifications/channels/` (sections, dialogs,
+pure logic and tests), `public/sw.js` + `public/push-badge.png`, and in the mock `handlers/channels.ts` and
+`channels-dispatch.ts`.
+
+- **Rules lifted:** board 38 moved to "in scope" in `frontend/CLAUDE.md`; no v2 board is banned any more. **No new
+  npm dependency** (see the QR decision below and §2).
+- **Settings → Notifications** (`/[ws]/settings/notifications`), "Coming soon" removed:
+  - **Channels:** In-app ("Always on", client-only test preview), Email (address, C14 test), Telegram, SMS and Push,
+    each with the §8.5 status line (✓ / dashed / spinner / ⚠) and actions (Send test, Connect / Reconnect / Enable /
+    Check again, × Disconnect). Every state of the table is rendered: Telegram not connected / waiting / `@handle` /
+    bot blocked / not available; SMS off by admin (× kept when a number exists) / not connected / number / replied
+    STOP / can't receive SMS; Push unsupported / iOS "Add Lightex to your Home Screen" / Off · N other devices /
+    Waiting for browser… / This browser · N more devices / blocked / this browser's subscription expired. "Devices"
+    opens a menu of the other browsers with per-device remove (C13).
+  - **Admin row** "SMS for {workspace}" with the `admin` tag and a switch, rendered only with `workspace.update`;
+    an optimistic workspace PATCH with rollback and a toast.
+  - **Preferences:** the 6 × 5 matrix. Unusable columns are hatched with dashed `role="img"` cells ("Mentioned,
+    Telegram: not connected"); headers offer Connect (opens the flow) or say Off by admin / Blocked / STOP /
+    Unavailable / Retry (when C1 failed). Short labels App / Mail / TG / SMS / Push at ≤ 760 px. v1's Email delivery
+    control stays under it (§10 #4).
+  - **Quiet hours:** switch + mono summary (`22:00–08:00 · Mon–Fri · New York`), From / To (`type="time"`, committed
+    on blur / Enter), every IANA zone labelled `City · GMT±h` with the browser's first, the 24 h bar (two hatched
+    parts overnight), day toggles (`aria-pressed`), "Urgent still notifies" with the 4-bar glyph. From = To is refused
+    client-side ("End must differ from start"); without a zone a note says quiet hours start once one is set.
+  - Matrix, email delivery, quiet hours and the policy switch share "Saving / Saved" in the header (v1's 400 ms
+    debounced, optimistic save with rollback). States: the design skeleton (5 channel rows + 4 matrix rows), page
+    error + Retry when P1 fails, an inline Channels error with external columns "Retry" when only C1 fails.
+- **Telegram dialog** (380 px modal, a bottom sheet at ≤ 760 px; lazily loaded): C2 with the browser zone → "Open
+  Telegram" deep link, "or send to @lightex_bot", the code in 3 + 3 cells with Copy (check for 1.4 s), "Waiting for
+  confirmation…" and the countdown (warn at ≤ 1:00); C3 every 2 s while visible; Code expired (struck-through code,
+  `role=alert`) → New code; "Connected as @handle" with the spark check, Send test / Done; errors (409 / 429 / 503)
+  with Try again; × / Escape before linking cancels (C4).
+- **SMS dialog:** country select (C1 countries) + national number formatted as you type (placeholder `(000)
+  000-0000`, trunk 0 dropped), help `10 digits` → `Valid number` → error; Enter / Send code (C6). OTP step: "Code sent
+  to … · Edit", six boxes (`one-time-code` on box 1, `inputmode=numeric`, typing advances, 3+ digits spread, 6 start
+  at box 1, Backspace / ← →), auto-verify on 6 digits ("Verifying…", read-only), `Wrong code · 2 tries left` with
+  shake (none under reduced motion), boxes cleared and box 1 focused, `Too many tries · resend a code` (read-only
+  until Resend), `Code expired · resend a code`, "Resend in 0:24" → Resend code (C7, tries reset). Verified: spark
+  check, Send test / Done. Closing before verifying calls nothing.
+- **Push:** `PushPlatform` (`push.ts`) with the browser, mock (real permission + real SW registration, fake
+  subscription, never a push service) and `fakePushPlatform` implementations. Enable (permission in the click → SW
+  `register("/sw.js", { scope: "/", updateViaCache: "none" })` → subscribe → C11; unsubscribes again if C11 fails),
+  Turn off (C12, local unsubscribe even if C12 fails), Check again ("Still blocked in browser"), "This browser" by
+  `endpointHash`, `usePushSync` once per tab session in the workspace shell (key rotation → re-subscribe; refresh
+  404 → local unsubscribe; also on the SW's `lightex:push-resync`), logout clean-up before the anonymous logout call
+  (≤ 1.5 s, errors ignored), and `ServiceWorkerBridge` in `Providers` (`lightex:navigate` → `pushUrl` for the same
+  route, `router.push` for another).
+- **`public/sw.js`:** plain static file, no imports, no fetch listener; install / activate / push / notificationclick /
+  pushsubscriptionchange as §8.6, same-origin URLs only. `next.config.ts` adds the `/sw.js` header rule after
+  `/:path*` (checked on the dev server: `application/javascript`, `no-cache, no-store`, its own CSP). The page CSP is
+  unchanged. `public/push-badge.png` is a 96 × 96 white "cut X" glyph on transparent.
+- **Send test:** spinner, C14 (`{ workspace }`), toast "Test sent · Telegram" + the device-style preview card (top
+  right, 4 s) with the neutral `test` copy; error toasts with the §5.11 copy, then C1 refetches (a permanent failure
+  changes the connection).
+- **Realtime:** `channels.changed` → `qk.channels()` and the open Telegram link (`apply-event.ts`).
+- **Mock:**
+  - Seed: `u_alex` has Telegram `@alexkim` and push on "Chrome on macOS" (another device), quiet hours in
+    `America/New_York`; everyone else has nothing. `ensureExt38` (marker `ext38`, no `SCHEMA` bump) adds the
+    collections, merges the channel keys and quiet hours into cached preferences (in_app / email untouched) and sets
+    `smsEnabled` on workspaces.
+  - Telegram codes rotate through the design's `K7MQ2X`, `R4TZ9P`, `B8WN3H`, `J2XC7V`; links scan themselves after
+    5 s unless "Telegram: manual" (then "Simulate scan (mock)", `data-mock-scan`, in the dialog). SMS code `482913`
+    with a dev toast through `mockBus` (`mock.sms_code`, never forwarded to the stream); `…5550000` numbers fail with
+    502 `invalid_number`. Every §7.5 limit is enforced with the server's numbers (connect 20/h, OTP 5/h and 10/day
+    per user, 5/h per number across users, 100/day overall, resend 30 s, tests 12/h, the SMS daily cap 10).
+  - **Dispatcher** (`channels-dispatch.ts`): every notification also fans out to the wanted, usable external targets
+    (even with in-app off; SMS needs the workspace policy and the caps; one row per push device), deferred during
+    quiet hours to the window's end (Urgent bypass), released lazily as the original or one summary (originals
+    `coalesced`), stale after 24 h, re-timed when quiet hours are saved. It is the delivery log only (nothing is
+    sent; no UI shows it); C1's `sentToday` counts it.
+  - **Dev pill → Notification channels:** Telegram: manual, Channel failures (one-shot), Block bot, Reply STOP,
+    Reply START.
+- **Tests:** `channels-lib.test.ts` (shared phone vectors; quiet hours: segments, labels, zones, same-day / overnight
+  windows and day semantics, Urgent bypass, window end and DST gap / overlap; sha256; push view; columns; every row
+  state; preference helpers; the Telegram and SMS machines; OTP editing), `push.test.ts` (enable / denied /
+  dismissed / C11 failure / Check again / Turn off / sync incl. key rotation and 404 / logout order and the 1.5 s cap;
+  `public/sw.js` push, malformed push, open-redirect guard, notificationclick focus vs open, pushsubscriptionchange),
+  `src/lib/mock/channels.test.ts` (seed and `ensureExt38`, C1–C14 incl. every limit and error, P1 merge and
+  validation, W1 permission and audit, the dispatcher), `preferences.test.tsx` (matrix, page per role, policy switch,
+  saves, quiet-hours validation, Send test success / 502, disconnect, the SMS flow incl. lock-out and send failure,
+  the Telegram flow incl. cancel, scan, countdown warn and New code, push enable / blocked), and the realtime mapping.
+
+### Deviations (board 38)
+
+- **No QR code (dependency pending).** The spec draws the Telegram QR with the new npm package `uqr` (§8.10). The
+  user hasn't approved new dependencies, so it is **not installed** and the dialog has no QR: a TODO comment in
+  `telegram-dialog.tsx` marks the spot. The "Open Telegram" deep link is therefore the primary action on **every**
+  device (the spec shows it on coarse pointers only, §10 #2), and the code covers the "send to @lightex_bot" path. The
+  mock's simulated scan is a "Simulate scan (mock)" link instead of a click on the QR. When `uqr` is approved: add it
+  to §2, draw `qr.tsx` (one `<path>` of `M x y h1v1h-1z` runs on a white tile, blurred "Expired" overlay) at the TODO,
+  and show "Open Telegram" on coarse pointers only.
+- The design's "Show QR code" start step isn't built: opening the dialog requests the code at once (§8.5 step 1).
+- The spec's conflicts are resolved as its §10 says: dialog copy without quick replies (#1), "Reply STOP to opt out"
+  (#3), Email delivery kept (#4), quiet hours default every day (#5), all IANA zones (#6), a plain-text email test
+  (#7), a device menu (#8, as a "Devices" link next to the status), unsupported / iOS states (#9), "Bot blocked in
+  Telegram" + Reconnect (#10), × kept when off by admin (#11), IN listed in the mock (#12), neutral test copy with no
+  `PRJ-42` in the preview (#13), the admin row in the Channels card (#14), "Code expired" (#15).
+- **`public/sw.js` fix:** the spec's `safeUrl()` turned a payload without `url` into `/undefined`; it now returns `/`
+  for a missing or non-string URL (`SW_VERSION` 38.2). A `null` JSON body also shows the default notification.
+- **`PushPlatform`** gains `requestPermission()` (so the row can show "Waiting for browser…" before subscribing) and
+  `currentKey()` (the applicationServerKey for the rotation check); `PushSubscriptionJSON` carries neither.
+- **"This browser"** hashes the endpoint with a small synchronous SHA-256 (`sha256.ts`, FIPS-vector tested) instead of
+  SubtleCrypto, which is async and missing outside secure contexts; the mock uses the same function.
+- **Matrix notes** beyond the design: "STOP" (replied STOP), "Unavailable" (server disabled / unsupported browser) and
+  "Retry" (C1 failed). Dead cells say why ("…: not connected", "off by admin", "blocked in browser").
+- **The Push column is live while any of the user's browsers has an active subscription** (the server delivers to all,
+  §6.2 #3), not only when this browser is on.
+- **No "Code sent" toast** (design `flash('Code sent')`): the OTP step says it inline, and at 390 px a toast covered
+  the bottom sheet. "Code resent" is kept.
+- **The page reads the workspace query** (`useWorkspace`) for `notificationPolicy`, so the optimistic switch shows
+  at once.
+- **Overlapping dialog mounts share one C2** (StrictMode's double effect and the lazy chunk's swap in dev): a second
+  C2 cancelled the code the surviving mount showed, so it read "Code expired" at once. Found in the screenshot sweep.
+- **OTP focus moves synchronously** (not after a frame): fast typing or autofill otherwise landed in the same box.
+- **Mock-only:** extra optional collections `otpSends`, `channelDeliveries`, `channelThrottle`; Telegram handles come
+  from the user's name (`Taylor Ng` → `@taylorng`); C2 and C6 share the connect throttle; "Channel failures" is
+  one-shot and applies the permanent failure to the connection (blocked / opted out / expired), as §6.8 does.
+- **C14 workspace** goes in the body (`{ workspace }`, §8.3's code), not `?workspace=` (§6.4's wording).
+
+### Known gaps (board 38)
+
+- Live mode is untested against the backend (no `apps/channels` there yet). Webhooks H1–H3 are provider-facing; the
+  dev pill simulates them.
+- **QR code** pending the `uqr` decision (above).
+- The Playwright smoke suite (`e2e/smoke.spec.ts`) is not extended. Verified instead with scripted Playwright runs at
+  1440 and 390, dark and light, as `u_alex` (admin row) and `u_taylor` (no admin row): the page, Telegram pending and
+  linked, the SMS wrong-code error, the Send-test preview, push blocked (old headless Chromium reports "denied") and
+  push on (new headless with the permission granted; the SW registered as `/sw.js`), and the loading skeleton. No
+  console errors and no horizontal scroll.
+- Toasts stack above a bottom sheet at 390 px (app-wide toaster placement); the mock's dev code toast can cover the
+  OTP step on a phone.
+- The mock fan-out writes the delivery log but shows no OS notification for events (only Send test does, through the
+  service worker); deferred rows are released when C1 or a new event reads the log, not on a timer.

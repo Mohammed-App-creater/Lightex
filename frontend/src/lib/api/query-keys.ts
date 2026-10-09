@@ -80,4 +80,7 @@ export const qk = {
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,
+  /* Board 38 (v2). Personal: not under a workspace (the same for every workspace). */
+  channels: () => ["notification-channels"] as const,
+  telegramLink: (id: string) => ["notification-channels", "telegram-link", id] as const,
 };

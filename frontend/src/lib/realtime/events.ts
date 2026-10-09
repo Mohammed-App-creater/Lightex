@@ -71,6 +71,14 @@ export type IntegrationChangedEvent = RealtimeEnvelope<
   "integration.changed",
   { integrationId: ID; op: "connected" | "updated" | "synced" | "error" | "disconnected" }
 >;
+/**
+ * Board 38: one of my notification channels changed (Telegram linked / disconnected / blocked, SMS STOP, push
+ * expired). User-targeted (only the owner receives it), durable.
+ */
+export type ChannelsChangedEvent = RealtimeEnvelope<
+  "channels.changed",
+  { channel: "telegram" | "sms" | "push"; op: "linked" | "disconnected" | "status" }
+>;
 /** Reserved for board 40; not emitted in this release (useImportJob keeps polling). */
 export type ImportProgressEvent = RealtimeEnvelope<"import.progress", { jobId: ID; status: string; progress: unknown }>;
 
@@ -88,6 +96,7 @@ export type RealtimeEvent =
   | AccessChangedEvent
   | PresenceUpdatedEvent
   | IntegrationChangedEvent
+  | ChannelsChangedEvent
   | ImportProgressEvent;
 
 export type RealtimeEventType = RealtimeEvent["type"];
@@ -102,6 +111,7 @@ export const DURABLE_TYPES: readonly RealtimeEventType[] = [
   "inbox.changed",
   "access.changed",
   "integration.changed",
+  "channels.changed",
 ];
 
 /** Parses one `data:` payload. Returns null for anything that isn't a v1 envelope (ignored, never thrown). */

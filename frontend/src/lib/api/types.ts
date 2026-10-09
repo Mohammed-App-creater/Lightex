@@ -108,6 +108,8 @@ export interface Workspace {
   memberCount: number;
   myRoleId: ID;
   my_permissions: WorkspacePermission[];
+  /** Board 38 (additive, optional so older payloads still parse). PATCH needs `workspace.update`. */
+  notificationPolicy?: { sms: boolean };
 }
 
 export type MemberStatus = "active" | "deactivated";
@@ -540,11 +542,124 @@ export interface Notification {
 }
 
 export type NotificationEvent = "assigned" | "mentioned" | "status_change" | "comment" | "due_soon" | "sprint_started";
-export type NotificationChannel = "in_app" | "email";
+/** Board 38 (v2): the channels that leave the app. */
+export type ExternalChannel = "telegram" | "sms" | "push";
+/** Widened from v1 (`in_app` | `email`) by board 38. */
+export type NotificationChannel = "in_app" | "email" | ExternalChannel;
+
+/** Board 38. Holds Telegram, SMS and Push only (in-app is never held; email keeps its own delivery setting). */
+export interface QuietHours {
+  enabled: boolean;
+  /** "22:00" (24 h, local to `timezone`). */
+  from: string;
+  /** "08:00"; `from > to` is an overnight window. */
+  to: string;
+  /** IANA name; null until first set. Quiet hours are inactive while it is null. */
+  timezone: string | null;
+  /** Mon..Sun. A day means "the window that starts on this day". */
+  days: [boolean, boolean, boolean, boolean, boolean, boolean, boolean];
+  /** Tasks with priority 4 (Urgent) still notify. */
+  urgentBypass: boolean;
+}
 
 export interface NotificationPreferences {
   events: Record<NotificationEvent, Record<NotificationChannel, boolean>>;
   emailDelivery: "instant" | "hourly" | "daily";
+  /** Board 38. */
+  quietHours: QuietHours;
+}
+
+/* ───────── Board 38 (v2): Telegram, SMS and push channels ───────── */
+
+export interface TelegramConnection {
+  id: ID;
+  /** "alexkim" (no @); null when the Telegram account has no username. */
+  username: string | null;
+  firstName: string;
+  status: "active" | "blocked";
+  connectedAt: ISODateTime;
+  /** "You blocked the bot in Telegram." */
+  lastError: string | null;
+}
+
+export interface SmsConnection {
+  id: ID;
+  /** E.164, owner only. */
+  phoneNumber: string;
+  /** "+1 (415) 555-0132" */
+  display: string;
+  country: string;
+  status: "active" | "opted_out" | "invalid";
+  verifiedAt: ISODateTime;
+  lastError: string | null;
+}
+
+export interface PushDevice {
+  id: ID;
+  /** "Chrome on macOS" (derived from the User-Agent). */
+  label: string;
+  /** First 16 hex chars of sha256(endpoint): lets a browser find itself. */
+  endpointHash: string;
+  status: "active" | "expired";
+  createdAt: ISODateTime;
+  lastSeenAt: ISODateTime;
+  lastSuccessAt: ISODateTime | null;
+}
+
+export interface SmsCountry {
+  code: string;
+  dial: string;
+  label: string;
+  /** National digit count. */
+  digits: number;
+  /** "(XXX) XXX-XXXX" */
+  pattern: string;
+}
+
+/** C1 `GET /me/notification-channels`. */
+export interface NotificationChannels {
+  email: { address: string };
+  telegram: { available: boolean; botUsername: string | null; connection: TelegramConnection | null };
+  sms: { available: boolean; countries: SmsCountry[]; connection: SmsConnection | null; dailyCap: number; sentToday: number };
+  push: { available: boolean; vapidPublicKey: string | null; devices: PushDevice[] };
+}
+
+/** C2 / C3. `code` and `deepLink` only while pending. */
+export interface TelegramLink {
+  id: ID;
+  status: "pending" | "linked" | "expired" | "canceled";
+  code?: string;
+  deepLink?: string;
+  botUsername: string;
+  expiresAt: ISODateTime;
+  connection: TelegramConnection | null;
+}
+
+/** C6 / C7. */
+export interface SmsVerification {
+  id: ID;
+  phoneNumber: string;
+  display: string;
+  expiresAt: ISODateTime;
+  resendAt: ISODateTime;
+  attemptsLeft: number;
+}
+
+/** C11 body: the browser's `PushSubscription.toJSON()` plus a mode. */
+export interface PushSubscriptionInput {
+  mode: "subscribe" | "refresh";
+  subscription: { endpoint: string; expirationTime: number | null; keys: { p256dh: string; auth: string } };
+  timezone?: string;
+}
+
+export type TestableChannel = "email" | ExternalChannel;
+
+/** C14. */
+export interface ChannelTestResult {
+  channel: TestableChannel;
+  status: "sent";
+  deliveryId: ID;
+  sentAt: ISODateTime;
 }
 
 export interface AuditEntry {

@@ -207,6 +207,18 @@ describe("board 37 events (§8.4)", () => {
     expect(invalid(qk.development("t1"))).toBe(true);
   });
 
+  it("channels.changed (board 38, user-targeted) refreshes the channel list and an open Telegram link", () => {
+    set(qk.channels(), { email: { address: "a" } });
+    set(qk.telegramLink("tgl_1"), { id: "tgl_1", status: "pending" });
+    set(qk.prefs(), { events: {} });
+    const a = applier();
+    a.apply(ev("channels.changed", { channel: "telegram", op: "linked" }, { projectId: null }));
+    flush();
+    expect(invalid(qk.channels())).toBe(true);
+    expect(invalid(qk.telegramLink("tgl_1"))).toBe(true);
+    expect(invalid(qk.prefs())).toBe(false);
+  });
+
   it("project.changed [development] refreshes the automation rules and projects", () => {
     set(qk.devRules(P), []);
     set(qk.projects(SLUG), []);

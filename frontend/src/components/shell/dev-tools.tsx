@@ -5,7 +5,7 @@ import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Segmented, Switch } from "@/components/ui/choice";
@@ -52,6 +52,26 @@ function DevToolsInner() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const isMock = apiMode === "mock";
+
+  // Board 38: the mock "sends" an SMS code; show it as a dev toast (spec §8.8).
+  const meId = user?.id ?? null;
+  useEffect(() => {
+    if (!isMock || !meId) return;
+    let off: (() => void) | undefined;
+    let live = true;
+    void import("@/lib/mock/realtime").then(({ mockBus }) => {
+      if (!live) return;
+      off = mockBus.subscribe((e) => {
+        if (e.type !== "mock.sms_code" || e.userId !== meId) return;
+        const d = e.data as { code: string; display: string };
+        toast.info(`Mock SMS · code ${d.code}`, { body: `Sent to ${d.display}` });
+      });
+    });
+    return () => {
+      live = false;
+      off?.();
+    };
+  }, [isMock, meId]);
 
   const tryAs = async (email: string, label: string) => {
     setBusy(label);
@@ -265,6 +285,44 @@ function DevToolsInner() {
                 >
                   Expire GitHub token
                 </Button>
+              </div>
+            </section>
+          )}
+          {isMock && (
+            <section className="flex flex-col gap-2">
+              <h3 className="eyebrow m-0">Notification channels</h3>
+              <p className="m-0 text-meta text-fg-3">SMS code is always 482913. Telegram links itself 5 s after the code appears.</p>
+              <Switch
+                label="Telegram: manual (wait for Simulate scan)"
+                checked={controls.telegramManual}
+                onChange={(e) => mockControls.set((c) => ({ ...c, telegramManual: e.target.checked }))}
+              />
+              <Switch
+                label="Channel failures (next Send test fails)"
+                checked={controls.channelFailures}
+                onChange={(e) => mockControls.set((c) => ({ ...c, channelFailures: e.target.checked }))}
+              />
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["Block bot", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateTelegramBlocked(id)],
+                    ["Reply STOP", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "STOP")],
+                    ["Reply START", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "START")],
+                  ] as const
+                ).map(([label, fn]) => (
+                  <Button
+                    key={label}
+                    size="sm"
+                    onClick={async () => {
+                      const m = await import("@/lib/mock/handlers/channels");
+                      const msg = fn(m, user?.id ?? null);
+                      await qc.invalidateQueries({ queryKey: ["notification-channels"] });
+                      toast.info(msg);
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
               </div>
             </section>
           )}

@@ -1693,3 +1693,96 @@
   }
 }
 /* ── end board 37 ── */
+
+/* ── board 38: notification channels (hatched off columns, dashed off toggle, OTP shake, spark check, preview card) ── */
+.ch-hatch {
+  background: repeating-linear-gradient(135deg, transparent 0 7px, var(--raised) 7px 8px);
+}
+.ch-tg-off {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  border: 1px dashed var(--line-2);
+}
+.ch-tg-off::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--line-2);
+}
+.ch-shake {
+  animation: ch-shake 340ms var(--ease);
+}
+@keyframes ch-shake {
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.ch-okc {
+  animation: checkpop 320ms var(--spring);
+}
+.ch-okc::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--spark);
+  box-shadow:
+    0 -30px 0 var(--spark),
+    26px -15px 0 var(--spark),
+    26px 15px 0 var(--spark),
+    0 30px 0 var(--spark),
+    -26px 15px 0 var(--spark),
+    -26px -15px 0 var(--spark);
+  animation: spark 640ms var(--ease) 120ms both;
+  pointer-events: none;
+}
+.ch-pv {
+  animation: ch-pv-in 340ms var(--spring);
+}
+@keyframes ch-pv-in {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ch-seg {
+  background:
+    repeating-linear-gradient(135deg, var(--accent-s) 0 5px, transparent 5px 9px),
+    var(--accent-s);
+  box-shadow:
+    inset 1px 0 0 var(--accent-t),
+    inset -1px 0 0 var(--accent-t);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-shake,
+  .ch-okc,
+  .ch-okc::before,
+  .ch-pv {
+    animation: none;
+  }
+}
+/* ── end board 38 ── */

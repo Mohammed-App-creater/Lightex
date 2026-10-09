@@ -4,6 +4,7 @@ import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
+import { ensureExt38 } from "./handlers/channels";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -57,6 +58,11 @@ export function getDB(): MockDB {
           // Board 37: integration keys on cached system roles, PRJ-41 / PRJ-29 and the GitHub seed, once.
           if (!db.ext37) {
             ensureExt37(db);
+            persist();
+          }
+          // Board 38: channel preference keys, quiet hours and u_alex's Telegram / push, once.
+          if (!db.ext38) {
+            ensureExt38(db);
             persist();
           }
           return db;

@@ -1,5 +1,8 @@
 import { publishInbox } from "../realtime";
-import type { NotificationPreferences } from "@/lib/api/types";
+import { CHANNEL_ORDER, withDefaults } from "@/features/notifications/channels/model";
+import { isKnownTimeZone, isValidTime } from "@/features/notifications/channels/quiet";
+import type { NotificationChannel, NotificationEvent, NotificationPreferences, QuietHours } from "@/lib/api/types";
+import { retimeDeferred } from "../channels-dispatch";
 import { nowISO } from "../db";
 import { defaultPrefs } from "../seed";
 import { fail, filterValues, invalid, paginate, requireUser, route } from "../router";
@@ -76,21 +79,55 @@ export function registerNotifications() {
       rec = { userId, prefs: defaultPrefs() };
       ctx.db.prefs.push(rec);
     }
+    // Board 38: a row cached before v2 gains the channel keys and quiet hours.
+    rec.prefs = withDefaults(rec.prefs);
     return rec.prefs;
   });
 
+  /*
+   * Board 38 (§5.13): per event, only the channel keys present change (a v1 client sending in_app /
+   * email keeps telegram / sms / push); quietHours, when present, is validated and replaced whole.
+   */
   route("PUT", "/notification-preferences", (ctx) => {
     const userId = requireUser(ctx);
-    const next = ctx.body as NotificationPreferences;
-    if (!next?.events || !["instant", "hourly", "daily"].includes(next.emailDelivery)) invalid({ prefs: "Invalid preferences" });
-    const rec = ctx.db.prefs.find((p) => p.userId === userId);
-    // Only in-app and email exist in v1; any other channel keys are dropped.
-    const clean = Object.fromEntries(
-      Object.entries(next.events).map(([k, v]) => [k, { in_app: Boolean(v.in_app), email: Boolean(v.email) }]),
-    ) as NotificationPreferences["events"];
-    const prefs = { events: clean, emailDelivery: next.emailDelivery };
-    if (rec) rec.prefs = prefs;
-    else ctx.db.prefs.push({ userId, prefs });
+    const next = ctx.body as Partial<NotificationPreferences> | null;
+    if (!next?.events || !["instant", "hourly", "daily"].includes(next.emailDelivery ?? "")) invalid({ prefs: "Invalid preferences" });
+    let rec = ctx.db.prefs.find((p) => p.userId === userId);
+    if (!rec) {
+      rec = { userId, prefs: defaultPrefs() };
+      ctx.db.prefs.push(rec);
+    }
+    const cur = withDefaults(rec.prefs);
+    let quiet: QuietHours = cur.quietHours;
+    if (next.quietHours !== undefined) {
+      const q = next.quietHours as Partial<QuietHours> | null;
+      const fields: Record<string, string> = {};
+      const timeOk = (t: unknown) => typeof t === "string" && isValidTime(t);
+      if (!q || typeof q !== "object") fields.quietHours = "Invalid quiet hours";
+      else {
+        if (!timeOk(q.from)) fields["quietHours.from"] = "Use HH:MM";
+        if (!timeOk(q.to)) fields["quietHours.to"] = "Use HH:MM";
+        else if (q.from === q.to) fields["quietHours.to"] = "End must differ from start";
+        if (q.timezone !== null && (typeof q.timezone !== "string" || !isKnownTimeZone(q.timezone))) fields["quietHours.timezone"] = "Unknown time zone";
+        if (!Array.isArray(q.days) || q.days.length !== 7 || q.days.some((d) => typeof d !== "boolean")) fields["quietHours.days"] = "Pick 7 days";
+        if (typeof q.enabled !== "boolean") fields["quietHours.enabled"] = "Must be true or false";
+        if (typeof q.urgentBypass !== "boolean") fields["quietHours.urgentBypass"] = "Must be true or false";
+      }
+      if (Object.keys(fields).length) invalid(fields);
+      const v = q as QuietHours;
+      quiet = { enabled: v.enabled, from: v.from, to: v.to, timezone: v.timezone, days: [...v.days] as QuietHours["days"], urgentBypass: v.urgentBypass };
+    }
+    const events = { ...cur.events };
+    for (const ev of Object.keys(events) as NotificationEvent[]) {
+      const incoming = (next.events as Partial<Record<NotificationEvent, Partial<Record<NotificationChannel, boolean>>>>)[ev];
+      if (!incoming) continue;
+      const row = { ...events[ev] };
+      for (const ch of CHANNEL_ORDER) if (ch in incoming) row[ch] = Boolean(incoming[ch]);
+      events[ev] = row;
+    }
+    const prefs: NotificationPreferences = { events, emailDelivery: next.emailDelivery!, quietHours: quiet };
+    rec.prefs = prefs;
+    if (next.quietHours !== undefined) retimeDeferred(ctx.db, userId, quiet);
     return prefs;
   });
 

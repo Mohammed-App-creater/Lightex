@@ -219,6 +219,10 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
         // Board 37: the settings page, devEnabled on projects, and every open Development section.
         invalidate(qk.integrations(ctx.slug), qk.projects(ctx.slug), ["project", ctx.slug], ["t"], ["integration", (ev as IntegrationChangedEvent).data.integrationId]);
         return;
+      case "channels.changed":
+        // Board 38: the channel rows / matrix columns, and an open Telegram dialog polls its link at once.
+        invalidate(qk.channels(), ["notification-channels", "telegram-link"]);
+        return;
       case "import.progress":
         return; // reserved (board 40 keeps polling)
       default:

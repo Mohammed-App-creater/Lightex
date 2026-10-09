@@ -7,6 +7,7 @@ import { AppLoader } from "@/components/brand/app-loader";
 import { Drawer } from "@/components/ui/modal";
 import { useSession } from "@/features/auth/session";
 import { SessionExpiredModal } from "@/features/auth/session-expired";
+import { PushSync } from "@/features/notifications/channels/sw-bridge";
 import { useWorkspace } from "@/features/workspace/queries";
 import { api } from "@/lib/api/endpoints";
 import { isNotFound } from "@/lib/api/errors";
@@ -81,6 +82,8 @@ function WorkspaceLoader({ slug, children }: { slug: string; children: ReactNode
   }
   return (
     <WorkspaceScope workspace={ws.data}>
+      {/* Board 38: re-sync this browser's push subscription once per tab session. */}
+      <PushSync />
       <Shell>{children}</Shell>
     </WorkspaceScope>
   );

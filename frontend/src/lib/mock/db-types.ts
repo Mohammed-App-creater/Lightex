@@ -7,6 +7,11 @@ import type {
   Milestone,
   Notification,
   NotificationPreferences,
+  PushDevice,
+  SmsConnection,
+  SmsVerification,
+  TelegramConnection,
+  TelegramLink,
   Objective,
   Permission,
   Project,
@@ -36,7 +41,16 @@ import type {
 /* Stored shapes. Derived fields (progress, counts, my_permissions) are computed per request. */
 
 export type UserRec = User & { password: string };
-export type WorkspaceRec = { id: string; slug: string; name: string; hue: number; createdAt: string; deletedAt: string | null };
+export type WorkspaceRec = {
+  id: string;
+  slug: string;
+  name: string;
+  hue: number;
+  createdAt: string;
+  deletedAt: string | null;
+  /** Board 38: `notificationPolicy.sms` (missing = true). */
+  smsEnabled?: boolean;
+};
 export type WsMemberRec = {
   workspaceId: string;
   userId: string;
@@ -151,7 +165,63 @@ export interface MockDB {
   dashboards?: DashboardRec[];
   /** Board 33 upgrade marker (dashboard keys on cached system roles, PRJ dashboards). */
   ext33?: boolean;
+  /* Board 38 (v2). Optional, created by ensureExt38 (handlers/channels.ts), so no SCHEMA bump. No secrets: codes are the fixed mock values. */
+  channelConnections?: ChannelConnectionRec[];
+  telegramLinks?: TelegramLinkRec[];
+  smsVerifications?: SmsVerificationRec[];
+  pushDevices?: PushDeviceRec[];
+  /** Every OTP send (the §7.5 limits count these). */
+  otpSends?: { userId: string; phone: string; at: string }[];
+  /** The delivery log (§3.7): events fanned out by the mock, tests, quiet-hours summaries. Capped at 400 rows. */
+  channelDeliveries?: ChannelDeliveryRec[];
+  /** DRF-style throttle hits per user and scope ("connect", "test"). */
+  channelThrottle?: { userId: string; scope: "connect" | "test"; at: string }[];
+  /** Board 38 upgrade marker (u_alex's Telegram + push, preference keys, quiet hours). */
+  ext38?: boolean;
 }
+
+/* Board 38: notification channels. */
+export type ChannelConnectionRec =
+  | ({ channel: "telegram"; userId: string; chatId: number } & TelegramConnection)
+  | ({ channel: "sms"; userId: string } & SmsConnection);
+export type TelegramLinkRec = {
+  id: string;
+  userId: string;
+  code: string;
+  token: string;
+  status: TelegramLink["status"];
+  createdAt: string;
+  expiresAt: string;
+  /** The simulated scan (5 s after creation); null in "Telegram: manual" mode. */
+  autoLinkAt: string | null;
+  connectionId: string | null;
+};
+export type SmsVerificationRec = SmsVerification & {
+  userId: string;
+  country: string;
+  status: "pending" | "verified" | "expired" | "canceled";
+  sendCount: number;
+};
+export type PushDeviceRec = PushDevice & { userId: string; endpoint: string; p256dh: string; auth: string; failureCount: number };
+export type ChannelDeliveryRec = {
+  id: string;
+  userId: string;
+  workspaceId: string | null;
+  channel: "telegram" | "sms" | "push" | "email";
+  kind: "event" | "summary" | "test";
+  event: string;
+  /** The target: the connection or push device id. */
+  target: string;
+  notificationId: string | null;
+  taskKey: string | null;
+  urgent: boolean;
+  status: "queued" | "deferred" | "sent" | "failed" | "skipped" | "coalesced";
+  skipReason: string | null;
+  nextAttemptAt: string;
+  createdAt: string;
+  sentAt: string | null;
+  summaryId: string | null;
+};
 
 /* Board 37: integrations. Credentials never exist in the mock; the fake provider needs none. */
 export type IntegrationRec = Omit<Integration, "repositories" | "syncing" | "nextSyncAt" | "status" | "manageUrl"> & {

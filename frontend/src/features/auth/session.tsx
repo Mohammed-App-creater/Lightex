@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "@/lib/api/endpoints";
+import { logoutPush } from "@/features/notifications/channels/push";
 import { authEvents, tokenStore } from "@/lib/api/session";
 import type { User } from "@/lib/api/types";
 import { apiMode } from "@/lib/env";
@@ -90,6 +91,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    // Board 38 (§8.6): drop this browser's push subscription first (C12 needs the session); ≤ 1.5 s, errors ignored.
+    await logoutPush();
     try {
       await api.auth.logout();
     } catch {

@@ -50,7 +50,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
   - Also: `trash`, `settings/{general,members,roles,integrations,notifications,profile,audit}` (`integrations`: v2,
-    board 37), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
+    board 37; `notifications`: channels, matrix and quiet hours since v2 board 38), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
   - Board 37 has no project route of its own: the task panel's Development section, the board / list PR chip and
     project settings `?tab=development` (shown when `Project.devEnabled`).
   - Import wizard (v2, board 40): no route; `?import=new|<jobId>` on any project view (`ImportWizardHost` in the
@@ -103,13 +103,16 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **Uploads:** images and code/text only, 10 MB max. Never render HTML or SVG uploads inline. Code files are
   **download-only**, with no preview (the brief beats board 34's code viewer).
 - **Rich text** is Tiptap JSON rendered by a safe JSON→React renderer. Never use `innerHTML`.
-- **v2 features, only as scoped:**
-  - In scope: **board 39** (custom fields, dependencies, time tracking), built from `docs/v2/39-fields-dependencies-time.md`;
-    **board 32** (timeline & calendar), built from `docs/v2/32-timeline-calendar.md`; **board 40** (import wizard,
-    CSV and Jira/Linear/Asana CSV exports), built from `docs/v2/40-import-wizard.md`; **board 33** (dashboards and
-    presence, realtime over Server-Sent Events), built from `docs/v2/33-dashboards-presence.md`; and **board 37**
-    (integrations & development: GitHub and GitLab), built from `docs/v2/37-integrations-github-gitlab.md` (all at the
-    repo root); see `docs/final-report.md` §8.
+- **v2 features, exactly as their specs scope them:**
+  - Every v2 board is now in scope; none is banned. Each is built from its spec at the repo root (see
+    `docs/final-report.md` §8): **board 39** (custom fields, dependencies, time tracking,
+    `docs/v2/39-fields-dependencies-time.md`); **board 32** (timeline & calendar, `docs/v2/32-timeline-calendar.md`);
+    **board 40** (import wizard, CSV and Jira/Linear/Asana CSV exports, `docs/v2/40-import-wizard.md`); **board 33**
+    (dashboards and presence, realtime over Server-Sent Events, `docs/v2/33-dashboards-presence.md`); **board 37**
+    (integrations & development: GitHub and GitLab, `docs/v2/37-integrations-github-gitlab.md`); and **board 38**
+    (Telegram / SMS / Web Push notification channels, `docs/v2/38-telegram-sms-push.md`).
+  - What a spec itself leaves out stays hidden or "Coming soon" (Trello and API import connectors, Telegram quick
+    replies, report PNG/PDF export).
   - Import: the CSV parser lives only in `src/lib/mock/import/` (the lazily loaded mock chunk); the live client never
     parses CSV. Trello and every API connector stay "Coming soon".
   - Dashboards and presence: realtime is one SSE stream per browser per workspace (never a WebSocket). No
@@ -120,8 +123,14 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     "Authorize Lightex" dialog stands in for the provider. Task-key matching and branch names live in
     `src/features/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
     text; keys are highlighted with React parts, never innerHTML.
-  - Planned next, still not built: Telegram/SMS/push sending (38).
-  - Until a board is in scope, where a design puts it inside an in-scope screen, it is hidden or marked "Coming soon".
+  - Notification channels (board 38): `/[ws]/settings/notifications` has Channels, the 6 × 5 preference matrix and
+    quiet hours (`src/features/notifications/channels/`). Pure logic (phone numbers with shared
+    `phone-vectors.json`, quiet hours, the matrix / row model, the Telegram and SMS state machines, OTP editing,
+    push flows) is unit-tested there. Push uses the static `public/sw.js` (scope `/`, no fetch listener; header rule
+    in `next.config.ts`) behind a `PushPlatform` (`push.ts`: browser, mock and `fakePushPlatform`). The VAPID key comes
+    from the API, never an env var. The Telegram QR code is **not drawn**: it needs `uqr`, a new dependency pending
+    the user's decision (TODO in `telegram-dialog.tsx`); the deep link and the 6-character code work without it.
+    SMS texts and test previews never carry task titles or comments.
 - **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
   `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
   `docs/final-report.md`.
@@ -164,6 +173,11 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     GitHub token (the workspace's connection). They mutate the mock as the backend processor would, automations
     included. The seed has GitHub `int_gh_platform` (platform-team, 4 repos) and PRs on PRJ-42, PRJ-41 and PRJ-29;
     the GitLab token form accepts `fake-token` (`fake-noscope`, `fake-expired` and `fake-other` test the errors).
+  - Board 38 "Notification channels": the SMS code is always `482913` (a dev toast shows it), and national numbers
+    containing `5550000` fail to send. A Telegram code links itself 5 s after it appears unless "Telegram: manual" is
+    on (then the dialog's "Simulate scan (mock)"). "Channel failures" makes the next Send test fail with that
+    channel's permanent error (one-shot). Block bot / Reply STOP / Reply START act as the webhooks would. The seed
+    gives `u_alex` Telegram `@alexkim` and push on another device ("Chrome on macOS"); nobody else has a channel.
   - e2e sets `{ errorRate: 0, teammates: false }` there to stay deterministic.
 - **Galleries:** component gallery at `/dev/ui`, email previews at `/dev/emails`.
 

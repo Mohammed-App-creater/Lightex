@@ -6,6 +6,8 @@ import { ensureExt40 } from "./handlers/imports";
 import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
+import { ensureExt38 } from "./handlers/channels";
+import { defaultPreferences } from "@/features/notifications/channels/model";
 import type {
   AttachmentRec,
   MockDB,
@@ -741,6 +743,8 @@ export function createSeed(): MockDB {
   ensureExt33(db);
   // Board 37 (v2): integration.manage / development.link, PRJ-41 + PRJ-29, the GitHub connection and its PRs.
   ensureExt37(db);
+  // Board 38 (v2): u_alex's Telegram + push device, the channel preference keys and quiet hours.
+  ensureExt38(db);
   return db;
 }
 
@@ -749,18 +753,9 @@ function addDays(iso: string, days: number) {
   return fmt(new Date(y, m - 1, d + days));
 }
 
+/** v1's in_app / email defaults plus the board 38 channel keys and quiet hours (§3.8). */
 export function defaultPrefs(): NotificationPreferences {
-  return {
-    events: {
-      assigned: { in_app: true, email: true },
-      mentioned: { in_app: true, email: true },
-      status_change: { in_app: true, email: false },
-      comment: { in_app: true, email: false },
-      due_soon: { in_app: true, email: true },
-      sprint_started: { in_app: true, email: false },
-    },
-    emailDelivery: "instant",
-  };
+  return defaultPreferences();
 }
 
 /** Users offered by the dev role switcher, one per default role. */

@@ -74,6 +74,14 @@ import type {
   IntegrationsOverview,
   Repository,
   TaskDevelopment,
+  ChannelTestResult,
+  NotificationChannels,
+  PushDevice,
+  PushSubscriptionInput,
+  SmsConnection,
+  SmsVerification,
+  TelegramLink,
+  TestableChannel,
 } from "./types";
 
 /*
@@ -111,7 +119,9 @@ export const workspaces = {
   list: () => http.get<Workspace[]>("/workspaces"),
   create: (body: { name: string; slug: string }) => http.post<Workspace>("/workspaces", body),
   get: (slug: string) => http.get<Workspace>(`/workspaces/${enc(slug)}`),
-  update: (slug: string, body: { name?: string; slug?: string }) => http.patch<Workspace>(`/workspaces/${enc(slug)}`, body),
+  /** Board 38: `notificationPolicy` (the SMS switch) also needs `workspace.update`. */
+  update: (slug: string, body: { name?: string; slug?: string; notificationPolicy?: { sms: boolean } }) =>
+    http.patch<Workspace>(`/workspaces/${enc(slug)}`, body),
   remove: (slug: string, confirm: string) => http.del(`/workspaces/${enc(slug)}`, { confirm }),
   slugAvailability: (slug: string, q: string) =>
     http.get<{ slug: string; available: boolean }>(`/workspaces/${enc(slug)}/slug-availability`, { q }),
@@ -478,10 +488,46 @@ export const development = {
   setRules: (projectId: string, rules: DevAutomationRule[]) => http.put<DevAutomationRule[]>(`/projects/${enc(projectId)}/dev-automation`, rules),
 };
 
+/** Board 38 (v2): personal notification channels (docs/v2/38-telegram-sms-push.md §5). Any signed-in user. */
+export const channels = {
+  /** C1: every channel's availability and connection state. */
+  get: () => http.get<NotificationChannels>("/me/notification-channels"),
+  /** C2: a 6-character code + deep link (10 min). 409 already_connected while an active connection exists. */
+  startTelegram: (timezone?: string) => http.post<TelegramLink>("/me/notification-channels/telegram/link", { timezone }),
+  /** C3: polled every 2 s while the dialog is open. */
+  telegramLink: (id: string) => http.get<TelegramLink>(`/me/notification-channels/telegram/link/${enc(id)}`),
+  /** C4: the dialog closed before linking. */
+  cancelTelegram: (id: string) => http.del(`/me/notification-channels/telegram/link/${enc(id)}`),
+  /** C5 */
+  disconnectTelegram: () => http.del("/me/notification-channels/telegram"),
+  /** C6: sends a code. 422 field errors, 429 throttled (`details.reason`, `retryAt`), 502 channel_send_failed. */
+  startSms: (body: { country: string; nationalNumber: string; timezone?: string }) =>
+    http.post<SmsVerification>("/me/notification-channels/sms/verifications", body),
+  /** C7: a new code; tries reset. 429 resend_cooldown before `resendAt`. */
+  resendSms: (id: string) => http.post<SmsVerification>(`/me/notification-channels/sms/verifications/${enc(id)}/resend`),
+  /** C8: 422 invalid_code / too_many_attempts, 410 code_expired. */
+  verifySms: (id: string, code: string) =>
+    http.post<{ connection: SmsConnection }>(`/me/notification-channels/sms/verifications/${enc(id)}/verify`, { code }),
+  /** C9 */
+  removeSms: () => http.del("/me/notification-channels/sms"),
+  /** C10: public, for clients that need the key before C1 (logout clean-up). */
+  vapidKey: () => http.get<{ publicKey: string }>("/push/vapid-public-key", undefined, { anonymous: true }),
+  /** C11: subscribe (upsert, moves the endpoint to the caller) or refresh (404 when not the caller's). */
+  savePush: (body: PushSubscriptionInput) => http.put<PushDevice>("/me/push-subscriptions", body),
+  /** C12: this browser (Turn off, logout). Idempotent. */
+  removePushByEndpoint: (endpoint: string) => http.post<void>("/me/push-subscriptions/remove", { endpoint }),
+  /** C13: a device from the list. */
+  removePushDevice: (id: string) => http.del(`/me/push-subscriptions/${enc(id)}`),
+  /** C14: synchronous test; ignores quiet hours. */
+  test: (channel: TestableChannel, body?: { deviceId?: string; workspace?: string }) =>
+    http.post<ChannelTestResult>(`/me/notification-channels/${channel}/test`, body ?? {}),
+};
+
 /** S1. The stream is not a JSON request: src/lib/realtime opens it. The path is kept here for the paper trail. */
 export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };
 
 export const api = {
+  channels,
   integrations,
   development,
   dashboards,

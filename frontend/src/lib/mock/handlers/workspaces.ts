@@ -85,7 +85,9 @@ export function registerWorkspaces() {
     requireWs(ctx, ws.id, "workspace.update");
     const name = str(ctx.body, "name");
     const slug = str(ctx.body, "slug");
+    const policy = (ctx.body as { notificationPolicy?: { sms?: unknown } } | null)?.notificationPolicy;
     const fields: Record<string, string> = {};
+    if (policy !== undefined && typeof policy?.sms !== "boolean") fields["notificationPolicy.sms"] = "Must be true or false";
     if (name !== undefined && name.trim().length < 2) fields.name = "Use at least 2 characters";
     if (slug !== undefined) {
       const s = slugify(slug);
@@ -95,7 +97,14 @@ export function registerWorkspaces() {
     if (Object.keys(fields).length) invalid(fields);
     if (name !== undefined) ws.name = name.trim().slice(0, 40);
     if (slug !== undefined) ws.slug = slugify(slug);
+    // Board 38 (§4.2): the workspace SMS policy, audited as `changes.smsNotifications`.
+    const sms = policy?.sms as boolean | undefined;
+    const before = ws.smsEnabled !== false;
+    if (sms !== undefined) ws.smsEnabled = sms;
     audit(ctx.db, ws.id, ctx.userId!, "workspace.updated", ws.name);
+    if (sms !== undefined && sms !== before) {
+      ctx.db.audit[0]!.changes = [{ field: "smsNotifications", kind: "value", before: String(before), after: String(sms) }];
+    }
     return toWorkspace(ctx.db, ws, ctx.userId!);
   });
 
