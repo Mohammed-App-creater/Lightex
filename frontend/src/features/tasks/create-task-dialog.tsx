@@ -74,7 +74,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
     sprintId: defaults.sprintId,
     milestoneId: null,
     epicId: null,
-    dueDate: null,
+    dueDate: defaults.dueDate ?? null,
     labelIds: [],
     estimate: null,
     description: "",

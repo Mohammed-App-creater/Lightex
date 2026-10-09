@@ -1031,3 +1031,137 @@
     animation: none;
   }
 }
+
+/* ── Board 32: timeline & calendar (design .tl-bar / .tl-fill / .cl-sync tokens, per theme) ── */
+:root,
+[data-theme="dark"] {
+  --tl-eb-l: 0.3;
+  --tl-eb-c: 0.06;
+  --tl-ef-l: 0.5;
+  --tl-ef-c: 0.12;
+  --tl-es-l: 0.68;
+  --tl-es-c: 0.13;
+}
+[data-theme="black"] {
+  --tl-eb-l: 0.3;
+  --tl-eb-c: 0.05;
+  --tl-ef-l: 0.5;
+  --tl-ef-c: 0.11;
+  --tl-es-l: 0.68;
+  --tl-es-c: 0.12;
+}
+[data-theme="light"] {
+  --tl-eb-l: 0.93;
+  --tl-eb-c: 0.04;
+  --tl-ef-l: 0.8;
+  --tl-ef-c: 0.1;
+  --tl-es-l: 0.58;
+  --tl-es-c: 0.14;
+}
+/* Bars are placed with left/width % that change per drag frame: nothing transitions them. */
+.tl-bar {
+  background: oklch(var(--tl-eb-l) var(--tl-eb-c) var(--h, 250));
+  box-shadow: inset 0 0 0 1px oklch(var(--tl-es-l) var(--tl-es-c) var(--h, 250) / 0.45);
+}
+.tl-bar[data-neutral] {
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.tl-bar[data-derived] {
+  background: transparent;
+  box-shadow: none;
+  outline: 1.5px dashed oklch(var(--tl-es-l) var(--tl-es-c) var(--h, 250) / 0.7);
+  outline-offset: -1.5px;
+}
+.tl-bar[data-dragging] {
+  box-shadow:
+    inset 0 0 0 1px var(--accent-t),
+    0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.tl-bar:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.tl-fill {
+  background: oklch(var(--tl-ef-l) var(--tl-ef-c) var(--h, 250));
+}
+.tl-bar[data-kind="task"] .tl-fill {
+  background: oklch(var(--tl-es-l) var(--tl-es-c) var(--h, 250));
+  opacity: 0.75;
+}
+.tl-bar[data-neutral] .tl-fill {
+  background: var(--text-3);
+  opacity: 0.5;
+}
+.tl-sq {
+  background: oklch(var(--tl-es-l) var(--tl-es-c) var(--h, 250));
+}
+.tl-grip::after {
+  content: "";
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.tl-bar[data-kind="task"] .tl-grip::after {
+  height: 6px;
+}
+.tl-bar[data-editable]:hover .tl-grip::after,
+.tl-bar:focus-visible .tl-grip::after {
+  opacity: 0.55;
+}
+.tl-grip[data-on]::after {
+  opacity: 1;
+  background: var(--accent-t);
+}
+/* Pending-sync ring (design .cl-sync) and the 400 ms "land" pulse after a reschedule settles. */
+.sch-sync {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-2);
+  border-top-color: var(--accent-t);
+  flex: none;
+  animation: sch-spin 0.7s linear infinite;
+}
+@keyframes sch-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sch-land {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.45;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sch-land {
+  animation: sch-land 400ms var(--spring);
+}
+@keyframes sch-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+.sch-progress {
+  animation: sch-progress 1.1s var(--ease-in-out) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sch-land,
+  .sch-progress,
+  .sch-sync {
+    animation: none;
+  }
+  .tl-grip::after {
+    transition: none;
+  }
+}
+/* ── end board 32 ── */

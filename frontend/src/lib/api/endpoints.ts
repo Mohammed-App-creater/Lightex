@@ -198,6 +198,16 @@ export const tasks = {
   bulk: (projectId: string, body: { ids: string[]; patch?: TaskPatch; delete?: boolean; restore?: boolean }) =>
     http.post<Task[]>(`/projects/${enc(projectId)}/tasks/bulk`, body),
   activity: (id: string) => http.get<ActivityEntry[]>(`/tasks/${enc(id)}/activity`),
+  /** Board 32 (requested addition): tasks whose effective span overlaps [from, to] (inclusive), one page. */
+  range: (projectId: string, from: string, to: string, cursor?: string | null) =>
+    http.get<Paginated<Task>>(`/projects/${enc(projectId)}/tasks`, { filter: { from, to }, sort: "startDate", limit: 500, cursor }),
+  /** Board 32 tray: open tasks with no dates, highest priority first. */
+  unscheduled: (projectId: string, openStatusIds: string[]) =>
+    http.get<Paginated<Task>>(`/projects/${enc(projectId)}/tasks`, {
+      filter: { scheduled: "false", status: openStatusIds },
+      sort: "-priority",
+      limit: 200,
+    }),
 };
 
 export const board = {

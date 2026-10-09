@@ -19,6 +19,9 @@ export function projectTabs(p: Pick<Project, "my_permissions">): { view: Project
     { view: "board", label: "Board", show: true },
     { view: "list", label: "List", show: true },
     { view: "backlog", label: "Backlog", show: true },
+    // Board 32 (v2): everyone on the project sees them; editing is gated per bar / chip.
+    { view: "timeline", label: "Timeline", show: true },
+    { view: "calendar", label: "Calendar", show: true },
     // Board 27: everyone can view epics (viewer frame is read-only); epic.manage gates the actions.
     { view: "epics", label: "Epics", show: true },
     { view: "sprints", label: "Sprints", show: can("sprint.manage", perms) || can("task.move", perms) },

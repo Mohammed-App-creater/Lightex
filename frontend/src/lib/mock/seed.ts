@@ -2,6 +2,7 @@ import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, Task
 import { DEFAULT_ROLES } from "@/lib/permissions/catalogue";
 import { keysBetween } from "@/lib/utils/fractional-index";
 import { ensureExt39 } from "./handlers/extensions";
+import { ensureExt32 } from "./handlers/schedule";
 import type {
   AttachmentRec,
   MockDB,
@@ -729,6 +730,8 @@ export function createSeed(): MockDB {
   db.prefs = db.users.map((u) => ({ userId: u.id, prefs: defaultPrefs() }));
   // Board 39 (v2): custom fields, dependencies, time entries and the "Blocked" pinned view.
   ensureExt39(db);
+  // Board 32 (v2): PRJ start dates, epic dates and one extra dependency (after board 39's).
+  ensureExt32(db);
   return db;
 }
 

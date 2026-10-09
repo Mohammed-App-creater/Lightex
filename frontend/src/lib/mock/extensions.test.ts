@@ -222,7 +222,7 @@ describe("dependencies (D1–D3)", () => {
     expect((await detail("PRJ-58")).isBlocked).toBe(false);
     expect((await req<TaskDependencies>("GET", "/tasks/p_prj-t58/dependencies")).blockedBy).toHaveLength(0);
     const list = await req<{ data: Task[] }>("GET", "/projects/p_prj/tasks", undefined, { filter: { blocked: "true" } });
-    expect(list.data.map((x) => x.key).sort()).toEqual(["PRJ-47", "PRJ-68"]);
+    expect(list.data.map((x) => x.key).sort()).toEqual(["PRJ-47", "PRJ-52", "PRJ-68"]); // PRJ-52: board 32 seed (PRJ-50 blocks it)
     expect((await rejects(req("GET", "/projects/p_prj/tasks", undefined, { filter: { blocked: "maybe" } }))).details?.fields).toEqual({ "filter[blocked]": "Use true or false" });
   });
 

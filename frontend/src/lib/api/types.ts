@@ -264,11 +264,19 @@ export interface Epic {
   ownerId: ID | null;
   milestoneId: ID | null;
   archivedAt: ISODateTime | null;
+  /** Board 32: both or neither. Null = the timeline derives the span from the epic's tasks. */
+  startDate: ISODate | null;
+  /** Board 32: target date ("Target" in the UI). */
+  dueDate: ISODate | null;
   progress: Progress;
 }
 
-/** Board 27: body for create / update epic. `archived` toggles archivedAt server-side. */
-export type EpicWrite = Partial<Pick<Epic, "name" | "description" | "hue" | "ownerId" | "milestoneId">> & { archived?: boolean };
+/** Board 27: body for create / update epic. `archived` toggles archivedAt server-side. Board 32 adds the dates (both or neither). */
+export type EpicWrite = Partial<Pick<Epic, "name" | "description" | "hue" | "ownerId" | "milestoneId">> & {
+  archived?: boolean;
+  startDate?: ISODate | null;
+  dueDate?: ISODate | null;
+};
 
 export type SprintState = "planned" | "active" | "completed";
 
@@ -313,6 +321,8 @@ export interface Task {
   assigneeId: ID | null;
   reporterId: ID;
   estimate: number | null;
+  /** Board 32. Effective span = [startDate ?? dueDate, dueDate ?? startDate]. */
+  startDate: ISODate | null;
   dueDate: ISODate | null;
   epicId: ID | null;
   milestoneId: ID | null;
@@ -363,6 +373,7 @@ export type TaskPatch = Partial<
     | "statusId"
     | "assigneeId"
     | "estimate"
+    | "startDate"
     | "dueDate"
     | "epicId"
     | "milestoneId"
@@ -388,6 +399,8 @@ export interface TaskCreate {
   epicId?: ID | null;
   milestoneId?: ID | null;
   dueDate?: ISODate | null;
+  /** Board 32 (API symmetry and seed; the create dialog doesn't show it). */
+  startDate?: ISODate | null;
   parentId?: ID | null;
   labelIds?: ID[];
   description?: RichDoc | null;
@@ -773,3 +786,9 @@ export interface Timesheet {
   dayTotals: number[];
   totalMinutes: number;
 }
+
+/* ───────────────────────── Timeline & calendar (board 32, v2), client-only ───────────────────────── */
+
+export type TimelineZoom = "week" | "month" | "quarter";
+export type TimelineGroup = "epic" | "assignee";
+export type CalendarMode = "month" | "week";

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, Maximize2, Minimize2, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,9 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const isDone = status?.category === "done" && status.glyph === "done";
   const spark = useSparking(task.id);
   const [planOpen, setPlanOpen] = useState(false);
-  const [forced, setForced] = useState<Set<string>>(new Set());
+  // Board 32: the tray's "Add dates" opens the panel with Start and Due revealed (?reveal=dates).
+  const revealDates = useSearchParams().get("reveal") === "dates";
+  const [forced, setForced] = useState<Set<string>>(() => new Set(revealDates ? ["start", "due"] : []));
   const revealedFields = new Set([...forced].filter((k) => k.startsWith(CF_FORCE)).map((k) => k.slice(CF_FORCE.length)));
   const [editingDesc, setEditingDesc] = useState(false);
   const [addingSub, setAddingSub] = useState(false);

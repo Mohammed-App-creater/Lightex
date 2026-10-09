@@ -7,6 +7,7 @@ import { projectPermissions, statusesOf, toProject, toTask } from "../derive";
 import { logActivity, notify } from "./common";
 import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
+import { checkBulkDates, checkTaskDates, dateSortValue, ensureExt32, scheduleFilter } from "./schedule";
 import { markTaskDeleted, trashComment } from "./trash";
 import {
   fail,
@@ -161,6 +162,9 @@ export function registerTasks() {
     const blocked = f("blocked")[0];
     if (blocked !== undefined && blocked !== "true" && blocked !== "false") invalid({ "filter[blocked]": "Use true or false" });
     ensureExt39(ctx.db);
+    ensureExt32(ctx.db);
+    // Board 32: filter[from] / filter[to] (span overlap) and filter[scheduled]; 422 on bad values.
+    const inRange = scheduleFilter(ctx.query);
     const [status, assignee, sprint, epic, milestone, priority, label, parent] = [
       f("status"),
       f("assignee").map((a) => (a === "me" ? ctx.userId! : a)),
@@ -181,19 +185,24 @@ export function registerTasks() {
       .filter((t) => !milestone.length || milestone.includes(t.milestoneId ?? "none"))
       .filter((t) => !priority.length || priority.includes(t.priority))
       .filter((t) => !label.length || t.labelIds.some((l) => label.includes(l)))
-      .filter((t) => !parent.length || parent.includes(t.parentId ?? "none"));
+      .filter((t) => !parent.length || parent.includes(t.parentId ?? "none"))
+      .filter((t) => !inRange || inRange(t));
     const sort = String(ctx.query.sort ?? "number");
     const desc = sort.startsWith("-");
     const key = desc ? sort.slice(1) : sort;
+    // Dates sort with a sentinel: missing dates last ascending, first descending (board 32 §4.1).
+    const isDate = key === "startDate" || key === "dueDate";
     list = [...list].sort((a, b) => {
-      const av = (a as unknown as Record<string, unknown>)[key] ?? "";
-      const bv = (b as unknown as Record<string, unknown>)[key] ?? "";
+      const ar = (a as unknown as Record<string, unknown>)[key];
+      const br = (b as unknown as Record<string, unknown>)[key];
+      const av = isDate ? dateSortValue(ar) : (ar ?? "");
+      const bv = isDate ? dateSortValue(br) : (br ?? "");
       const r = av < bv ? -1 : av > bv ? 1 : 0;
       return desc ? -r : r;
     });
     let out = list.map((t) => toTask(ctx.db, t));
     if (blocked !== undefined) out = out.filter((t) => t.isBlocked === (blocked === "true"));
-    return paginate(out, ctx.query, 500);
+    return paginate(out, ctx.query, 500, 500);
   });
 
   route("POST", "/projects/:id/tasks", (ctx) => {
@@ -207,6 +216,8 @@ export function registerTasks() {
     if (b.assigneeId && b.assigneeId !== ctx.userId && !perms.includes("task.assign")) {
       fail(403, "forbidden", "You can’t assign tasks to others.", { permission: "task.assign" });
     }
+    // Board 32: startDate / dueDate format and order (same messages as PATCH).
+    checkTaskDates(b as Record<string, unknown>, null);
     p.taskSeq += 1;
     const now = nowISO();
     const t: TaskRec = {
@@ -221,6 +232,7 @@ export function registerTasks() {
       assigneeId: b.assigneeId ?? null,
       reporterId: ctx.userId!,
       estimate: b.estimate ?? null,
+      startDate: b.startDate ?? null,
       dueDate: b.dueDate ?? null,
       epicId: b.epicId ?? null,
       milestoneId: b.milestoneId ?? null,
@@ -281,6 +293,8 @@ export function registerTasks() {
     }
     // Board 39: customFields / timeEstimateMinutes are validated before anything is written.
     const applyExt = keys.some((k) => k === "customFields" || k === "timeEstimateMinutes") ? prepareTaskExtPatch(ctx.db, t, b as Record<string, unknown>) : null;
+    // Board 32: date format, then order on the resulting pair (sent value, else the stored one).
+    checkTaskDates(b as Record<string, unknown>, t);
     const before = { ...t };
     if (b.title !== undefined) {
       if (!b.title.trim()) invalid({ title: "Give the task a title" });
@@ -295,6 +309,7 @@ export function registerTasks() {
     if (b.priority !== undefined) t.priority = b.priority;
     if (b.assigneeId !== undefined) t.assigneeId = b.assigneeId;
     if (b.estimate !== undefined) t.estimate = b.estimate === null ? null : Math.max(0, Math.min(99, Math.round(b.estimate)));
+    if (b.startDate !== undefined) t.startDate = b.startDate;
     if (b.dueDate !== undefined) t.dueDate = b.dueDate;
     if (b.epicId !== undefined) t.epicId = b.epicId;
     if (b.milestoneId !== undefined) t.milestoneId = b.milestoneId;
@@ -370,6 +385,8 @@ export function registerTasks() {
     const patch = b.patch ?? {};
     if ("customFields" in patch) invalid({ customFields: "This field can’t be bulk-edited" });
     if ("timeEstimateMinutes" in patch) invalid({ timeEstimateMinutes: "This field can’t be bulk-edited" });
+    // Board 32: startDate isn't bulk-editable; a due date before a selected task's start fails the whole request.
+    checkBulkDates(patch as Record<string, unknown>, tasks);
     const perms = projectPermissions(ctx.db, userId, p.id);
     if ("assigneeId" in patch && !perms.includes("task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
     const statusOnly = Object.keys(patch).every((k) => k === "statusId");
@@ -388,6 +405,7 @@ export function registerTasks() {
       if (patch.labelIds) t.labelIds = [...new Set([...t.labelIds, ...patch.labelIds])];
       if (patch.sprintId !== undefined) t.sprintId = patch.sprintId;
       if (patch.priority !== undefined) t.priority = patch.priority;
+      if (patch.dueDate !== undefined) t.dueDate = patch.dueDate;
       // Board 27: "Add tasks to epic" / remove from epic go through bulk { epicId }.
       if (patch.epicId !== undefined) {
         if (patch.epicId && !ctx.db.epics.some((e) => e.id === patch.epicId && e.projectId === p.id)) invalid({ epicId: "Pick an epic in this project" });

@@ -97,8 +97,9 @@ The rule applied was: docs win for behaviour, design wins for appearance.
 2. **Permission keys and role names.** The design boards use their own permission names and the roles
    Guest/Contributor/Observer. The brief's catalogue and its 7 default roles are used instead. The design's
    permission-matrix grouping and layout are kept.
-3. **Project "Timeline" tab** (design) vs the brief's "no timeline/calendar views in v1": the tab is hidden. The
-   milestone timeline strip on Overview and Milestones is kept, because it is a progress visual, not a scheduling view.
+3. **Project "Timeline" tab** (design) vs the brief's "no timeline/calendar views in v1": the tab was hidden in v1.
+   **Back in v2** (board 32, §8): Timeline and Calendar are project tabs after Backlog. The milestone timeline strip
+   on Overview and Milestones is unchanged (a progress visual, not a scheduling view).
 4. **"Blocked" pinned view** (design) depends on task dependencies, which were v2. Dropped in v1; **back in v2**
    (board 39, §8) as a seeded personal saved view "Blocked" (`blocked is true`) for every PRJ member.
 5. **"Import CSV"** (design, new-project flow) is v2 import. Omitted.
@@ -228,6 +229,54 @@ and 403 / 409 on timer stop (timer discarded).
   drops `cf` rules for unknown fields or ops that don't suit the type, ignores rules on fields deleted after saving,
   and counts views on the derived task (`isBlocked`, `customFields`).
 
+### v2 · Board 32: timeline & calendar
+
+The contract is `docs/v2/32-timeline-calendar.md` (repo root). **No new endpoint**: board 32 adds fields, filters, a
+sort key and validation to existing endpoints. Every item is typed in `src/lib/api/types.ts`, reachable through
+`endpoints.ts` / `qk`, and implemented in the mock (`src/lib/mock/handlers/schedule.ts`, wired into `tasks.ts` and
+`planning.ts`; tested in `src/lib/mock/schedule.test.ts`).
+
+**Fields**
+
+- `Task.startDate: ISODate | null` on every task payload (lists, board, backlog, my tasks, workspace tasks, sprint
+  board, bulk, PATCH / move responses, `version_conflict.details.current`, search task results, `TaskDetail`).
+  Effective span = `[startDate ?? dueDate, dueDate ?? startDate]`; neither = unscheduled.
+- `TaskPatch.startDate` and `TaskCreate.startDate` (the create dialog doesn't show it; contract §9 #7).
+- `Epic.startDate`, `Epic.dueDate` (UI "Start" / "Target"; both or neither) on every epic payload;
+  `EpicWrite.startDate` / `dueDate` on `POST /projects/:id/epics` and `PATCH /epics/:id`.
+- Client-only types `TimelineZoom`, `TimelineGroup`, `CalendarMode`.
+
+**Filters and sort on `GET /projects/:id/tasks`** (combine with every v1 filter, `q`, `sort`, `cursor`, `limit`)
+
+| Parameter | Value | Meaning | Client |
+|---|---|---|---|
+| `filter[from]` | `ISODate` | span ends on or after `from` | `api.tasks.range` · `qk.schedule` |
+| `filter[to]` | `ISODate` | span starts on or before `to` (with `from`: inclusive overlap) | `api.tasks.range` · `qk.schedule` |
+| `filter[scheduled]` | `true` / `false` | at least one date / neither | `api.tasks.unscheduled` · `qk.unscheduled` |
+| `sort` | `startDate` / `-startDate` | missing dates last ascending, first descending (the mock applies the same to `dueDate`) | `api.tasks.range` |
+| `limit` | ≤ 500 | the range query pages at 500 (the mock's cap for this list rose from 200 to 500) | up to 4 pages = 2,000 tasks |
+
+**Validation (422 `validation_failed`, `details.fields`)**
+
+- Query: `filter[from]` / `filter[to]` "Pick a date"; `filter[to]` "End must be on or after the start" and
+  "Pick a range of 400 days or less"; `filter[scheduled]` "Use true or false".
+- `PATCH /tasks/:id`, `POST /projects/:id/tasks`: `startDate` / `dueDate` "Pick a date"; order checked on the
+  resulting pair: `startDate` "Start date must be on or before the due date" (start sent) or `dueDate` "Due date must
+  be on or after the start date" (only due sent). A dates-only PATCH is not status-only, so `task.move` alone is refused.
+- `POST /projects/:id/tasks/bulk`: `patch.startDate` "This field can’t be bulk-edited"; a `patch.dueDate` before any
+  selected task's start fails the whole request with `patch.dueDate` "PRJ-42 starts after this date" (first key by
+  number); `patch.dueDate: null` is allowed. (The mock's bulk now applies `patch.dueDate`; it ignored it before.)
+- Epics: "Pick a date"; `startDate` "Set both dates or neither"; `dueDate` "Target date must be on or after the start
+  date". `{ startDate: null, dueDate: null }` clears both. No `version` (last write wins).
+
+**Seed / upgrade:** `ensureExt32` (marker `ext32`, no `SCHEMA` bump) fills the contract's PRJ start dates only where
+the start is empty and the due date still equals the seeded one, sets the four design epic dates, and adds the
+dependency PRJ-50 → PRJ-52 (a non-conflict arrow next to the PRJ-48 → PRJ-42 conflict).
+
+**Shared test vectors:** `src/features/schedule/span-vectors.json` (20 cases) drives both the client `inRange` test
+and the mock filter test. The contract wants the backend copy at `backend/apps/tasks/tests/data/span_vectors.json`;
+that path is the backend's to add (this frontend change doesn't touch `backend/`).
+
 ---
 
 ## 6. Known gaps
@@ -267,7 +316,7 @@ into `design/clean/24-…40-*.html`, next to boards 01–23.
 | 34 Attachments & shortcuts | **Built.** Image viewer and shortcuts modal. Code preview is **not** built (brief conflict below). |
 | 35 Illustrations, icons, OG, loading | **Built.** Empty-state illustrations, app icons and manifest, OG image, splash loader. |
 | 36 Email templates | **Delivered** as `emails/*.html` plus `emails/README.md` (merge tags, subjects, triggers), with a dev preview at `/dev/emails`. Sending emails is the backend's job. |
-| 32 Timeline & calendar | **Not built.** v2 (banned by the brief). |
+| 32 Timeline & calendar | **Built in v2** (see §8). |
 | 33 Dashboards & presence | **Not built.** Live presence needs realtime updates (no WebSockets in v1), and dashboards are not in the brief. |
 | 37 Integrations (GitHub/GitLab) | **Not built.** v2. |
 | 38 Telegram / SMS / Push | **Not built.** v2. These stay "Coming soon" in notification preferences. |
@@ -339,8 +388,8 @@ All of these are implemented in the mock and typed in `src/lib/api`.
 
 ## 8. v2
 
-The user lifted the "no v2 features" rule for board 39. The remaining v2 boards are planned next: **32** Timeline &
-calendar, **33** Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push, **40** Import wizard.
+The user lifted the "no v2 features" rule for boards 39 and 32. The remaining v2 boards are planned next: **33**
+Dashboards & presence, **37** Integrations, **38** Telegram / SMS / Push, **40** Import wizard.
 
 ### Board 39: custom fields, dependencies, time tracking (built)
 
@@ -388,3 +437,68 @@ Spec: `docs/v2/39-fields-dependencies-time.md`. API additions are listed in §5 
   enforces it.
 - A field delete still waiting on its Undo is committed on `pagehide`; a crash inside the 5 s window loses it.
 - Live mode is untested against the backend until `docs/openapi.yaml` includes these endpoints.
+
+### Board 32: timeline & calendar (built)
+
+Spec: `docs/v2/32-timeline-calendar.md`. API additions are listed in §5 ("v2 · Board 32"). Code: `src/features/schedule/`.
+
+- **Timeline** (`/[ws]/projects/[key]/timeline`): Milestones lane (diamonds link to Milestones, guide lines), Sprints
+  lane (active / completed / planned; links to `sprints?sprint=` when the viewer has that tab), then one group per epic
+  (explicit bar, or a dashed derived bar from its tasks; "Archived" tag; "No epic" last) or per assignee (Former
+  member, Unassigned last). Zoom Week / Month / Quarter (28 / 91 / 273 days, pan 7 / 28 / 91), Today, weekend
+  shading, today marker, two axis rows. Collapsed groups are remembered per project in `localStorage`. Over 150 rows
+  the rows are virtualised (TanStack Virtual).
+- **Rescheduling:** hand-written pointer drag (`use-bar-drag.ts`): the middle moves, 9 px edges (16 px touch) resize,
+  3 px activation for mouse/pen, 200 ms press-and-hold for touch, Esc / pointercancel revert. Keyboard: ← → move,
+  Shift+← → resize the due edge, ↑ ↓ move between bars, Enter opens (epic: toggles). Keyboard bursts send one PATCH
+  600 ms after the last key or on blur. Tooltip "Oct 1 → Oct 9 · 9d", live-region announcements, 5 s Undo toast,
+  pending-sync ring and a 400 ms "land" pulse (none under reduced motion).
+- **Ordered optimistic writes** (`use-reschedule.ts`): drag previews live in an external store (one bar and its
+  arrows re-render per frame); a commit patches every task cache, sends only the changed keys, reads `version` from
+  the cache when it executes, and rolls back with the v1 toasts (contract §4.6: conflict, deleted, 403, 422,
+  network + Retry). Undo re-sends the previous dates with the current version, or cancels a burst still in its window.
+- **Dependency arrows** from board 39 `openBlockers` (SVG, `--text-3`, `--danger` on conflict); the toggle is kept as
+  `deps=0`.
+- **Unscheduled tray** (300 px, open tasks with no dates, priority order, "200+" cap): drag a row onto a lane or day to
+  set its due date, or "Add dates" opens the panel with Start and Due revealed (`?reveal=dates`). The empty state's
+  "Add dates" opens it.
+- **Calendar** (`/[ws]/projects/[key]/calendar`): month grid (Mon-first, 4–6 rows, 3 chips then "+N more" on a Radix
+  popover) and week columns; chips sit on their due date; drag to another day (the start shifts too) or Alt+arrows
+  (±1 / ±7); "· Nothing due" suffix on empty ranges.
+- **390 px:** the calendar becomes the agenda (week strip with ‹ ›, `?day=`, up to 4 day groups, cards open the sheet,
+  the FAB pre-fills the due date); the timeline is read-only with a 96 px label column and horizontal scroll inside
+  its own box.
+- **States:** skeletons, the previous range kept on screen with a 2 px progress bar, "Nothing scheduled" empty state,
+  filtered empty, error with `<status> · request <ref>` and Retry, 2,000-task banner, inline lane error with Retry.
+- **URL state:** `zoom` / `group` / `mode` pushed; `at` / `deps` / `tray` / `day` replaced; filters via `useUrlFilters`.
+- **Elsewhere:** task panel "Start date" row (and "Add property → Start date"; the pickers disable days that would
+  break start ≤ due) plus an "Oct 1 → Oct 9" chip when both dates are set; List "Start" column (Columns menu, off by
+  default, sortable); epic panel "Start" / "Target" fields (both or neither); the create dialog accepts a `dueDate`
+  default.
+
+### Deviations (board 32)
+
+- **Mutation scope:** reschedules share one TanStack mutation scope per project (`reschedule:<projectId>`), not one per
+  task. `useMutation`'s `scope` is fixed per hook; a project-wide queue still guarantees per-task order.
+- **Toast text:** a task toast reports the edge that changed, old → new ("PRJ-34 Oct 6 → Oct 8", as in the contract's
+  example); an epic toast shows the new span ("Sprint engine · Sep 1 → Nov 11"). The design showed the new span for both.
+- **Epic date writes** live in `use-reschedule.ts` (optimistic `qk.epics` patch, rollback, Undo); board 27 had no
+  `useUpdateEpic` to reuse.
+- **Conflict arrows** that can't enter from the left run along the row boundary above the blocked bar (two extra
+  bends), so they never hide under it; non-conflicting arrows keep the single elbow.
+- **Resizing a single-date task** writes both dates (a due-only bar becomes a span), unless the result is one day.
+- **Tray count** shows once the tray has been opened (the query only runs while it's open, per §6.5).
+- **List Start cells are read-only**; Start is edited in the task panel (one place for the start ≤ due rules).
+- **Task panel date errors:** the pickers prevent an invalid pick; a server refusal shows the field message in the v1
+  error toast rather than inline under the field.
+- **390 px calendar** hides the desktop toolbar (the design's mobile frame has none); filters in the URL still apply.
+- **Pending ring on timeline bars** sits just right of the bar (the design only drew it on calendar chips).
+
+### Known gaps (board 32)
+
+- The Playwright smoke suite (`e2e/smoke.spec.ts`) is not extended. Drag, keyboard, Undo, tray, calendar and role
+  gating were verified with a scripted Playwright run and screenshots, not with committed e2e tests.
+- Live mode is untested against the backend until `docs/openapi.yaml` carries `startDate`, the epic dates and the
+  range filters.
+- Start date is not in the filter builder (contract §9 #6) or the create dialog (§9 #7); epic writes are last-write-wins.
+- A keyboard burst still inside its 600 ms window when the page closes is lost.

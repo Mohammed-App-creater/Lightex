@@ -3,7 +3,7 @@ import type { CustomField, Epic, Label, Milestone, Sprint, Status, Task, User } 
 
 /* Pure list-view logic (board 15): columns, grouping, sorting, filtering. Unit-tested. */
 
-export type BaseColumnId = "key" | "title" | "status" | "pri" | "asg" | "sprint" | "ms" | "due" | "labels";
+export type BaseColumnId = "key" | "title" | "status" | "pri" | "asg" | "sprint" | "ms" | "start" | "due" | "labels";
 /** Board 39: one optional column per custom field, id `cf.<fieldId>`. */
 export type ColumnId = BaseColumnId | `cf.${string}`;
 export type ColumnDef = { id: ColumnId; label: string; width: number; min: number };
@@ -18,6 +18,8 @@ export const COLUMNS: (ColumnDef & { id: BaseColumnId })[] = [
   { id: "asg", label: "Assignee", width: 112, min: 44 },
   { id: "sprint", label: "Sprint", width: 92, min: 64 },
   { id: "ms", label: "Milestone", width: 120, min: 72 },
+  // Board 32: optional Start column (hidden by default; see ListScreen prefs.start).
+  { id: "start", label: "Start", width: 72, min: 56 },
   { id: "due", label: "Due", width: 72, min: 56 },
   { id: "labels", label: "Labels", width: 140, min: 72 },
 ];
@@ -72,6 +74,8 @@ export function sortValue(t: Task, col: ColumnId, ctx: Ctx): string | number {
       const i = ctx.milestones.findIndex((m) => m.id === t.milestoneId);
       return i === -1 ? 99_999 : i;
     }
+    case "start":
+      return t.startDate ?? "9999-99-99";
     case "due":
       return t.dueDate ?? "9999-99-99";
     case "labels":

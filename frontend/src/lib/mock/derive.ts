@@ -123,12 +123,13 @@ function stripSeq({ taskSeq: _taskSeq, ...rest }: ProjectRec) {
 }
 
 export function toTask(db: MockDB, t: TaskRec): Task {
-  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, ...rest } = t;
+  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, startDate, ...rest } = t;
   const statuses = statusesOf(db, t.projectId);
   const subs = db.tasks.filter((x) => x.parentId === t.id && !x.deletedAt);
   const openBlockers = openBlockersOf(db, t.id);
   return {
     ...rest,
+    startDate: startDate ?? null,
     subtaskCount: subs.length,
     subtaskDoneCount: subs.filter((x) => isDoneStatus(x.statusId, statuses)).length,
     commentCount: db.comments.filter((c) => c.taskId === t.id).length,
@@ -173,7 +174,15 @@ export function toMilestone(db: MockDB, m: MilestoneRec): Milestone {
 
 export function toEpic(db: MockDB, e: EpicRec): Epic {
   const tasks = liveTasks(db, e.projectId).filter((t) => t.epicId === e.id);
-  return { ...e, ownerId: e.ownerId ?? null, milestoneId: e.milestoneId ?? null, archivedAt: e.archivedAt ?? null, progress: progressOf(tasks, statusesOf(db, e.projectId)) };
+  return {
+    ...e,
+    ownerId: e.ownerId ?? null,
+    milestoneId: e.milestoneId ?? null,
+    archivedAt: e.archivedAt ?? null,
+    startDate: e.startDate ?? null,
+    dueDate: e.dueDate ?? null,
+    progress: progressOf(tasks, statusesOf(db, e.projectId)),
+  };
 }
 
 export function toSprint(db: MockDB, s: SprintRec): Sprint {

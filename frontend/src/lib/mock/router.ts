@@ -96,8 +96,8 @@ export function hasProject(ctx: Ctx, projectId: string, perm: Permission) {
 
 /* ───────── list helpers ───────── */
 
-export function paginate<T>(items: T[], query: ListQuery, defaultLimit = 50): Paginated<T> {
-  const limit = Math.min(Math.max(Number(query.limit) || defaultLimit, 1), 200);
+export function paginate<T>(items: T[], query: ListQuery, defaultLimit = 50, maxLimit = 200): Paginated<T> {
+  const limit = Math.min(Math.max(Number(query.limit) || defaultLimit, 1), maxLimit);
   const offset = query.cursor ? Number(query.cursor) || 0 : 0;
   const data = items.slice(offset, offset + limit);
   const next = offset + limit < items.length ? String(offset + limit) : null;

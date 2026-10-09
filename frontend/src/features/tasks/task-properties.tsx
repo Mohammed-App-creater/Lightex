@@ -1,7 +1,7 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { ChevronRight, Plus, Search, Target, X } from "lucide-react";
+import { CalendarRange, ChevronRight, Plus, Search, Target, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/choice";
@@ -135,6 +135,13 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
           </MenuContent>
         </Menu>
       )}
+      {/* Board 32: the task's span when it has both dates. */}
+      {task.startDate && task.dueDate && (
+        <span className={cn(chipBase, "cursor-default font-mono text-[12px]")} aria-label={`Scheduled ${shortDate(task.startDate)} to ${shortDate(task.dueDate)}`}>
+          <CalendarRange size={13} aria-hidden className="text-fg-3" />
+          {shortDate(task.startDate)} → {shortDate(task.dueDate)}
+        </span>
+      )}
       {/* Board 39: derived Blocked chip and the viewer's running timer (read-only). */}
       <BlockedChip task={task} />
       <RunningTimerChip taskId={task.id} />
@@ -164,6 +171,7 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
   const sprint = sprints.find((s) => s.id === task.sprintId);
   const showEst = task.estimate !== null || forced.has("estimate");
   const showDue = Boolean(task.dueDate) || forced.has("due");
+  const showStart = Boolean(task.startDate) || forced.has("start");
 
   const commitEst = () => {
     setEditingEst(false);
@@ -254,6 +262,7 @@ export function TaskFields({ task, canEdit, onPatch, forced }: Props & { forced:
           </div>
         ))}
 
+      {showStart && <StartField task={task} canEdit={canEdit} onPatch={onPatch} />}
       {showDue && <DueField task={task} canEdit={canEdit} onPatch={onPatch} sprintEnd={sprint?.endDate} />}
     </div>
   );
@@ -283,6 +292,8 @@ function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; can
   return (
     <DatePicker
       value={d}
+      // Board 32: days before the start date can't be picked (the server refuses start > due).
+      min={task.startDate ?? undefined}
       onChange={(v) => onPatch({ dueDate: v })}
       quick={(pick) => (
         <>
@@ -294,6 +305,35 @@ function DueField({ task, canEdit, onPatch, sprintEnd }: { task: TaskDetail; can
       )}
     >
       <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Due date: ${d ? shortDate(d) : "none"}`}>
+        {value}
+      </button>
+    </DatePicker>
+  );
+}
+
+/** Board 32: Start date (shown when set or revealed through "Add property"); days after the due date are disabled. */
+function StartField({ task, canEdit, onPatch }: { task: TaskDetail; canEdit: boolean; onPatch: (p: TaskPatch) => void }) {
+  const d = task.startDate;
+  const value = (
+    <>
+      <FieldLabel>Start date</FieldLabel>
+      <FieldValue>{d ? shortDate(d) : <span className="text-fg-3">Set…</span>}</FieldValue>
+    </>
+  );
+  if (!canEdit) return <div className={fieldBtn}>{value}</div>;
+  return (
+    <DatePicker
+      value={d}
+      max={task.dueDate ?? undefined}
+      onChange={(v) => onPatch({ startDate: v })}
+      quick={(pick) => (
+        <>
+          <DateChip onClick={() => pick(todayISO())}>Today</DateChip>
+          {d && <DateChip onClick={() => pick(null)}>Clear</DateChip>}
+        </>
+      )}
+    >
+      <button type="button" className={cn(fieldBtn, "hover:bg-hover data-[state=open]:bg-hover")} aria-label={`Start date: ${d ? shortDate(d) : "none"}`}>
         {value}
       </button>
     </DatePicker>
@@ -503,6 +543,7 @@ export function AddProperty({ task, canEdit, forced, onForce }: Props & { forced
   const showEstimate = task.timeEstimateMinutes === null && !forced.has("timeEstimate");
   const missing = [
     { k: "estimate", label: "Estimate", has: task.estimate !== null },
+    { k: "start", label: "Start date", has: Boolean(task.startDate) },
     { k: "due", label: "Due date", has: Boolean(task.dueDate) },
     { k: "sprint", label: "Sprint", has: Boolean(task.sprintId) },
     { k: "milestone", label: "Milestone", has: Boolean(task.milestoneId) },

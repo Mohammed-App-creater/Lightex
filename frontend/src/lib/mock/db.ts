@@ -1,5 +1,6 @@
 import type { MockDB } from "./db-types";
 import { ensureExt39 } from "./handlers/extensions";
+import { ensureExt32 } from "./handlers/schedule";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -33,6 +34,11 @@ export function getDB(): MockDB {
           // Board 39: upgrade a database cached before v2 (roles, seed data, "Blocked" view), once.
           if (!db.ext39) {
             ensureExt39(db);
+            persist();
+          }
+          // Board 32: start dates, epic dates and the extra dependency, once (needs board 39's data first).
+          if (!db.ext32) {
+            ensureExt32(db);
             persist();
           }
           return db;

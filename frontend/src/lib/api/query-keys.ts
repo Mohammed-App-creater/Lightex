@@ -51,6 +51,13 @@ export const qk = {
   timesheets: (slug: string) => ["workspace", slug, "timesheet"] as const,
   timesheet: (slug: string, week: string, projectId?: string) => ["workspace", slug, "timesheet", week, projectId ?? "all"] as const,
 
+  /* Board 32 (v2). Under ["p", id] so qk.scope invalidation and patchTasks reach them. */
+  /** Tasks overlapping a window (timeline / calendar). */
+  schedule: (projectId: string, from: string, to: string) => ["p", projectId, "schedule", from, to] as const,
+  /** Prefix of every schedule window of a project. */
+  schedules: (projectId: string) => ["p", projectId, "schedule"] as const,
+  unscheduled: (projectId: string) => ["p", projectId, "unscheduled"] as const,
+
   notifications: (tab: string, workspaceId?: string) => ["notifications", workspaceId ?? "all", tab] as const,
   unread: (workspaceId?: string) => ["notifications", workspaceId ?? "all", "unread"] as const,
   prefs: () => ["notification-prefs"] as const,

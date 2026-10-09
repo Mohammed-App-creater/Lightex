@@ -64,12 +64,16 @@ export type ProjectMemberRec = { projectId: string; userId: string; roleId: stri
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
 export type MilestoneRec = Omit<Milestone, "progress">;
 // Board 27 fields are optional on the record (older seeds lack them); toEpic normalizes to null.
-export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archivedAt"> & Partial<Pick<Epic, "ownerId" | "milestoneId" | "archivedAt">>;
+// Board 32 dates are optional too (cached databases predate them); toEpic normalizes to null.
+export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archivedAt" | "startDate" | "dueDate"> &
+  Partial<Pick<Epic, "ownerId" | "milestoneId" | "archivedAt" | "startDate" | "dueDate">>;
 export type SprintRec = Omit<Sprint, "progress">;
 export type TaskRec = Omit<
   Task,
-  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes"
+  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes" | "startDate"
 > & {
+  /** Board 32 (optional so v1-cached records still load; toTask normalizes to null). */
+  startDate?: string | null;
   description: RichDoc | null;
   startedAt: string | null;
   /** Board 39: set custom-field values (optional so v1-cached records still load). */
@@ -118,6 +122,8 @@ export interface MockDB {
   timers?: { userId: string; taskId: string; startedAt: string }[];
   /** Board 39 upgrade marker for databases cached before v2. */
   ext39?: boolean;
+  /** Board 32 upgrade marker (start dates, epic dates, one extra dependency). */
+  ext32?: boolean;
 }
 
 export type CustomFieldRec = Omit<CustomField, "taskCount"> & { createdById?: string | null };

@@ -55,7 +55,8 @@ type Row = { kind: "group"; group: Group } | { kind: "task"; task: Task; groupId
 const PREFS_KEY = (id: string) => `lightex-list-${id}`;
 
 /** `cf`: custom-field columns the user turned on (board 39: hidden by default). */
-type Prefs = { widths: Record<ColumnId, number>; hidden: ColumnId[]; groupBy: GroupBy; cf: string[] };
+/** `start`: the board 32 Start column, opt-in (older saved prefs don't list it in `hidden`). */
+type Prefs = { widths: Record<ColumnId, number>; hidden: ColumnId[]; groupBy: GroupBy; cf: string[]; start?: boolean };
 const widthOf = (widths: Record<ColumnId, number>, c: ColumnDef) => widths[c.id] ?? c.width;
 
 function loadPrefs(projectId: string): Prefs {
@@ -123,7 +124,7 @@ export function ListScreen() {
   }, [statuses, members, sprints, milestones, epics, labels, me.id, fields]);
 
   const visibleCols: ColumnDef[] = [
-    ...COLUMNS.filter((c) => c.id === "title" || !prefs.hidden.includes(c.id)),
+    ...COLUMNS.filter((c) => c.id === "title" || (c.id === "start" ? Boolean(prefs.start) : !prefs.hidden.includes(c.id))),
     ...fields.filter((f) => prefs.cf.includes(f.id)).map(cfColumn),
   ];
   const totalCols = COLUMNS.length + fields.length;
@@ -269,9 +270,11 @@ export function ListScreen() {
           {COLUMNS.filter((c) => c.id !== "title").map((c) => (
             <MenuCheckboxItem
               key={c.id}
-              checked={!prefs.hidden.includes(c.id)}
+              checked={c.id === "start" ? Boolean(prefs.start) : !prefs.hidden.includes(c.id)}
               onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(on) => setPrefs((p) => ({ ...p, hidden: on ? p.hidden.filter((x) => x !== c.id) : [...p.hidden, c.id] }))}
+              onCheckedChange={(on) =>
+                setPrefs((p) => (c.id === "start" ? { ...p, start: on } : { ...p, hidden: on ? p.hidden.filter((x) => x !== c.id) : [...p.hidden, c.id] }))
+              }
             >
               {c.label}
             </MenuCheckboxItem>
@@ -821,6 +824,13 @@ const TaskRow = memo(function TaskRow({
           </CellMenu>
         );
       }
+      case "start":
+        // Board 32: read-only here; Start is edited in the task panel (keeps start ≤ due checks in one place).
+        return task.startDate ? (
+          <span className={cn(cellStatic, "font-mono text-[12px] font-medium text-fg-3")}>{shortDate(task.startDate)}</span>
+        ) : (
+          <span className={cn(cellStatic, "text-fg-3")}>—</span>
+        );
       case "labels": {
         const slots = labelSlots(widths.labels);
         return (
@@ -1171,7 +1181,7 @@ function MobileList({ groups, groupBy, setGroupBy, ctx, onOpen }: { groups: Grou
 }
 
 function ListSkeleton({ template, selW, cols }: { template: string; selW: number; cols: ColumnId[] }) {
-  const presets: Record<ColumnId, number[]> = { key: [72, 60, 78, 66], title: [82, 60, 92, 54, 74], status: [64, 52, 72], pri: [56, 70], asg: [60, 48, 66], sprint: [70, 58], ms: [74, 60], due: [62, 74], labels: [54, 70, 42] };
+  const presets: Record<ColumnId, number[]> = { key: [72, 60, 78, 66], title: [82, 60, 92, 54, 74], status: [64, 52, 72], pri: [56, 70], asg: [60, 48, 66], sprint: [70, 58], ms: [74, 60], start: [62, 70], due: [62, 74], labels: [54, 70, 42] };
   return (
     <div aria-busy="true" aria-label="Loading tasks" className="overflow-hidden">
       {[4, 3, 3].map((count, g) => (

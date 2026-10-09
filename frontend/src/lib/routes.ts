@@ -7,6 +7,8 @@ export type ProjectView =
   | "board"
   | "list"
   | "backlog"
+  | "timeline"
+  | "calendar"
   | "sprints"
   | "epics"
   | "objectives"
@@ -36,7 +38,11 @@ export const routes = {
 export function withTaskParam(pathname: string, search: string, key: string | null) {
   const sp = new URLSearchParams(search);
   if (key) sp.set("task", key);
-  else sp.delete("task");
+  else {
+    sp.delete("task");
+    // Board 32: "Add dates" opens the panel with the date fields revealed (?reveal=dates).
+    sp.delete("reveal");
+  }
   const qs = sp.toString();
   return qs ? `${pathname}?${qs}` : pathname;
 }

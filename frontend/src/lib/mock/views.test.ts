@@ -27,8 +27,8 @@ describe("saved views (board 30)", () => {
     as("u_alex");
     const list = await req<SavedView[]>("GET", "/workspaces/platform/views");
     expect(list.filter((v) => v.pinned).map((v) => v.name)).toEqual(["My open bugs", "Due this week", "Blocked"]);
-    // PRJ-42, PRJ-47, PRJ-58 and PRJ-68 have an open blocker.
-    expect(list.find((v) => v.name === "Blocked")?.count).toBe(4);
+    // PRJ-42, PRJ-47, PRJ-58 and PRJ-68 have an open blocker; board 32's seed adds PRJ-52 (blocked by PRJ-50).
+    expect(list.find((v) => v.name === "Blocked")?.count).toBe(5);
     expect(list.every((v) => v.count >= 0 && v.ownerId === "u_alex")).toBe(true);
   });
 

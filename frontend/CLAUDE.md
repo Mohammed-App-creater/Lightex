@@ -47,7 +47,8 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 
 - **`src/app/`** — routes. Pages are thin and render a screen from `src/features/<area>/`.
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
-  - Project views: overview, board, list, backlog, epics, sprints, objectives, milestones, reports, settings.
+  - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
+    milestones, reports, settings.
   - Also: `trash`, `settings/{general,members,roles,notifications,profile,audit}`, `tasks/[taskKey]`, `my-tasks`,
     `search`, `inbox`, `timesheet` (v2, board 39).
 - **Task side panel:** `?task=KEY` on any project view (`TaskPanelHost`, with a card→panel morph).
@@ -90,10 +91,11 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   **download-only**, with no preview (the brief beats board 34's code viewer).
 - **Rich text** is Tiptap JSON rendered by a safe JSON→React renderer. Never use `innerHTML`.
 - **v2 features, only as scoped:**
-  - In scope: **board 39** (custom fields, dependencies, time tracking), built from `docs/v2/39-fields-dependencies-time.md`
-    (repo root); see `docs/final-report.md` §8.
-  - Planned next, still not built: timeline/calendar (32), dashboards and presence (33), GitHub/GitLab (37),
-    Telegram/SMS/push sending (38), import (40). No WebSockets or live presence.
+  - In scope: **board 39** (custom fields, dependencies, time tracking), built from `docs/v2/39-fields-dependencies-time.md`,
+    and **board 32** (timeline & calendar), built from `docs/v2/32-timeline-calendar.md` (both at the repo root); see
+    `docs/final-report.md` §8.
+  - Planned next, still not built: dashboards and presence (33), GitHub/GitLab (37), Telegram/SMS/push sending (38),
+    import (40). No WebSockets or live presence.
   - Until a board is in scope, where a design puts it inside an in-scope screen, it is hidden or marked "Coming soon".
 - **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
   `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
