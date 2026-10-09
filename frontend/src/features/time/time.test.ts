@@ -104,6 +104,11 @@ describe("timesheet lib", () => {
     expect(csvName(null, "2026-10-05")).toBe("timesheet-all-2026-10-05.csv");
   });
 
+  it("neutralises spreadsheet formulas in person names", () => {
+    const evil = { ...ts, rows: [{ ...ts.rows[0]!, user: { ...ts.rows[0]!.user, name: '=HYPERLINK("x","y")' } }] };
+    expect(timesheetCsv(evil, "2026-10-07").split("\n")[1]).toBe(`"'=HYPERLINK(""x"",""y"")",6.5,0,2,,,,,8.5`);
+  });
+
   it("gates export on report.view", () => {
     expect(canExport(ts, null)).toBe(true);
     expect(canExport(ts, "p1")).toBe(true);

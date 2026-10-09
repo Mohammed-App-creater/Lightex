@@ -1,5 +1,6 @@
 import type { Timesheet } from "@/lib/api/types";
 import { addDaysISO } from "@/lib/utils/dates";
+import { csvCell } from "@/features/reports/lib";
 import { formatHours } from "./duration";
 
 /* Timesheet maths (board 39): weeks, heat scale, CSV, export gate. Pure; unit-tested. */
@@ -46,7 +47,7 @@ export const cellText = (minutes: number, future: boolean) => (future ? "" : min
 
 /** CSV text built in the browser from S1 (§1.2). Future days are blank. */
 export function timesheetCsv(ts: Timesheet, today: string) {
-  const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const esc = csvCell; // formula-safe: person names are user-controlled
   const fut = (i: number) => ts.days[i]! > today;
   const lines = [["Person", ...ts.days.map((d, i) => dayLabel(d, i)), "Total"].map(esc).join(",")];
   for (const r of ts.rows) {
