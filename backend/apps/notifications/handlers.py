@@ -154,6 +154,8 @@ def on_status_change(event: DomainEvent) -> None:
     if task is None:
         return
     payload = {"fromStatus": event.payload.get("fromStatus"), "toStatus": event.payload.get("toStatus")}
+    if event.payload.get("via"):  # board 37: a status change made by an integration's automation
+        payload["via"] = event.payload["via"]
     for user in _recipients(event, [task.assignee_id, task.reporter_id]):
         deliver(event, user, kind="status", pref="status_change", task=task, payload=payload)
 

@@ -19,13 +19,14 @@ class ProjectSerializer(serializers.ModelSerializer):
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
     nextTaskNumber = serializers.SerializerMethodField()
+    devEnabled = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = [
             "id", "workspaceId", "key", "name", "description", "hue", "leadId", "status", "template", "createdAt",
             "memberCount", "openTaskCount", "doneTaskCount", "activeSprintId", "myRoleId", "my_permissions",
-            "nextTaskNumber",
+            "nextTaskNumber", "devEnabled",
         ]  # fmt: skip
 
     def get_createdAt(self, obj) -> str | None:
@@ -55,6 +56,12 @@ class ProjectSerializer(serializers.ModelSerializer):
         else:
             rid = obj.members.filter(user_id=self.context["user"].pk).values_list("role_id", flat=True).first()
         return str(rid) if rid else None
+
+    def get_devEnabled(self, obj) -> bool:
+        """Board 37: an active integration tracks a repository that applies to this project."""
+        from apps.integrations.payloads import project_dev_enabled
+
+        return project_dev_enabled(obj)
 
     def get_my_permissions(self, obj) -> list[str]:
         return ordered(access.project_permissions(self.context["user"], obj))

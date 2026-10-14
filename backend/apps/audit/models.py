@@ -16,6 +16,9 @@ class AuditLog(BaseModel):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
     actor_name = models.CharField(max_length=80, blank=True, default="")
+    # Board 37: "user" or "integration"; actor_ref holds the integration id for integration actors.
+    actor_kind = models.CharField(max_length=12, default="user")
+    actor_ref = models.CharField(max_length=64, blank=True, default="")
     action = models.CharField(max_length=64)  # "<entity>.<verb>", e.g. task.status_changed
     entity_type = models.CharField(max_length=32)
     entity_id = models.CharField(max_length=64, blank=True, default="")
@@ -34,4 +37,9 @@ class AuditLog(BaseModel):
             models.Index(fields=["project", "-created_at"], name="audit_project_created"),
             models.Index(fields=["task", "-created_at"], name="audit_task_created"),
             models.Index(fields=["workspace", "actor", "-created_at"], name="audit_ws_actor"),
+            models.Index(
+                fields=["workspace", "actor_ref", "-created_at"],
+                condition=~models.Q(actor_ref=""),
+                name="audit_ws_actor_ref",
+            ),
         ]

@@ -15,7 +15,7 @@ from apps.planning.models import Objective
 from apps.projects.models import Label, ProjectMember
 from apps.projects.selectors import project_for
 
-from .models import Task, TaskDependency, TaskFieldValue
+from .models import ExternalLink, Task, TaskDependency, TaskFieldValue
 
 
 def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
@@ -47,7 +47,12 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
 
     live_subtasks = Task.objects.all()
     done_subtasks = Task.objects.filter(status__category="done").exclude(status__glyph="canceled")
+    # Board 37 `Task.dev`: visible link counts and the candidate headline PRs (one prefetch query).
+    links = ExternalLink.objects.filter(suppressed=False)
     return qs.annotate(
+        dev_pr_count=_count(links.filter(type="pull_request")),
+        dev_branch_count=_count(links.filter(type="branch", state="active")),
+        dev_commit_count=_count(links.filter(type="commit")),
         subtask_count=_count(live_subtasks, "parent"),
         subtask_done_count=_count(done_subtasks, "parent"),
         comment_count=_count(Comment.objects.all()),
@@ -67,6 +72,24 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
             .only("id", "blocked", "blocker__id", "blocker__key", "blocker__title", "blocker__number")
             .order_by("blocker__number"),
             to_attr="open_blocker_links",
+        ),
+        Prefetch(
+            "external_links",
+            queryset=links.filter(type="pull_request", state__in=("open", "draft", "merged")).only(
+                "id",
+                "task",
+                "provider",
+                "number",
+                "state",
+                "checks",
+                "checks_state",
+                "approvals",
+                "base_branch",
+                "merged_at",
+                "source_updated_at",
+                "updated_at",
+            ),
+            to_attr="dev_pr_links",
         ),
     )
 

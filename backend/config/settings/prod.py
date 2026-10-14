@@ -1,5 +1,7 @@
 """Production: HTTPS only, secure cookies, strict hosts. Everything sensitive comes from the environment."""
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F403
 from .base import env
 
@@ -22,3 +24,12 @@ ADMIN_ENABLED = env.bool("ADMIN_ENABLED", default=False)
 REFRESH_COOKIE_SECURE = True
 # Health checks from the platform must not be redirected.
 SECURE_REDIRECT_EXEMPT = [r"^health$"]
+
+# Board 37 §10.2: credentials at rest need real keys once any provider is configured.
+if (env("GITHUB_APP_ID", default="") or env("GITLAB_CLIENT_ID", default="")) and not env(
+    "INTEGRATIONS_ENCRYPTION_KEYS", default=""
+):
+    raise ImproperlyConfigured(
+        "INTEGRATIONS_ENCRYPTION_KEYS is required when GitHub or GitLab is configured "
+        "(python manage.py generate_integration_key)."
+    )

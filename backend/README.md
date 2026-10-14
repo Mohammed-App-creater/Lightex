@@ -94,6 +94,26 @@ the repository. See [`.env.example`](.env.example).
 | `SSE_MAX_STREAMS_PER_PROCESS` | `16` | Streams per process; must be lower than `GUNICORN_THREADS` (checked at startup) |
 | `SSE_HEARTBEAT_SECONDS` / `SSE_MAX_LIFETIME_SECONDS` | `15` / `300` | Ping interval and stream lifetime (plus up to 30 s jitter) |
 | `THROTTLE_STREAM` / `THROTTLE_PRESENCE` | `30/min` / `240/min` | Stream connects and presence heartbeats per user |
+| `INTEGRATIONS_ENABLED` | `true` | Board 37 kill switch: receivers and connect endpoints answer 503 `integrations_unavailable` |
+| `INTEGRATIONS_PROVIDER_BACKEND` | `real` (dev: `fake` unless `GITHUB_APP_ID`/`GITLAB_CLIENT_ID` is set; tests: `fake`) | `real` or `fake` (fixture repositories, `manage.py fake_webhook`) |
+| `INTEGRATIONS_RUNNER` | `auto` (`inline` in tests) | Webhook/sync processing: Celery with a broker, else one daemon drain thread per process |
+| `INTEGRATIONS_ENCRYPTION_KEYS` | dev/test: derived from `DJANGO_SECRET_KEY` | `kid:base64url(32 bytes)[,kid:…]`, first encrypts, all decrypt. **Required in prod** once a provider is configured. Generate with `manage.py generate_integration_key`; never regenerate, rotate with `rotate_integration_secrets` |
+| `GITHUB_APP_ID` / `GITHUB_APP_SLUG` / `GITHUB_APP_CLIENT_ID` / `GITHUB_APP_CLIENT_SECRET` | — | The GitHub App (all six `GITHUB_*` values make GitHub available) |
+| `GITHUB_APP_PRIVATE_KEY` | — | The app's `.pem`; real newlines, `\n`-escaped or base64 |
+| `GITHUB_WEBHOOK_SECRET` | — | HMAC key for `X-Hub-Signature-256`; comma-separated during a rotation |
+| `GITHUB_BRANCH_CREATION` | `true` | `false` hides "Create branch" for GitHub (a read-only app) |
+| `GITLAB_CLIENT_ID` / `GITLAB_CLIENT_SECRET` / `GITLAB_BASE_URL` | — / — / `https://gitlab.com` | GitLab OAuth app (without it GitLab offers token mode only) |
+| `GITLAB_ALLOWED_HOSTS` | empty (any public host) | Allow-list for self-managed hosts, e.g. `gitlab.example.com,*.corp.example` |
+| `GITLAB_ALLOW_PRIVATE_NETWORKS` | `false` (dev: `true`) | Lets a self-managed URL resolve to private IPs. Leave `false` in prod (SSRF guard) |
+| `INTEGRATION_BACKFILL_DAYS` / `INTEGRATION_BACKFILL_MAX_PRS` / `INTEGRATION_CATCHUP_MINUTES` | `30` / `200` / `30` | Backfill window and cap; catch-up after this much silence |
+| `WEBHOOK_MAX_BODY_BYTES` / `WEBHOOK_RETENTION_DAYS` | `5242880` / `7` | Webhook body cap (413 above it) and delivery retention |
+| `THROTTLE_WEBHOOK` / `THROTTLE_INTEGRATION_CONNECT` / `THROTTLE_DEV_BRANCH` / `THROTTLE_DEV_LINK` | `1200/min` (per IP) / `10/hour` / `30/hour` / `60/hour` | Board 37 throttles |
+
+GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/integrations/github/callback`, Setup URL
+`<API_PUBLIC_URL>/api/v1/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/webhooks/github`, permissions
+and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/integrations/gitlab/callback`, scope `api`)
+are described in `docs/v2/37-integrations-github-gitlab.md` §2. Run `manage.py process_integrations` every 5 minutes
+where cron exists (it drains work, queues catch-ups, checks token expiry with `--check-tokens` and purges).
 
 ## Tests and checks
 

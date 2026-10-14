@@ -36,6 +36,12 @@ PERMISSIONS: list[PermissionDef] = [
     _ws("workspace.view", "Administration", "View workspace", "See the workspace and its project list"),
     _ws("workspace.update", "Administration", "Workspace settings", "Rename the workspace and change its URL"),
     _ws("workspace.manage_roles", "Administration", "Manage roles", "Create and edit roles"),
+    _ws(
+        "integration.manage",
+        "Administration",
+        "Manage integrations",
+        "Connect GitHub and GitLab, choose repositories and disconnect",
+    ),
     _ws("project.assign_admin", "Administration", "Assign project admins", "Make members admins of any project"),
     _ws("workspace.delete", "Administration", "Delete workspace", "Delete the workspace and all its projects"),
     # Project scope
@@ -48,6 +54,12 @@ PERMISSIONS: list[PermissionDef] = [
     _prj("time.log", "Tasks", "Log time", "Track time on tasks with the timer or by hand"),
     _prj("time.delete_any", "Tasks", "Delete anyone’s time", "Remove time entries logged by others"),
     _prj("project.import", "Tasks", "Import tasks", "Bring in tasks from a CSV or another tool’s export"),
+    _prj(
+        "development.link",
+        "Tasks",
+        "Link code",
+        "Create branches and link or unlink pull requests, commits and branches",
+    ),
     _prj("sprint.manage", "Planning", "Manage sprints", "Start, close and plan sprints"),
     _prj("milestone.manage", "Planning", "Edit milestones", "Create milestones and move dates"),
     _prj("objective.manage", "Planning", "Set objectives", "Create objectives and link tasks"),
@@ -83,6 +95,7 @@ WORKSPACE_ORDER = [
     "workspace.manage_roles",
     "project.create",
     "project.assign_admin",
+    "integration.manage",
     "audit.view",
 ]
 PROJECT_ORDER = [
@@ -104,6 +117,7 @@ PROJECT_ORDER = [
     "task.assign",
     "task.move",
     "project.import",
+    "development.link",
     "time.log",
     "time.delete_any",
     "comment.create",
@@ -191,6 +205,7 @@ DEFAULT_ROLES: list[RoleDef] = [
             "task.assign",
             "task.move",
             "project.import",
+            "development.link",
             "time.log",
             "comment.create",
             "comment.edit_own",

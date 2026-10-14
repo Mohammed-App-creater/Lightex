@@ -88,6 +88,7 @@ def _add_project(w: World) -> None:
     _add_board39(w)
     _add_board40(w)
     _add_board33(w)
+    _add_board37(w)
 
 
 def _add_tasks(w: World) -> None:
@@ -196,3 +197,30 @@ def _add_board33(w: World) -> None:
     w.extra["personal_dashboard"] = Dashboard.objects.create(
         project=w.project, owner=w.users["pmember"], name="My focus", visibility="personal"
     )
+
+
+def _add_board37(w: World) -> None:
+    """A GitHub integration tracking one repository for every project, and a manual PR link on the task (board 37)."""
+    from django.utils import timezone
+
+    from apps.integrations.models import Integration, Repository
+    from apps.tasks.models import ExternalLink
+
+    integration = Integration.objects.create(
+        workspace=w.ws, provider="github", auth_kind="github_app", base_url="https://github.com",
+        account_external_id="51234567", account_login="platform-team", account_kind="organization",
+        account_url="https://github.com/platform-team", status="active", connected_at=timezone.now(),
+        last_synced_at=timezone.now(),
+    )  # fmt: skip
+    repo = Repository.objects.create(
+        integration=integration, workspace=w.ws, external_id="712004001", full_path="platform-team/web",
+        owner_path="platform-team", name="web", web_url="https://github.com/platform-team/web",
+    )  # fmt: skip
+    w.extra["integration"] = integration
+    w.extra["repository"] = repo
+    w.extra["dev_link"] = ExternalLink.objects.create(
+        task=w.task, workspace=w.ws, provider="github", type="pull_request", external_id="712004001#214",
+        url="https://github.com/platform-team/web/pull/214", repository=repo, base_url="https://github.com",
+        repo_external_id="712004001", repo_full_path="platform-team/web", number=214, title="PRJ-1 Fix",
+        state="open", link_source="manual",
+    )  # fmt: skip

@@ -34,7 +34,8 @@ def test_catalogue_entry_and_placement(owner):
         "project", "Tasks", "Import tasks", "Bring in tasks from a CSV or another tool’s export",
     )  # fmt: skip
     order = catalogue.PROJECT_ORDER
-    assert order.index(CODE) == order.index("task.move") + 1 and order[order.index(CODE) + 1] == "time.log"
+    # board 37 placed development.link right after it
+    assert order.index(CODE) == order.index("task.move") + 1 and order[order.index(CODE) + 1] == "development.link"
     assert CODE in catalogue.ROLE_DEF_BY_KEY["project_admin"].core
 
 
@@ -55,6 +56,7 @@ def test_member_my_permissions_example(ws, owner):
         "task.assign",
         "task.move",
         "project.import",
+        "development.link",
         "time.log",
         "comment.create",
         "comment.edit_own",
