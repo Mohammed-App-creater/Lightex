@@ -846,6 +846,239 @@ paths:
               schema:
                 $ref: '#/components/schemas/AcceptInviteOut'
           description: ''
+  /api/v1/me/notification-channels:
+    get:
+      operationId: me_notification_channels_retrieve
+      description: C1.
+      tags:
+      - notification-channels
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannels'
+          description: ''
+  /api/v1/me/notification-channels/{channel}/test:
+    post:
+      operationId: me_notification_channels_test_create
+      description: C14.
+      parameters:
+      - in: path
+        name: channel
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: workspace
+        schema:
+          type: string
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelTestInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelTestResult'
+          description: ''
+  /api/v1/me/notification-channels/sms:
+    delete:
+      operationId: me_notification_channels_sms_destroy
+      description: C9.
+      tags:
+      - notification-channels
+      responses:
+        '204':
+          description: No response body
+  /api/v1/me/notification-channels/sms/verifications:
+    post:
+      operationId: me_notification_channels_sms_verifications_create
+      description: C6.
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsVerificationInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsVerification'
+          description: ''
+  /api/v1/me/notification-channels/sms/verifications/{verification_id}/resend:
+    post:
+      operationId: me_notification_channels_sms_verifications_resend_create
+      description: C7.
+      parameters:
+      - in: path
+        name: verification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notification-channels
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsVerification'
+          description: ''
+  /api/v1/me/notification-channels/sms/verifications/{verification_id}/verify:
+    post:
+      operationId: me_notification_channels_sms_verifications_verify_create
+      description: C8.
+      parameters:
+      - in: path
+        name: verification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsVerifyInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsVerifyOut'
+          description: ''
+  /api/v1/me/notification-channels/telegram:
+    delete:
+      operationId: me_notification_channels_telegram_destroy
+      description: C5.
+      tags:
+      - notification-channels
+      responses:
+        '204':
+          description: No response body
+  /api/v1/me/notification-channels/telegram/link:
+    post:
+      operationId: me_notification_channels_telegram_link_create
+      description: C2.
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelConnectInRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelegramLink'
+          description: ''
+  /api/v1/me/notification-channels/telegram/link/{link_id}:
+    get:
+      operationId: me_notification_channels_telegram_link_retrieve
+      description: C3, C4.
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notification-channels
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelegramLink'
+          description: ''
+    delete:
+      operationId: me_notification_channels_telegram_link_destroy
+      description: C3, C4.
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notification-channels
+      responses:
+        '204':
+          description: No response body
+  /api/v1/me/push-subscriptions:
+    put:
+      operationId: me_push_subscriptions_update
+      description: C11.
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscriptionInputRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushDevice'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushDevice'
+          description: ''
+  /api/v1/me/push-subscriptions/{device_id}:
+    delete:
+      operationId: me_push_subscriptions_destroy
+      description: C13.
+      parameters:
+      - in: path
+        name: device_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notification-channels
+      responses:
+        '204':
+          description: No response body
+  /api/v1/me/push-subscriptions/remove:
+    post:
+      operationId: me_push_subscriptions_remove_create
+      description: C12.
+      tags:
+      - notification-channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushRemoveInRequest'
+        required: true
+      responses:
+        '204':
+          description: No response body
   /api/v1/me/recents:
     get:
       operationId: me_recents_list
@@ -2665,6 +2898,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/Project'
           description: ''
+  /api/v1/push/vapid-public-key:
+    get:
+      operationId: push_vapid_public_key_retrieve
+      description: C10 (public).
+      tags:
+      - notification-channels
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VapidKey'
+          description: ''
   /api/v1/repositories/{repository_id}:
     patch:
       operationId: repositories_partial_update
@@ -3610,6 +3858,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookReceivedOut'
           description: ''
+  /api/v1/webhooks/telegram:
+    post:
+      operationId: webhooks_telegram_create
+      description: 'H1: X-Telegram-Bot-Api-Secret-Token; the reply rides in the response
+        body.'
+      tags:
+      - webhooks
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+        '401':
+          description: No response body
+  /api/v1/webhooks/twilio/sms:
+    post:
+      operationId: webhooks_twilio_sms_create
+      description: 'H2: inbound SMS (STOP / START).'
+      tags:
+      - webhooks
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+        '403':
+          description: No response body
+  /api/v1/webhooks/twilio/status:
+    post:
+      operationId: webhooks_twilio_status_create
+      description: 'H3: delivery status callbacks.'
+      tags:
+      - webhooks
+      security:
+      - {}
+      responses:
+        '204':
+          description: No response body
+        '403':
+          description: No response body
   /api/v1/workspaces:
     get:
       operationId: workspaces_list
@@ -5054,6 +5342,47 @@ components:
           type: string
         newPassword:
           type: string
+    ChannelConnectInRequest:
+      type: object
+      properties:
+        timezone:
+          type: string
+          minLength: 1
+    ChannelEnum:
+      enum:
+      - email
+      - telegram
+      - sms
+      - push
+      type: string
+    ChannelTestInRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+    ChannelTestResult:
+      type: object
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        status:
+          $ref: '#/components/schemas/ChannelTestResultStatusEnum'
+        deliveryId:
+          type: string
+          format: uuid
+        sentAt:
+          type: string
+          format: date-time
+      required:
+      - channel
+      - deliveryId
+      - sentAt
+      - status
+    ChannelTestResultStatusEnum:
+      enum:
+      - sent
+      type: string
     ChecksEnum:
       enum:
       - passing
@@ -5668,6 +5997,14 @@ components:
       - expiresAt
       - previewUrl
       - url
+    EmailChannel:
+      type: object
+      properties:
+        address:
+          type: string
+          format: email
+      required:
+      - address
     EmailInRequest:
       type: object
       properties:
@@ -6512,6 +6849,11 @@ components:
       - expected
       - percent
       - total
+    ModeEnum:
+      enum:
+      - subscribe
+      - refresh
+      type: string
     MyWsAccessRequest:
       type: object
       properties:
@@ -6568,6 +6910,22 @@ components:
       - taskKey
       - taskTitle
       - type
+    NotificationChannels:
+      type: object
+      properties:
+        email:
+          $ref: '#/components/schemas/EmailChannel'
+        telegram:
+          $ref: '#/components/schemas/TelegramChannel'
+        sms:
+          $ref: '#/components/schemas/SmsChannel'
+        push:
+          $ref: '#/components/schemas/PushChannel'
+      required:
+      - email
+      - push
+      - sms
+      - telegram
     NotificationPage:
       type: object
       properties:
@@ -6587,6 +6945,8 @@ components:
     NotificationPreferences:
       type: object
       properties:
+        quietHours:
+          $ref: '#/components/schemas/QuietHours'
         events:
           type: object
           additionalProperties:
@@ -6598,9 +6958,12 @@ components:
       required:
       - emailDelivery
       - events
+      - quietHours
     NotificationPreferencesRequest:
       type: object
       properties:
+        quietHours:
+          $ref: '#/components/schemas/QuietHoursRequest'
         events:
           type: object
           additionalProperties:
@@ -6613,6 +6976,7 @@ components:
       required:
       - emailDelivery
       - events
+      - quietHours
     NotificationTypeEnum:
       enum:
       - assigned
@@ -7264,6 +7628,132 @@ components:
       - name
       - oauthBaseUrl
       - provider
+    PushChannel:
+      type: object
+      properties:
+        devices:
+          $ref: '#/components/schemas/PushDevice'
+        available:
+          type: boolean
+        vapidPublicKey:
+          type: string
+          nullable: true
+      required:
+      - available
+      - devices
+      - vapidPublicKey
+    PushDevice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        endpointHash:
+          type: string
+        status:
+          $ref: '#/components/schemas/PushDeviceStatusEnum'
+        createdAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        lastSuccessAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - createdAt
+      - endpointHash
+      - id
+      - label
+      - lastSeenAt
+      - lastSuccessAt
+      - status
+    PushDeviceStatusEnum:
+      enum:
+      - active
+      - expired
+      type: string
+    PushRemoveInRequest:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          minLength: 1
+      required:
+      - endpoint
+    PushSubscriptionInputRequest:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        subscription: {}
+        timezone:
+          type: string
+          minLength: 1
+      required:
+      - mode
+      - subscription
+    QuietHours:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        from:
+          type: string
+        to:
+          type: string
+        timezone:
+          type: string
+          nullable: true
+        days:
+          type: array
+          items:
+            type: boolean
+          maxItems: 7
+          minItems: 7
+        urgentBypass:
+          type: boolean
+      required:
+      - days
+      - enabled
+      - from
+      - timezone
+      - to
+      - urgentBypass
+    QuietHoursRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        from:
+          type: string
+          minLength: 1
+        to:
+          type: string
+          minLength: 1
+        timezone:
+          type: string
+          nullable: true
+          minLength: 1
+        days:
+          type: array
+          items:
+            type: boolean
+          maxItems: 7
+          minItems: 7
+        urgentBypass:
+          type: boolean
+      required:
+      - days
+      - enabled
+      - from
+      - timezone
+      - to
+      - urgentBypass
     ReadAllOut:
       type: object
       properties:
@@ -7529,6 +8019,133 @@ components:
       required:
       - available
       - slug
+    SmsChannel:
+      type: object
+      properties:
+        connection:
+          $ref: '#/components/schemas/SmsConnection'
+        countries:
+          $ref: '#/components/schemas/SmsCountry'
+        available:
+          type: boolean
+        dailyCap:
+          type: integer
+        sentToday:
+          type: integer
+      required:
+      - available
+      - connection
+      - countries
+      - dailyCap
+      - sentToday
+    SmsConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phoneNumber:
+          type: string
+        display:
+          type: string
+        country:
+          type: string
+        status:
+          $ref: '#/components/schemas/SmsConnectionStatusEnum'
+        verifiedAt:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+          nullable: true
+      required:
+      - country
+      - display
+      - id
+      - lastError
+      - phoneNumber
+      - status
+      - verifiedAt
+    SmsConnectionStatusEnum:
+      enum:
+      - active
+      - opted_out
+      - invalid
+      type: string
+    SmsCountry:
+      type: object
+      properties:
+        code:
+          type: string
+        dial:
+          type: string
+        label:
+          type: string
+        digits:
+          type: integer
+        pattern:
+          type: string
+      required:
+      - code
+      - dial
+      - digits
+      - label
+      - pattern
+    SmsVerification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phoneNumber:
+          type: string
+        display:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        resendAt:
+          type: string
+          format: date-time
+        attemptsLeft:
+          type: integer
+      required:
+      - attemptsLeft
+      - display
+      - expiresAt
+      - id
+      - phoneNumber
+      - resendAt
+    SmsVerificationInRequest:
+      type: object
+      properties:
+        country:
+          type: string
+          minLength: 1
+        nationalNumber:
+          type: string
+          minLength: 1
+        timezone:
+          type: string
+          minLength: 1
+      required:
+      - country
+      - nationalNumber
+    SmsVerifyInRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+      required:
+      - code
+    SmsVerifyOut:
+      type: object
+      properties:
+        connection:
+          $ref: '#/components/schemas/SmsConnection'
+      required:
+      - connection
     SourceBb6Enum:
       enum:
       - csv
@@ -8306,6 +8923,84 @@ components:
           description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
+    TelegramChannel:
+      type: object
+      properties:
+        connection:
+          $ref: '#/components/schemas/TelegramConnection'
+        available:
+          type: boolean
+        botUsername:
+          type: string
+          nullable: true
+      required:
+      - available
+      - botUsername
+      - connection
+    TelegramConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+        status:
+          $ref: '#/components/schemas/TelegramConnectionStatusEnum'
+        connectedAt:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+          nullable: true
+      required:
+      - connectedAt
+      - firstName
+      - id
+      - lastError
+      - status
+      - username
+    TelegramConnectionStatusEnum:
+      enum:
+      - active
+      - blocked
+      type: string
+    TelegramLink:
+      type: object
+      properties:
+        connection:
+          $ref: '#/components/schemas/TelegramConnection'
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TelegramLinkStatusEnum'
+        code:
+          type: string
+        deepLink:
+          type: string
+          format: uri
+        botUsername:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - botUsername
+      - connection
+      - expiresAt
+      - id
+      - status
+    TelegramLinkStatusEnum:
+      enum:
+      - pending
+      - linked
+      - expired
+      - canceled
+      type: string
     TimeEntryInRequest:
       type: object
       properties:
@@ -8690,6 +9385,13 @@ components:
       - email
       - id
       - name
+    VapidKey:
+      type: object
+      properties:
+        publicKey:
+          type: string
+      required:
+      - publicKey
     Visibility8e9Enum:
       enum:
       - shared
@@ -8773,6 +9475,11 @@ components:
           items:
             type: string
           readOnly: true
+        notificationPolicy:
+          type: object
+          additionalProperties:
+            type: boolean
+          readOnly: true
       required:
       - createdAt
       - id
@@ -8780,6 +9487,7 @@ components:
       - myRoleId
       - my_permissions
       - name
+      - notificationPolicy
       - slug
     WorkspaceCreateInRequest:
       type: object

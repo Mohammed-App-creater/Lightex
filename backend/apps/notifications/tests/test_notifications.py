@@ -116,11 +116,12 @@ def test_preferences_control_channels(owner, project, sam):
     client = client_for(sam)
     prefs = client.get("/api/v1/notification-preferences").json()
     assert prefs["emailDelivery"] == "instant"
-    assert prefs["events"]["assigned"] == {"in_app": True, "email": True}
-    prefs["events"]["assigned"] = {"in_app": False, "email": True, "telegram": True}
+    assert prefs["events"]["assigned"] == {"in_app": True, "email": True, "telegram": True, "sms": False, "push": True}
+    prefs["events"]["assigned"] = {"in_app": False, "email": True, "bogus_channel": True}
     prefs["events"]["bogus"] = {"in_app": True}
     saved = client.put("/api/v1/notification-preferences", prefs, format="json").json()
-    assert saved["events"]["assigned"] == {"in_app": False, "email": True}
+    # Board 38: only the channel keys sent change; unknown events and channels are dropped.
+    assert saved["events"]["assigned"] == {"in_app": False, "email": True, "telegram": True, "sms": False, "push": True}
     assert "bogus" not in saved["events"]
     assert (
         client.put(

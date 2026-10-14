@@ -19,6 +19,8 @@ NO_SCOPE = {
     "auth-me", "auth-change-password", "workspace-list", "permission-catalogue", "my-tasks", "my-recents", "search",
     "notifications", "notifications-unread-count", "notifications-read-all", "notification-preferences",
     "my-timer", "my-timer-stop",
+    "me-channels", "me-telegram-link", "me-telegram", "me-sms-verifications", "me-sms", "me-channel-test",
+    "me-push-subscriptions", "me-push-remove",
 }  # fmt: skip
 PROJECT_KWARGS = {
     "project_id", "task_id", "task_ref", "item_id", "comment_id", "attachment_id", "sprint_id", "view_id",

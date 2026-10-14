@@ -92,6 +92,14 @@ def update_workspace(actor: User, ws: Workspace, data: dict[str, Any]) -> Worksp
             else:
                 changes.append(change("URL", ws.slug, clean))
                 ws.slug = clean
+    policy = data.get("notificationPolicy")
+    if policy is not None:  # board 38 §4.2 (the view already requires workspace.update)
+        sms = policy.get("sms") if isinstance(policy, dict) else None
+        if "sms" in (policy if isinstance(policy, dict) else {}) and not isinstance(sms, bool):
+            fields["notificationPolicy.sms"] = "Send true or false"
+        elif isinstance(sms, bool) and sms != ws.sms_enabled:
+            changes.append(change("smsNotifications", ws.sms_enabled, sms))
+            ws.sms_enabled = sms
     if fields:
         raise invalid(fields)
     if changes:

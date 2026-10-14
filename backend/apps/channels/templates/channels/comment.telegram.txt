@@ -1,0 +1,3 @@
+<b>{{ actor_name|default:"Someone" }}</b> commented on <b>{{ task_key }}</b>
+{{ task_title }}
+{% if comment_excerpt %}“{{ comment_excerpt }}”{% endif %}

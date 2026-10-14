@@ -1,0 +1,2 @@
+<b>{{ task_key }}</b> moved to <b>{{ to_status }}</b>{% if actor_name %} by {{ actor_name }}{% endif %}
+{{ task_title }}

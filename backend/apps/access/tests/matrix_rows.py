@@ -43,6 +43,11 @@ def TR(name: str):
     return lambda w: {"task_ref": str(getattr(w, name).id)}
 
 
+def ME_ID(kwarg: str):
+    """Board 38: someone else's (here: nobody's) row id answers 404, never 403."""
+    return lambda w: {kwarg: "6b0c2a4e-1d2f-4a3b-9c8d-7e6f5a4b3c2d"}
+
+
 def INT(w) -> dict[str, Any]:
     return {"integration_id": w.integration.id}
 
@@ -696,4 +701,25 @@ ROWS = [
         "project-dev-automation", "PUT", P, allow=("manager",), deny=("pmember", "viewer", "outsider"),
         body=lambda w: [],
     ),
+    # ── notification channels (board 38): personal routes, any authenticated user ──
+    _row("me-channels", "GET", allow=ANY_USER, deny=("anon",)),
+    _row("me-telegram-link", "POST", allow=("viewer", "outsider"), deny=("anon",), body=lambda w: {}),
+    _row("me-telegram-link-detail", "GET", ME_ID("link_id"), deny=("anon", "owner")),
+    _row("me-telegram-link-detail", "DELETE", ME_ID("link_id"), deny=("anon", "owner")),
+    _row("me-telegram", "DELETE", allow=ANY_USER, deny=("anon",)),
+    _row(
+        "me-sms-verifications", "POST", allow=("viewer",), deny=("anon",),
+        body=lambda w: {"country": "FR", "nationalNumber": "612345678"},
+    ),
+    _row("me-sms-resend", "POST", ME_ID("verification_id"), deny=("anon", "owner")),
+    _row("me-sms-verify", "POST", ME_ID("verification_id"), deny=("anon", "owner"), body=lambda w: {"code": "1"}),
+    _row("me-sms", "DELETE", allow=ANY_USER, deny=("anon",)),
+    _row("me-channel-test", "POST", lambda w: {"channel": "email"}, allow=("viewer",), deny=("anon",)),
+    _row("push-vapid-key", "GET", allow=(PUBLIC,)),
+    _row("me-push-subscriptions", "PUT", allow=("viewer",), deny=("anon",), body=lambda w: {"mode": "x"}),
+    _row("me-push-remove", "POST", allow=ANY_USER, deny=("anon",), body=lambda w: {}),
+    _row("me-push-device", "DELETE", ME_ID("device_id"), deny=("anon", "owner")),
+    _row("webhook-telegram", "POST", allow=(PUBLIC,)),
+    _row("webhook-twilio-sms", "POST", allow=(PUBLIC,), signed=True),
+    _row("webhook-twilio-status", "POST", allow=(PUBLIC,), signed=True),
 ]  # fmt: skip

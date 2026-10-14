@@ -1,0 +1,2 @@
+{% autoescape off %}{{ actor_name|default:"Someone" }} mentioned you on {{ task_key }}
+{% if comment_excerpt %}“{{ comment_excerpt }}”{% else %}{{ task_title }}{% endif %}{% endautoescape %}

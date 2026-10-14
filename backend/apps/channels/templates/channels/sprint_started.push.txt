@@ -1,0 +1,2 @@
+{% autoescape off %}{{ sprint_name }} has started
+{{ project_name }} · {{ your_task_count }} task{{ your_task_count|pluralize }} assigned to you{% endautoescape %}

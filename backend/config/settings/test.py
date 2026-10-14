@@ -86,3 +86,23 @@ GITLAB_CLIENT_SECRET = ""
 GITLAB_BASE_URL = "https://gitlab.com"
 GITLAB_ALLOWED_HOSTS = []
 GITLAB_ALLOW_PRIVATE_NETWORKS = False
+# Board 38: fake channel providers, synchronous dispatch and known secrets.
+TELEGRAM_BACKEND = "fake"
+SMS_BACKEND = "fake"
+WEB_PUSH_BACKEND = "fake"
+CHANNEL_DISPATCH = "inline"
+TELEGRAM_BOT_TOKEN = ""
+TELEGRAM_BOT_USERNAME = "lightex_bot"
+TELEGRAM_WEBHOOK_SECRET = "test-telegram-secret"
+TWILIO_ACCOUNT_SID = "ACtest"
+TWILIO_AUTH_TOKEN = "test-twilio-token"
+TWILIO_MESSAGING_SERVICE_SID = "MGtest"
+TWILIO_FROM_NUMBER = ""
+SMS_COUNTRIES = ["US", "GB", "DE"]
+VAPID_PUBLIC_KEY = "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U"
+VAPID_PRIVATE_KEY = ""
+VAPID_SUBJECT = "mailto:ops@lightex.test"
+CHANNELS_ENCRYPTION_KEY = ""
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].update(  # type: ignore[attr-defined]
+    {"channel_connect": "100000/min", "channel_test": "100000/min"}
+)

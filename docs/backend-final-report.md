@@ -634,3 +634,37 @@ Built from `docs/v2/37-integrations-github-gitlab.md`.
 | 5 | G6 body | A missing or malformed `attempt`/`token` is 422; every real mismatch stays 404. |
 | 6 | Error audit data | `integration.error` stores `{ errorCode }`, because the audit scrubber now redacts the key `code` (§8.1). |
 | 7 | Test plan gaps | The two-connection `SKIP LOCKED` `TransactionTestCase` is not included (the lease and reclaim paths are tested); `render.yaml` is outside `backend/` and was not edited. |
+
+### 8.11 v2 · Board 38: Telegram, SMS and push notification channels
+
+Built from `docs/v2/38-telegram-sms-push.md`.
+
+- **App `apps/channels`:** `TelegramLinkRequest`, `TelegramLinkFailure`, `TelegramConnection`, `SmsVerification`,
+  `OtpSend`, `SmsConnection`, `PushSubscription` and `ChannelDelivery` (log, retry queue and dead letter). Providers
+  behind interfaces (`bot`/`twilio`/`webpush`, `console`, `fake`, `disabled`, chosen in settings) over stdlib HTTP.
+  Web Push is `http-ece` (RFC 8291, checked against the RFC vector) plus a PyJWT ES256 VAPID token. Phone numbers are
+  Fernet-encrypted with an HMAC lookup hash; OTPs and Telegram codes are stored as HMACs only.
+- **Endpoints:** C1–C14, the public VAPID key, H1 (secret header, replies in the webhook response) and H2/H3 (Twilio
+  signature). P1 gains `telegram`/`sms`/`push` keys (a v1-shaped PUT only changes the keys it sends) and
+  `quietHours`; W1 adds `notificationPolicy.sms` (`workspace.update`, audited as `smsNotifications`).
+- **Dispatch:** `notifications.handlers.deliver()` fans out inside `process_event`'s transaction; rows are handed over
+  on commit (Celery, a per-process thread pool with an event-driven sweeper started from `gunicorn.conf.py`, or
+  inline). Exclusive claim by conditional `UPDATE`, backoff 30 s → 6 h, `dead` after 5, quiet hours with urgent
+  bypass and coalesced summaries, send-time re-checks, SMS caps counted in Postgres. SMS never carries titles or
+  comment text.
+- **Migrations:** `channels` 0001, `notifications` 0004 (quiet-hours columns + data migration adding the channel
+  keys), `workspaces` 0002 (`sms_enabled`).
+- **Commands:** `send_channel_deliveries` (cron), `channel_deliveries`, `generate_vapid_keys`, `generate_channels_key`,
+  `rotate_channels_key`, `telegram_setup`, `telegram_poll` and `telegram_fake_start` (dev). `purge_trash` applies the
+  §6.10 retention.
+
+### 8.12 Board 38 decisions where the contract was silent or ambiguous
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | C3 while pending | `code` and `deepLink` come back only from C2; C3 omits them, because only their hashes are stored. |
+| 2 | Telegram wrong-code limit | Counted in `TelegramLinkFailure` rows only (no cache layer), so it holds across processes. |
+| 3 | Webhook throttle | The three webhooks share the existing `webhook` scope (`THROTTLE_WEBHOOK`, 1200/min per IP). |
+| 4 | Push templates | One file per template and channel, first line the title, the rest the body (instead of two blocks). |
+| 5 | Email test (C14) | Sent with `send_mail` (plain text) rather than through `send_email_task`, which only renders designed templates. |
+

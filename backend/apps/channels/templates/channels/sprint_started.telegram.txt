@@ -1,0 +1,3 @@
+<b>{{ sprint_name }}</b> has started in {{ project_name }}
+{{ task_count }} tasks · {{ points_total }} points · {{ your_task_count }} assigned to you
+<i>{{ sprint_start }} – {{ sprint_end }}</i>

@@ -1,3 +1,5 @@
+import re
+
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -15,7 +17,7 @@ from apps.projects.models import ProjectMember
 from apps.realtime.services import publish_inbox
 
 from .handlers import preferences_for
-from .models import EVENTS, Notification
+from .models import CHANNELS, EVENTS, Notification
 
 TABS = {"all": Q(), "mentions": Q(type="mention"), "assigned": Q(type="assigned")}
 
@@ -73,13 +75,79 @@ NotificationOut = inline_serializer(
         "readAt": serializers.DateTimeField(allow_null=True),
     },
 )
+QuietHoursSchema = inline_serializer(
+    "QuietHours",
+    {
+        "enabled": serializers.BooleanField(),
+        "from": serializers.CharField(),
+        "to": serializers.CharField(),
+        "timezone": serializers.CharField(allow_null=True),
+        "days": serializers.ListField(child=serializers.BooleanField(), min_length=7, max_length=7),
+        "urgentBypass": serializers.BooleanField(),
+    },
+)
 PrefsSchema = inline_serializer(
     "NotificationPreferences",
     {
         "events": serializers.DictField(child=serializers.DictField(child=serializers.BooleanField())),
         "emailDelivery": serializers.CharField(),
+        "quietHours": QuietHoursSchema,
     },
 )
+_HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+def prefs_data(prefs) -> dict:
+    from apps.channels.quiet import days_from_mask
+
+    return {
+        "events": prefs.events,
+        "emailDelivery": prefs.email_delivery,
+        "quietHours": {
+            "enabled": prefs.quiet_enabled,
+            "from": prefs.quiet_from.strftime("%H:%M"),
+            "to": prefs.quiet_to.strftime("%H:%M"),
+            "timezone": prefs.timezone,
+            "days": list(days_from_mask(prefs.quiet_days)),
+            "urgentBypass": prefs.quiet_urgent_bypass,
+        },
+    }
+
+
+def _quiet_fields(value) -> dict:
+    """Board 38 §5.13: `quietHours` is replaced as a whole; 422 with dotted field paths."""
+    import zoneinfo
+
+    from apps.channels.quiet import mask_from_days
+
+    if not isinstance(value, dict):
+        raise invalid({"quietHours": "Invalid quiet hours"})
+    errors: dict[str, str] = {}
+    start, end = value.get("from"), value.get("to")
+    for key, t in (("from", start), ("to", end)):
+        if not isinstance(t, str) or not _HHMM.match(t):
+            errors[f"quietHours.{key}"] = "Use HH:MM"
+    if not errors and start == end:
+        errors["quietHours.to"] = "End must differ from start"
+    tz = value.get("timezone")
+    if tz is not None and (not isinstance(tz, str) or tz not in zoneinfo.available_timezones()):
+        errors["quietHours.timezone"] = "Unknown time zone"
+    days = value.get("days")
+    if not isinstance(days, list) or len(days) != 7 or not all(isinstance(d, bool) for d in days):
+        errors["quietHours.days"] = "Send 7 booleans, Monday first"
+    if errors:
+        raise invalid(errors)
+    import datetime as _dt
+
+    assert isinstance(start, str) and isinstance(end, str) and isinstance(days, list)  # noqa: S101
+    return {
+        "quiet_enabled": bool(value.get("enabled")),
+        "quiet_from": _dt.time.fromisoformat(start),
+        "quiet_to": _dt.time.fromisoformat(end),
+        "timezone": tz,
+        "quiet_days": mask_from_days(days),
+        "quiet_urgent_bypass": bool(value.get("urgentBypass", True)),
+    }
 
 
 class NotificationListView(APIView):
@@ -196,8 +264,7 @@ class PreferencesView(APIView):
 
     @extend_schema(tags=["notifications"], responses={200: PrefsSchema})
     def get(self, request):
-        prefs = preferences_for(request.user)
-        return Response({"events": prefs.events, "emailDelivery": prefs.email_delivery})
+        return Response(prefs_data(preferences_for(request.user)))
 
     @extend_schema(tags=["notifications"], request=PrefsSchema, responses={200: PrefsSchema})
     def put(self, request):
@@ -206,13 +273,27 @@ class PreferencesView(APIView):
         delivery = data.get("emailDelivery")
         if not isinstance(events, dict) or delivery not in ("instant", "hourly", "daily"):
             raise invalid({"prefs": "Invalid preferences"})
+        quiet = _quiet_fields(data["quietHours"]) if "quietHours" in data else None
         prefs = preferences_for(request.user)
-        clean = dict(prefs.events)
-        for key in EVENTS:  # only in-app and email exist in v1; unknown events/channels are dropped
+        clean = {k: dict(v) for k, v in (prefs.events or {}).items() if isinstance(v, dict)}
+        for key in EVENTS:  # only the channel keys present change (a v1 client keeps the board 38 keys)
             value = events.get(key)
             if isinstance(value, dict):
-                clean[key] = {"in_app": bool(value.get("in_app")), "email": bool(value.get("email"))}
-        prefs.events = clean
-        prefs.email_delivery = delivery
-        prefs.save(update_fields=["events", "email_delivery", "updated_at"])
-        return Response({"events": prefs.events, "emailDelivery": prefs.email_delivery})
+                row = clean.setdefault(key, {})
+                for channel in CHANNELS:
+                    if channel in value:
+                        row[channel] = bool(value[channel])
+        with transaction.atomic():
+            prefs.events = clean
+            prefs.email_delivery = delivery
+            fields = ["events", "email_delivery", "updated_at"]
+            if quiet is not None:
+                for k, v in quiet.items():
+                    setattr(prefs, k, v)
+                fields += list(quiet)
+            prefs.save(update_fields=fields)
+            if quiet is not None:
+                from apps.channels.services import retime_deferred
+
+                retime_deferred(request.user, prefs)
+        return Response(prefs_data(prefs))

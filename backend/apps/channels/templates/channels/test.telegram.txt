@@ -1,0 +1,2 @@
+<b>Test notification</b>
+Lightex notifications will arrive in this chat.

@@ -1,0 +1,2 @@
+Test notification
+Lightex notifications will appear on this device.
