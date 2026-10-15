@@ -170,6 +170,7 @@ class Command(BaseCommand):
         self.load_board32()
         self.load_collaboration(data)
         self.load_board33()
+        self.load_board37()
 
     def load_projects(self, data: dict[str, Any]) -> None:
         self.projects, self.statuses, self.labels = {}, {}, {}
@@ -579,6 +580,72 @@ class Command(BaseCommand):
                     for i, (kind, w, h, extra) in enumerate(layout)
                 ]
             )
+
+    # ── board 37: integrations ──
+
+    def load_board37(self) -> None:
+        """The mock's `ensureExt37` seed (docs/v2/37-integrations-github-gitlab.md §9.8): GitHub `platform-team`
+        connected by Alex, tracking web, api, board-engine and mobile-app (every project), backfilled through the
+        `FakeProvider` fixtures (PRs on PRJ-42, PRJ-41 and PRJ-29; PRJ-42's branches and commits), plus PRJ's
+        `pr_merged → Done` rule. Always the fake provider, whatever INTEGRATIONS_PROVIDER_BACKEND says."""
+        from types import SimpleNamespace
+
+        from apps.integrations import processor, runner
+        from apps.integrations.models import AutomationRule, Integration, Repository
+        from apps.integrations.providers.fake import REPOS, FakeProvider
+
+        ws, project = self.workspaces.get("ws_platform"), self.projects.get("p_prj")
+        if ws is None or project is None:
+            return
+        self.design_tasks(project)
+        now = timezone.now()
+        integration = Integration.objects.create(
+            workspace=ws, provider="github", auth_kind="github_app", base_url="https://github.com",
+            account_external_id="51234567", account_login="platform-team", account_kind="organization",
+            account_url="https://github.com/platform-team", status="active", connected_by=self.users.get("u_alex"),
+            connected_at=now - dt.timedelta(days=7), last_synced_at=now - dt.timedelta(minutes=2),
+        )  # fmt: skip
+        provider = FakeProvider("github")
+        for ext, owner, name, visibility, _, _ in REPOS[:4]:
+            repo = Repository.objects.create(
+                integration=integration, workspace=ws, external_id=ext, full_path=f"{owner}/{name}",
+                owner_path=owner, name=name, visibility=visibility, web_url=f"https://github.com/{owner}/{name}",
+            )  # fmt: skip
+            ctx = processor.Context(integration, provider, history=True)
+            runner.sync_repository(ctx, SimpleNamespace(kind="backfill"), repo, provider)
+            Repository.objects.filter(pk=repo.pk).update(
+                backfilled_at=now, last_synced_at=now - dt.timedelta(minutes=2)
+            )
+        done = self.statuses.get("p_prj-st-done")
+        if done is not None:
+            AutomationRule.objects.create(
+                project=project, trigger="pr_merged", status=done, enabled=True, updated_by=self.users.get("u_alex")
+            )
+
+    def design_tasks(self, project: Project) -> None:
+        """PRJ-41 (in review) and PRJ-29 (done): the design's two tasks that the v1 seed doesn't have."""
+        from apps.tasks.services import last_position
+
+        for number, title, status_id, assignee, priority, done_days in (
+            (41, "Virtualize board column lists", "p_prj-st-review", "u_riley", 3, None),
+            (29, "Board drag preview", "p_prj-st-done", "u_taylor", 2, 3),
+        ):
+            status = self.statuses.get(status_id)
+            if status is None or Task.all_objects.filter(project=project, number=number).exists():
+                continue
+            created = timezone.now() - dt.timedelta(days=12)
+            task = Task.objects.create(
+                project=project, number=number, key=f"{project.key}-{number}", title=title, type="feature",
+                priority=priority, status=status, assignee=self.users.get(assignee),
+                reporter=self.users.get("u_jordan"),
+                estimate=2, position=last_position(project.pk, status.pk), created_at=created,
+                started_at=timezone.now() - dt.timedelta(days=6),
+                completed_at=timezone.now() - dt.timedelta(days=done_days) if done_days else None,
+            )  # fmt: skip
+            self.history(task, list(project.statuses.all()))
+            refresh_search_vector(task)
+            self.tasks[f"p_prj-t{number}"] = task
+        Project.objects.filter(pk=project.pk, task_seq__lt=41).update(task_seq=41)
 
     def value_column(self, field: CustomField, value: Any, options: dict[str, CustomFieldOption]) -> dict[str, Any]:
         if field.type == "number":

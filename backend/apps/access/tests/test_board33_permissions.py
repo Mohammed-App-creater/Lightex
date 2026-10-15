@@ -45,7 +45,7 @@ def test_project_order_is_exactly_the_contract():
         "project.view", "project.update", "project.archive", "project.delete", "project.manage_members",
         "objective.manage", "milestone.manage", "epic.manage", "sprint.manage", "status.manage", "field.manage",
         "task.create", "task.edit_any", "task.edit_own", "task.delete", "task.assign", "task.move", "project.import",
-        "time.log", "time.delete_any",
+        "development.link", "time.log", "time.delete_any",
         "comment.create", "comment.edit_own", "comment.delete_any", "attachment.upload", "attachment.delete_any",
         "dashboard.create", "dashboard.manage",
         "report.view",
@@ -63,7 +63,8 @@ def test_sams_my_permissions_example(ws, owner):
     project = make_project(ws, owner, key="PRJ")
     sam = add_project_member(project, key="project_member")
     assert client_for(sam).get(f"/api/v1/projects/{project.id}").json()["my_permissions"] == [
-        "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "time.log",
+        "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import",
+        "development.link", "time.log",
         "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view",
     ]  # fmt: skip
 

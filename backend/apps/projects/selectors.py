@@ -33,6 +33,7 @@ def _uuid(value: Any) -> bool:
 
 
 def with_counts(qs: QuerySet[Project]) -> QuerySet[Project]:
+    from apps.integrations.payloads import dev_enabled_annotations
     from apps.planning.models import Sprint
 
     active = Sprint.objects.filter(project=OuterRef("pk"), state="active").values("id")[:1]
@@ -42,6 +43,7 @@ def with_counts(qs: QuerySet[Project]) -> QuerySet[Project]:
         open_task_count=Count("tasks", filter=live & ~Q(tasks__status__category="done"), distinct=True),
         done_task_count=Count("tasks", filter=live & Q(tasks__status__category="done"), distinct=True),
         active_sprint_id=Subquery(active),
+        **dev_enabled_annotations(),
     )
 
 

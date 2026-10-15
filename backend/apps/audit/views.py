@@ -46,15 +46,19 @@ ACTION_KINDS = {
 }
 
 
+def _id(value) -> str | None:
+    return str(value) if value else None
+
+
 def audit_data(row: AuditLog) -> dict:
     return {
         "id": str(row.pk),
-        "actorId": str(row.actor_id) if row.actor_id else None,
+        "actorId": row.actor_ref or None if row.actor_kind == "integration" else _id(row.actor_id),
         "action": row.action,
         "target": row.target,
         "createdAt": iso(row.created_at),
         "actorName": row.actor_name or None,
-        "actorKind": "user",
+        "actorKind": row.actor_kind or "user",
         "entityType": GROUP_OF.get(row.entity_type, "workspace"),
         "entityKey": row.entity_key,
         "source": row.source,
@@ -85,7 +89,8 @@ class AuditListView(WorkspaceScopedView):
 
             if not all(is_uuid(a) for a in actors):
                 raise invalid({"filter[actor]": "Pick people from the list"})
-            qs = qs.filter(actor_id__in=actors)
+            # Board 37: an integration id matches the rows it wrote (actor_ref).
+            qs = qs.filter(Q(actor_id__in=actors) | Q(actor_ref__in=actors))
         action = filter_value(request, "action")
         if action:
             if action not in ACTION_KINDS:

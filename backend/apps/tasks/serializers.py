@@ -5,6 +5,8 @@ from rest_framework import serializers
 from apps.access import services as access
 from apps.access.catalogue import ordered
 from apps.common.utils import iso
+from apps.integrations.payloads import task_dev
+from apps.integrations.serializers import TaskDevSummaryOut
 
 from . import selectors
 from .models import Task, TaskDependency, TaskFieldValue
@@ -51,6 +53,7 @@ def task_data(t: Task) -> dict:
         "commentCount": _counter(t, "comment_count", lambda: _comments(t)),
         "attachmentCount": _counter(t, "attachment_count", lambda: _attachments(t)),
         **_board39(t),
+        "dev": task_dev(t),
     }
 
 
@@ -241,6 +244,7 @@ class TaskOut(serializers.Serializer):
     openBlockers = TaskRefOut(many=True)
     timeEstimateMinutes = serializers.IntegerField(allow_null=True)
     loggedMinutes = serializers.IntegerField()
+    dev = TaskDevSummaryOut(allow_null=True, help_text="Board 37: linked PRs/branches/commits; null without links.")
 
 
 class TaskPageOut(serializers.Serializer):
@@ -299,3 +303,5 @@ class ActivityOut(serializers.Serializer):
     taskTitle = serializers.CharField(allow_null=True)
     data = serializers.JSONField()  # type: ignore[assignment]
     createdAt = serializers.DateTimeField()
+    actorName = serializers.CharField(allow_null=True)
+    actorKind = serializers.ChoiceField(choices=["user", "integration"])

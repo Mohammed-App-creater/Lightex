@@ -33,7 +33,10 @@ DURABLE_TYPES = (
     "dashboard.changed",
     "inbox.changed",
     "access.changed",
+    "integration.changed",
 )
+#: Board 37: workspace-wide events (`projectId: null`) delivered to every member of the workspace.
+WORKSPACE_TYPES = ("integration.changed",)
 VOLATILE_TYPES = ("presence.updated", "import.progress")
 CONTROL_TYPES = ("hello", "reset", "reconnect")
 #: Internal-only key: the target user of a user-scoped event.
@@ -99,4 +102,6 @@ def matches(event: dict[str, Any], workspace_id: str, project_ids: set[str] | fr
     if target:
         return target == user_id
     project = event.get("projectId")
-    return project is not None and project in project_ids
+    if project is None:
+        return event.get("type") in WORKSPACE_TYPES
+    return project in project_ids

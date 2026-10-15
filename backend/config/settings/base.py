@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.imports",
     "apps.dashboards",
     "apps.realtime",
+    "apps.integrations",
 ]
 
 MIDDLEWARE = [
@@ -135,6 +136,10 @@ REST_FRAMEWORK = {
         "imports": env("THROTTLE_IMPORTS", default="20/hour"),
         "stream": env("THROTTLE_STREAM", default="30/min"),
         "presence": env("THROTTLE_PRESENCE", default="240/min"),
+        "webhook": env("THROTTLE_WEBHOOK", default="1200/min"),
+        "integration_connect": env("THROTTLE_INTEGRATION_CONNECT", default="10/hour"),
+        "dev_branch": env("THROTTLE_DEV_BRANCH", default="30/hour"),
+        "dev_link": env("THROTTLE_DEV_LINK", default="60/hour"),
     },
     "UNAUTHENTICATED_USER": "django.contrib.auth.models.AnonymousUser",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
@@ -279,6 +284,35 @@ SSE_MAX_LIFETIME_SECONDS = env.float("SSE_MAX_LIFETIME_SECONDS", default=300.0)
 SSE_LIFETIME_JITTER_SECONDS = 30.0
 SSE_QUEUE_SIZE = 256
 SSE_TEST_MAX_EVENTS: int | None = None  # tests: end the stream after this many events
+
+# ───────────────────────── Integrations (board 37) ─────────────────────────
+# docs/v2/37-integrations-github-gitlab.md §2.3. GitHub connects through a GitHub App; GitLab through an OAuth app
+# (gitlab.com or GITLAB_BASE_URL) or a pasted group/project access token (any instance).
+
+INTEGRATIONS_ENABLED = env.bool("INTEGRATIONS_ENABLED", default=True)  # false: receivers and connect answer 503
+INTEGRATIONS_PROVIDER_BACKEND = env("INTEGRATIONS_PROVIDER_BACKEND", default="real")  # real | fake
+# "auto" (Celery with a broker, else one daemon drain thread per process), "celery", "thread" or "inline" (tests).
+INTEGRATIONS_RUNNER = env("INTEGRATIONS_RUNNER", default="auto")
+# "kid:base64url(32 bytes)[,kid:…]": the first key encrypts, every key decrypts. Empty: a dev key derived from
+# DJANGO_SECRET_KEY (prod refuses that when a provider is configured). `manage.py generate_integration_key`.
+INTEGRATIONS_ENCRYPTION_KEYS = env("INTEGRATIONS_ENCRYPTION_KEYS", default="")
+GITHUB_APP_ID = env("GITHUB_APP_ID", default="")
+GITHUB_APP_SLUG = env("GITHUB_APP_SLUG", default="")
+GITHUB_APP_CLIENT_ID = env("GITHUB_APP_CLIENT_ID", default="")
+GITHUB_APP_CLIENT_SECRET = env("GITHUB_APP_CLIENT_SECRET", default="")
+GITHUB_APP_PRIVATE_KEY = env("GITHUB_APP_PRIVATE_KEY", default="")
+GITHUB_WEBHOOK_SECRET = env("GITHUB_WEBHOOK_SECRET", default="")  # comma-separated during a rotation
+GITHUB_BRANCH_CREATION = env.bool("GITHUB_BRANCH_CREATION", default=True)
+GITLAB_CLIENT_ID = env("GITLAB_CLIENT_ID", default="")
+GITLAB_CLIENT_SECRET = env("GITLAB_CLIENT_SECRET", default="")
+GITLAB_BASE_URL = env("GITLAB_BASE_URL", default="https://gitlab.com").rstrip("/")
+GITLAB_ALLOWED_HOSTS: list[str] = env.list("GITLAB_ALLOWED_HOSTS", default=[])
+GITLAB_ALLOW_PRIVATE_NETWORKS = env.bool("GITLAB_ALLOW_PRIVATE_NETWORKS", default=False)
+INTEGRATION_BACKFILL_DAYS = env.int("INTEGRATION_BACKFILL_DAYS", default=30)
+INTEGRATION_BACKFILL_MAX_PRS = env.int("INTEGRATION_BACKFILL_MAX_PRS", default=200)
+INTEGRATION_CATCHUP_MINUTES = env.int("INTEGRATION_CATCHUP_MINUTES", default=30)
+WEBHOOK_MAX_BODY_BYTES = env.int("WEBHOOK_MAX_BODY_BYTES", default=5 * 1024 * 1024)
+WEBHOOK_RETENTION_DAYS = env.int("WEBHOOK_RETENTION_DAYS", default=7)
 
 # ───────────────────────── Logging ─────────────────────────
 

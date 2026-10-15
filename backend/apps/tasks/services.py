@@ -354,7 +354,12 @@ def _authorize_patch(actor: Any, task: Task, keys: set[str]) -> None:
 
 
 @transaction.atomic
-def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
+def update_task(
+    actor: Any, task: Task, data: dict[str, Any], *, system: Any = None, audit_data: dict[str, Any] | None = None
+) -> Task:
+    """`system` (board 37): an integration's automation. It skips the permission check (the rule was set by a
+    holder of `status.manage`), writes history with no user, and is the audit actor; `audit_data` extends the
+    status-change audit row."""
     task = Task.all_objects.select_for_update().select_related("project", "status").get(pk=task.pk)
     check_version(task, data.get("version"))
     if task.deleted_at is not None:
@@ -363,7 +368,8 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
     unknown = set(data) - EDITABLE - {"version"}
     if unknown:
         raise invalid({sorted(unknown)[0]: "This field can’t be changed here"})
-    _authorize_patch(actor, task, keys)
+    if system is None:
+        _authorize_patch(actor, task, keys)
     project = task.project
     changes: list[dict[str, Any]] = []
     status_change = assign_change = None
@@ -462,18 +468,15 @@ def update_task(actor: Any, task: Task, data: dict[str, Any]) -> Task:
         before, after = status_change
         _audit(
             task,
-            actor,
+            system or actor,
             "task.status_changed",
             [change("Status", before.glyph, after.glyph, "status")],
-            {"from": before.name, "to": after.name},
+            {"from": before.name, "to": after.name, **(audit_data or {})},
         )
-        emit(
-            "status_change",
-            workspace=project.workspace_id,
-            project=project,
-            actor=actor,
-            payload={"taskId": str(task.pk), "fromStatus": before.name, "toStatus": after.name},
-        )
+        payload = {"taskId": str(task.pk), "fromStatus": before.name, "toStatus": after.name}
+        if system is not None:
+            payload["via"] = system.provider
+        emit("status_change", workspace=project.workspace_id, project=project, actor=actor, payload=payload)
     if assign_change:
         name = task.assignee.name if task.assignee else "nobody"
         _audit(task, actor, "task.assigned", [assign_change], {"assignee": name})

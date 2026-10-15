@@ -162,7 +162,9 @@ def test_seed_has_board32_dates():
     # The tray query: open PRJ tasks with no dates.
     open_ids = "&".join(f"filter[status]={s.id}" for s in prj.statuses.exclude(category="done"))
     tray = client.get(f"/api/v1/projects/{prj.id}/tasks?filter[scheduled]=false&{open_ids}&sort=-priority").json()
-    assert sorted(t["key"] for t in tray["data"]) == ["PRJ-36", "PRJ-45", "PRJ-47", "PRJ-55", "PRJ-68", "PRJ-70"]
+    # PRJ-41 is board 37's design task (in review, undated), added by the mock's seed too.
+    expected = ["PRJ-36", "PRJ-41", "PRJ-45", "PRJ-47", "PRJ-55", "PRJ-68", "PRJ-70"]
+    assert sorted(t["key"] for t in tray["data"]) == expected
     window = f"filter[from]={day('2026-09-01')}&filter[to]={day('2026-11-30')}"
     timeline = client.get(f"/api/v1/projects/{prj.id}/tasks?{window}&sort=startDate").json()["data"]
     assert timeline[0]["key"] == "PRJ-60"  # earliest start (Sep 1)
@@ -204,3 +206,36 @@ def test_seed_has_board33_dashboards():
     assert [d["name"] for d in client_for(alex).get(f"/api/v1/projects/{project.pk}/dashboards").json()] == [
         "Sprint 14 health"
     ]
+
+
+@override_settings(DEBUG=True)
+def test_seed_has_board37_integrations():
+    """The mock's ensureExt37 seed (§9.8), loaded through the FakeProvider fixtures."""
+    from apps.common.testing import client_for
+    from apps.integrations.models import AutomationRule, Integration
+
+    call_command("seed_demo")
+    alex = User.objects.get(email="alex@team.dev")
+    client = client_for(alex)
+    integration = Integration.objects.get()
+    assert (integration.account_login, integration.connected_by, integration.status) == (
+        "platform-team",
+        alex,
+        "active",
+    )
+    overview = client.get("/api/v1/workspaces/platform/integrations").json()
+    repos = overview["integrations"][0]["repositories"]
+    assert [r["name"] for r in repos] == ["api", "board-engine", "mobile-app", "web"]
+    assert next(r for r in repos if r["name"] == "web")["openPullRequests"] == 12
+    assert not any(i["provider"] == "gitlab" for i in overview["integrations"])
+    dev = client.get("/api/v1/tasks/PRJ-42/development").json()
+    assert [p["ref"] for p in dev["pullRequests"]] == ["#214", "#209", "#198", "#190"]
+    assert dev["pullRequests"][0]["checks"]["state"] == "failing" and dev["pullRequests"][0]["author"]["userId"]
+    assert [b["name"] for b in dev["branches"]] == ["prj-42-fix-reflow", "prj-42-reflow-tests"]
+    assert [b["aheadBy"] for b in dev["branches"]] == [3, 1]
+    assert [c["shortSha"] for c in dev["commits"]] == ["a3f9c21", "7be04d8", "e51c7aa", "0c2d9f3"]
+    assert client.get("/api/v1/tasks/PRJ-41/development").json()["pullRequests"][0]["approvals"] == 1
+    assert client.get("/api/v1/workspaces/platform/tasks/PRJ-29").json()["dev"]["pr"]["state"] == "merged"
+    assert client.get("/api/v1/tasks/PRJ-58/development").json()["pullRequests"] == []
+    rule = AutomationRule.objects.get()
+    assert (rule.trigger, rule.status.category, rule.project.key) == ("pr_merged", "done", "PRJ")

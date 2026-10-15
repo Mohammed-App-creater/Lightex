@@ -597,3 +597,40 @@ every case. The server stores only order and sizes.
 | 13 | Removal hooks | Removing someone from a project, or from the workspace, deletes their personal dashboards there. |
 | 14 | Lost client connections | A stream notices a vanished client on its next write (a ping at most 15 s later). Some local port proxies (Docker Desktop) keep the upstream open, so such a stream holds its slot until its 5-minute lifetime. `sse_smoke.sh` therefore checks the shutdown path with a restart rather than relying on disconnects. |
 | 15 | `render.yaml` | Outside `backend/`, so it was not edited (see the user's deployment steps above). |
+
+### 8.9 v2 · Board 37: GitHub and GitLab integrations
+
+Built from `docs/v2/37-integrations-github-gitlab.md`.
+
+- **App `apps/integrations`:** `Integration`, `Repository` (+ `RepositoryProject`), `ConnectAttempt`, `WebhookDelivery`,
+  `SyncRun`, `AutomationRule`; providers `github` (GitHub App, RS256 app JWT, cached installation tokens), `gitlab`
+  (OAuth with PKCE and rotating refresh under `select_for_update`, or a pasted token) and `fake` (default in dev and
+  tests). Stdlib HTTP client with timeouts, a 5 MB cap, no redirects and the SSRF guard (every answer vetted, the
+  connection pinned to the vetted IP). AES-256-GCM at rest with row/column associated data.
+- **Endpoints:** G1–G13, W1/W2, D1–D4, A1–A2. `Task.dev` (one prefetch plus three counters in
+  `tasks.selectors.annotated()`, constant query count), `Project.devEnabled`, `ActivityEntry.actorName/actorKind`,
+  `AuditEntry.actorKind = "integration"` (and `filter[actor]` matches integration ids), notification `payload.via`.
+- **Migrations:** `integrations` 0001, `tasks` 0004 (ExternalLink extended in place), `audit` 0004 (`actor_kind`,
+  `actor_ref` + partial index), `access` 0006 (data: `integration.manage` → Owner/Admin, `development.link` → Project
+  Admin/Manager/Member; idempotent).
+- **Processing:** receivers verify (constant time), insert one row and answer; a drain (Celery, one daemon thread, or
+  inline) claims deliveries and sync runs with `SKIP LOCKED` leases. Automations run as a system actor through
+  `tasks.services.update_task(..., system=IntegrationActor)`. Realtime: `task.changed` `fields ["development"]`
+  (`version: null`), `integration.changed` (new durable type, delivered to every workspace member),
+  `tasks.bulk_changed` after runs, `project.changed` `["development"]`.
+- **Commands:** `process_integrations`, `purge_integrations`, `rotate_integration_secrets [--webhooks]`,
+  `fake_webhook`, `generate_integration_key`. `seed_demo` loads the mock's GitHub connection and PRJ links through the
+  fake provider fixtures, plus PRJ-41 / PRJ-29 and the `pr_merged → Done` rule.
+- **Dependencies:** `cryptography` (already pinned). No other addition.
+
+### 8.10 Board 37 decisions where the contract was silent or ambiguous
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | Provider interface | `authorize_url(attempt, state)` takes the raw state (only its hash is stored); providers also expose `compare_commits`, `recover`, `low_budget` and `manage_url`. |
+| 2 | Key alias cache | `resolve_keys` queries `ProjectKeyAlias` per object instead of a 60 s per-workspace cache, so renames apply at once (one extra small query per object). |
+| 3 | Disconnect | The drain finishes `disconnecting` integrations (revoke, wipe, delete) instead of a separate job, so one dispatch covers it. |
+| 4 | Webhook secret rotation | `rotate_integration_secrets --webhooks` deletes and recreates each GitLab hook rather than `PUT`-updating it. |
+| 5 | G6 body | A missing or malformed `attempt`/`token` is 422; every real mismatch stays 404. |
+| 6 | Error audit data | `integration.error` stores `{ errorCode }`, because the audit scrubber now redacts the key `code` (§8.1). |
+| 7 | Test plan gaps | The two-connection `SKIP LOCKED` `TransactionTestCase` is not included (the lease and reclaim paths are tested); `render.yaml` is outside `backend/` and was not edited. |

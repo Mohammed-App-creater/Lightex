@@ -54,6 +54,10 @@ REST_FRAMEWORK = {
         "imports": "100000/min",
         "stream": "100000/min",
         "presence": "100000/min",
+        "webhook": "100000/min",
+        "integration_connect": "100000/min",
+        "dev_branch": "100000/min",
+        "dev_link": "100000/min",
     },
 }
 # Board 33: in-process realtime broker (rows are still stored for replay), fast heartbeats and short streams.
@@ -65,3 +69,20 @@ SSE_MAX_LIFETIME_SECONDS = 0.5
 SSE_LIFETIME_JITTER_SECONDS = 0.0
 REALTIME_LISTENER_BACKOFF_SECONDS = 0.1
 REALTIME_LISTEN_POLL_SECONDS = 0.2
+# Board 37: the fake provider, synchronous processing, a known webhook secret and the derived dev encryption key.
+INTEGRATIONS_ENABLED = True
+INTEGRATIONS_PROVIDER_BACKEND = "fake"
+INTEGRATIONS_RUNNER = "inline"
+INTEGRATIONS_ENCRYPTION_KEYS = ""
+GITHUB_APP_ID = ""
+GITHUB_APP_SLUG = ""
+GITHUB_APP_CLIENT_ID = ""
+GITHUB_APP_CLIENT_SECRET = ""
+GITHUB_APP_PRIVATE_KEY = ""
+GITHUB_WEBHOOK_SECRET = "test-webhook-secret"
+GITHUB_BRANCH_CREATION = True
+GITLAB_CLIENT_ID = ""
+GITLAB_CLIENT_SECRET = ""
+GITLAB_BASE_URL = "https://gitlab.com"
+GITLAB_ALLOWED_HOSTS = []
+GITLAB_ALLOW_PRIVATE_NETWORKS = False

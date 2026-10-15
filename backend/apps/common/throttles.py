@@ -57,3 +57,30 @@ class PresenceThrottle(_IdentThrottle):
     """Board 33: presence heartbeats per user (THROTTLE_PRESENCE, 240/min)."""
 
     scope = "presence"
+
+
+class WebhookThrottle(SimpleRateThrottle):
+    """Board 37: webhook receivers, per source IP (THROTTLE_WEBHOOK, 1200/min). Never the `anon` throttle."""
+
+    scope = "webhook"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
+
+
+class IntegrationConnectThrottle(_IdentThrottle):
+    """Board 37: connect / reconnect starts per user (THROTTLE_INTEGRATION_CONNECT, 10/hour)."""
+
+    scope = "integration_connect"
+
+
+class DevBranchThrottle(_IdentThrottle):
+    """Board 37: branch creation per user (THROTTLE_DEV_BRANCH, 30/hour)."""
+
+    scope = "dev_branch"
+
+
+class DevLinkThrottle(_IdentThrottle):
+    """Board 37: manual links per user (THROTTLE_DEV_LINK, 60/hour)."""
+
+    scope = "dev_link"

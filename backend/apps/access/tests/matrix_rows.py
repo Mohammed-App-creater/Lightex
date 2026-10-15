@@ -43,6 +43,14 @@ def TR(name: str):
     return lambda w: {"task_ref": str(getattr(w, name).id)}
 
 
+def INT(w) -> dict[str, Any]:
+    return {"integration_id": w.integration.id}
+
+
+def DEV(w) -> dict[str, Any]:
+    return {"task_ref": str(w.task.id)}
+
+
 OUT = ("outsider",)
 PUBLIC = "public"
 ANY_USER = ("owner", "viewer", "outsider")
@@ -640,4 +648,52 @@ ROWS = [
         allow=("owner",),
         deny=("viewer", "ws_member", "outsider"),
     ),
-]
+    # ── integrations and development (board 37) ──
+    _row("workspace-integrations", "GET", S, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row(
+        "integration-github-connect", "POST", S, allow=("owner", "ws_admin"), deny=("ws_member", "manager", "outsider"),
+        body=lambda w: {},
+    ),
+    _row(
+        "integration-gitlab-connect", "POST", S, allow=("owner",), deny=("ws_member", "manager", "outsider"),
+        body=lambda w: {"method": "token", "baseUrl": "https://gitlab.example.com", "token": "fake-token"},
+    ),
+    _row("integration-confirm", "POST", S, allow=("owner", "ws_member"), deny=("outsider", "anon"), body=lambda w: {}),
+    _row("integration-github-setup", "GET", allow=(PUBLIC,)),
+    _row("integration-github-callback", "GET", allow=(PUBLIC,)),
+    _row("integration-gitlab-callback", "GET", allow=(PUBLIC,)),
+    _row("integration-fake-authorize", "GET", allow=(PUBLIC,), query="?state=x"),
+    _row("integration-detail", "GET", INT, allow=("ws_member", "viewer"), deny=("outsider", "anon")),
+    _row("integration-detail", "DELETE", INT, allow=("owner", "ws_admin"), deny=("ws_member", "manager", "outsider")),
+    _row("integration-available-repos", "GET", INT, allow=("owner",), deny=("ws_member", "manager", "outsider")),
+    _row(
+        "integration-repositories", "PUT", INT, allow=("owner",), deny=("ws_member", "outsider"),
+        body=lambda w: {"repositories": []},
+    ),
+    _row("integration-sync", "POST", INT, allow=("ws_admin",), deny=("ws_member", "manager", "outsider")),
+    _row("integration-reconnect", "POST", INT, allow=("owner",), deny=("ws_member", "outsider"), body=lambda w: {}),
+    _row(
+        "repository-detail", "PATCH", lambda w: {"repository_id": w.repository.id}, allow=("owner",),
+        deny=("ws_member", "manager", "outsider"), body=lambda w: {"projectIds": []},
+    ),
+    _row("webhook-github", "POST", allow=(PUBLIC,)),
+    _row("webhook-gitlab", "POST", INT, allow=(PUBLIC,)),
+    _row("task-development", "GET", DEV, allow=("viewer", "pmember"), deny=("ws_admin", "outsider")),
+    _row(
+        "task-development-links", "POST", DEV, allow=("pmember",), deny=("viewer", "ws_admin", "outsider"),
+        body=lambda w: {"url": "nope"},
+    ),
+    _row(
+        "task-development-link-detail", "DELETE", lambda w: {"task_ref": str(w.task.id), "link_id": w.dev_link.id},
+        allow=("pmember",), deny=("viewer", "ws_admin", "outsider"),
+    ),
+    _row(
+        "task-development-branches", "POST", DEV, allow=("manager",), deny=("viewer", "ws_admin", "outsider"),
+        body=lambda w: {"repositoryId": str(w.repository.id), "name": "a..b"},
+    ),
+    _row("project-dev-automation", "GET", P, allow=("viewer",), deny=("ws_admin", "outsider")),
+    _row(
+        "project-dev-automation", "PUT", P, allow=("manager",), deny=("pmember", "viewer", "outsider"),
+        body=lambda w: [],
+    ),
+]  # fmt: skip

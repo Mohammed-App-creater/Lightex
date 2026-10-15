@@ -14,7 +14,7 @@ from apps.common.middleware import current_request_id
 
 from .models import AuditLog
 
-_SECRET = re.compile(r"pass(word)?|token|secret|hash", re.IGNORECASE)
+_SECRET = re.compile(r"pass(word)?|token|secret|hash|credentials|^code$", re.IGNORECASE)
 
 
 def change(field: str, before: Any, after: Any, kind: str = "value") -> dict[str, Any]:
@@ -99,12 +99,17 @@ def _row(
     request_id: str | None = None,
 ) -> dict[str, Any]:
     clean_changes = [c for c in (changes or []) if not _SECRET.search(str(c.get("field", "")))]
+    # Board 37: a system actor (an integration) has `actor_kind = "integration"`, a `ref` and a display name.
+    kind = getattr(actor, "actor_kind", "user")
+    system = kind != "user"
     return {
         "workspace_id": getattr(workspace, "pk", workspace),
         "project_id": getattr(project, "pk", project),
         "task_id": getattr(task, "pk", task),
-        "actor_id": getattr(actor, "pk", None),
+        "actor_id": None if system else getattr(actor, "pk", None),
         "actor_name": (getattr(actor, "name", "") or "")[:80],
+        "actor_kind": kind,
+        "actor_ref": str(getattr(actor, "ref", "")) if system else "",
         "action": action,
         "entity_type": action.split(".")[0],
         "entity_id": str(entity_id or ""),
@@ -114,6 +119,6 @@ def _row(
         "task_title": (getattr(task, "title", None) or None) and task.title[:300],
         "changes": _scrub(clean_changes),
         "data": _scrub(data or {}),
-        "source": source,
+        "source": getattr(actor, "source", source) if system else source,
         "request_id": request_id or current_request_id(),
     }

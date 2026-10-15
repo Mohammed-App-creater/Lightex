@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from apps.common.utils import iso
 
@@ -29,18 +29,30 @@ ACTIVITY_VERBS = {
     # Board 40: one entry per import in the project/workspace feeds, one per task in the task feed.
     "task.imported": "imported",
     "project.import_completed": "imported",
+    # Board 37 (§8.2): PR/MR links, branches created from Lightex and merges. Branch links, unlinks and other PR
+    # state changes stay audit-only (`_DEV_AUDIT_ONLY`).
+    "task.dev_linked": "dev_linked",
+    "task.dev_branch_created": "dev_branch_created",
+    "task.dev_pr_state": "dev_pr_merged",
 }
+_DEV_AUDIT_ONLY = (Q(action="task.dev_linked") & ~Q(data__kind="pull_request")) | (
+    Q(action="task.dev_pr_state") & ~Q(data__to="merged")
+)
 # Kept in each task's own feed but left out of project/workspace feeds (an import shows as one entry there).
 TASK_ONLY = ("task.imported",)
 
 
 def activity(project_ids: Any) -> QuerySet[AuditLog]:
     actions = [a for a in ACTIVITY_VERBS if a not in TASK_ONLY]
-    return AuditLog.objects.filter(project_id__in=project_ids, action__in=actions)
+    return AuditLog.objects.filter(project_id__in=project_ids, action__in=actions).exclude(_DEV_AUDIT_ONLY)
 
 
 def task_activity(task: Any) -> QuerySet[AuditLog]:
-    return AuditLog.objects.filter(task=task, action__in=list(ACTIVITY_VERBS)).order_by("-created_at", "-id")
+    return (
+        AuditLog.objects.filter(task=task, action__in=list(ACTIVITY_VERBS))
+        .exclude(_DEV_AUDIT_ONLY)
+        .order_by("-created_at", "-id")
+    )
 
 
 def activity_data(row: AuditLog) -> dict[str, Any]:
@@ -55,4 +67,6 @@ def activity_data(row: AuditLog) -> dict[str, Any]:
         "taskTitle": row.task_title,
         "data": data,
         "createdAt": iso(row.created_at),
+        "actorName": row.actor_name or None,
+        "actorKind": row.actor_kind or "user",
     }

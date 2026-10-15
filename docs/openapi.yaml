@@ -625,6 +625,182 @@ paths:
               schema:
                 $ref: '#/components/schemas/ImportJob'
           description: ''
+  /api/v1/integrations/{integration_id}:
+    get:
+      operationId: integrations_retrieve
+      description: G7 read; G13 disconnect.
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
+    delete:
+      operationId: integrations_destroy
+      description: G7 read; G13 disconnect.
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      responses:
+        '204':
+          description: No response body
+  /api/v1/integrations/{integration_id}/available-repositories:
+    get:
+      operationId: integrations_available_repositories_list
+      description: G8.
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: q
+        schema:
+          type: string
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableRepositoryOut'
+          description: ''
+  /api/v1/integrations/{integration_id}/reconnect:
+    post:
+      operationId: integrations_reconnect_create
+      description: G12.
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconnectInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
+  /api/v1/integrations/{integration_id}/repositories:
+    put:
+      operationId: integrations_repositories_update
+      description: 'G9: replace the tracked set.'
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepositoriesInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
+  /api/v1/integrations/{integration_id}/sync:
+    post:
+      operationId: integrations_sync_create
+      description: 'G11: "Sync now".'
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
+  /api/v1/integrations/fake/authorize:
+    get:
+      operationId: integrations_fake_authorize_retrieve
+      description: '§7.8: the fake provider''s consent page (404 unless INTEGRATIONS_PROVIDER_BACKEND=fake).'
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
+  /api/v1/integrations/github/callback:
+    get:
+      operationId: integrations_github_callback_retrieve
+      description: 'G5: the OAuth/App callback for GitHub and GitLab.'
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
+  /api/v1/integrations/github/setup:
+    get:
+      operationId: integrations_github_setup_retrieve
+      description: 'G4: GitHub''s Setup URL.'
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
+  /api/v1/integrations/gitlab/callback:
+    get:
+      operationId: integrations_gitlab_callback_retrieve
+      description: 'G5: the OAuth/App callback for GitHub and GitLab.'
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '302':
+          description: No response body
   /api/v1/invites/{token}:
     get:
       operationId: invites_retrieve
@@ -1439,6 +1615,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dashboard'
+          description: ''
+  /api/v1/projects/{project_id}/dev-automation:
+    get:
+      operationId: projects_dev_automation_list
+      description: A1 / A2.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AutomationRuleSchema'
+          description: ''
+    put:
+      operationId: projects_dev_automation_update
+      description: A1 / A2.
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AutomationRuleSchemaRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AutomationRuleSchema'
           description: ''
   /api/v1/projects/{project_id}/epics:
     get:
@@ -2438,6 +2665,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/Project'
           description: ''
+  /api/v1/repositories/{repository_id}:
+    patch:
+      operationId: repositories_partial_update
+      description: 'G10: project scope of one tracked repository.'
+      parameters:
+      - in: path
+        name: repository_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRepositoryScopeInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepositoryOut'
+          description: ''
   /api/v1/roles/{role_id}:
     patch:
       operationId: roles_partial_update
@@ -3144,6 +3396,101 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/tasks/{task_ref}/development:
+    get:
+      operationId: tasks_development_retrieve
+      description: D1.
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDevelopmentOut'
+          description: ''
+  /api/v1/tasks/{task_ref}/development/branches:
+    post:
+      operationId: tasks_development_branches_create
+      description: 'D4: create a branch from the repository''s default branch.'
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevBranchInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevItemOut'
+          description: ''
+  /api/v1/tasks/{task_ref}/development/links:
+    post:
+      operationId: tasks_development_links_create
+      description: 'D2: link a PR/MR, commit or branch by URL.'
+      parameters:
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevLinkInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevItemOut'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevItemOut'
+          description: ''
+  /api/v1/tasks/{task_ref}/development/links/{link_id}:
+    delete:
+      operationId: tasks_development_links_destroy
+      description: D3.
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: task_ref
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      responses:
+        '204':
+          description: No response body
   /api/v1/time-entries/{entry_id}:
     delete:
       operationId: time_entries_destroy
@@ -3214,6 +3561,55 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/webhooks/github:
+    post:
+      operationId: webhooks_github_create
+      description: 'W1: X-Hub-Signature-256 (HMAC-SHA256).'
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookReceivedOut'
+          description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookReceivedOut'
+          description: ''
+  /api/v1/webhooks/gitlab/{integration_id}:
+    post:
+      operationId: webhooks_gitlab_create
+      description: 'W2: X-Gitlab-Token (per integration).'
+      parameters:
+      - in: path
+        name: integration_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookReceivedOut'
+          description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookReceivedOut'
+          description: ''
   /api/v1/workspaces:
     get:
       operationId: workspaces_list
@@ -3435,6 +3831,102 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/workspaces/{slug}/integrations:
+    get:
+      operationId: workspaces_integrations_retrieve
+      description: 'G1: providers and connections (every member; non-managers see
+        a filtered payload).'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationsOverviewOut'
+          description: ''
+  /api/v1/workspaces/{slug}/integrations/confirm:
+    post:
+      operationId: workspaces_integrations_confirm_create
+      description: 'G6: any mismatch (attempt, user, token, expiry, permission) is
+        404.'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
+  /api/v1/workspaces/{slug}/integrations/github/connect:
+    post:
+      operationId: workspaces_integrations_github_connect_create
+      description: G2.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeUrlOut'
+          description: ''
+  /api/v1/workspaces/{slug}/integrations/gitlab/connect:
+    post:
+      operationId: workspaces_integrations_gitlab_connect_create
+      description: 'G3: OAuth → 200 {authorizeUrl}; token → 201 Integration.'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GitLabConnectInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeUrlOut'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationOut'
+          description: ''
   /api/v1/workspaces/{slug}/invites:
     get:
       operationId: workspaces_invites_list
@@ -4289,6 +4781,25 @@ components:
       - status
       - user
       - userId
+    AccountOut:
+      type: object
+      properties:
+        login:
+          type: string
+        kind:
+          $ref: '#/components/schemas/AccountOutKindEnum'
+        url:
+          type: string
+      required:
+      - kind
+      - login
+      - url
+    AccountOutKindEnum:
+      enum:
+      - organization
+      - user
+      - bot
+      type: string
     ActivityOut:
       type: object
       properties:
@@ -4318,8 +4829,15 @@ components:
         createdAt:
           type: string
           format: date-time
+        actorName:
+          type: string
+          nullable: true
+        actorKind:
+          $ref: '#/components/schemas/ActorKindEnum'
       required:
       - actorId
+      - actorKind
+      - actorName
       - createdAt
       - data
       - id
@@ -4328,6 +4846,11 @@ components:
       - taskKey
       - taskTitle
       - verb
+    ActorKindEnum:
+      enum:
+      - user
+      - integration
+      type: string
     Attachment:
       type: object
       properties:
@@ -4376,6 +4899,12 @@ components:
       - code
       - text
       type: string
+    AuthKindEnum:
+      enum:
+      - github_app
+      - gitlab_oauth
+      - gitlab_token
+      type: string
     AuthOut:
       type: object
       properties:
@@ -4386,6 +4915,73 @@ components:
       required:
       - accessToken
       - user
+    AuthorizeUrlOut:
+      type: object
+      properties:
+        authorizeUrl:
+          type: string
+      required:
+      - authorizeUrl
+    AutomationRuleSchema:
+      type: object
+      properties:
+        trigger:
+          $ref: '#/components/schemas/TriggerEnum'
+        enabled:
+          type: boolean
+        statusId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - enabled
+      - statusId
+      - trigger
+    AutomationRuleSchemaRequest:
+      type: object
+      properties:
+        trigger:
+          $ref: '#/components/schemas/TriggerEnum'
+        enabled:
+          type: boolean
+        statusId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - enabled
+      - statusId
+      - trigger
+    AvailableRepositoryOut:
+      type: object
+      properties:
+        externalId:
+          type: string
+        fullPath:
+          type: string
+        owner:
+          type: string
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/VisibilityA25Enum'
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        tracked:
+          type: boolean
+        trackedElsewhere:
+          type: boolean
+      required:
+      - externalId
+      - fullPath
+      - name
+      - owner
+      - tracked
+      - trackedElsewhere
+      - updatedAt
+      - visibility
     Backlog:
       type: object
       properties:
@@ -4458,6 +5054,22 @@ components:
           type: string
         newPassword:
           type: string
+    ChecksEnum:
+      enum:
+      - passing
+      - failing
+      - running
+      type: string
+    CodeEnum:
+      enum:
+      - token_expired
+      - token_revoked
+      - installation_suspended
+      - installation_removed
+      - insufficient_scope
+      - unreachable
+      - webhook_failing
+      type: string
     Comment:
       type: object
       properties:
@@ -4498,6 +5110,18 @@ components:
         body: {}
       required:
       - body
+    ConfirmInRequest:
+      type: object
+      properties:
+        attempt:
+          type: string
+          format: uuid
+        token:
+          type: string
+          minLength: 1
+      required:
+      - attempt
+      - token
     ConfirmUploadRequest:
       type: object
       properties:
@@ -4606,7 +5230,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
+          $ref: '#/components/schemas/Visibility8e9Enum'
         ownerId:
           type: string
           format: uuid
@@ -4642,7 +5266,7 @@ components:
           minLength: 1
           maxLength: 60
         visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
+          $ref: '#/components/schemas/Visibility8e9Enum'
         template:
           $ref: '#/components/schemas/DashboardCreateTemplateEnum'
       required:
@@ -4695,7 +5319,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
+          $ref: '#/components/schemas/Visibility8e9Enum'
         ownerId:
           type: string
           format: uuid
@@ -4837,6 +5461,196 @@ components:
       - status
       - statusId
       - title
+    DevAuthorOut:
+      type: object
+      properties:
+        login:
+          type: string
+        name:
+          type: string
+          nullable: true
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - login
+      - name
+      - userId
+    DevBranchInRequest:
+      type: object
+      properties:
+        repositoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          description: '1–80 characters: letters, numbers, - _ . /'
+      required:
+      - name
+      - repositoryId
+    DevCheckOut:
+      type: object
+      properties:
+        name:
+          type: string
+        state:
+          $ref: '#/components/schemas/StateFe6Enum'
+        durationSec:
+          type: integer
+          nullable: true
+        url:
+          type: string
+          nullable: true
+      required:
+      - durationSec
+      - name
+      - state
+      - url
+    DevChecksOut:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/StateFe6Enum'
+        passed:
+          type: integer
+        total:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevCheckOut'
+      required:
+      - items
+      - passed
+      - state
+      - total
+    DevItemOut:
+      type: object
+      description: '`DevPullRequest | DevBranch | DevCommit`, discriminated by `kind`.'
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/DevItemOutKindEnum'
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        repository:
+          allOf:
+          - $ref: '#/components/schemas/RepoRefOut'
+          nullable: true
+        repoFullPath:
+          type: string
+        number:
+          type: integer
+          description: pull_request
+        ref:
+          type: string
+          description: 'pull_request: #214 (GitHub) or !12 (GitLab)'
+        title:
+          type: string
+          description: pull_request
+        url:
+          type: string
+        state:
+          type: string
+          description: 'PR: open|draft|merged|closed; branch: active|deleted'
+        headBranch:
+          type: string
+        baseBranch:
+          type: string
+        author:
+          $ref: '#/components/schemas/DevAuthorOut'
+        checks:
+          allOf:
+          - $ref: '#/components/schemas/DevChecksOut'
+          nullable: true
+        approvals:
+          type: integer
+        linkSource:
+          $ref: '#/components/schemas/LinkSourceEnum'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        mergedAt:
+          type: string
+          format: date-time
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        name:
+          type: string
+          description: branch
+        aheadBy:
+          type: integer
+          nullable: true
+          description: branch
+        sha:
+          type: string
+          description: commit
+        shortSha:
+          type: string
+          description: commit
+        message:
+          type: string
+          description: commit subject
+        committedAt:
+          type: string
+          format: date-time
+          description: commit
+      required:
+      - id
+      - kind
+      - linkSource
+      - provider
+      - repoFullPath
+      - repository
+      - url
+    DevItemOutKindEnum:
+      enum:
+      - pull_request
+      - branch
+      - commit
+      type: string
+    DevLinkInRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 1
+          description: PR/MR, commit or branch URL of a tracked repository
+      required:
+      - url
+    DevRepositoryOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        fullPath:
+          type: string
+        name:
+          type: string
+        defaultBranch:
+          type: string
+        canCreateBranch:
+          type: boolean
+      required:
+      - canCreateBranch
+      - defaultBranch
+      - fullPath
+      - id
+      - name
+      - provider
     DownloadUrl:
       type: object
       properties:
@@ -4968,6 +5782,21 @@ components:
       - customField
       - skip
       type: string
+    GitLabConnectInRequest:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/MethodEnum'
+        baseUrl:
+          type: string
+          minLength: 1
+          description: 'token method: https:// instance URL'
+        token:
+          type: string
+          minLength: 1
+          description: 'token method: group/project access token, scope api'
+      required:
+      - method
     GlyphEnum:
       enum:
       - backlog
@@ -5323,6 +6152,103 @@ components:
       - method
       - uploadId
       - url
+    IntegrationErrorOut:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/CodeEnum'
+        message:
+          type: string
+        since:
+          type: string
+          format: date-time
+      required:
+      - code
+      - message
+      - since
+    IntegrationOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        authKind:
+          $ref: '#/components/schemas/AuthKindEnum'
+        baseUrl:
+          type: string
+        account:
+          $ref: '#/components/schemas/AccountOut'
+        status:
+          $ref: '#/components/schemas/IntegrationOutStatusEnum'
+        error:
+          allOf:
+          - $ref: '#/components/schemas/IntegrationErrorOut'
+          nullable: true
+        connectedBy:
+          type: string
+          format: uuid
+          nullable: true
+        connectedAt:
+          type: string
+          format: date-time
+        lastSyncedAt:
+          type: string
+          format: date-time
+          nullable: true
+        syncing:
+          type: boolean
+        nextSyncAt:
+          type: string
+          format: date-time
+          nullable: true
+        tokenExpiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        manageUrl:
+          type: string
+          nullable: true
+        repositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepositoryOut'
+      required:
+      - account
+      - authKind
+      - baseUrl
+      - connectedAt
+      - connectedBy
+      - error
+      - id
+      - lastSyncedAt
+      - manageUrl
+      - nextSyncAt
+      - provider
+      - repositories
+      - status
+      - syncing
+      - tokenExpiresAt
+    IntegrationOutStatusEnum:
+      enum:
+      - active
+      - error
+      type: string
+    IntegrationsOverviewOut:
+      type: object
+      properties:
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderInfoOut'
+        integrations:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrationOut'
+      required:
+      - integrations
+      - providers
     Invite:
       type: object
       properties:
@@ -5417,6 +6343,12 @@ components:
         color:
           type: string
           minLength: 1
+    LinkSourceEnum:
+      enum:
+      - auto
+      - manual
+      - created
+      type: string
     LoginInRequest:
       type: object
       properties:
@@ -5480,6 +6412,17 @@ components:
       required:
       - roleId
       - userId
+    MethodEnum:
+      enum:
+      - oauth
+      - token
+      type: string
+    MethodsEnum:
+      enum:
+      - app
+      - oauth
+      - token
+      type: string
     MilestoneInRequest:
       type: object
       properties:
@@ -5681,6 +6624,9 @@ components:
       - access
       - import
       type: string
+    NullEnum:
+      enum:
+      - null
     ObjectiveInRequest:
       type: object
       properties:
@@ -5778,7 +6724,7 @@ components:
           minLength: 1
           maxLength: 60
         visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
+          $ref: '#/components/schemas/Visibility8e9Enum'
         version:
           type: integer
     PatchedEpicInRequest:
@@ -5899,6 +6845,15 @@ components:
           $ref: '#/components/schemas/ProjectInTemplateEnum'
         hue:
           type: integer
+    PatchedRepositoryScopeInRequest:
+      type: object
+      properties:
+        projectIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: '[] = all projects'
     PatchedRoleIdInRequest:
       type: object
       properties:
@@ -6176,9 +7131,15 @@ components:
           description: 'Board 40: the number the next task gets (the import picker''s
             "next key").'
           readOnly: true
+        devEnabled:
+          type: boolean
+          description: 'Board 37: an active integration tracks a repository that applies
+            to this project.'
+          readOnly: true
       required:
       - activeSprintId
       - createdAt
+      - devEnabled
       - doneTaskCount
       - id
       - key
@@ -6273,6 +7234,36 @@ components:
       - kanban
       - bugs
       type: string
+    ProviderEnum:
+      enum:
+      - github
+      - gitlab
+      type: string
+    ProviderInfoOut:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        name:
+          type: string
+        available:
+          type: boolean
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodsEnum'
+        oauthBaseUrl:
+          type: string
+          nullable: true
+        canCreateBranch:
+          type: boolean
+      required:
+      - available
+      - canCreateBranch
+      - methods
+      - name
+      - oauthBaseUrl
+      - provider
     ReadAllOut:
       type: object
       properties:
@@ -6320,6 +7311,13 @@ components:
       - at
       - id
       - kind
+    ReconnectInRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: GitLab token mode only
     RegisterInRequest:
       type: object
       properties:
@@ -6334,6 +7332,17 @@ components:
       - blocked_by
       - blocks
       type: string
+    RepoRefOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullPath:
+          type: string
+      required:
+      - fullPath
+      - id
     ReportKpis:
       type: object
       properties:
@@ -6341,6 +7350,75 @@ components:
           type: integer
       required:
       - completedThisSprint
+    RepositoriesInRequest:
+      type: object
+      properties:
+        repositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackedRepositoryInRequest'
+          description: The complete tracked set, 1–200 items.
+      required:
+      - repositories
+    RepositoryOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        integrationId:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        externalId:
+          type: string
+        fullPath:
+          type: string
+        owner:
+          type: string
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/VisibilityA25Enum'
+        defaultBranch:
+          type: string
+        url:
+          type: string
+        allProjects:
+          type: boolean
+        projectIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        openPullRequests:
+          type: integer
+        syncState:
+          $ref: '#/components/schemas/SyncStateEnum'
+        lastSyncedAt:
+          type: string
+          format: date-time
+          nullable: true
+        canCreateBranch:
+          type: boolean
+      required:
+      - allProjects
+      - canCreateBranch
+      - defaultBranch
+      - externalId
+      - fullPath
+      - id
+      - integrationId
+      - lastSyncedAt
+      - name
+      - openPullRequests
+      - owner
+      - projectIds
+      - provider
+      - syncState
+      - url
+      - visibility
     ResetInRequest:
       type: object
       properties:
@@ -6543,6 +7621,12 @@ components:
       - percent
       - points
       - total
+    StateFe6Enum:
+      enum:
+      - passing
+      - failing
+      - running
+      type: string
     Status:
       type: object
       properties:
@@ -6620,6 +7704,14 @@ components:
           type: string
           nullable: true
           minLength: 1
+    SyncStateEnum:
+      enum:
+      - idle
+      - queued
+      - syncing
+      - paused
+      - failed
+      type: string
     TaskDependenciesOut:
       type: object
       properties:
@@ -6753,6 +7845,11 @@ components:
           nullable: true
         loggedMinutes:
           type: integer
+        dev:
+          allOf:
+          - $ref: '#/components/schemas/TaskDevSummaryOut'
+          nullable: true
+          description: 'Board 37: linked PRs/branches/commits; null without links.'
         description:
           nullable: true
         subtasks:
@@ -6772,6 +7869,7 @@ components:
       - deletedAt
       - dependencies
       - description
+      - dev
       - dueDate
       - epicId
       - estimate
@@ -6801,6 +7899,115 @@ components:
       - type
       - updatedAt
       - version
+    TaskDevSummaryOut:
+      type: object
+      properties:
+        pr:
+          allOf:
+          - $ref: '#/components/schemas/TaskDevSummaryPrOut'
+          nullable: true
+        prCount:
+          type: integer
+        branchCount:
+          type: integer
+        commitCount:
+          type: integer
+      required:
+      - branchCount
+      - commitCount
+      - pr
+      - prCount
+    TaskDevSummaryPrOut:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        number:
+          type: integer
+        ref:
+          type: string
+        state:
+          $ref: '#/components/schemas/TaskDevSummaryPrOutStateEnum'
+        checks:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/ChecksEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        checksPassed:
+          type: integer
+        checksTotal:
+          type: integer
+        approvals:
+          type: integer
+        baseBranch:
+          type: string
+        mergedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - approvals
+      - baseBranch
+      - checks
+      - checksPassed
+      - checksTotal
+      - mergedAt
+      - number
+      - provider
+      - ref
+      - state
+    TaskDevSummaryPrOutStateEnum:
+      enum:
+      - open
+      - draft
+      - merged
+      - closed
+      type: string
+    TaskDevelopmentOut:
+      type: object
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        taskKey:
+          type: string
+        enabled:
+          type: boolean
+        suggestedBranch:
+          type: string
+        repositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevRepositoryOut'
+        pullRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevItemOut'
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevItemOut'
+        commits:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevItemOut'
+        commitTotal:
+          type: integer
+        syncedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - branches
+      - commitTotal
+      - commits
+      - enabled
+      - pullRequests
+      - repositories
+      - suggestedBranch
+      - syncedAt
+      - taskId
+      - taskKey
     TaskIdsInRequest:
       type: object
       properties:
@@ -6961,6 +8168,11 @@ components:
           nullable: true
         loggedMinutes:
           type: integer
+        dev:
+          allOf:
+          - $ref: '#/components/schemas/TaskDevSummaryOut'
+          nullable: true
+          description: 'Board 37: linked PRs/branches/commits; null without links.'
       required:
       - assigneeId
       - attachmentCount
@@ -6969,6 +8181,7 @@ components:
       - createdAt
       - customFields
       - deletedAt
+      - dev
       - dueDate
       - epicId
       - estimate
@@ -7324,6 +8537,20 @@ components:
       - hue
       - id
       - name
+    TrackedRepositoryInRequest:
+      type: object
+      properties:
+        externalId:
+          type: string
+          minLength: 1
+        projectIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: omitted or [] = all
+      required:
+      - externalId
     TrashItemsRequest:
       type: object
       properties:
@@ -7355,6 +8582,12 @@ components:
       required:
       - id
       - kind
+    TriggerEnum:
+      enum:
+      - branch_created
+      - pr_opened
+      - pr_merged
+      type: string
     Type832Enum:
       enum:
       - burndown
@@ -7457,11 +8690,26 @@ components:
       - email
       - id
       - name
-    VisibilityEnum:
+    Visibility8e9Enum:
       enum:
       - shared
       - personal
       type: string
+    VisibilityA25Enum:
+      enum:
+      - public
+      - private
+      - internal
+      type: string
+    WebhookReceivedOut:
+      type: object
+      properties:
+        received:
+          type: boolean
+        duplicate:
+          type: boolean
+      required:
+      - received
     WorkloadReport:
       type: object
       properties:

@@ -122,16 +122,64 @@ class TaskStatusHistory(BaseModel):
 
 
 class ExternalLink(BaseModel):
-    """Reserved for v2 integrations (GitHub/GitLab). No endpoints in v1."""
+    """Branches, commits and PRs/MRs linked to tasks (v2 board 37, docs/v2/37-integrations-github-gitlab.md §3.3).
+
+    One row per (task, object): a PR naming three keys has three rows with the same `external_id`. Repository fields
+    are denormalised, so links survive untracking and disconnects (`repository` is then NULL)."""
 
     PROVIDERS = [("github", "GitHub"), ("gitlab", "GitLab"), ("other", "Other")]
     TYPES = [("pull_request", "Pull request"), ("commit", "Commit"), ("branch", "Branch"), ("issue", "Issue")]
+    SOURCES = [("auto", "Auto"), ("manual", "Manual"), ("created", "Created")]
 
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="external_links")
     provider = models.CharField(max_length=16, choices=PROVIDERS)
     url = models.URLField(max_length=500)
     type = models.CharField(max_length=16, choices=TYPES)
-    external_id = models.CharField(max_length=120)
+    external_id = models.CharField(max_length=200)
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    repository = models.ForeignKey(
+        "integrations.Repository", null=True, blank=True, on_delete=models.SET_NULL, related_name="links"
+    )
+    base_url = models.CharField(max_length=200, blank=True, default="")
+    repo_external_id = models.CharField(max_length=64, blank=True, default="")
+    repo_full_path = models.CharField(max_length=300, blank=True, default="")
+    number = models.PositiveIntegerField(null=True, blank=True)
+    title = models.CharField(max_length=300, blank=True, default="")
+    state = models.CharField(max_length=10, blank=True, default="")
+    head_branch = models.CharField(max_length=255, blank=True, default="")
+    base_branch = models.CharField(max_length=255, blank=True, default="")
+    sha = models.CharField(max_length=40, blank=True, default="")
+    checks_state = models.CharField(max_length=8, blank=True, default="")
+    checks = models.JSONField(default=list, blank=True)
+    approvals = models.PositiveSmallIntegerField(default=0)
+    ahead_by = models.PositiveIntegerField(null=True, blank=True)
+    author_login = models.CharField(max_length=100, blank=True, default="")
+    author_name = models.CharField(max_length=100, blank=True, default="")
+    author_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    source_created_at = models.DateTimeField(null=True, blank=True)
+    source_updated_at = models.DateTimeField(null=True, blank=True)
+    merged_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+    link_source = models.CharField(max_length=8, choices=SOURCES, default="auto")
+    linked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    suppressed = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["task", "provider", "type", "external_id"], name="external_link_unique")
+        ]
+        indexes = [
+            models.Index(
+                fields=["workspace", "provider", "repo_external_id", "type", "external_id"],
+                name="external_link_object",
+            ),
+            models.Index(fields=["workspace", "provider", "repo_external_id", "sha"], name="external_link_sha"),
+            models.Index(fields=["task", "type", "suppressed"], name="external_link_task"),
+        ]
 
 
 VALUE_COLUMNS = ("text", "number", "date", "option", "user")
