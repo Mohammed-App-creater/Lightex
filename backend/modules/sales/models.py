@@ -514,3 +514,44 @@ class Target(WorkspaceScopedModel):
 
     def __str__(self) -> str:
         return f"{self.subject_type}:{self.subject_id or '-'} {self.period_type} {self.period_start} {self.amount}"
+
+
+# ───────────────────────── daily reports (S5) ─────────────────────────
+
+
+class DailyReport(WorkspaceScopedModel):
+    """One per user and business date (spec §4–§5): a draft whose metrics are computed live, frozen into `snapshot`
+    at submit; `review` locks it, a reviewer can reopen it. Data scope through `user` (`visible_to()`)."""
+
+    DRAFT, SUBMITTED, REVIEWED = "draft", "submitted", "reviewed"
+    STATUSES = (DRAFT, SUBMITTED, REVIEWED)
+
+    data_scope_owner_field = "user"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    report_date = models.DateField()
+    status = models.CharField(max_length=9, choices=[(s, s) for s in STATUSES], default=DRAFT)
+    #: A list of strings.
+    comments = models.JSONField(default=list, blank=True)
+    #: A list of {text, targetType?, targetId?}.
+    tomorrow_plan = models.JSONField(default=list, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    is_late = models.BooleanField(default=False)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_comment = models.TextField(blank=True, default="")
+    #: The metrics frozen at submit (null while a draft).
+    snapshot = models.JSONField(null=True, blank=True)
+
+    class Meta(WorkspaceScopedModel.Meta):
+        ordering = ["-report_date"]
+        constraints = [
+            models.UniqueConstraint(fields=["workspace", "user", "report_date"], name="sales_dailyreport_unique")
+        ]
+        indexes = [models.Index(fields=["workspace", "report_date"], name="sales_dailyreport_ws_date")]
+
+    def __str__(self) -> str:
+        return f"{self.user_id} {self.report_date}"

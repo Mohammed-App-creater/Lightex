@@ -123,6 +123,9 @@ def _sales_objects(w) -> dict:
             )
             .pk
         )
+        w.extra["sales"]["daily_report_id"] = (
+            get("sales", "DailyReport").objects.create(workspace=w.ws, user=owner, report_date="2026-09-01").pk
+        )
     return w.extra["sales"]
 
 

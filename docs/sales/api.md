@@ -823,3 +823,40 @@ Preference rows (in-app, plus the `sales_notice` email where on by default):
   period's weight. Null without a target and for future periods.
 - KPI definitions are spec §6, computed only in `modules/sales/kpi.py` (won value by `won_at` workspace date for the
   `creditedUser`; lost, leads, new opportunities, pipeline and follow-ups by owner).
+
+## 20. Daily reports (S5)
+
+| Route | Method | Permission | Notes |
+|---|---|---|---|
+| `/sales/workspaces/{slug}/daily-reports/me/today` | GET | `sales.dailyreport.submit` | Your report for today (workspace date), created as a draft on first read |
+| `/sales/workspaces/{slug}/daily-reports` | GET | `sales.dailyreport.view` | Cursor list, newest date first. `filter[date]`, `filter[dateFrom]`, `filter[dateTo]`, `filter[user]`, `filter[team]`, `filter[status]` |
+| `/sales/workspaces/{slug}/daily-reports/team` | GET | `sales.dailyreport.view` | `date=` (default today), `teamId=` |
+| `/sales/daily-reports/{id}` | GET | `sales.dailyreport.view` | 404 outside the view scope (the author always sees their own) |
+| `/sales/daily-reports/{id}` | PUT | `sales.dailyreport.submit` | Author only (else 403). `{comments?: [text], tomorrowPlan?: [{text, targetType?, targetId?}]}`, each replaced when given; 409 `report_reviewed` once reviewed |
+| `/sales/daily-reports/{id}/submit` | POST | `sales.dailyreport.submit` | Author only; drafts only (409 `report_submitted`) |
+| `/sales/daily-reports/{id}/review` | POST | `sales.dailyreport.review` | `{comment?}`; submitted only (409 `report_not_submitted`); locks the report |
+| `/sales/daily-reports/{id}/reopen` | POST | `sales.dailyreport.review` | Submitted or reviewed → draft (409 `report_draft`); clears the snapshot and the review |
+
+- **Report** `{id, user {id, name}, reportDate, status: draft|submitted|reviewed, required, cutoffAt, comments,
+  tomorrowPlan, submittedAt, isLate, reviewedBy, reviewedAt, reviewComment, metrics, canEdit, updatedAt}`.
+  `required` is false on non-working days (weight 0 or a holiday) or when `dailyReportRequired` is off; such
+  reports can still be submitted.
+- **Metrics** `{target, sales, achievement, newLeads, calls, visits, meetings, quotationsSent, followUpsCompleted,
+  newOpportunities, dealsWon, dealsLost}` for the report date in workspace time: `target` = the effective day target
+  (null without one), `sales` = won value credited to the user, `achievement` a one-decimal number; quotations by
+  `sentAt`, follow-ups by `completedAt`; won by `creditedUser`, the rest by owner. Live while a draft, frozen into a
+  snapshot at submit.
+- **Late**: submitted after the report date's `dailyReportCutoff` in workspace time.
+- **Review**: needs `sales.dailyreport.review` with the author in scope (403 otherwise; 404 outside the view scope)
+  and never on your own report (403).
+- **Team view** `{date, required, users: [{user, reportId, status (incl. missing), isLate, submittedAt, comments,
+  tomorrowPlan, metrics}], totals: {target, sales, achievement, <counts>, people, submitted, reviewed, drafts,
+  missing, late}}`: people in your `sales.dailyreport.view` scope who hold `sales.dailyreport.submit` or have a
+  report that date. The team target is the sum of the users' targets (S6 extends this into the management report).
+- **Events and notifications**: `sales.dailyreport.submitted` (in-app) → leads of the author's teams and members whose
+  review scope reaches the author; `sales.dailyreport.reviewed` (in-app, email) → the author;
+  `sales.dailyreport.reminder` (in-app, email). Audit actions `sales.dailyreport.created|updated|submitted|reviewed|
+  reopened` (group `dailyreport`).
+- **Job `sales_report_reminder`** (schedule every 15 minutes): sends only in the hour before the cutoff (workspace
+  time) on days that require a report, to holders of `sales.dailyreport.submit` without a submitted report; once per
+  user and date; skipped where sales is off.

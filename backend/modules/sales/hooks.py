@@ -573,6 +573,12 @@ def followup_digest_job(workspace: Any, *, now: Any) -> None:
     followup_digest(workspace, now=now)
 
 
+def report_reminder_job(workspace: Any, *, now: Any) -> None:
+    from .daily_reports import send_reminders
+
+    send_reminders(workspace, now=now)
+
+
 def register() -> None:
     register_target_type("sales.company", CompanyTarget())
     register_target_type("sales.contact", ContactTarget())
@@ -612,6 +618,18 @@ def register() -> None:
     from . import target_notifications
 
     target_notifications.register()
+    register_audit_group("dailyreport", ["sales.dailyreport"])
+    from . import daily_report_notifications
+
+    daily_report_notifications.register()
+    register_job(
+        "sales_report_reminder",
+        report_reminder_job,
+        module=KEY,
+        schedule="every 15 minutes",
+        description="Daily report reminder in the hour before the cutoff, on working days, to submitters who haven't "
+        "submitted (workspace time; a no-op outside that hour)",
+    )
     register_audit_group(
         "sales_settings",
         ["sales.settings", "sales.stage", "sales.product", "sales.lostreason", "sales.calendar", "sales.holiday"],

@@ -116,6 +116,10 @@ def FOLLOWUP(w):
     return {"follow_up_id": w.extra["followup"].pk}
 
 
+def REPORT(w):
+    return {"daily_report_id": w.extra["report"].pk}
+
+
 ROWS: list[Row] = [
     # ── reference data: read by anyone in Sales, written with sales.settings.manage ──
     Row("sales-settings", "GET", allow=EVERY_SALES_USER),
@@ -267,6 +271,15 @@ ROWS: list[Row] = [
     Row("sales-targets-effective", "GET", allow=EVERY_SALES_USER),
     Row("sales-performance-user", "GET", REP_USER, allow=EVERY_SALES_USER),
     Row("sales-performance-ranking", "GET", allow=EVERY_SALES_USER),
+    # ── daily reports (S5): the record is the Salesperson rep's draft ──
+    Row("sales-daily-reports", "GET", allow=EVERY_SALES_USER),
+    Row("sales-daily-reports-me-today", "GET", allow=WRITERS),
+    Row("sales-daily-reports-team", "GET", allow=EVERY_SALES_USER),
+    Row("sales-daily-report-detail", "GET", REPORT, allow=EVERY_SALES_USER),
+    Row("sales-daily-report-detail", "PUT", REPORT, allow=("rep",), body=lambda w: {"comments": ["Busy day"]}),
+    Row("sales-daily-report-submit", "POST", REPORT, allow=("rep",)),
+    Row("sales-daily-report-review", "POST", REPORT, allow=TARGET_MANAGERS, body=lambda w: {"comment": "Good"}),
+    Row("sales-daily-report-reopen", "POST", REPORT, allow=TARGET_MANAGERS),
 ]
 
 
@@ -344,6 +357,9 @@ def _world() -> SalesWorld:
     w.extra["target"] = Target.objects.create(
         workspace=w.ws, subject_type="user", subject_id=rep.pk, period_type="year", period_start="2026-01-01", amount=1
     )
+    from modules.sales.models import DailyReport
+
+    w.extra["report"] = DailyReport.objects.create(workspace=w.ws, user=rep, report_date="2026-09-01")
     return w
 
 

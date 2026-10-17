@@ -1168,6 +1168,132 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/daily-reports/{daily_report_id}:
+    get:
+      operationId: sales_daily_reports_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: daily_report_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
+    put:
+      operationId: sales_daily_reports_update
+      description: The author's comments and tomorrow's plan (each replaced when given);
+        409 once reviewed.
+      parameters:
+      - in: path
+        name: daily_report_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesDailyReportInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
+  /api/v1/sales/daily-reports/{daily_report_id}/reopen:
+    post:
+      operationId: sales_daily_reports_reopen
+      description: Back to a draft (submitted or reviewed). Not your own.
+      parameters:
+      - in: path
+        name: daily_report_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
+  /api/v1/sales/daily-reports/{daily_report_id}/review:
+    post:
+      operationId: sales_daily_reports_review
+      description: Review a submitted report (locks it). Not your own.
+      parameters:
+      - in: path
+        name: daily_report_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesDailyReviewInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
+  /api/v1/sales/daily-reports/{daily_report_id}/submit:
+    post:
+      operationId: sales_daily_reports_submit
+      description: Freeze the metrics; `isLate` when after the cutoff. 409 unless
+        a draft.
+      parameters:
+      - in: path
+        name: daily_report_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
   /api/v1/sales/follow-ups/{follow_up_id}:
     get:
       operationId: sales_follow_ups_retrieve
@@ -2465,6 +2591,124 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SalesContact'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/daily-reports:
+    get:
+      operationId: sales_daily_reports_list
+      description: Reports in the caller's `sales.dailyreport.view` scope, newest
+        date first.
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[dateFrom]
+        schema:
+          type: string
+      - in: query
+        name: filter[dateTo]
+        schema:
+          type: string
+      - in: query
+        name: filter[date]
+        schema:
+          type: string
+        description: YYYY-MM-DD
+      - in: query
+        name: filter[status]
+        schema:
+          type: string
+          enum:
+          - draft
+          - reviewed
+          - submitted
+      - in: query
+        name: filter[team]
+        schema:
+          type: string
+        description: team id; repeatable
+      - in: query
+        name: filter[user]
+        schema:
+          type: string
+        description: user id; repeatable
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReportPage'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/daily-reports/me/today:
+    get:
+      operationId: sales_daily_reports_me_today
+      description: The caller's report for today (workspace time), created as a draft
+        on first read.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDailyReport'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/daily-reports/team:
+    get:
+      operationId: sales_daily_reports_team
+      description: 'Every person in the caller''s view scope expected to report (or
+        who reported) on `date`: status, comments, plan and metrics, plus totals.'
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD; default today (workspace time)
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: teamId
+        schema:
+          type: string
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTeamDailyReport'
           description: ''
   /api/v1/sales/workspaces/{slug}/follow-ups:
     get:
@@ -13187,6 +13431,203 @@ components:
           maxLength: 200
       required:
       - dueDate
+    SalesDailyMetrics:
+      type: object
+      properties:
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Today's effective target; null without a target
+        sales:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Won value credited to the user that day
+        achievement:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        newLeads:
+          type: integer
+        calls:
+          type: integer
+        visits:
+          type: integer
+        meetings:
+          type: integer
+        quotationsSent:
+          type: integer
+        followUpsCompleted:
+          type: integer
+        newOpportunities:
+          type: integer
+        dealsWon:
+          type: integer
+        dealsLost:
+          type: integer
+      required:
+      - achievement
+      - calls
+      - dealsLost
+      - dealsWon
+      - followUpsCompleted
+      - meetings
+      - newLeads
+      - newOpportunities
+      - quotationsSent
+      - sales
+      - target
+      - visits
+    SalesDailyPlanItem:
+      type: object
+      properties:
+        text:
+          type: string
+          maxLength: 500
+        targetType:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SalesTargetTypeEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        targetId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - text
+    SalesDailyPlanItemRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+        targetType:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SalesTargetTypeEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        targetId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - text
+    SalesDailyReport:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/_UserRef'
+        reportDate:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/SalesDailyReportStatusEnum'
+        required:
+          type: boolean
+          description: False on non-working days or when reports are optional
+        cutoffAt:
+          type: string
+          format: date-time
+        comments:
+          type: array
+          items:
+            type: string
+        tomorrowPlan:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesDailyPlanItem'
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        isLate:
+          type: boolean
+        reviewedBy:
+          allOf:
+          - $ref: '#/components/schemas/_UserRef'
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        reviewComment:
+          type: string
+        metrics:
+          allOf:
+          - $ref: '#/components/schemas/SalesDailyMetrics'
+          description: Live while a draft, frozen at submit
+        canEdit:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - canEdit
+      - comments
+      - cutoffAt
+      - id
+      - isLate
+      - metrics
+      - reportDate
+      - required
+      - reviewComment
+      - reviewedAt
+      - reviewedBy
+      - status
+      - submittedAt
+      - tomorrowPlan
+      - updatedAt
+      - user
+    SalesDailyReportInRequest:
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
+          maxItems: 30
+        tomorrowPlan:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesDailyPlanItemRequest'
+    SalesDailyReportPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesDailyReport'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesDailyReportStatusEnum:
+      enum:
+      - draft
+      - submitted
+      - reviewed
+      type: string
+    SalesDailyReviewInRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          maxLength: 2000
     SalesDuplicateCheck:
       type: object
       properties:
@@ -15287,6 +15728,141 @@ components:
       - subjectType
       - target
       - year
+    SalesTeamDailyReport:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        required:
+          type: boolean
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTeamDailyRow'
+        totals:
+          $ref: '#/components/schemas/SalesTeamDailyTotals'
+      required:
+      - date
+      - required
+      - totals
+      - users
+    SalesTeamDailyRow:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/_UserRef'
+        reportId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/SalesTeamDailyRowStatusEnum'
+        isLate:
+          type: boolean
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        comments:
+          type: array
+          items:
+            type: string
+        tomorrowPlan:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesDailyPlanItem'
+        metrics:
+          $ref: '#/components/schemas/SalesDailyMetrics'
+      required:
+      - comments
+      - isLate
+      - metrics
+      - reportId
+      - status
+      - submittedAt
+      - tomorrowPlan
+      - user
+    SalesTeamDailyRowStatusEnum:
+      enum:
+      - draft
+      - submitted
+      - reviewed
+      - missing
+      type: string
+    SalesTeamDailyTotals:
+      type: object
+      properties:
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Today's effective target; null without a target
+        sales:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Won value credited to the user that day
+        achievement:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        newLeads:
+          type: integer
+        calls:
+          type: integer
+        visits:
+          type: integer
+        meetings:
+          type: integer
+        quotationsSent:
+          type: integer
+        followUpsCompleted:
+          type: integer
+        newOpportunities:
+          type: integer
+        dealsWon:
+          type: integer
+        dealsLost:
+          type: integer
+        people:
+          type: integer
+        submitted:
+          type: integer
+          description: Submitted or reviewed
+        reviewed:
+          type: integer
+        drafts:
+          type: integer
+        missing:
+          type: integer
+        late:
+          type: integer
+      required:
+      - achievement
+      - calls
+      - dealsLost
+      - dealsWon
+      - drafts
+      - followUpsCompleted
+      - late
+      - meetings
+      - missing
+      - newLeads
+      - newOpportunities
+      - people
+      - quotationsSent
+      - reviewed
+      - sales
+      - submitted
+      - target
+      - visits
     SalesTimelineActivity:
       type: object
       properties:
@@ -17548,6 +18124,17 @@ components:
       - name
       - navItems
       - toggleable
+    _UserRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
   securitySchemes:
     bearerAuth:
       type: http

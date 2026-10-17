@@ -4,6 +4,7 @@
 from django.urls import path
 
 from . import activity_views as av
+from . import daily_report_views as drv
 from . import performance_views as perf
 from . import pipeline_views as pv
 from . import target_views as tv
@@ -87,4 +88,24 @@ urlpatterns = [
     path("targets/<uuid:sales_target_id>", tv.TargetDetailView.as_view(), name="sales-target-detail"),
     path(f"{W}/performance/users/<uuid:user_id>", perf.PerformanceUserView.as_view(), name="sales-performance-user"),
     path(f"{W}/performance/ranking", perf.PerformanceRankingView.as_view(), name="sales-performance-ranking"),
+    # S5: daily reports
+    path(f"{W}/daily-reports", drv.DailyReportListView.as_view(), name="sales-daily-reports"),
+    path(f"{W}/daily-reports/me/today", drv.DailyReportTodayView.as_view(), name="sales-daily-reports-me-today"),
+    path(f"{W}/daily-reports/team", drv.DailyReportTeamView.as_view(), name="sales-daily-reports-team"),
+    path("daily-reports/<uuid:daily_report_id>", drv.DailyReportDetailView.as_view(), name="sales-daily-report-detail"),
+    path(
+        "daily-reports/<uuid:daily_report_id>/submit",
+        drv.DailyReportSubmitView.as_view(),
+        name="sales-daily-report-submit",
+    ),
+    path(
+        "daily-reports/<uuid:daily_report_id>/review",
+        drv.DailyReportReviewView.as_view(),
+        name="sales-daily-report-review",
+    ),
+    path(
+        "daily-reports/<uuid:daily_report_id>/reopen",
+        drv.DailyReportReopenView.as_view(),
+        name="sales-daily-report-reopen",
+    ),
 ]
