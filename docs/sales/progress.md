@@ -4,11 +4,85 @@ Parent: `docs/sales/spec.md` §13. The API reference is `docs/sales/api.md`.
 
 | Stage | Status |
 |---|---|
-| S0 core prerequisites | done (`docs/sales/s0-contract.md`) |
-| S1 reference data and customers | done |
-| S2 leads, opportunities and pipeline | done (backend) |
-| S3 activities and follow-ups | next |
-| S4–S7 | not started |
+| S0 core prerequisites | done: multiple workspace roles, workspace time zone, jobs framework, role seeding hook (`s0-contract.md`) |
+| S1 reference data and customers | done: permissions and default roles, settings, stages, products, lost reasons, calendar, companies, contacts, duplicate check |
+| S2 leads, opportunities and pipeline | done: leads and conversion, opportunities, stage history, pipeline board, won / lost / reopen, quotations, events |
+| S3 activities and follow-ups | done: activities, follow-ups (buckets, completion), flags, notifications, digest job |
+| S4 targets and performance | done: targets, allocation, effective targets, KPI service, status colors, performance and ranking |
+| S5 daily reports | done: auto-built report, submit, review, reminders, team daily report |
+| S6 dashboards and reports | done: role dashboards, management daily report and job, report engine, CSV export |
+| S7 hardening | done: indexes checked, seed data, security review fixes, docs (this file) |
+
+All stages are backend only; the frontend has not been pointed at the sales API yet.
+
+## S7 (done, backend)
+
+- **Indexes (spec §11):** all present since S2–S5, no migration needed: opportunities `(workspace, owner, stage)`,
+  `(workspace, won_at)`, `(workspace, expected_close_date)`; follow-ups `(workspace, owner, status, due_date)`;
+  activities `(workspace, owner, occurred_at)`; daily reports unique `(workspace, user, report_date)`; targets'
+  two unique keys.
+- **Seed data:** `python manage.py seed_demo_sales [--workspace slug] [--reset] [--force]` (`seed.py`; DEBUG only
+  unless `--force`; idempotent). Written through the services, then back-dated. Not registered with `seed_demo`:
+  that command mirrors the web client's mock fixture; run `seed_demo_sales --workspace platform` after it if wanted.
+- **Owner / Admin:** no longer hold `sales.dailyreport.submit` by default (they got reminders and showed as missing in
+  team daily reports). Migration `0006` removes the grant from existing workspaces.
+  `sales.dailyreport.submit` is a **self-service** permission (`PermissionDef.self_service`): the no-escalation checks
+  (assigning member roles, invitations, creating / editing roles, moving a deleted role's members) skip self-service
+  codes, so anyone allowed to assign roles may grant them without holding them. Every other code still has to be
+  held by the actor, and data scopes can't exceed the actor's own (owners exempt from the scope rule).
+- **Security review fixes** (regressions in `tests/test_hardening.py`):
+  - medium: assigning roles (member roles, invitations, moving a deleted role's members) checked permission codes but
+    not data scopes, so someone with `manage_members` and a `team` sales role could give themselves CEO / GM (`all`).
+    Now refused (`data_scope_exceeds_own`) unless the actor is an owner (`core/access/roles.ensure_scopes_within_own`).
+  - low: a record endpoint answered 403 (missing action permission) before the scope check, revealing that an
+    out-of-scope id exists. Now 404 when the caller holds the view code but the record is outside its scope; callers
+    without the view code at all keep the plain 403 (`views.SalesRecordView.check_permissions`).
+  - low: a crafted timeline cursor with a naive timestamp caused a 500; now 400 `invalid_cursor`.
+- **Left as is (by design or low risk):**
+  - dashboard and management-report lists show deal titles under the dashboard / report scope, not each record's own
+    view scope. The default roles use one scope per role, so only a custom role mixing scopes is affected.
+  - `core.audit.view` holders see every sales audit row whatever their sales scope (default: Owner / Admin only).
+  - CSV export prefixes negative numbers with `'` (formula safety in `core/common/csvsafe.py`, shared with the web
+    client's test vectors); spreadsheets read those cells as text.
+  - clearing other contacts' primary flag isn't audited separately (the contact edit is).
+- **Line endings:** there is no `.gitattributes`; files keep their committed endings (some sales files are CRLF).
+
+### Spec §14 decisions (defaults, all editable)
+
+1. Saturday weight 0 (set 0.5 in the calendar if half days are worked).
+2. Salespeople see only their own companies and rely on the duplicate check (`exists` + owner name).
+3. Fiscal year starts in January; weeks start on Monday.
+4. Large-deal threshold 1,000,000.00 ETB.
+
+### Known gaps
+
+- Leads have no `noNextStep` / `stale` flags (opportunities do).
+- Lead follow-ups are not moved to the opportunity on conversion.
+- Who completed a follow-up is not stored (only when; the audit entry has the actor).
+- The allocation tree leaves out users who are in no team.
+- Daily report plan items' target references are not checked for existence.
+- `daily_reports.submitters()` checks members' permissions one by one (fine for small teams).
+- Reopen has no domain event; a dashboard / report scope wider than a record's view scope shows its title (above).
+
+### Roles and scopes → screens
+
+Default roles (api.md §2). Scope: own = records they own; team = their teams' members' records; all = everything.
+Owner and Admin see everything with `all` (no daily report of their own). Member sees no sales screens.
+
+| Screen | Sales Admin (all) | CEO / GM (all) | Sales Manager (team) | Salesperson (own) |
+|---|---|---|---|---|
+| Dashboard | company-wide | company-wide | team | own |
+| Pipeline board, opportunities | full edit, delete, reopen | read only | create, edit, move, close, assign | create, edit, move, close own |
+| Leads | full | read only | full (create, edit, delete, assign, convert) | create, edit, convert own |
+| Companies, contacts | full incl. delete | read only | create, edit (no delete) | create, edit own; duplicate check |
+| Quotations | full | read only | full | create, edit, send own |
+| Activities, follow-ups | full | read only | full, reassign | log, edit, complete, delete own |
+| Targets and allocation | view and manage all | view and manage all | view and manage team | view own |
+| Daily report (mine) | submit | — | submit | submit |
+| Team daily reports, review | all | all | team | own (read) |
+| Performance and ranking | all | all | team | own |
+| Reports and CSV export | all | all | team | — |
+| Settings | yes | — | — | — |
 
 ## S2 (done, backend)
 

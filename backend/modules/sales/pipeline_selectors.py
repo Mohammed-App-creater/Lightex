@@ -465,6 +465,8 @@ def page_items(items: list[dict[str, Any]], params: Any) -> dict[str, Any]:
         try:
             at = dt.datetime.fromisoformat(str(at_raw))
         except ValueError:
+            at = None
+        if at is None or at.tzinfo is None:  # a crafted naive timestamp can't be compared with the items' (S7)
             from core.common.exceptions import ApiError
 
             raise ApiError(400, "invalid_cursor", "This page link is no longer valid.")

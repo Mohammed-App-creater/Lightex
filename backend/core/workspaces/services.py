@@ -11,7 +11,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from core.access import services as access
-from core.access.catalogue import OWNER_PERMISSION, WORKSPACE, role_precedence_key
+from core.access.catalogue import OWNER_PERMISSION, WORKSPACE, grantable_without_holding, role_precedence_key
 from core.access.models import Role
 from core.accounts.models import User
 from core.accounts.services import EMAIL_RE, normalize_email, password_problem
@@ -172,11 +172,15 @@ def _codes_of(roles: list[Role]) -> set[str]:
 
 
 def _ensure_can_grant(actor: User, ws: Workspace, roles: list[Role]) -> None:
-    """No privilege escalation: you can only hand out (or take away) permissions you hold."""
+    """No privilege escalation: you can only hand out (or take away) permissions you hold, with data scopes no wider
+    than yours."""
     mine = access.workspace_permissions(actor, ws)
-    missing = _codes_of(roles) - mine
+    missing = grantable_without_holding(_codes_of(roles) - mine)
     if missing:
         raise forbidden("You can’t assign a role with permissions you don’t have.", {"permission": sorted(missing)[0]})
+    from core.access.roles import ensure_scopes_within_own
+
+    ensure_scopes_within_own(actor, ws, roles)
 
 
 def _owner_count(ws: Workspace, *, excluding_user: Any = None) -> int:

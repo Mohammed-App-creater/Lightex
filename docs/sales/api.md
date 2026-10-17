@@ -103,7 +103,10 @@ created with sales and whenever sales is turned on. Existing roles are never tou
 - Every sales role also grants `core.workspace.view`, so someone whose only role is a sales role can open the
   workspace. Members may hold several roles; permissions are the union and the widest scope wins.
 - Role keys (`system_key`): `sales_admin`, `sales_ceo`, `sales_manager`, `sales_salesperson`.
-- **Built-in roles:** Owner and Admin get every sales code with scope `all`. Member gets nothing in sales: people get
+- **Built-in roles:** Owner and Admin get every sales code with scope `all` except `sales.dailyreport.submit` (S7: so they
+  get no reminders and never show as "missing" in team daily reports; give them Salesperson or Sales Manager to
+  report). It is self-service: whoever may assign roles may grant it without holding it. Member gets nothing in
+  sales: people get
   sales access through the sales roles (for example Member + Salesperson).
 - Reasoning: deleting customers and deals is an admin act (archive a company by setting its status to `inactive`);
   managers may delete leads, quotations, activities and follow-ups in their team; salespeople may delete their own

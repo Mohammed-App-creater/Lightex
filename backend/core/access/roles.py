@@ -61,7 +61,7 @@ def _ensure_no_escalation(actor: Any, role_scope: str, workspace: Any, codes: se
     """A workspace role can only be given permissions the actor holds themselves."""
     if role_scope != WORKSPACE:
         return
-    missing = codes - workspace_permissions(actor, workspace)
+    missing = catalogue.grantable_without_holding(codes - workspace_permissions(actor, workspace))
     if missing:
         raise forbidden("You can’t grant permissions you don’t have.", {"permission": sorted(missing)[0]})
 
@@ -84,6 +84,17 @@ def _ensure_no_scope_widening(
                 "You can’t grant a wider data scope than your own.",
                 {"code": code, "dataScope": changed[code], "yours": own},
             )
+
+
+def ensure_scopes_within_own(actor: Any, workspace: Any, roles: Any) -> None:
+    """Sales S7: assigning roles (member roles, invitations, a deleted role's members moved to another) can't hand out
+    a data scope wider than the actor's own, like role edits. Owners are exempt."""
+    widest: dict[str, str] = {}
+    for r in roles:
+        for code, scope in stored_data_scopes(r).items():
+            if code_enabled(workspace, code) and _SCOPE_RANK[scope] > _SCOPE_RANK.get(widest.get(code, ""), -1):
+                widest[code] = scope
+    _ensure_no_scope_widening(actor, workspace, widest)
 
 
 def _clean_data_scopes(granted: list[str], raw: Any, stored: dict[str, str] | None = None) -> dict[str, str]:
@@ -300,6 +311,8 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
     if target is not None:
         target_codes = visible_codes(role.workspace, target.permissions.values_list("code", flat=True))
         _ensure_no_escalation(actor, role.scope, role.workspace, target_codes)
+        if role.scope == WORKSPACE:
+            ensure_scopes_within_own(actor, role.workspace, [target])
         if (
             role.scope == WORKSPACE
             and OWNER_PERMISSION in visible_codes(role.workspace, role.permissions.values_list("code", flat=True))

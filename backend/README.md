@@ -59,6 +59,13 @@ Riley and Morgan (`riley@team.dev`, `morgan@team.dev`, Members) and Drew (`drew@
 the same password. The command refuses to run when `DEBUG` is off. It is idempotent: when the demo workspaces exist
 it does nothing; `--flush` deletes and recreates the demo data.
 
+`seed_demo_sales` adds sales demo data (spec §13 "Seed data"; contents in `modules/sales/seed.py`) to one workspace:
+`sales-demo` by default (created, owner `owner@sales.demo`), or `--workspace platform`. It creates a CEO / GM
+(`ceo@sales.demo`), teams North and South with a manager each (`north.manager@`, `south.manager@`) and four
+salespeople (`abel@`, `meron@`, `yonas@`, `liya@sales.demo`, each Member + Salesperson), 20 companies, 40 leads,
+60 opportunities, quotations, activities, follow-ups, targets and two weeks of daily reports. Same password; DEBUG
+only (or `--force`); idempotent, `--reset` deletes the workspace's sales records first.
+
 ## Environment variables
 
 All configuration comes from the environment (or `backend/.env` in development). Nothing secret lives in
@@ -490,13 +497,14 @@ modules/
     imports/       board 40: CSV / Jira / Trello / Asana imports
     integrations/  board 37: GitHub and GitLab
     timetracking/  board 39: time entries, timers, timesheet
-  sales/           sales module (S1: permissions and default roles, reference data, companies, contacts);
+  sales/           sales module (customers, leads, pipeline, quotations, activities, follow-ups, targets, KPIs,
+                   daily reports, dashboards, reports; status: ../docs/sales/progress.md);
                    API: ../docs/sales/api.md; how to add a module: ../docs/platform/adding-a-module.md
 ```
 
 Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so table names are unchanged. Stage 5 replaced
 the migration history with one fresh `0001_initial` per app (`access` and `planning` also have a `0002_initial`, where
-Django splits a real foreign-key cycle). There are no data migrations: the permission catalogue is synced after every
+Django splits a real foreign-key cycle). There are no data migrations (except sales `0006`, which removes a default grant): the permission catalogue is synced after every
 `migrate`, and default roles are seeded when a workspace is created or a module is enabled.
 `lint-imports` (import-linter, configured in `pyproject.toml`) enforces that `core` never imports `modules` and that
 modules never import each other; there are no exceptions for production code (see "Platform services").

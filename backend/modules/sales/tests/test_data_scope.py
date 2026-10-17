@@ -81,9 +81,8 @@ def test_out_of_scope_records_are_404(world, method):
     ):
         call = getattr(rep, method)
         res = call(url, {}, format="json") if method == "patch" else call(url)
-        # DELETE: Salespeople hold no delete code at all, so they get the plain 403 before any record check.
-        expected = 403 if method == "delete" else 404
-        assert res.status_code == expected, (url, res.json())
+        # DELETE: Salespeople hold no delete code, but the record is outside their view scope: 404 too (S7).
+        assert res.status_code == 404, (url, res.json())
     manager = world.client("manager")
     assert manager.get(f"/api/v1/sales/companies/{world.companies['rep3'].pk}").status_code == 404
     assert manager.get(f"/api/v1/sales/companies/{world.companies['rep'].pk}").status_code == 200

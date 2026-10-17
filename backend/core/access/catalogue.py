@@ -41,12 +41,16 @@ class PermissionDef:
     module: str
     #: A scopable permission is granted with a data scope (own, team or all); workspace scope only.
     scopable: bool = False
+    #: Sales S7: a self-service permission only lets the holder act on their own things (e.g. submit their own daily
+    #: report). The no-escalation checks let anyone grant it, so Owner / Admin, who don't hold it, can still assign
+    #: roles that include it.
+    self_service: bool = False
 
 
 def workspace_permission(
-    code: str, group: str, label: str, description: str, *, scopable: bool = False
+    code: str, group: str, label: str, description: str, *, scopable: bool = False, self_service: bool = False
 ) -> PermissionDef:
-    return PermissionDef(code, WORKSPACE, group, label, description, module_of(code), scopable)
+    return PermissionDef(code, WORKSPACE, group, label, description, module_of(code), scopable, self_service)
 
 
 def project_permission(code: str, group: str, label: str, description: str) -> PermissionDef:
@@ -222,6 +226,11 @@ def all_permissions() -> list[PermissionDef]:
 
 def get(code: str) -> PermissionDef | None:
     return _catalogue().by_code.get(code)
+
+
+def grantable_without_holding(codes: set[str]) -> set[str]:
+    """`codes` minus the self-service ones (anyone who may assign roles may grant those)."""
+    return {c for c in codes if not ((p := get(c)) is not None and p.self_service)}
 
 
 def scope_of(code: str) -> str | None:

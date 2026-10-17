@@ -75,8 +75,10 @@ REPORT_EXPORT = "sales.report.export"
 SETTINGS_MANAGE = "sales.settings.manage"
 
 
-def _p(code: str, group: str, label: str, description: str, scopable: bool = True) -> PermissionDef:
-    return workspace_permission(code, group, label, description, scopable=scopable)
+def _p(
+    code: str, group: str, label: str, description: str, scopable: bool = True, self_service: bool = False
+) -> PermissionDef:
+    return workspace_permission(code, group, label, description, scopable=scopable, self_service=self_service)
 
 
 PERMISSIONS: tuple[PermissionDef, ...] = (
@@ -119,7 +121,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     _p(FOLLOWUP_DELETE, "Sales: follow-ups", "Delete follow-ups", "Delete follow-ups in scope"),
     _p(TARGET_VIEW, "Sales: targets", "View targets", "See targets of the people in scope"),
     _p(TARGET_MANAGE, "Sales: targets", "Manage targets", "Set and allocate targets for people in scope"),
-    _p(DAILYREPORT_SUBMIT, "Sales: daily reports", "Submit daily report", "Submit your own daily report", False),
+    # Self-service (S7): Owner and Admin don't hold it but may still assign the roles that do.
+    _p(
+        DAILYREPORT_SUBMIT,
+        "Sales: daily reports",
+        "Submit daily report",
+        "Submit your own daily report",
+        scopable=False,
+        self_service=True,
+    ),
     _p(DAILYREPORT_VIEW, "Sales: daily reports", "View daily reports", "See daily reports in scope"),
     _p(DAILYREPORT_REVIEW, "Sales: daily reports", "Review daily reports", "Review and reopen daily reports in scope"),
     _p(PERFORMANCE_VIEW, "Sales: performance", "View performance", "See performance pages and ranking in scope"),
@@ -136,6 +146,8 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
 
 ALL_CODES: tuple[str, ...] = tuple(p.code for p in PERMISSIONS)
 SCOPABLE_CODES: frozenset[str] = frozenset(p.code for p in PERMISSIONS if p.scopable)
+#: The built-in Owner and Admin roles' sales grants: everything but submitting a daily report.
+OWNER_ADMIN_CODES: tuple[str, ...] = tuple(c for c in ALL_CODES if c != DAILYREPORT_SUBMIT)
 
 # ───────────────────────── default roles (one readable table) ─────────────────────────
 #
@@ -267,8 +279,10 @@ DEFINITION = ModuleDefinition(
     is_core=False,
     depends_on=(),
     permissions=PERMISSIONS,
-    # Owner and Admin: every sales code, scope `all` (the default for those two roles). Member: nothing.
-    default_role_grants={"owner": list(ALL_CODES), "admin": list(ALL_CODES)},
+    # Owner and Admin: every sales code, scope `all` (the default for those two roles), except
+    # `sales.dailyreport.submit` (it makes the holder an expected reporter: reminders, "missing" in team reports).
+    # Member: nothing.
+    default_role_grants={"owner": list(OWNER_ADMIN_CODES), "admin": list(OWNER_ADMIN_CODES)},
     default_roles=DEFAULT_ROLES,
     event_types=EVENT_TYPES,
     target_types=("sales.company", "sales.contact", "sales.lead", "sales.opportunity", "sales.quotation"),

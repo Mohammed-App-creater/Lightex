@@ -122,7 +122,9 @@ def test_built_in_role_grants(owner):
     ws = make_workspace(owner, name="Deals", slug="deals", modules=["sales"])
     for key in ("owner", "admin"):
         codes = access.role_permission_codes(role(ws, key))
-        assert set(SPEC) <= codes, key
+        assert set(SPEC) - {"sales.dailyreport.submit"} <= codes, key
+        # Not an expected reporter: no reminders, never "missing" in team daily reports.
+        assert "sales.dailyreport.submit" not in codes, key
         scopes = set(
             RolePermission.objects.filter(role=role(ws, key), permission__scopable=True).values_list(
                 "data_scope", flat=True

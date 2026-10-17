@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from core.access.permissions import ScopedView
-from core.common.exceptions import invalid, not_found
+from core.common.exceptions import ApiError, invalid, not_found
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_value
 from core.common.schema import page_of
@@ -87,6 +87,40 @@ class SalesRecordView(ScopedView):
         if ws is None:
             raise not_found(self.not_found_message)
         return ws
+
+    def check_permissions(self, request):
+        # A missing action permission (403) must not reveal a record outside the caller's view scope: someone who
+        # holds the view code gets 404 for it, as for an unknown id (S7 security review). Without the view code at
+        # all (no sales access), the plain 403 stays.
+        try:
+            super().check_permissions(request)
+        except ApiError as exc:
+            if exc.status_code == 403 and "permission" in exc.details:
+                self.require_viewable(request)
+            raise
+
+    def require_viewable(self, request) -> None:
+        from .models import Activity, DailyReport, FollowUp, Lead, Opportunity, Quotation
+
+        codes = {
+            Company: perms.COMPANY_VIEW,
+            Contact: perms.CONTACT_VIEW,
+            Lead: perms.LEAD_VIEW,
+            Opportunity: perms.OPPORTUNITY_VIEW,
+            Quotation: perms.QUOTATION_VIEW,
+            Activity: perms.ACTIVITY_VIEW,
+            FollowUp: perms.FOLLOWUP_VIEW,
+            DailyReport: perms.DAILYREPORT_VIEW,
+        }
+        code = codes.get(self.model)
+        record = getattr(self, "record", None)
+        if code is None or record is None:
+            return
+        if self.model is DailyReport and str(record.user_id) == str(request.user.pk):
+            return
+        if scope.scope_of(request.user, self.scope, code) is None:
+            return
+        scope.require_visible(request.user, record, code, self.not_found_message)
 
 
 # ───────────────────────── settings ─────────────────────────

@@ -273,7 +273,7 @@ ROWS: list[Row] = [
     Row("sales-performance-ranking", "GET", allow=EVERY_SALES_USER),
     # ── daily reports (S5): the record is the Salesperson rep's draft ──
     Row("sales-daily-reports", "GET", allow=EVERY_SALES_USER),
-    Row("sales-daily-reports-me-today", "GET", allow=WRITERS),
+    Row("sales-daily-reports-me-today", "GET", allow=("sales_admin", "manager", "rep")),  # submitters (S7)
     Row("sales-daily-reports-team", "GET", allow=EVERY_SALES_USER),
     Row("sales-daily-report-detail", "GET", REPORT, allow=EVERY_SALES_USER),
     Row("sales-daily-report-detail", "PUT", REPORT, allow=("rep",), body=lambda w: {"comments": ["Busy day"]}),
