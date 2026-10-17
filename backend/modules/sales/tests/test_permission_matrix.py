@@ -92,6 +92,22 @@ def CONTACT(w):
     return {"contact_id": w.contacts["rep"].pk}
 
 
+TARGET_MANAGERS = ("owner", "admin", "sales_admin", "ceo", "manager")
+
+
+def TARGET(w):
+    return {"sales_target_id": w.extra["target"].pk}
+
+
+def REP_USER(w):
+    return {"slug": w.ws.slug, "user_id": w.users["rep"].pk}
+
+
+def _rep_target(w):
+    rep = str(w.users["rep"].pk)
+    return {"subjectType": "user", "subjectId": rep, "periodType": "month", "periodStart": "2026-05-01", "amount": "5"}
+
+
 def ACTIVITY(w):
     return {"activity_id": w.extra["activity"].pk}
 
@@ -236,6 +252,21 @@ ROWS: list[Row] = [
         allow=ASSIGNERS,
         body=lambda w: {"ownerId": str(w.users["rep2"].pk)},
     ),
+    # ── targets and performance (S4) ──
+    Row("sales-targets", "GET", allow=EVERY_SALES_USER),
+    Row("sales-targets", "POST", allow=TARGET_MANAGERS, body=_rep_target),
+    Row("sales-target-detail", "GET", TARGET, allow=EVERY_SALES_USER),
+    Row("sales-target-detail", "DELETE", TARGET, allow=TARGET_MANAGERS),
+    Row("sales-targets-allocation", "GET", allow=EVERY_SALES_USER),
+    Row(
+        "sales-targets-allocate",
+        "POST",
+        allow=TARGET_MANAGERS,
+        body=lambda w: {"subjectType": "user", "subjectId": str(w.users["rep"].pk), "year": 2026, "method": "equal"},
+    ),
+    Row("sales-targets-effective", "GET", allow=EVERY_SALES_USER),
+    Row("sales-performance-user", "GET", REP_USER, allow=EVERY_SALES_USER),
+    Row("sales-performance-ranking", "GET", allow=EVERY_SALES_USER),
 ]
 
 
@@ -307,6 +338,11 @@ def _world() -> SalesWorld:
     )
     w.extra["followup"] = FollowUp.objects.create(
         workspace=w.ws, owner=rep, created_by=rep, title="Call back", due_date="2099-01-01", **on_opp
+    )
+    from modules.sales.models import Target
+
+    w.extra["target"] = Target.objects.create(
+        workspace=w.ws, subject_type="user", subject_id=rep.pk, period_type="year", period_start="2026-01-01", amount=1
     )
     return w
 

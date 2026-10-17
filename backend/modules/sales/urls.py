@@ -4,7 +4,9 @@
 from django.urls import path
 
 from . import activity_views as av
+from . import performance_views as perf
 from . import pipeline_views as pv
+from . import target_views as tv
 from . import views
 
 W = "workspaces/<str:slug>"
@@ -77,4 +79,12 @@ urlpatterns = [
     ),
     path("follow-ups/<uuid:follow_up_id>/reassign", av.FollowUpReassignView.as_view(), name="sales-follow-up-reassign"),
     path("companies/<uuid:company_id>/timeline", av.CompanyTimelineView.as_view(), name="sales-company-timeline"),
+    # S4: targets and performance
+    path(f"{W}/targets", tv.TargetListView.as_view(), name="sales-targets"),
+    path(f"{W}/targets/allocation", tv.TargetAllocationView.as_view(), name="sales-targets-allocation"),
+    path(f"{W}/targets/allocate", tv.TargetAllocateView.as_view(), name="sales-targets-allocate"),
+    path(f"{W}/targets/effective", tv.TargetEffectiveView.as_view(), name="sales-targets-effective"),
+    path("targets/<uuid:sales_target_id>", tv.TargetDetailView.as_view(), name="sales-target-detail"),
+    path(f"{W}/performance/users/<uuid:user_id>", perf.PerformanceUserView.as_view(), name="sales-performance-user"),
+    path(f"{W}/performance/ranking", perf.PerformanceRankingView.as_view(), name="sales-performance-ranking"),
 ]

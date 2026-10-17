@@ -9,6 +9,7 @@ schema can't. Each stage appends its endpoints here.
 | S1 reference data and customers | §1–§8 |
 | S2 leads, opportunities and pipeline | §9–§13 (and the S2 notes in §1, §5, §6.4, §8) |
 | S3 activities and follow-ups | §14–§17 |
+| S4 targets and performance | §18–§19 |
 
 ## 1. Conventions
 
@@ -761,3 +762,64 @@ Preference rows (in-app, plus the `sales_notice` email where on by default):
   off. `sales_expire_quotations` (nightly) now also sends the expiring notices.
 - Recipients must still see the record; handlers are skipped where sales is off.
 
+## 18. Targets (S4)
+
+| Route | Method | Permission | Notes |
+|---|---|---|---|
+| `/sales/workspaces/{slug}/targets` | GET | `sales.target.view` | Plain array. `filter[subjectType]`, `filter[subjectId]`, `filter[periodType]`, `filter[year]` (fiscal) |
+| `/sales/workspaces/{slug}/targets` | POST | `sales.target.manage` | Create or update by key (subject, periodType, periodStart): 201 created, 200 updated |
+| `/sales/targets/{id}` | GET / DELETE | view / manage | 404 outside the view scope |
+| `/sales/workspaces/{slug}/targets/allocation` | GET | `sales.target.view` | `subject=company\|team:<id>\|user:<id>`, `year=` |
+| `/sales/workspaces/{slug}/targets/allocate` | POST | `sales.target.manage` | `{subjectType, subjectId, year, method, quarters?, months?}` |
+| `/sales/workspaces/{slug}/targets/effective` | GET | `sales.target.view` | `userId=` (default you), `date=` (default today) |
+
+- **Target** `{id, subjectType: user|team|company, subjectId (null for company), periodType: year|quarter|month,
+  periodStart, periodEnd, amount, note, updatedAt}`. `periodStart` must be the first day of the fiscal year, fiscal
+  quarter or calendar month (`fiscal_year_start_month`), else 422 `periodStart`. Amounts ≥ 0.
+- **Fiscal year N** is the one starting in calendar year N (July start: 2026 = 2026-07-01..2027-06-30).
+- **Scope** (subjects, not records): `all` → every member, every team and the company; `team` → you, your team-mates
+  and your own teams; `own` → yourself. Managing a subject outside `sales.target.manage`'s scope is 403
+  `forbidden`; an unknown user or team is 422 `subjectId`.
+- **Allocate** writes quarter and month targets from the stored year target: `equal`, `working_days` (working-day
+  weights incl. half days, zero on holidays) or `manual` (`quarters`: 4 amounts and/or `months`: 12). Cents are
+  rounded; the remainder goes to the heaviest part, so children always sum to the parent for `equal` and
+  `working_days`. `manual` mismatches are reported, never refused. Response: the subject's year node.
+- **Year node** `{subjectType, subjectId, name, year, start, end, target, quarters: [{start, end, amount, months:
+  [{start, end, amount}], allocationGap}], quarterGap, monthGap}`; gaps = parent − sum of the stored children (null
+  when either side is missing; negative = over-allocated). The allocation tree adds `allocated` (sum of the children's
+  year targets), `unallocated` (≥ 0) and `allocationGap` (target − allocated) and `children`: company → teams →
+  users. Default subject: company with scope `all`, else yourself.
+- **Effective targets** (derived, never stored): month = stored month, else the stored quarter's (else year's) amount
+  pro-rata by working-day weight; quarter = stored, else the sum of its months; year = stored, else the sum of its
+  quarters; day / week / any range = Σ month target × the range's weight in that month / the month's weight (weeks
+  may span months). `effective` returns `day`, `week`, `month`, `quarter`, `year`, each `{start, end, target, actual,
+  achievement, remainingWorkingDays, requiredDailyRunRate}`: `actual` is won value from the period start through
+  `date`; run rate = max(target − actual, 0) / remaining working-day weight from `date` (included); null without a
+  target or remaining working days.
+- **Event** `sales.target.changed` (`action`: created, updated, deleted, allocated — one per allocate call) and one
+  audit row (`sales.target.set` / `sales.target.deleted`, group `target`) per changed row. Notification "target set
+  or changed" (preference `sales.target.changed`) goes to the subject user or the subject team's members, not the
+  actor; company targets notify nobody.
+
+## 19. Performance (S4)
+
+| Route | Permission |
+|---|---|
+| `GET /sales/workspaces/{slug}/performance/users/{userId}?period=&date=` | `sales.performance.view` |
+| `GET /sales/workspaces/{slug}/performance/ranking?period=&date=&teamId=` | `sales.performance.view` |
+
+- `period` = `day|week|month|quarter|year` (default month), the one containing `date` (default today, workspace
+  time). Users outside the caller's `sales.performance.view` scope are 404 (same people rules as targets).
+- **User**: `{user, current, previous}`, each KPI block `{period, actual, target, achievement, expected, status,
+  wonCount, lostCount, winRate, averageDealSize, newLeads, convertedLeads, leadToOpportunityRate, newOpportunities,
+  pipelineValue, pipelineValueInPeriod, weightedPipeline, pipelineCoverage, followUpsDue, followUpsOnTime,
+  followUpPerformance, growth}`. Money is a decimal string; percentages (one decimal) and coverage (a ratio) are
+  numbers; null when the denominator is 0 or missing. `growth` is null when the previous actual is 0.
+- **Ranking**: `{period, rows: [{rank, user, actual, target, achievement, status, wonCount}]}` — visible users (and
+  only `teamId`'s members when given) who hold `sales.opportunity.create` or sold or had a target in the period, by
+  actual (equal actuals share a rank).
+- **Status** `green|yellow|red|null`: closed periods compare achievement with `statusGreenPct` / `statusYellowPct`;
+  the current period compares actual with `expected` = target × elapsed working-day weight (today included) / the
+  period's weight. Null without a target and for future periods.
+- KPI definitions are spec §6, computed only in `modules/sales/kpi.py` (won value by `won_at` workspace date for the
+  `creditedUser`; lost, leads, new opportunities, pipeline and follow-ups by owner).

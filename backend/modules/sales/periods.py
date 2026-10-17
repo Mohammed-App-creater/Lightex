@@ -20,6 +20,8 @@ from .models import WEEKDAYS
 
 DAY, WEEK, MONTH, QUARTER, YEAR = "day", "week", "month", "quarter", "year"
 KINDS = (DAY, WEEK, MONTH, QUARTER, YEAR)
+#: A free date range (reports, S6): its previous period is the equal-length range just before it.
+CUSTOM = "custom"
 
 #: The period a won date may be back-dated within (api.md §10.4): closed months stay closed.
 CLOSING_PERIOD = MONTH
@@ -45,6 +47,8 @@ class Period:
         return range_bounds(workspace, self.start, self.end)
 
     def previous(self) -> Period:
+        if self.kind == CUSTOM:
+            return custom_period(self.start - dt.timedelta(days=self.days()), self.start - dt.timedelta(days=1), self)
         return period_containing(
             self.kind,
             self.start - dt.timedelta(days=1),
@@ -53,6 +57,8 @@ class Period:
         )
 
     def next(self) -> Period:
+        if self.kind == CUSTOM:
+            return custom_period(self.end + dt.timedelta(days=1), self.end + dt.timedelta(days=self.days()), self)
         return period_containing(
             self.kind,
             self.end + dt.timedelta(days=1),
@@ -121,3 +127,12 @@ def current_period(workspace: Any, kind: str, settings: Any = None, now: dt.date
         week_start=settings.week_start,
         fiscal_start_month=settings.fiscal_year_start_month,
     )
+
+
+def custom_period(start: dt.date, end: dt.date, like: Any = None) -> Period:
+    """A free inclusive date range; `like` (a Period or SalesSettings) supplies the week and fiscal settings."""
+    if end < start:
+        raise ValueError("end must not be before start")
+    week = getattr(like, "week_start", "monday")
+    fiscal: Any = getattr(like, "fiscal_start_month", None) or getattr(like, "fiscal_year_start_month", 1)
+    return Period(CUSTOM, start, end, week, int(fiscal))

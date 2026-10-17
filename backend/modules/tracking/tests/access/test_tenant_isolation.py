@@ -109,6 +109,13 @@ def _sales_objects(w) -> dict:
             .objects.create(workspace=w.ws, owner=owner, occurred_at=company.created_at, company=company, **on_company)
             .pk
         )
+        w.extra["sales"]["sales_target_id"] = (
+            get("sales", "Target")
+            .objects.create(
+                workspace=w.ws, subject_type="company", period_type="year", period_start="2026-01-01", amount=1
+            )
+            .pk
+        )
         w.extra["sales"]["follow_up_id"] = (
             get("sales", "FollowUp")
             .objects.create(

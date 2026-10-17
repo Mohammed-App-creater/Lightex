@@ -2013,6 +2013,47 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/targets/{sales_target_id}:
+    get:
+      operationId: sales_targets_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: sales_target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTarget'
+          description: ''
+    delete:
+      operationId: sales_targets_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: sales_target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/sales/workspaces/{slug}/activities:
     get:
       operationId: sales_activities_list
@@ -2999,6 +3040,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesBulkAssignResult'
           description: ''
+  /api/v1/sales/workspaces/{slug}/performance/ranking:
+    get:
+      operationId: sales_performance_ranking
+      description: Visible users who sell, or who sold or had a target in the period,
+        best first.
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD inside the period; default today (workspace time)
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - day
+          - month
+          - quarter
+          - week
+          - year
+        description: default month
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: teamId
+        schema:
+          type: string
+        description: only this team's members
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesRanking'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/performance/users/{user_id}:
+    get:
+      operationId: sales_performance_user
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD inside the period; default today (workspace time)
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - day
+          - month
+          - quarter
+          - week
+          - year
+        description: default month
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesUserPerformance'
+          description: ''
   /api/v1/sales/workspaces/{slug}/pipeline:
     get:
       operationId: sales_pipeline_retrieve
@@ -3346,6 +3475,183 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SalesStage'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/targets:
+    get:
+      operationId: sales_targets_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[periodType]
+        schema:
+          type: string
+          enum:
+          - month
+          - quarter
+          - year
+      - in: query
+        name: filter[subjectId]
+        schema:
+          type: string
+        description: user or team id
+      - in: query
+        name: filter[subjectType]
+        schema:
+          type: string
+          enum:
+          - company
+          - team
+          - user
+      - in: query
+        name: filter[year]
+        schema:
+          type: integer
+        description: fiscal year (the one starting in this calendar year)
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesTarget'
+          description: ''
+    post:
+      operationId: sales_targets_set
+      description: Create or update the subject's target for one period (200 updated,
+        201 created).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesTargetInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTarget'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTarget'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/targets/allocate:
+    post:
+      operationId: sales_targets_allocate
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesTargetAllocateInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTargetYear'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/targets/allocation:
+    get:
+      operationId: sales_targets_allocation
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: subject
+        schema:
+          type: string
+        description: company, team:<id> or user:<id>; default company (scope all)
+          or yourself
+      - in: query
+        name: year
+        schema:
+          type: integer
+        description: fiscal year; default the current one
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTargetAllocation'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/targets/effective:
+    get:
+      operationId: sales_targets_effective
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD; default today (workspace time)
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: userId
+        schema:
+          type: string
+        description: 'default: the caller'
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesEffectiveTargets'
           description: ''
   /api/v1/search:
     get:
@@ -9782,11 +10088,16 @@ components:
       - customField
       - skip
       type: string
+    GitLabConnectInMethodEnum:
+      enum:
+      - oauth
+      - token
+      type: string
     GitLabConnectInRequest:
       type: object
       properties:
         method:
-          $ref: '#/components/schemas/MethodEnum'
+          $ref: '#/components/schemas/GitLabConnectInMethodEnum'
         baseUrl:
           type: string
           minLength: 1
@@ -10494,11 +10805,6 @@ components:
       required:
       - roleId
       - userId
-    MethodEnum:
-      enum:
-      - oauth
-      - token
-      type: string
     MethodsEnum:
       enum:
       - app
@@ -11481,6 +11787,12 @@ components:
           description: An IANA time zone name, e.g. Africa/Addis_Ababa.
         notificationPolicy:
           $ref: '#/components/schemas/NotificationPolicyInRequest'
+    PeriodTypeEnum:
+      enum:
+      - year
+      - quarter
+      - month
+      type: string
     PermissionInfo:
       type: object
       properties:
@@ -12887,6 +13199,80 @@ components:
       required:
       - exists
       - ownerName
+    SalesEffectivePeriod:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        actual:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          description: Won value from the period start through `date`
+        achievement:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        remainingWorkingDays:
+          type: number
+          format: double
+          maximum: 10000
+          minimum: -10000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        requiredDailyRunRate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+      required:
+      - achievement
+      - actual
+      - end
+      - remainingWorkingDays
+      - requiredDailyRunRate
+      - start
+      - target
+    SalesEffectiveTargets:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        day:
+          $ref: '#/components/schemas/SalesEffectivePeriod'
+        week:
+          $ref: '#/components/schemas/SalesEffectivePeriod'
+        month:
+          $ref: '#/components/schemas/SalesEffectivePeriod'
+        quarter:
+          $ref: '#/components/schemas/SalesEffectivePeriod'
+        year:
+          $ref: '#/components/schemas/SalesEffectivePeriod'
+      required:
+      - date
+      - day
+      - month
+      - quarter
+      - userId
+      - week
+      - year
     SalesFollowUp:
       type: object
       properties:
@@ -13161,6 +13547,132 @@ components:
       required:
       - date
       - name
+    SalesKpis:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/SalesPeriod'
+        actual:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        achievement:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        expected:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Pro-rata target so far (current period) or the target (closed)
+        status:
+          type: string
+          nullable: true
+          description: green, yellow, red or null
+        wonCount:
+          type: integer
+        lostCount:
+          type: integer
+        winRate:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        averageDealSize:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        newLeads:
+          type: integer
+        convertedLeads:
+          type: integer
+        leadToOpportunityRate:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        newOpportunities:
+          type: integer
+        pipelineValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        pipelineValueInPeriod:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        weightedPipeline:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        pipelineCoverage:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        followUpsDue:
+          type: integer
+        followUpsOnTime:
+          type: integer
+        followUpPerformance:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        growth:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+      required:
+      - achievement
+      - actual
+      - averageDealSize
+      - convertedLeads
+      - expected
+      - followUpPerformance
+      - followUpsDue
+      - followUpsOnTime
+      - growth
+      - leadToOpportunityRate
+      - lostCount
+      - newLeads
+      - newOpportunities
+      - period
+      - pipelineCoverage
+      - pipelineValue
+      - pipelineValueInPeriod
+      - status
+      - target
+      - weightedPipeline
+      - winRate
+      - wonCount
     SalesLead:
       type: object
       properties:
@@ -13828,6 +14340,21 @@ components:
             current month.
         version:
           type: integer
+    SalesPeriod:
+      type: object
+      properties:
+        kind:
+          type: string
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+      required:
+      - end
+      - kind
+      - start
     SalesPipeline:
       type: object
       properties:
@@ -14094,6 +14621,56 @@ components:
       - rejected
       - expired
       type: string
+    SalesRanking:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/SalesPeriod'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesRankingRow'
+      required:
+      - period
+      - rows
+    SalesRankingRow:
+      type: object
+      properties:
+        rank:
+          type: integer
+        user:
+          $ref: '#/components/schemas/SalesUserBrief'
+        actual:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        achievement:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        status:
+          type: string
+          nullable: true
+          description: green, yellow, red or null
+        wonCount:
+          type: integer
+      required:
+      - achievement
+      - actual
+      - rank
+      - status
+      - target
+      - user
+      - wonCount
     SalesSettings:
       type: object
       properties:
@@ -14249,6 +14826,317 @@ components:
           maxItems: 50
       required:
       - stageIds
+    SalesTarget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        periodType:
+          $ref: '#/components/schemas/PeriodTypeEnum'
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        note:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - amount
+      - id
+      - note
+      - periodEnd
+      - periodStart
+      - periodType
+      - subjectId
+      - subjectType
+      - updatedAt
+    SalesTargetAllocateInMethodEnum:
+      enum:
+      - equal
+      - working_days
+      - manual
+      type: string
+    SalesTargetAllocateInRequest:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        year:
+          type: integer
+          maximum: 2200
+          minimum: 1900
+          description: The fiscal year starting in this year
+        method:
+          $ref: '#/components/schemas/SalesTargetAllocateInMethodEnum'
+        quarters:
+          type: array
+          items:
+            type: string
+            format: decimal
+            pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        months:
+          type: array
+          items:
+            type: string
+            format: decimal
+            pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+      required:
+      - method
+      - subjectType
+      - year
+    SalesTargetAllocation:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        year:
+          type: integer
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: The stored year target
+        quarters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetQuarter'
+        quarterGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored quarters
+        monthGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored months
+        allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          description: Sum of the children's year targets
+        unallocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        allocationGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Target minus allocated (signed)
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetAllocationTeam'
+          description: Teams (company), users (team) or none (user)
+      required:
+      - allocated
+      - allocationGap
+      - children
+      - end
+      - monthGap
+      - name
+      - quarterGap
+      - quarters
+      - start
+      - subjectId
+      - subjectType
+      - target
+      - unallocated
+      - year
+    SalesTargetAllocationTeam:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        year:
+          type: integer
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: The stored year target
+        quarters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetQuarter'
+        quarterGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored quarters
+        monthGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored months
+        allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          description: Sum of the children's year targets
+        unallocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        allocationGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Target minus allocated (signed)
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetAllocationUser'
+      required:
+      - allocated
+      - allocationGap
+      - children
+      - end
+      - monthGap
+      - name
+      - quarterGap
+      - quarters
+      - start
+      - subjectId
+      - subjectType
+      - target
+      - unallocated
+      - year
+    SalesTargetAllocationUser:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        year:
+          type: integer
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: The stored year target
+        quarters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetQuarter'
+        quarterGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored quarters
+        monthGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored months
+        allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          description: Sum of the children's year targets
+        unallocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        allocationGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Target minus allocated (signed)
+        children:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Always empty
+      required:
+      - allocated
+      - allocationGap
+      - children
+      - end
+      - monthGap
+      - name
+      - quarterGap
+      - quarters
+      - start
+      - subjectId
+      - subjectType
+      - target
+      - unallocated
+      - year
     SalesTargetBrief:
       type: object
       properties:
@@ -14264,6 +15152,82 @@ components:
       - id
       - name
       - type
+    SalesTargetInRequest:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+          description: User or team id; omit for company
+        periodType:
+          $ref: '#/components/schemas/PeriodTypeEnum'
+        periodStart:
+          type: string
+          format: date
+          description: First day of the (fiscal) year, quarter or month
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        note:
+          type: string
+          maxLength: 500
+      required:
+      - amount
+      - periodStart
+      - periodType
+      - subjectType
+    SalesTargetMonth:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+      required:
+      - amount
+      - end
+      - start
+    SalesTargetQuarter:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetMonth'
+        allocationGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Quarter minus its stored months
+      required:
+      - allocationGap
+      - amount
+      - end
+      - months
+      - start
     SalesTargetTypeEnum:
       enum:
       - sales.lead
@@ -14271,6 +15235,58 @@ components:
       - sales.company
       - sales.contact
       type: string
+    SalesTargetYear:
+      type: object
+      properties:
+        subjectType:
+          $ref: '#/components/schemas/SubjectTypeEnum'
+        subjectId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        year:
+          type: integer
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        target:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: The stored year target
+        quarters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTargetQuarter'
+        quarterGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored quarters
+        monthGap:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          nullable: true
+          description: Year minus its stored months
+      required:
+      - end
+      - monthGap
+      - name
+      - quarterGap
+      - quarters
+      - start
+      - subjectId
+      - subjectType
+      - target
+      - year
     SalesTimelineActivity:
       type: object
       properties:
@@ -14475,6 +15491,19 @@ components:
       - hue
       - id
       - name
+    SalesUserPerformance:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SalesUserBrief'
+        current:
+          $ref: '#/components/schemas/SalesKpis'
+        previous:
+          $ref: '#/components/schemas/SalesKpis'
+      required:
+      - current
+      - previous
+      - user
     SalesWeekdayEnum:
       enum:
       - monday
@@ -14944,6 +15973,12 @@ components:
           type: string
           nullable: true
           minLength: 1
+    SubjectTypeEnum:
+      enum:
+      - user
+      - team
+      - company
+      type: string
     SyncStateEnum:
       enum:
       - idle

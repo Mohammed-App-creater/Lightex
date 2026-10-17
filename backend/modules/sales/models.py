@@ -468,3 +468,49 @@ class FollowUp(WorkspaceScopedModel, OwnedModel, _Targeted):
 
     def __str__(self) -> str:
         return self.title
+
+
+# ───────────────────────── targets (S4) ─────────────────────────
+
+
+class Target(WorkspaceScopedModel):
+    """A stored year, quarter or month target of a user, a team or the whole company (subject_id null). Day and week
+    targets are derived, never stored (`targets.py`). Fiscal years and quarters start at `fiscal_year_start_month`."""
+
+    USER, TEAM, COMPANY = "user", "team", "company"
+    SUBJECTS = (USER, TEAM, COMPANY)
+    YEAR, QUARTER, MONTH = "year", "quarter", "month"
+    PERIOD_TYPES = (YEAR, QUARTER, MONTH)
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    subject_type = models.CharField(max_length=7, choices=[(s, s) for s in SUBJECTS])
+    #: The user or team id; null for the company.
+    subject_id = models.UUIDField(null=True, blank=True)
+    period_type = models.CharField(max_length=7, choices=[(p, p) for p in PERIOD_TYPES])
+    period_start = models.DateField()
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    note = models.CharField(max_length=500, blank=True, default="")
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(WorkspaceScopedModel.Meta):
+        ordering = ["period_start", "period_type"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["workspace", "subject_type", "subject_id", "period_type", "period_start"],
+                condition=Q(subject_id__isnull=False),
+                name="sales_target_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["workspace", "subject_type", "period_type", "period_start"],
+                condition=Q(subject_id__isnull=True),
+                name="sales_target_company_unique",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["workspace", "subject_type", "period_start"], name="sales_target_ws_subj_start")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.subject_type}:{self.subject_id or '-'} {self.period_type} {self.period_start} {self.amount}"

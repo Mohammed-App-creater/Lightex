@@ -608,6 +608,10 @@ def register() -> None:
 
     activity_selectors.register_timeline_sources()
     notifications.register()
+    register_audit_group("target", ["sales.target"])
+    from . import target_notifications
+
+    target_notifications.register()
     register_audit_group(
         "sales_settings",
         ["sales.settings", "sales.stage", "sales.product", "sales.lostreason", "sales.calendar", "sales.holiday"],
