@@ -22,7 +22,7 @@ from django.urls import URLResolver, get_resolver
 from core.access.permissions import ScopedView
 from core.common import scoping
 from core.common.models import WorkspaceScopedMixin
-from core.common.testing import client_for
+from core.common.testing import client_for, shared_world
 
 from .matrix_world import build_world
 
@@ -154,12 +154,25 @@ def _kwargs(name: str, route: str, w) -> dict:
     return out
 
 
+def _shared_world():
+    w = build_world()
+    _sales_objects(w)  # created up front: a lazily added object would vanish with the first test's rollback
+    return w
+
+
+@pytest.fixture(scope="module")
+def isolation_world(django_db_setup, django_db_blocker):
+    """Built once for the module; every test runs in a savepoint and is rolled back to it."""
+    with shared_world(django_db_blocker) as build:
+        yield build(_shared_world)
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(("route", "name", "method"), ROUTES)
-def test_a_user_of_another_workspace_gets_404(route, name, method):
+def test_a_user_of_another_workspace_gets_404(isolation_world, route, name, method):
     if name in SKIPS:
         pytest.skip(SKIPS[name])
-    w = build_world()
+    w = isolation_world
     path = "/" + re.sub(r"<(?:\w+:)?(\w+)>", lambda m: str(_kwargs(name, route, w)[m.group(1)]), route)
     client = client_for(w.users["outsider"])  # owns workspace `elsewhere`, not a member of `platform`
     call = getattr(client, method)
@@ -183,9 +196,9 @@ def test_the_walk_covers_the_module_and_core_routes():
 
 
 @pytest.mark.django_db
-def test_user_level_routes_never_show_another_workspace():
+def test_user_level_routes_never_show_another_workspace(isolation_world):
     """The explicit cases for the skipped user-level routes: B's tasks, recents and timer never reach A."""
-    w = build_world()
+    w = isolation_world
     outsider = client_for(w.users["outsider"])
     owner = client_for(w.users["owner"])
     owner.get(f"/api/v1/tracking/tasks/{w.task.pk}")  # puts the task in the owner's recents
@@ -247,10 +260,10 @@ def test_workspace_tables_use_the_scoped_manager():
 
 
 @pytest.mark.django_db
-def test_scoped_manager_policy():
+def test_scoped_manager_policy(isolation_world):
     from modules.tracking.tasks.models import Task
 
-    w = build_world()
+    w = isolation_world
     with scoping.strict():
         with pytest.raises(scoping.UnscopedQueryError):
             Task.objects.filter(pk=w.task.pk).exists()

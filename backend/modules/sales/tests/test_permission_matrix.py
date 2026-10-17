@@ -16,6 +16,8 @@ from typing import Any
 import pytest
 from django.urls import URLPattern, URLResolver, get_resolver, reverse
 
+from core.common.testing import shared_world
+
 from .conftest import ACTORS, SalesWorld, add_deals, build_sales_world
 
 SALES_ROLES = ("sales_admin", "ceo", "manager", "rep")
@@ -255,10 +257,17 @@ def _world() -> SalesWorld:
     return w
 
 
+@pytest.fixture(scope="module")
+def matrix_world(django_db_setup, django_db_blocker) -> SalesWorld:
+    """Built once for the module; every case runs in a savepoint and is rolled back to it."""
+    with shared_world(django_db_blocker) as build:
+        yield build(_world)
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(("row", "actor", "allowed"), list(_cases()))
-def test_permission_matrix(row: Row, actor: str, allowed: bool):
-    w = _world()
+def test_permission_matrix(matrix_world: SalesWorld, row: Row, actor: str, allowed: bool):
+    w = matrix_world
     client = w.client(actor)
     url = reverse(row.name, kwargs=row.kwargs(w)) + row.query
     call = getattr(client, row.method.lower())
