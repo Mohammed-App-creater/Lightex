@@ -5,6 +5,9 @@ from core.common.models import SoftDeleteModel
 
 
 class Widget(SoftDeleteModel):
+    #: The owner field `core.access.visible_to()` applies data scope to.
+    data_scope_owner_field = "owner"
+
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     title = models.CharField(max_length=120)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+")

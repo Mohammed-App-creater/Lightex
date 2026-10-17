@@ -934,6 +934,171 @@ paths:
               schema:
                 $ref: '#/components/schemas/Comment'
           description: ''
+  /api/v1/teams/{team_id}:
+    get:
+      operationId: teams_retrieve
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamDetail'
+          description: ''
+    patch:
+      operationId: teams_partial_update
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTeamUpdateInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamDetail'
+          description: ''
+    delete:
+      operationId: teams_destroy
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      responses:
+        '204':
+          description: No response body
+  /api/v1/teams/{team_id}/members:
+    get:
+      operationId: teams_members_list
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+          description: ''
+    post:
+      operationId: teams_members_create
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+          description: ''
+  /api/v1/teams/{team_id}/members/{user_id}:
+    patch:
+      operationId: teams_members_partial_update
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTeamMemberUpdateInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+          description: ''
+    delete:
+      operationId: teams_members_destroy
+      description: Scope = the workspace that owns the team (404 for non-members,
+        so a team in another workspace is a 404).
+      parameters:
+      - in: path
+        name: team_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - teams
+      responses:
+        '204':
+          description: No response body
   /api/v1/tracking/custom-fields/{field_id}:
     patch:
       operationId: tracking_custom_fields_partial_update
@@ -4968,6 +5133,51 @@ paths:
           description: '`realtime_unavailable` (kill switch, `Retry-After: 300`) or
             `realtime_busy` (this process''s stream cap, `Retry-After: 60`): poll
             instead'
+  /api/v1/workspaces/{slug}/teams:
+    get:
+      operationId: workspaces_teams_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - teams
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+          description: ''
+    post:
+      operationId: workspaces_teams_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamDetail'
+          description: ''
   /api/v1/workspaces/{slug}/trash:
     get:
       operationId: workspaces_trash_retrieve
@@ -7341,6 +7551,14 @@ components:
           items:
             type: string
             minLength: 1
+        dataScopes:
+          type: object
+          additionalProperties:
+            enum:
+            - own
+            - team
+            - all
+            type: string
     PatchedSprintInRequest:
       type: object
       properties:
@@ -7439,6 +7657,21 @@ components:
           description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
+    PatchedTeamMemberUpdateInRequest:
+      type: object
+      properties:
+        isLead:
+          type: boolean
+    PatchedTeamUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        description:
+          type: string
+          maxLength: 280
     PatchedWorkspaceUpdateInRequest:
       type: object
       properties:
@@ -7461,12 +7694,15 @@ components:
           type: string
         description:
           type: string
+        scopable:
+          type: boolean
       required:
       - description
       - group
       - key
       - label
       - module
+      - scopable
       - scope
     PresenceHeartbeat:
       type: object
@@ -7595,6 +7831,13 @@ components:
           items:
             type: string
           readOnly: true
+        myDataScopes:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'The workspace-level map (platform Stage 4): data scope applies
+            to workspace permissions only.'
+          readOnly: true
         nextTaskNumber:
           type: integer
           description: 'Board 40: the number the next task gets (the import picker''s
@@ -7614,6 +7857,7 @@ components:
       - key
       - leadId
       - memberCount
+      - myDataScopes
       - myRoleId
       - my_permissions
       - name
@@ -8046,10 +8290,18 @@ components:
           items:
             type: string
           readOnly: true
+        dataScopes:
+          type: object
+          additionalProperties:
+            type: string
+          description: '{code: scope} for the role''s granted scopable codes (disabled
+            modules hidden).'
+          readOnly: true
         memberCount:
           type: integer
           readOnly: true
       required:
+      - dataScopes
       - id
       - isSystem
       - memberCount
@@ -8072,6 +8324,14 @@ components:
           items:
             type: string
             minLength: 1
+        dataScopes:
+          type: object
+          additionalProperties:
+            enum:
+            - own
+            - team
+            - all
+            type: string
     RoleInScopeEnum:
       enum:
       - workspace
@@ -8085,6 +8345,14 @@ components:
           items:
             type: string
             minLength: 1
+        dataScopes:
+          type: object
+          additionalProperties:
+            enum:
+            - own
+            - team
+            - all
+            type: string
       required:
       - permissions
     RoleScopeEnum:
@@ -9041,6 +9309,120 @@ components:
           description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
+    Team:
+      type: object
+      description: A team list item. Reads `memberships` (prefetched by the selectors).
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 60
+        description:
+          type: string
+          maxLength: 280
+        memberCount:
+          type: integer
+          readOnly: true
+        leadIds:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - createdAt
+      - id
+      - leadIds
+      - memberCount
+      - name
+    TeamDetail:
+      type: object
+      description: A team list item. Reads `memberships` (prefetched by the selectors).
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 60
+        description:
+          type: string
+          maxLength: 280
+        memberCount:
+          type: integer
+          readOnly: true
+        leadIds:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+      required:
+      - createdAt
+      - id
+      - leadIds
+      - memberCount
+      - members
+      - name
+    TeamInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        description:
+          type: string
+          maxLength: 280
+      required:
+      - name
+    TeamMember:
+      type: object
+      description: 'User fields as in the workspace member serializer''s `user` (no
+        hue: the client reads it from the members).'
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        isLead:
+          type: boolean
+      required:
+      - avatarUrl
+      - email
+      - isLead
+      - name
+      - userId
+    TeamMemberInRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        isLead:
+          type: boolean
+      required:
+      - userId
     TelegramChannel:
       type: object
       properties:
@@ -9589,6 +9971,11 @@ components:
           items:
             type: string
           readOnly: true
+        myDataScopes:
+          type: object
+          additionalProperties:
+            type: string
+          readOnly: true
         notificationPolicy:
           type: object
           additionalProperties:
@@ -9604,6 +9991,7 @@ components:
       - enabledModules
       - id
       - memberCount
+      - myDataScopes
       - myRoleId
       - my_permissions
       - name

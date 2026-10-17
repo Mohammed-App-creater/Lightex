@@ -99,7 +99,9 @@ def publish_for_audit(row: Any, task: Any = None) -> None:
             return
     if row.action in MEMBERSHIP_ACTIONS and row.target_id:
         publish_access(row.workspace_id, row.target_id, row.project_id, actor=row.actor_id)
-    elif row.action == "core.role.updated" and any(c.get("field") == "Permissions" for c in row.changes or []):
+    elif row.action == "core.role.updated" and any(
+        c.get("field") in ("Permissions", "Data scopes") for c in row.changes or []
+    ):
         _publish_role_holders(row)
 
 

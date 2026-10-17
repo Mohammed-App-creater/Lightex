@@ -16,7 +16,7 @@ def test_permission_catalogue(owner, ws):
     assert res.status_code == 200
     data = res.json()
     assert len(data) == len(catalogue.PERMISSIONS)
-    assert set(data[0]) == {"key", "module", "scope", "group", "label", "description"}
+    assert set(data[0]) == {"key", "module", "scope", "group", "label", "description", "scopable"}
     ws_only = client.get("/api/v1/permissions?scope=workspace").json()
     assert {p["scope"] for p in ws_only} == {"workspace"}
     assert len(client.get("/api/v1/permissions?filter[scope]=project").json()) == len(catalogue.PROJECT_CODES)
@@ -38,6 +38,7 @@ def test_list_roles_with_counts(owner, ws):
         "scope",
         "isSystem",
         "permissions",
+        "dataScopes",
         "memberCount",
     }
     project_roles = client_for(owner).get("/api/v1/workspaces/platform/roles?filter[scope]=project").json()

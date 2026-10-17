@@ -355,6 +355,44 @@ Module routes are mounted with `module_urls(key, patterns)` (`config/api_urls.py
 the view's workspace or project (non-members get 404) it answers 403 `module_disabled` when the module is off.
 While a module is off its codes are dropped from `can()`, `my_permissions` and role responses (the rows stay), and the
 outbox, notifications, search and trash skip it. `core.modules.services.enabled_modules()` is cached per request.
+Switching a module publishes the workspace-wide realtime event `core.module.changed` (`{module, enabled}`), and the
+expired-trash purge leaves a disabled module's kinds alone (`TrashKind.purge_expired(..., skip_workspaces=...)`).
+
+## Teams and data scope
+
+Teams (`core/teams`) are flat groups of workspace members (`Team`, `TeamMember` with `is_lead`); a user may be in
+several. `GET|POST /workspaces/{slug}/teams`, `GET|PATCH|DELETE /teams/{id}`, `GET|POST /teams/{id}/members` and
+`PATCH|DELETE /teams/{id}/members/{userId}`: reads are open to members, writes need `core.teams.manage` and are
+audited (`core.team.*`). Removing someone from the workspace removes their team memberships.
+
+A module makes a permission scopable in its definition, and may name the default scope per role (otherwise Owner and
+Admin get `all` and Member gets `own`):
+
+```python
+PERMISSIONS = (workspace_permission("sales.lead.view", "Sales", "View leads", "See leads", scopable=True),)
+DEFINITION = ModuleDefinition(
+    ...,
+    permissions=PERMISSIONS,
+    default_role_grants={"owner": ["sales.lead.view"], "member": {"sales.lead.view": "team"}},
+)
+```
+
+Each role then grants the code with a `RolePermission.data_scope` of `own`, `team` or `all` (role requests and
+responses carry `dataScopes: {code: scope}`; workspace and project responses carry `myDataScopes`). The model names
+its owner field, and every list selector for that data goes through `visible_to`, the only place the scope is applied:
+
+```python
+class Lead(SoftDeleteModel):
+    data_scope_owner_field = "owner"  # and data_scope_workspace_field, default "workspace"
+
+
+def leads_for(user, workspace):
+    return visible_to(Lead.objects.all(), user, "sales.lead.view", workspace)
+```
+
+`own` keeps the user's records, `team` adds those owned by anyone sharing a live team with them, `all` is the whole
+workspace; no grant, a non-member or a disabled module gives `none()`. It always filters by workspace. A non-scopable
+code or a model without an owner field raises. Single-record checks still use `can()`.
 
 ## Layout
 
@@ -364,7 +402,8 @@ core/              the platform core (docs/platform-architecture.md); never impo
   common/          base models (UUID, timestamps, soft delete), errors, pagination, rich-text sanitising,
                    fractional index, throttles, health, the target registry, seed_demo (+ seeder registry)
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
-  access/          permission catalogue (core.* / tracking.* codes), roles, can(), DRF permission class
+  access/          permission catalogue (assembled from the modules), roles, can(), visible_to(), DRF permission class
+  teams/           teams and team members (data scope `team`)
   workspaces/      workspaces, members, invitations, access requests
   collab/          generic comments and attachments on any registered target, storage backends
   events/          the DomainEvent outbox, event type and handler registries, process_outbox

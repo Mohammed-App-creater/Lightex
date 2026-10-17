@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "core.access",
     "core.workspaces",
     "core.modules",
+    "core.teams",
     "modules.tracking.projects",
     "modules.tracking.planning",
     "modules.tracking.tasks",

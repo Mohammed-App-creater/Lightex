@@ -53,7 +53,9 @@ class TrashKind:
     def workspace_of(self, item_id: Any) -> Any:
         raise NotImplementedError
 
-    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime) -> dict[str, int]:
+    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime, *, skip_workspaces: Any = ()) -> dict[str, int]:
+        """Hard-deletes items deleted before `cutoff`, except in `skip_workspaces` (ids, or a values queryset): the
+        workspaces where the kind's module is off, since disabling a module never deletes its data."""
         return {}
 
     def purge_workspace(self, workspace: Any) -> None:
@@ -71,6 +73,10 @@ def unregister_trash_kind(key: str) -> None:
     _KINDS.pop(key, None)
 
 
+def _module(kind: TrashKind) -> str:
+    return kind.module or kind.kind.split(".", 1)[0]
+
+
 def kinds(workspace: Any = None) -> list[TrashKind]:
     """Every kind, or with `workspace` only those of modules enabled there (a disabled module's trash is hidden)."""
     out = sorted(_KINDS.values(), key=lambda k: k.position)
@@ -78,7 +84,20 @@ def kinds(workspace: Any = None) -> list[TrashKind]:
         return out
     from core.modules.services import is_enabled
 
-    return [k for k in out if is_enabled(workspace, k.module or k.kind.split(".", 1)[0])]
+    return [k for k in out if is_enabled(workspace, _module(k))]
+
+
+def disabled_workspaces(kind: TrashKind) -> Any:
+    """Ids (a values queryset) of the workspaces where the kind's module is off; `()` for an always-on module."""
+    from core.modules.models import WorkspaceModule
+    from core.modules.services import always_on
+    from core.workspaces.models import Workspace
+
+    module = _module(kind)
+    if always_on(module):
+        return ()
+    on = WorkspaceModule.objects.filter(module_key=module, enabled=True).values("workspace_id")
+    return Workspace.all_objects.exclude(pk__in=on).values("pk")
 
 
 def kind_for(key: Any) -> TrashKind | None:
@@ -220,7 +239,7 @@ def purge_expired(now: dt.datetime | None = None) -> dict[str, int]:
     counts: dict[str, int] = {}
     with transaction.atomic():
         for k in kinds():
-            counts.update(k.purge_expired(cutoff, now))
+            counts.update(k.purge_expired(cutoff, now, skip_workspaces=disabled_workspaces(k)))
         old_files = Attachment.all_objects.filter(deleted_at__lt=cutoff)
         delete_files(old_files)
         counts["attachments"] = old_files.delete()[0]
@@ -312,10 +331,11 @@ class CommentTrash(TrashKind):
         comment = self._get(item_id)
         return comment.workspace_id if comment is not None else None
 
-    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime) -> dict[str, int]:
+    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime, *, skip_workspaces: Any = ()) -> dict[str, int]:
         from core.collab.models import Comment
 
-        return {"comments": Comment.all_objects.filter(deleted_at__lt=cutoff).delete()[0]}
+        rows = Comment.all_objects.filter(deleted_at__lt=cutoff).exclude(workspace_id__in=skip_workspaces)
+        return {"comments": rows.delete()[0]}
 
 
 register_trash_kind(CommentTrash())

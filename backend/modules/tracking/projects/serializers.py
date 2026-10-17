@@ -18,6 +18,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     activeSprintId = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
+    myDataScopes = serializers.SerializerMethodField()
     nextTaskNumber = serializers.SerializerMethodField()
     devEnabled = serializers.SerializerMethodField()
 
@@ -26,7 +27,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = [
             "id", "workspaceId", "key", "name", "description", "hue", "leadId", "status", "template", "createdAt",
             "memberCount", "openTaskCount", "doneTaskCount", "activeSprintId", "myRoleId", "my_permissions",
-            "nextTaskNumber", "devEnabled",
+            "myDataScopes", "nextTaskNumber", "devEnabled",
         ]  # fmt: skip
 
     def get_createdAt(self, obj) -> str | None:
@@ -65,6 +66,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_my_permissions(self, obj) -> list[str]:
         return ordered(access.project_permissions(self.context["user"], obj))
+
+    def get_myDataScopes(self, obj) -> dict[str, str]:
+        """The workspace-level map (platform Stage 4): data scope applies to workspace permissions only."""
+        return access.my_data_scopes(self.context["user"], obj.workspace_id)
 
     def get_nextTaskNumber(self, obj) -> int:
         """Board 40: the number the next task gets (the import picker's "next key")."""

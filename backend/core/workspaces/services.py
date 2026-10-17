@@ -19,6 +19,7 @@ from core.audit.services import change, record
 from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.common.tokens import hash_token, new_token, token_matches
 from core.modules.services import enable_initial_modules
+from core.teams.services import drop_workspace_member as drop_team_memberships
 from core.workspaces.hooks import member_removed
 
 from .models import Invitation, Workspace, WorkspaceAccessRequest, WorkspaceMember
@@ -214,6 +215,7 @@ def remove_member(actor: User, ws: Workspace, user_id: Any) -> None:
     if OWNER_PERMISSION in _role_codes(member.role) and _owner_count(ws, excluding_user=member.user_id) == 0:
         raise conflict("last_owner", "A workspace needs at least one owner.")
     member_removed(ws, member.user_id)  # modules drop what the member had in this workspace
+    drop_team_memberships(ws, member.user_id)
     WorkspaceAccessRequest.objects.filter(workspace=ws, user_id=member.user_id).delete()
     name = member.user.name
     member.delete()

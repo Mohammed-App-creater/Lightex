@@ -62,6 +62,11 @@ def build_world() -> World:
     )
     custom_role = Role.objects.create(workspace=ws, name="Custom", scope="project")
     world = World(ws=ws, other_ws=other_ws, users=users, invite=invite, invite_token=raw, custom_role=custom_role)
+    from core.teams.models import Team, TeamMember
+
+    team = Team.objects.create(workspace=ws, name="Web")
+    TeamMember.objects.create(workspace=ws, team=team, user=users["ws_member"])
+    world.extra["team"] = team
     _add_project(world)
     return world
 

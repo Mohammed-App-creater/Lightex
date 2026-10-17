@@ -8,7 +8,7 @@ the API exposes are all assembled from these definitions. Whether a module is on
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -66,8 +66,10 @@ class ModuleDefinition:
     is_core: bool = False
     depends_on: tuple[str, ...] = ()
     permissions: tuple[PermissionDef, ...] = ()
-    #: Default role (`system_key`) → codes granted to it when the module is enabled in a workspace.
-    default_role_grants: dict[str, list[str]] = field(default_factory=dict)
+    #: Default role (`system_key`) → codes granted to it when the module is enabled in a workspace. A scopable code
+    #: takes its data scope from a `{code: scope}` mapping in place of the list (`{"member": {"sales.lead.view":
+    #: "team"}}`); without one, Owner and Admin get `all` and every other role `own`.
+    default_role_grants: Mapping[str, list[str] | dict[str, str]] = field(default_factory=dict)
     #: Default role (`system_key`) → codes that system role can never lose (a subset of its grants).
     locked_role_grants: dict[str, list[str]] = field(default_factory=dict)
     event_types: tuple[EventTypeDef, ...] = ()
@@ -88,11 +90,17 @@ _version = 0
 def register_module(defn: ModuleDefinition) -> ModuleDefinition:
     """Registers (or replaces) a module definition and its event types. Idempotent."""
     global _version
+    from core.access.catalogue import DATA_SCOPES, WORKSPACE
     from core.events.registry import register_event_type
 
     for p in defn.permissions:
         if p.module != defn.key:
             raise ValueError(f"Permission {p.code} does not belong to module {defn.key!r}")
+        if p.scopable and p.scope != WORKSPACE:
+            raise ValueError(f"Permission {p.code}: only workspace permissions can be scopable")
+    for grants in defn.default_role_grants.values():
+        if isinstance(grants, dict) and any(s not in DATA_SCOPES for s in grants.values()):
+            raise ValueError(f"Module {defn.key!r} gives a default grant an unknown data scope")
     _MODULES[defn.key] = defn
     for et in defn.event_types:
         register_event_type(

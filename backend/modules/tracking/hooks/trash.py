@@ -111,11 +111,14 @@ class TaskTrash(trash.TrashKind):
         task = self._get(item_id)
         return task.project.workspace_id if task is not None else None
 
-    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime) -> dict[str, int]:
+    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime, *, skip_workspaces: Any = ()) -> dict[str, int]:
         from modules.tracking.tasks.models import Task
 
         count = 0
-        for task in Task.all_objects.filter(deleted_at__lt=cutoff, parent__isnull=True):
+        rows = Task.all_objects.filter(deleted_at__lt=cutoff, parent__isnull=True).exclude(
+            project__workspace_id__in=skip_workspaces
+        )
+        for task in rows:
             purge_task(task)
             count += 1
         return {"tasks": count}
@@ -180,11 +183,11 @@ class ProjectTrash(trash.TrashKind):
         project = self._get(item_id)
         return project.workspace_id if project is not None else None
 
-    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime) -> dict[str, int]:
+    def purge_expired(self, cutoff: dt.datetime, now: dt.datetime, *, skip_workspaces: Any = ()) -> dict[str, int]:
         from modules.tracking.projects.models import Project
 
         count = 0
-        for project in Project.all_objects.filter(deleted_at__lt=cutoff):
+        for project in Project.all_objects.filter(deleted_at__lt=cutoff).exclude(workspace_id__in=skip_workspaces):
             purge_project(project)
             count += 1
         return {"projects": count}

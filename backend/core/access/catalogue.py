@@ -18,6 +18,10 @@ from typing import Any
 WORKSPACE = "workspace"
 PROJECT = "project"
 
+#: Data scopes of a scopable grant (platform Stage 4), narrowest first.
+OWN, TEAM, ALL = "own", "team", "all"
+DATA_SCOPES = (OWN, TEAM, ALL)
+
 
 CORE = "core"
 
@@ -35,10 +39,14 @@ class PermissionDef:
     label: str
     description: str
     module: str
+    #: A scopable permission is granted with a data scope (own, team or all); workspace scope only.
+    scopable: bool = False
 
 
-def workspace_permission(code: str, group: str, label: str, description: str) -> PermissionDef:
-    return PermissionDef(code, WORKSPACE, group, label, description, module_of(code))
+def workspace_permission(
+    code: str, group: str, label: str, description: str, *, scopable: bool = False
+) -> PermissionDef:
+    return PermissionDef(code, WORKSPACE, group, label, description, module_of(code), scopable)
 
 
 def project_permission(code: str, group: str, label: str, description: str) -> PermissionDef:
@@ -73,6 +81,20 @@ class RoleDef:
     permissions: list[str]
     # Permissions a system role can never lose.
     core: list[str] = field(default_factory=list)
+    # The data scope of each scopable code in `permissions`.
+    data_scopes: dict[str, str] = field(default_factory=dict)
+
+
+#: The data scope a default role gets for a scopable code when its module does not say (contract §2).
+DEFAULT_DATA_SCOPE = {"owner": ALL, "admin": ALL}
+
+
+def default_data_scope(role_key: str | None, grants: Any = None, code: str = "") -> str:
+    """The scope a module's `default_role_grants` entry gives `code` (a `{code: scope}` mapping names it), else
+    `all` for Owner and Admin and `own` for every other role."""
+    if isinstance(grants, dict) and grants.get(code) in DATA_SCOPES:
+        return grants[code]
+    return DEFAULT_DATA_SCOPE.get(role_key or "", OWN)
 
 
 #: The default roles with core's own grants. Modules add theirs through `default_role_grants`.
@@ -139,12 +161,18 @@ def _build() -> _Catalogue:
     ordered_codes = [p.code for p in perms if p.scope == WORKSPACE] + [p.code for p in perms if p.scope != WORKSPACE]
     order_index = {c: i for i, c in enumerate(ordered_codes)}
     roles: list[RoleDef] = []
+    by_code = {p.code: p for p in perms}
     for r in CORE_ROLES:
         granted = list(r.permissions)
         locked = list(r.core)
+        scoped: dict[str, str] = {}
         for d in defs:
-            granted += d.default_role_grants.get(r.key, [])
+            grants = d.default_role_grants.get(r.key, [])
+            granted += list(grants)
             locked += d.locked_role_grants.get(r.key, [])
+            for c in grants:
+                if c in by_code and by_code[c].scopable:
+                    scoped.setdefault(c, default_data_scope(r.key, grants, c))
         key = order_index.get
         roles.append(
             RoleDef(
@@ -154,9 +182,10 @@ def _build() -> _Catalogue:
                 r.description,
                 sorted(dict.fromkeys(granted), key=lambda c: key(c, 999)),
                 sorted(dict.fromkeys(locked), key=lambda c: key(c, 999)),
+                scoped,
             )
         )
-    return _Catalogue(perms, {p.code: p for p in perms}, order_index, roles)
+    return _Catalogue(perms, by_code, order_index, roles)
 
 
 def _catalogue() -> _Catalogue:
@@ -181,6 +210,11 @@ def get(code: str) -> PermissionDef | None:
 def scope_of(code: str) -> str | None:
     p = get(code)
     return p.scope if p else None
+
+
+def is_scopable(code: str) -> bool:
+    p = get(code)
+    return bool(p and p.scopable)
 
 
 def codes(scope: str | None = None) -> list[str]:

@@ -36,10 +36,14 @@ DURABLE_TYPES: list[str] = [
     "core.attachment.created",
     "core.attachment.changed",
     "core.attachment.deleted",
+    "core.module.changed",
 ]
 #: Workspace-wide events: with `projectId: null` they reach every member of the workspace. Comment and attachment
 #: hints on a target without a project scope are workspace-wide; with a project they stay project-scoped.
-WORKSPACE_TYPES: list[str] = [t for t in DURABLE_TYPES if t.startswith(("core.comment.", "core.attachment."))]
+#: `core.module.changed` (`{module, enabled}`) tells every member that a module was switched on or off.
+WORKSPACE_TYPES: list[str] = [
+    t for t in DURABLE_TYPES if t.startswith(("core.comment.", "core.attachment.")) or t == "core.module.changed"
+]
 VOLATILE_TYPES: list[str] = ["core.presence.updated"]
 CONTROL_TYPES = ("hello", "reset", "reconnect")
 #: Internal-only key: the target user of a user-scoped event.

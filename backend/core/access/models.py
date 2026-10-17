@@ -4,6 +4,7 @@ from django.db.models.functions import Lower
 from core.common.models import BaseModel
 
 SCOPE_CHOICES = [("workspace", "Workspace"), ("project", "Project")]
+DATA_SCOPE_CHOICES = [("own", "Own"), ("team", "Team"), ("all", "All")]
 
 
 class Permission(BaseModel):
@@ -17,6 +18,8 @@ class Permission(BaseModel):
     label = models.CharField(max_length=80)
     description = models.CharField(max_length=200)
     position = models.PositiveSmallIntegerField(default=0)
+    #: Granted with a data scope (own, team or all) on every role; workspace scope only (platform Stage 4).
+    scopable = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["position"]
@@ -52,6 +55,15 @@ class Role(BaseModel):
 class RolePermission(BaseModel):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="role_permissions")
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name="+")
+    #: Required when the permission is scopable, null otherwise (enforced by the role services, the catalogue sync and
+    #: the seeders).
+    data_scope = models.CharField(max_length=8, choices=DATA_SCOPE_CHOICES, null=True, blank=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["role", "permission"], name="role_permission_unique")]
+        constraints = [
+            models.UniqueConstraint(fields=["role", "permission"], name="role_permission_unique"),
+            models.CheckConstraint(
+                condition=models.Q(data_scope__isnull=True) | models.Q(data_scope__in=["own", "team", "all"]),
+                name="role_permission_data_scope_valid",
+            ),
+        ]

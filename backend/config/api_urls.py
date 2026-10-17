@@ -22,6 +22,7 @@ urlpatterns = [
     path("", include("core.accounts.urls")),
     path("", include("core.workspaces.urls")),
     path("", include("core.access.urls")),
+    path("", include("core.teams.urls")),
     path("", include("core.collab.urls")),
     path("", include("core.notifications.urls")),
     path("", include("core.search.urls")),

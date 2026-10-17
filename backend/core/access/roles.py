@@ -9,17 +9,21 @@ from django.db import transaction
 from django.db.models import Count, Q
 
 from core.audit.services import change, record
-from core.common.exceptions import conflict, forbidden, invalid, not_found
+from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.modules.services import code_enabled, visible_codes
 
 from . import catalogue
-from .catalogue import OWNER_PERMISSION, WORKSPACE
+from .catalogue import DATA_SCOPES, OWNER_PERMISSION, WORKSPACE
 from .models import Permission, Role, RolePermission
 from .services import invalidate, workspace_permissions
 
 
 def roles_for(workspace: Any, scope: str | None = None):
-    qs = Role.objects.filter(workspace=workspace).prefetch_related("permissions").order_by("scope", "created_at")
+    qs = (
+        Role.objects.filter(workspace=workspace)
+        .prefetch_related("permissions", "role_permissions__permission")
+        .order_by("scope", "created_at")
+    )
     if scope in ("workspace", "project"):
         qs = qs.filter(scope=scope)
     return qs.annotate(
@@ -60,11 +64,62 @@ def _ensure_no_escalation(actor: Any, role_scope: str, workspace: Any, codes: se
         raise forbidden("You can’t grant permissions you don’t have.", {"permission": sorted(missing)[0]})
 
 
-def _set_permissions(role: Role, codes: list[str]) -> None:
+def _clean_data_scopes(granted: list[str], raw: Any, stored: dict[str, str] | None = None) -> dict[str, str]:
+    """The role's data scopes after a write (contract §2). `granted` is the role's final code list, `raw` the
+    request's `dataScopes` (None when left out) and `stored` the current map, which stands in for codes the request
+    leaves out. Scopes for scopable codes the role doesn't grant are dropped."""
+    if raw is not None and not isinstance(raw, dict):
+        raise invalid({"dataScopes": "Send an object of permission code → scope"})
+    given: dict[str, Any] = raw or {}
+    not_allowed = [c for c in given if not catalogue.is_scopable(c)]
+    if not_allowed:
+        raise ApiError(
+            400, "data_scope_not_allowed", "Only scopable permissions take a data scope.", {"codes": not_allowed}
+        )
+    if any(v not in DATA_SCOPES for v in given.values()):
+        raise invalid({"dataScopes": "Use own, team or all"})
+    stored = stored or {}
+    out: dict[str, str] = {}
+    missing: list[str] = []
+    for c in granted:
+        if not catalogue.is_scopable(c):
+            continue
+        scope = given.get(c) or stored.get(c)
+        if scope:
+            out[c] = scope
+        else:
+            missing.append(c)
+    if missing:
+        raise ApiError(
+            400,
+            "data_scope_required",
+            "Choose Own, Team or All for each scoped permission.",
+            {"codes": catalogue.ordered(missing)},
+        )
+    return out
+
+
+def stored_data_scopes(role: Role) -> dict[str, str]:
+    rows = RolePermission.objects.filter(role=role, data_scope__isnull=False)
+    return {code: scope for code, scope in rows.values_list("permission__code", "data_scope") if scope}
+
+
+def _set_permissions(role: Role, codes: list[str], scopes: dict[str, str] | None = None) -> None:
+    scopes = scopes or {}
     perms = {p.code: p for p in Permission.objects.filter(code__in=codes)}
     RolePermission.objects.filter(role=role).exclude(permission__code__in=codes).delete()
-    have = set(RolePermission.objects.filter(role=role).values_list("permission__code", flat=True))
-    RolePermission.objects.bulk_create([RolePermission(role=role, permission=perms[c]) for c in codes if c not in have])
+    have = {rp.permission.code: rp for rp in RolePermission.objects.filter(role=role).select_related("permission")}
+    for c, rp in have.items():
+        if rp.data_scope != scopes.get(c):
+            rp.data_scope = scopes.get(c)
+            rp.save(update_fields=["data_scope", "updated_at"])
+    RolePermission.objects.bulk_create(
+        [RolePermission(role=role, permission=perms[c], data_scope=scopes.get(c)) for c in codes if c not in have]
+    )
+
+
+def _scopes_text(scopes: dict[str, str]) -> str:
+    return ", ".join(f"{c}: {scopes[c]}" for c in catalogue.ordered(scopes))
 
 
 def _name(raw: Any) -> str:
@@ -107,18 +162,22 @@ def create_role(actor: Any, workspace: Any, data: dict[str, Any]) -> Role:
     if _name_taken(workspace, scope, name):
         raise invalid({"name": "A role with this name exists"})
     codes = _clean_permissions(scope, data.get("permissions", []), workspace)
+    scopes = _clean_data_scopes(codes, data.get("dataScopes"))
     _ensure_no_escalation(actor, scope, workspace, set(codes))
     role = Role.objects.create(
         workspace=workspace, name=name, description=str(data.get("description") or "")[:120], scope=scope
     )
-    _set_permissions(role, codes)
+    _set_permissions(role, codes, scopes)
+    changes = [change("Permissions", None, ", ".join(codes))]
+    if scopes:
+        changes.append(change("Data scopes", None, _scopes_text(scopes)))
     record(
         workspace=workspace,
         actor=actor,
         action="core.role.created",
         target=role.name,
         entity_id=role.pk,
-        changes=[change("Permissions", None, ", ".join(codes))],
+        changes=changes,
     )
     return role
 
@@ -143,9 +202,13 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
                 raise forbidden("System roles can’t be renamed. Duplicate it to customise.")
             changes.append(change("Description", role.description, description, "text"))
             role.description = description
-    if "permissions" in data:
-        codes = _clean_permissions(role.scope, data.get("permissions"), role.workspace)
+    if "permissions" in data or "dataScopes" in data:
+        stored_scopes = stored_data_scopes(role)
         stored = set(role.permissions.values_list("code", flat=True))
+        if "permissions" in data:
+            codes = _clean_permissions(role.scope, data.get("permissions"), role.workspace)
+        else:
+            codes = catalogue.ordered(visible_codes(role.workspace, stored))
         # Grants of disabled modules are hidden from the editor and kept as they are.
         current = visible_codes(role.workspace, stored)
         hidden = stored - current
@@ -163,9 +226,14 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
             and _owner_holders_after(role, new) == 0
         ):
             raise conflict("last_owner", "A workspace needs at least one owner.")
+        final = [*codes, *sorted(hidden)]
+        scopes = _clean_data_scopes(final, data.get("dataScopes"), stored_scopes)
+        if new != current or scopes != stored_scopes:
+            _set_permissions(role, final, scopes)
         if new != current:
-            _set_permissions(role, [*codes, *sorted(hidden)])
             changes.append(change("Permissions", ", ".join(catalogue.ordered(current)), ", ".join(codes)))
+        if scopes != stored_scopes:
+            changes.append(change("Data scopes", _scopes_text(stored_scopes), _scopes_text(scopes)))
     if changes:
         role.save()
         record(

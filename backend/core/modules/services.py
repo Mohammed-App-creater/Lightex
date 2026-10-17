@@ -201,6 +201,7 @@ def set_module_enabled(actor: Any, workspace: Any, key: str, enabled: bool) -> d
     """Turns module `key` on or off for `workspace` (the view requires `core.modules.manage`)."""
     from core.access import services as access
     from core.audit.services import change, record
+    from core.realtime.services import publish
 
     from .models import WorkspaceModule
 
@@ -242,6 +243,7 @@ def set_module_enabled(actor: Any, workspace: Any, key: str, enabled: bool) -> d
         changes=[change("Enabled", current, enabled)],
         data={"module": key},
     )
+    publish("core.module.changed", workspace=workspace, actor=actor, data={"module": key, "enabled": enabled})
     return module_data(workspace, key)
 
 

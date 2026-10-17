@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.access.services import my_permissions
+from core.access.services import my_data_scopes, my_permissions
 from core.accounts.serializers import UserSerializer, user_brief
 from core.common.utils import iso
 from core.modules.services import enabled_modules
@@ -13,14 +13,15 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     memberCount = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
+    myDataScopes = serializers.SerializerMethodField()
     notificationPolicy = serializers.SerializerMethodField()
     enabledModules = serializers.SerializerMethodField()
 
     class Meta:
         model = Workspace
         fields = [
-            "id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions", "notificationPolicy",
-            "enabledModules",
+            "id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions", "myDataScopes",
+            "notificationPolicy", "enabledModules",
         ]  # fmt: skip
 
     def get_enabledModules(self, obj) -> list[str]:
@@ -44,6 +45,9 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 
     def get_my_permissions(self, obj) -> list[str]:
         return my_permissions(self.context["user"], obj)
+
+    def get_myDataScopes(self, obj) -> dict[str, str]:
+        return my_data_scopes(self.context["user"], obj)
 
 
 class WorkspaceMemberSerializer(serializers.ModelSerializer):

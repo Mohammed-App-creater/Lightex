@@ -39,6 +39,14 @@ def S(w):
     return {"slug": w.ws.slug}
 
 
+def TEAM(w):
+    return {"team_id": w.team.id}
+
+
+def TEAM_MEMBER(w):
+    return {"team_id": w.team.id, "user_id": w.users["ws_member"].id}
+
+
 ROWS: list[Row] = [
     # ── public ──
     Row("api-health", "GET", allow=(PUBLIC,)),
@@ -86,6 +94,46 @@ ROWS: list[Row] = [
         allow=("owner", "ws_admin"),
         deny=("ws_member", "manager", "outsider", "anon"),
         body=lambda w: {"enabled": True},
+    ),
+    # ── teams (platform Stage 4): reads for any member, writes need core.teams.manage ──
+    Row("workspace-teams", "GET", S, allow=("owner", "ws_member", "viewer"), deny=("outsider", "anon")),
+    Row(
+        "workspace-teams",
+        "POST",
+        S,
+        allow=("owner", "ws_admin"),
+        deny=("ws_member", "outsider", "anon"),
+        body=lambda w: {"name": "New team"},
+    ),
+    Row("team-detail", "GET", TEAM, allow=("owner", "ws_member", "viewer"), deny=("outsider", "anon")),
+    Row(
+        "team-detail",
+        "PATCH",
+        TEAM,
+        allow=("owner", "ws_admin"),
+        deny=("ws_member", "outsider", "anon"),
+        body=lambda w: {"name": "Renamed"},
+    ),
+    Row("team-detail", "DELETE", TEAM, allow=("owner", "ws_admin"), deny=("ws_member", "outsider", "anon")),
+    Row("team-members", "GET", TEAM, allow=("owner", "ws_member", "viewer"), deny=("outsider", "anon")),
+    Row(
+        "team-members",
+        "POST",
+        TEAM,
+        allow=("owner", "ws_admin"),
+        deny=("ws_member", "outsider", "anon"),
+        body=lambda w: {"userId": str(w.users["viewer"].id)},
+    ),
+    Row(
+        "team-member-detail",
+        "PATCH",
+        TEAM_MEMBER,
+        allow=("owner", "ws_admin"),
+        deny=("ws_member", "outsider", "anon"),
+        body=lambda w: {"isLead": True},
+    ),
+    Row(
+        "team-member-detail", "DELETE", TEAM_MEMBER, allow=("owner", "ws_admin"), deny=("ws_member", "outsider", "anon")
     ),
     Row("sales-health", "GET", S, allow=("owner", "ws_admin", "ws_member"), deny=("outsider", "anon")),
     Row("workspace-slug-availability", "GET", S, allow=("owner", "ws_member"), deny=("outsider",), query="?q=abc"),

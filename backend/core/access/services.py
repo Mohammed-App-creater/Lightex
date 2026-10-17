@@ -6,6 +6,9 @@ other. Results are cached per request on the user instance (DRF builds a fresh u
 
 Permissions of a module that is disabled in the workspace are dropped from every result (`can()` is False for them
 and `my_permissions` leaves them out); their `RolePermission` rows stay, so re-enabling the module restores them.
+
+Data scope (platform Stage 4): a scopable permission is granted with a scope (`own`, `team`, `all`).
+`visible_to()` is the only place it is applied to a queryset.
 """
 
 from __future__ import annotations
@@ -14,12 +17,14 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
+from django.db.models import Q, QuerySet
 
 from core.modules.services import code_enabled, visible_codes, workspace_id_of
 
 from . import catalogue, scopes
-from .catalogue import PROJECT, WORKSPACE
+from .catalogue import ALL, OWN, PROJECT, TEAM, WORKSPACE
 
 if TYPE_CHECKING:
     from core.accounts.models import User
@@ -30,7 +35,7 @@ _CACHE_ATTR = "_lx_access_cache"
 def _cache(user: Any) -> dict[str, dict]:
     cache = user.__dict__.get(_CACHE_ATTR)
     if cache is None:
-        cache = {"ws": {}, "prj": {}}
+        cache = {"ws": {}, "prj": {}, "ds": {}}
         user.__dict__[_CACHE_ATTR] = cache
     return cache
 
@@ -69,6 +74,64 @@ def is_workspace_member(user: Any, workspace: Any) -> bool:
     return WorkspaceMember.objects.filter(
         user_id=user.pk, workspace_id=_key(workspace), status="active", workspace__deleted_at__isnull=True
     ).exists()
+
+
+def my_data_scopes(user: Any, workspace: Any) -> dict[str, str]:
+    """{code: scope} for the scopable workspace codes the user's role grants (disabled modules left out)."""
+    if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
+        return {}
+    wid = _key(workspace)
+    cache = _cache(user)["ds"]
+    if wid not in cache:
+        from .models import RolePermission
+
+        rows = RolePermission.objects.filter(
+            role__workspace_members__user_id=user.pk,
+            role__workspace_members__workspace_id=wid,
+            role__workspace_members__status="active",
+            role__workspace__deleted_at__isnull=True,
+            permission__scope=WORKSPACE,
+            permission__scopable=True,
+            data_scope__isnull=False,
+        ).values_list("permission__code", "data_scope")
+        found = dict(rows)
+        visible = visible_codes(wid, found)
+        cache[wid] = {c: found[c] for c in catalogue.ordered(visible)}
+    return dict(cache[wid])
+
+
+def visible_to(queryset: QuerySet, user: Any, code: str, workspace: Any) -> QuerySet:
+    """`queryset` narrowed to the workspace's records the user may see under scopable permission `code`.
+
+    The model names its owner field with `data_scope_owner_field` (and its workspace field with
+    `data_scope_workspace_field`, default "workspace"). No grant, a disabled module or a non-member → nothing;
+    `own` → records the user owns; `team` → records owned by the user or by anyone sharing a (live) team with them;
+    `all` → every record in the workspace.
+    """
+    perm = catalogue.get(code)
+    if perm is None:
+        raise ValueError(f"Unknown permission {code!r}")
+    if not perm.scopable:
+        raise ValueError(f"{code} is not a scopable permission; check it with can()")
+    model = queryset.model
+    owner_field = getattr(model, "data_scope_owner_field", None)
+    if not owner_field:
+        raise ImproperlyConfigured(f"{model._meta.label} must declare data_scope_owner_field to use visible_to()")
+    ws_field = getattr(model, "data_scope_workspace_field", "workspace")
+    wid = _key(workspace)
+    qs = queryset.filter(**{f"{ws_field}_id": wid})
+    scope = my_data_scopes(user, wid).get(code)
+    if scope == ALL:
+        return qs
+    if scope == OWN:
+        return qs.filter(**{f"{owner_field}_id": user.pk})
+    if scope == TEAM:
+        from core.teams.models import TeamMember
+
+        mine = TeamMember.objects.filter(workspace_id=wid, user_id=user.pk, team__deleted_at__isnull=True)
+        mates = TeamMember.objects.filter(team_id__in=mine.values("team_id")).values("user_id")
+        return qs.filter(Q(**{f"{owner_field}_id": user.pk}) | Q(**{f"{owner_field}_id__in": mates}))
+    return qs.none()
 
 
 # ───────────────────────── module scopes (project) ─────────────────────────
@@ -171,6 +234,7 @@ def sync_permission_catalogue() -> tuple[int, int, int]:
                 "label": p.label,
                 "description": p.description,
                 "position": i,
+                "scopable": p.scopable,
             }
             if row is None:
                 Permission.objects.create(code=p.code, **values)
@@ -183,7 +247,23 @@ def sync_permission_catalogue() -> tuple[int, int, int]:
         removed = len(existing)
         if existing:
             Permission.objects.filter(code__in=list(existing)).delete()
+        _comply_data_scopes()
     return created, updated, removed
+
+
+def _comply_data_scopes() -> None:
+    """Keeps `RolePermission.data_scope` in line with the catalogue after a sync: null for non-scopable codes, and a
+    default scope (the module's default grant for a system role, else `own`) where a scopable code has none."""
+    from .models import RolePermission
+
+    RolePermission.objects.filter(permission__scopable=False, data_scope__isnull=False).update(data_scope=None)
+    missing = RolePermission.objects.filter(permission__scopable=True, data_scope__isnull=True).select_related(
+        "role", "permission"
+    )
+    for rp in missing:
+        rdef = catalogue.role_def(rp.role.system_key) if rp.role.is_system else None
+        rp.data_scope = (rdef.data_scopes.get(rp.permission.code) if rdef else None) or OWN
+        rp.save(update_fields=["data_scope", "updated_at"])
 
 
 def seed_default_roles(workspace: Any) -> dict[str, Any]:
@@ -208,7 +288,11 @@ def seed_default_roles(workspace: Any) -> dict[str, Any]:
         )
         roles[r.key] = role
         links.extend(
-            RolePermission(role=role, permission=perms[c]) for c in r.permissions if code_enabled(workspace, c)
+            RolePermission(
+                role=role, permission=perms[c], data_scope=r.data_scopes.get(c) if perms[c].scopable else None
+            )
+            for c in r.permissions
+            if code_enabled(workspace, c)
         )
     RolePermission.objects.bulk_create(links)
     return roles
@@ -229,12 +313,14 @@ def seed_module_grants(workspace: Any, defn: Any) -> int:
     perms = {p.code: p for p in Permission.objects.filter(code__in=wanted)}
     roles = workspace.roles.filter(is_system=True, system_key__in=list(defn.default_role_grants))
     have = set(RolePermission.objects.filter(role__in=roles).values_list("role_id", "permission__code"))
-    links = [
-        RolePermission(role=role, permission=perms[c])
-        for role in roles
-        for c in defn.default_role_grants.get(role.system_key, [])
-        if (role.pk, c) not in have
-    ]
+    links = []
+    for role in roles:
+        grants = defn.default_role_grants.get(role.system_key, [])
+        for c in grants:
+            if (role.pk, c) in have:
+                continue
+            scope = catalogue.default_data_scope(role.system_key, grants, c) if perms[c].scopable else None
+            links.append(RolePermission(role=role, permission=perms[c], data_scope=scope))
     RolePermission.objects.bulk_create(links, ignore_conflicts=True)
     return len(links)
 

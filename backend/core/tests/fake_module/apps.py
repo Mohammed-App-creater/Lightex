@@ -144,6 +144,10 @@ def make_trash() -> Any:
             w = _widget(item_id, deleted=True)
             return w.workspace_id if w is not None else None
 
+        def purge_expired(self, cutoff: Any, now: Any, *, skip_workspaces: Any = ()) -> dict[str, int]:
+            rows = Widget.all_objects.filter(deleted_at__lt=cutoff).exclude(workspace_id__in=skip_workspaces)
+            return {"widgets": rows.delete()[0]}
+
     return WidgetTrash()
 
 

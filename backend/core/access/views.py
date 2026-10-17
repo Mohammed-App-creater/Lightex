@@ -77,5 +77,9 @@ class RolePermissionsView(RoleScopedView):
 
     @extend_schema(tags=["roles"], request=RolePermissionsIn, responses={200: RoleSerializer})
     def put(self, request, role_id):
-        self.role = roles.update_role(request.user, self.role, {"permissions": body(request).get("permissions")})
+        data = body(request)
+        payload = {"permissions": data.get("permissions")}
+        if "dataScopes" in data:
+            payload["dataScopes"] = data["dataScopes"]
+        self.role = roles.update_role(request.user, self.role, payload)
         return Response(self.role_data())
