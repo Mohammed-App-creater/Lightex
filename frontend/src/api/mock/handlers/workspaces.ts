@@ -21,7 +21,7 @@ import {
 import { isModuleOn, moduleOfCode, onlyEnabled, writeModule } from "../modules";
 import { auditList } from "./audit";
 import { creationModules } from "./modules";
-import { assertWithinOwnScope, resolveDataScopes } from "../data-scope";
+import { assertWithinOwnScope, resolveDataScopes, roleDataScopes, widestScopes } from "../data-scope";
 import { toInvite } from "./auth";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
@@ -64,13 +64,24 @@ export function workspaceRolesFrom(db: MockDB, workspaceId: string, body: unknow
   return [role];
 }
 
-/** No privilege escalation: adding or removing roles needs every (enabled) permission they grant. 403 otherwise. */
+/**
+ * Sales S7 (backend `grantable_without_holding`): self-service codes only act on the holder's own things, so anyone
+ * allowed to assign roles may grant them without holding them.
+ */
+const SELF_SERVICE_CODES = new Set(["sales.dailyreport.submit"]);
+
+/**
+ * No privilege escalation: adding or removing roles needs every (enabled) permission they grant, self-service codes
+ * excepted (403 `forbidden`), and (sales S7) no data scope wider than the actor's own (403 `data_scope_exceeds_own`;
+ * owners exempt).
+ */
 function ensureCanGrant(db: MockDB, actorId: string, workspaceId: string, roles: readonly RoleRec[]) {
   const actor = wsMembership(db, actorId, workspaceId);
   // Every code the actor's roles grant (the union), so catalogue entries added at runtime count too.
   const mine = new Set(actor ? onlyEnabled(db, workspaceId, [...codesOf(rolesOf(db, actor.roleIds))]) : []);
-  const missing = onlyEnabled(db, workspaceId, [...codesOf(roles)]).filter((c) => !mine.has(c)).sort();
+  const missing = onlyEnabled(db, workspaceId, [...codesOf(roles)]).filter((c) => !mine.has(c) && !SELF_SERVICE_CODES.has(c)).sort();
   if (missing.length) fail(403, "forbidden", "You can’t assign a role with permissions you don’t have.", { permission: missing[0] });
+  assertWithinOwnScope(db, actorId, workspaceId, widestScopes(roles.map((r) => roleDataScopes(db, r))));
 }
 
 type OwnerChange = { member?: { userId: string; roleIds: string[] }; role?: { id: string; permissions: string[] } };
@@ -433,6 +444,8 @@ export function registerWorkspaces() {
       : undefined;
     if (reassignTo && !target) invalid({ reassignTo: "Pick another role in the same scope" });
     if (inUse && !target) fail(409, "role_in_use", "Reassign members before deleting this role.", { memberCount: toRole(ctx.db, role).memberCount });
+    // Sales S7: holders moved to the target can't receive more than the actor could grant.
+    if (target && role.scope === "workspace") ensureCanGrant(ctx.db, ctx.userId!, role.workspaceId, [target]);
     if (target && role.scope === "workspace" && !target.permissions.includes(OWNER_PERMISSION as never)) {
       assertOwnerRemains(ctx.db, role.workspaceId, { role: { id: role.id, permissions: [] } });
     }

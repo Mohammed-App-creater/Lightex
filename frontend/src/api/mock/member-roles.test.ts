@@ -183,8 +183,6 @@ describe("widest data scope", () => {
     as("u_sam"); // Member: nothing in sales
     expect((await workspace()).myDataScopes).toEqual({});
     as("u_alex");
-    // Owner lacks `sales.dailyreport.submit` by default; no-escalation needs it to hand out the sales roles below.
-    getDB().roles.find((r) => r.id === R("owner"))!.permissions.push("sales.dailyreport.submit");
     await setRoles("u_sam", [R("member"), R("sales_manager")]);
     as("u_sam");
     expect((await workspace()).myDataScopes!["sales.dashboard.view"]).toBe("team");
@@ -228,6 +226,34 @@ describe("module default roles", () => {
     expect(await call("GET", "/sales/workspaces/platform/health")).toMatchObject({ status: "ok" });
     const ws = await workspace();
     expect(ws.my_permissions).toContain("sales.dashboard.view");
+  });
+});
+
+describe("sales role-grant rules (backend S7)", () => {
+  it("lets Owner and Admin assign Salesperson without holding sales.dailyreport.submit", async () => {
+    await enableSales();
+    expect((await workspace()).my_permissions).not.toContain("sales.dailyreport.submit");
+    const m = await setRoles("u_sam", [R("member"), R("sales_salesperson")]);
+    expect(m.roleIds).toEqual([R("member"), R("sales_salesperson")]);
+    as("u_jordan"); // Admin
+    expect((await setRoles("u_taylor", [R("member"), R("sales_manager")])).roleIds).toEqual([R("member"), R("sales_manager")]);
+  });
+
+  it("refuses a data scope wider than the actor's own (403 data_scope_exceeds_own)", async () => {
+    await enableSales();
+    const ceo = getDB().roles.find((r) => r.id === R("sales_ceo"))!;
+    // A non-owner who holds every CEO / GM code, but only with team scope, and may manage members.
+    const lead = await call<Role>("POST", "/workspaces/platform/roles", {
+      name: "Team lead",
+      scope: "workspace",
+      permissions: [...ceo.permissions, "core.workspace.manage_members"],
+      dataScopes: Object.fromEntries(Object.keys(ceo.dataScopes ?? {}).map((c) => [c, "team"])),
+    });
+    await setRoles("u_sam", [lead.id]);
+    as("u_sam");
+    const e = await failure(setRoles("u_taylor", [R("member"), R("sales_ceo")]));
+    expect([e.status, e.code]).toEqual([403, "data_scope_exceeds_own"]);
+    expect(e.details).toMatchObject({ code: "sales.dashboard.view", dataScope: "all", yours: "team" });
   });
 });
 
