@@ -19,11 +19,14 @@ from core.common.exceptions import invalid, not_found
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_value
 from core.common.schema import page_of
+from core.common.utils import iso
 from core.workspaces.selectors import workspaces_for
 from core.workspaces.views import WorkspaceScopedView
 
 from . import module as perms
 from . import scope, selectors, services
+from .activity_selectors import company_activity
+from .activity_serializers import SalesCompanySummarySerializer
 from .models import Company, Contact, Holiday, LostReason, PipelineStage, Product
 from .pipeline_selectors import company_deals
 from .serializers import (
@@ -31,7 +34,6 @@ from .serializers import (
     SalesCalendarSerializer,
     SalesCompanyIn,
     SalesCompanySerializer,
-    SalesCompanySummarySerializer,
     SalesCompanyUpdateIn,
     SalesContactIn,
     SalesContactSerializer,
@@ -475,6 +477,7 @@ class CompanySummaryView(CompanyRecordView):
         summary = selectors.company_summary(request.user, company)
         primary = summary["primaryContact"]
         deals = company_deals(request.user, company)
+        activity = company_activity(request.user, company)
         return Response(
             {
                 "company": one_company(request.user, company),
@@ -483,9 +486,9 @@ class CompanySummaryView(CompanyRecordView):
                 "openOpportunityCount": deals["openOpportunityCount"],
                 "pipelineValue": f"{deals['pipelineValue']:.2f}",
                 "wonValue": f"{deals['wonValue']:.2f}",
-                "openFollowUpCount": 0,
-                "lastContactAt": None,
-                "timeline": [],
+                "openFollowUpCount": activity["openFollowUpCount"],
+                "lastContactAt": iso(activity["lastContactAt"]),
+                "timeline": activity["timeline"],
             }
         )
 

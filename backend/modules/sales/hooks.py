@@ -561,9 +561,16 @@ class QuotationTrash(_OwnedTrash):
 
 
 def expire_quotations_job(workspace: Any, *, now: Any) -> None:
-    from .pipeline_services import expire_quotations
+    from .pipeline_services import expire_quotations, notify_expiring_quotations
 
     expire_quotations(workspace, now=now)
+    notify_expiring_quotations(workspace, now=now)
+
+
+def followup_digest_job(workspace: Any, *, now: Any) -> None:
+    from .activity_services import followup_digest
+
+    followup_digest(workspace, now=now)
 
 
 def register() -> None:
@@ -585,8 +592,22 @@ def register() -> None:
         expire_quotations_job,
         module=KEY,
         schedule="daily 00:15",
-        description="Expire sent quotations whose valid-until date has passed (workspace time)",
+        description="Expire sent quotations whose valid-until date has passed and notify owners of quotations "
+        "expiring within 3 days (workspace time)",
     )
+    register_job(
+        "sales_followup_digest",
+        followup_digest_job,
+        module=KEY,
+        schedule="daily 07:30",
+        description="Morning digest: follow-ups due today and overdue, one notification per owner (workspace time)",
+    )
+    register_audit_group("activity", ["sales.activity"])
+    register_audit_group("followup", ["sales.followup"])
+    from . import activity_selectors, notifications
+
+    activity_selectors.register_timeline_sources()
+    notifications.register()
     register_audit_group(
         "sales_settings",
         ["sales.settings", "sales.stage", "sales.product", "sales.lostreason", "sales.calendar", "sales.holiday"],

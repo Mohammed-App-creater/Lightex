@@ -103,6 +103,19 @@ def _sales_objects(w) -> dict:
             "company_id": company.pk,
             "contact_id": get("sales", "Contact").objects.create(company=company, owner=owner, name="Hana").pk,
         }
+        on_company = {"target_type": "sales.company", "target_id": company.pk, "target_company": company}
+        w.extra["sales"]["activity_id"] = (
+            get("sales", "Activity")
+            .objects.create(workspace=w.ws, owner=owner, occurred_at=company.created_at, company=company, **on_company)
+            .pk
+        )
+        w.extra["sales"]["follow_up_id"] = (
+            get("sales", "FollowUp")
+            .objects.create(
+                workspace=w.ws, owner=owner, title="Call", due_date="2099-01-01", company=company, **on_company
+            )
+            .pk
+        )
     return w.extra["sales"]
 
 

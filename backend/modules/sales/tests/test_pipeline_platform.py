@@ -157,13 +157,13 @@ def test_audit_groups_and_event_types(deals):
         "sales.lead.converted",
         "sales.opportunity.created",
         "sales.opportunity.moved",
-        "sales.opportunity.won",
         "sales.opportunity.lost",
-        "sales.opportunity.reassigned",
         "sales.quotation.sent",
     ):
         et = event_type(key)
         assert et is not None and et.module == "sales" and et.preference is False, key
+    for key in ("sales.opportunity.reassigned", "sales.opportunity.won"):  # S3: user-facing notification types
+        assert event_type(key).preference is True, key
 
 
 def test_module_disabled_covers_s2_routes(deals):

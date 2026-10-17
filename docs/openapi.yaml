@@ -908,6 +908,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
+  /api/v1/sales/activities/{activity_id}:
+    get:
+      operationId: sales_activities_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: activity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesActivity'
+          description: ''
+    patch:
+      operationId: sales_activities_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: activity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesActivityUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesActivity'
+          description: ''
+    delete:
+      operationId: sales_activities_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: activity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/sales/companies/{company_id}:
     get:
       operationId: sales_companies_retrieve
@@ -999,6 +1067,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesCompanySummary'
           description: ''
+  /api/v1/sales/companies/{company_id}/timeline:
+    get:
+      operationId: sales_companies_timeline
+      description: Every activity and follow-up on the company or any of its records,
+        newest first, whatever their owner.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTimelinePage'
+          description: ''
   /api/v1/sales/contacts/{contact_id}:
     get:
       operationId: sales_contacts_retrieve
@@ -1067,6 +1168,161 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/follow-ups/{follow_up_id}:
+    get:
+      operationId: sales_follow_ups_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUp'
+          description: ''
+    patch:
+      operationId: sales_follow_ups_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesFollowUpUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUp'
+          description: ''
+    delete:
+      operationId: sales_follow_ups_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/follow-ups/{follow_up_id}/complete:
+    post:
+      operationId: sales_follow_ups_complete
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesFollowUpCompleteInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUpCompleteResult'
+          description: ''
+  /api/v1/sales/follow-ups/{follow_up_id}/reassign:
+    post:
+      operationId: sales_follow_ups_reassign
+      description: Needs sales.followup.reassign reaching the follow-up; the new owner
+        follows the owner rule. Audited.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesFollowUpReassignInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUp'
+          description: ''
+  /api/v1/sales/follow-ups/{follow_up_id}/reschedule:
+    post:
+      operationId: sales_follow_ups_reschedule
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: follow_up_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesFollowUpRescheduleInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUp'
+          description: ''
   /api/v1/sales/holidays/{holiday_id}:
     patch:
       operationId: sales_holidays_partial_update
@@ -1757,6 +2013,137 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/workspaces/{slug}/activities:
+    get:
+      operationId: sales_activities_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[company]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'company id: everything on the company'
+      - in: query
+        name: filter[occurredFrom]
+        schema:
+          type: string
+        description: YYYY-MM-DD, workspace time, inclusive
+      - in: query
+        name: filter[occurredTo]
+        schema:
+          type: string
+        description: YYYY-MM-DD, workspace time, inclusive
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[targetType]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - sales.company
+            - sales.contact
+            - sales.lead
+            - sales.opportunity
+      - in: query
+        name: filter[target]
+        schema:
+          type: array
+          items:
+            type: string
+        description: the record's id (lead, opportunity, …)
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: filter[type]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - call
+            - email
+            - meeting
+            - note
+            - other
+            - quotation
+            - visit
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches summary or outcome
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: -occurredAt (default), occurredAt, createdAt
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesActivityPage'
+          description: ''
+    post:
+      operationId: sales_activities_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesActivityInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesActivityLogResult'
+          description: ''
   /api/v1/sales/workspaces/{slug}/calendar:
     get:
       operationId: sales_calendar_retrieve
@@ -2037,6 +2424,143 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SalesContact'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/follow-ups:
+    get:
+      operationId: sales_follow_ups_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: bucket
+        schema:
+          type: string
+          enum:
+          - all
+          - overdue
+          - today
+          - upcoming
+        description: overdue, today or upcoming (pending only, workspace time); all
+          (default) applies no bucket
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[company]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'company id: everything on the company'
+      - in: query
+        name: filter[dueFrom]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[dueTo]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - cancelled
+            - done
+            - pending
+      - in: query
+        name: filter[targetType]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - sales.company
+            - sales.lead
+            - sales.opportunity
+      - in: query
+        name: filter[target]
+        schema:
+          type: array
+          items:
+            type: string
+        description: the record's id (lead, opportunity, …)
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches title or notes
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: dueDate (default), createdAt, updatedAt; - for descending
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUpPage'
+          description: ''
+    post:
+      operationId: sales_follow_ups_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesFollowUpInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesFollowUp'
           description: ''
   /api/v1/sales/workspaces/{slug}/holidays:
     get:
@@ -8355,6 +8879,13 @@ components:
       - sprintId
       - statuses
       - tasks
+    BucketEnum:
+      enum:
+      - overdue
+      - today
+      - upcoming
+      - later
+      type: string
     BulkInRequest:
       type: object
       properties:
@@ -10525,6 +11056,31 @@ components:
             - team
             - all
             type: string
+    PatchedSalesActivityUpdateInRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SalesActivityLoggedTypeEnum'
+        occurredAt:
+          type: string
+          format: date-time
+          description: Default now; not in the future.
+        durationMinutes:
+          type: integer
+          maximum: 1440
+          minimum: 0
+          nullable: true
+        summary:
+          type: string
+          maxLength: 1000
+        outcome:
+          type: string
+          maxLength: 1000
+        targetType:
+          $ref: '#/components/schemas/SalesTargetTypeEnum'
+        targetId:
+          type: string
+          format: uuid
     PatchedSalesCompanyUpdateInRequest:
       type: object
       properties:
@@ -10600,6 +11156,24 @@ components:
           format: uuid
           description: 'Default: the caller. Someone else needs edit scope team or
             all.'
+    PatchedSalesFollowUpUpdateInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        notes:
+          type: string
+          maxLength: 5000
+        dueDate:
+          type: string
+          format: date
+          description: Today or later.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SalesFollowUpUpdateInStatusEnum'
+          description: '`cancelled` cancels a pending follow-up.'
     PatchedSalesHolidayUpdateInRequest:
       type: object
       properties:
@@ -11651,6 +12225,191 @@ components:
       - taskId
       - taskKey
       - taskTitle
+    SalesActivity:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        targetType:
+          $ref: '#/components/schemas/SalesTargetTypeEnum'
+        targetId:
+          type: string
+          format: uuid
+        target:
+          allOf:
+          - $ref: '#/components/schemas/SalesTargetBrief'
+          readOnly: true
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+          description: The target's company.
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompanyBrief'
+          nullable: true
+          readOnly: true
+        id:
+          type: string
+          format: uuid
+        type:
+          allOf:
+          - $ref: '#/components/schemas/SalesActivityTypeEnum'
+          description: '`quotation` entries are logged by the system when a quotation
+            is sent.'
+        occurredAt:
+          type: string
+          readOnly: true
+        durationMinutes:
+          type: integer
+          nullable: true
+        summary:
+          type: string
+        outcome:
+          type: string
+        quotationId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - canDelete
+      - canEdit
+      - company
+      - companyId
+      - createdAt
+      - durationMinutes
+      - id
+      - occurredAt
+      - outcome
+      - owner
+      - ownerId
+      - quotationId
+      - summary
+      - target
+      - targetId
+      - targetType
+      - type
+      - updatedAt
+    SalesActivityFollowUpInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 'Default: Follow up.'
+          maxLength: 200
+        dueDate:
+          type: string
+          format: date
+          description: Today or later (workspace time).
+        notes:
+          type: string
+          maxLength: 5000
+      required:
+      - dueDate
+    SalesActivityInRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SalesActivityLoggedTypeEnum'
+        occurredAt:
+          type: string
+          format: date-time
+          description: Default now; not in the future.
+        durationMinutes:
+          type: integer
+          maximum: 1440
+          minimum: 0
+          nullable: true
+        summary:
+          type: string
+          maxLength: 1000
+        outcome:
+          type: string
+          maxLength: 1000
+        targetType:
+          $ref: '#/components/schemas/SalesTargetTypeEnum'
+        targetId:
+          type: string
+          format: uuid
+          description: A record you can see.
+        followUp:
+          allOf:
+          - $ref: '#/components/schemas/SalesActivityFollowUpInRequest'
+          nullable: true
+          description: Plan the next step on the same record (a contact's company)
+            in the same call; needs sales.followup.create.
+      required:
+      - targetId
+      - targetType
+      - type
+    SalesActivityLogResult:
+      type: object
+      properties:
+        activity:
+          $ref: '#/components/schemas/SalesActivity'
+        followUp:
+          allOf:
+          - $ref: '#/components/schemas/SalesFollowUp'
+          nullable: true
+          description: The follow-up created with it, if any.
+      required:
+      - activity
+      - followUp
+    SalesActivityLoggedTypeEnum:
+      enum:
+      - call
+      - visit
+      - meeting
+      - email
+      - note
+      - other
+      type: string
+    SalesActivityPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesActivity'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesActivityTypeEnum:
+      enum:
+      - call
+      - visit
+      - meeting
+      - email
+      - note
+      - other
+      - quotation
+      type: string
     SalesBulkAssignResult:
       type: object
       properties:
@@ -11747,6 +12506,12 @@ components:
           $ref: '#/components/schemas/SalesCompanyStatusEnum'
         notes:
           type: string
+        lastActivityAt:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The latest activity or completed follow-up on the company or
+            any of its records.
       required:
       - address
       - canDelete
@@ -11756,6 +12521,7 @@ components:
       - email
       - id
       - industry
+      - lastActivityAt
       - name
       - notes
       - owner
@@ -11866,16 +12632,18 @@ components:
           description: Sum of won values of won opportunities in scope.
         openFollowUpCount:
           type: integer
-          description: 0 until S3.
+          description: Pending follow-ups on the company the caller can see.
         lastContactAt:
           type: string
           format: date-time
           nullable: true
-          description: null until S3.
+          description: The latest call, visit, meeting or email on the company or
+            any of its records.
         timeline:
           type: array
-          items: {}
-          description: Empty until S3 defines its items.
+          items:
+            $ref: '#/components/schemas/SalesTimelineItem'
+          description: The newest 20 items; the whole timeline is GET /sales/companies/{id}/timeline.
       required:
       - company
       - contactCount
@@ -11886,6 +12654,28 @@ components:
       - primaryContact
       - timeline
       - wonValue
+    SalesCompleteActivityInRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SalesActivityLoggedTypeEnum'
+        occurredAt:
+          type: string
+          format: date-time
+          description: Default now; not in the future.
+        durationMinutes:
+          type: integer
+          maximum: 1440
+          minimum: 0
+          nullable: true
+        summary:
+          type: string
+          maxLength: 1000
+        outcome:
+          type: string
+          maxLength: 1000
+      required:
+      - type
     SalesContact:
       type: object
       properties:
@@ -12072,6 +12862,19 @@ components:
           type: string
           format: date
           nullable: true
+    SalesCreateNextInRequest:
+      type: object
+      properties:
+        dueDate:
+          type: string
+          format: date
+          description: Today or later (workspace time).
+        title:
+          type: string
+          description: 'Default: the same.'
+          maxLength: 200
+      required:
+      - dueDate
     SalesDuplicateCheck:
       type: object
       properties:
@@ -12084,6 +12887,252 @@ components:
       required:
       - exists
       - ownerName
+    SalesFollowUp:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        targetType:
+          $ref: '#/components/schemas/SalesTargetTypeEnum'
+        targetId:
+          type: string
+          format: uuid
+        target:
+          allOf:
+          - $ref: '#/components/schemas/SalesTargetBrief'
+          readOnly: true
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+          description: The target's company.
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompanyBrief'
+          nullable: true
+          readOnly: true
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        notes:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/SalesFollowUpStatusEnum'
+        bucket:
+          nullable: true
+          readOnly: true
+          description: 'Pending only: overdue, today, upcoming (within upcomingDays)
+            or later; null when done or cancelled.'
+          oneOf:
+          - $ref: '#/components/schemas/BucketEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        completedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        completedActivityId:
+          type: string
+          format: uuid
+          nullable: true
+        cancelledAt:
+          type: string
+          nullable: true
+          readOnly: true
+        createdById:
+          type: string
+          format: uuid
+          nullable: true
+        createdBy:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canComplete:
+          type: boolean
+          readOnly: true
+          description: The caller's complete scope reaches this record.
+        canReassign:
+          type: boolean
+          readOnly: true
+          description: The caller's reassign scope reaches this record.
+      required:
+      - bucket
+      - canComplete
+      - canDelete
+      - canEdit
+      - canReassign
+      - cancelledAt
+      - company
+      - companyId
+      - completedActivityId
+      - completedAt
+      - createdAt
+      - createdBy
+      - createdById
+      - dueDate
+      - id
+      - notes
+      - owner
+      - ownerId
+      - status
+      - target
+      - targetId
+      - targetType
+      - title
+      - updatedAt
+    SalesFollowUpCompleteInRequest:
+      type: object
+      properties:
+        activity:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompleteActivityInRequest'
+          nullable: true
+          description: Log what happened (on the same record); needs sales.activity.create.
+        createNext:
+          allOf:
+          - $ref: '#/components/schemas/SalesCreateNextInRequest'
+          nullable: true
+          description: Plan the next follow-up for the same owner and record; needs
+            sales.followup.create.
+    SalesFollowUpCompleteResult:
+      type: object
+      properties:
+        followUp:
+          $ref: '#/components/schemas/SalesFollowUp'
+        activity:
+          allOf:
+          - $ref: '#/components/schemas/SalesActivity'
+          nullable: true
+        next:
+          allOf:
+          - $ref: '#/components/schemas/SalesFollowUp'
+          nullable: true
+      required:
+      - activity
+      - followUp
+      - next
+    SalesFollowUpCounts:
+      type: object
+      properties:
+        overdue:
+          type: integer
+        today:
+          type: integer
+        upcoming:
+          type: integer
+      required:
+      - overdue
+      - today
+      - upcoming
+    SalesFollowUpInRequest:
+      type: object
+      properties:
+        targetType:
+          $ref: '#/components/schemas/SalesFollowUpTargetTypeEnum'
+        targetId:
+          type: string
+          format: uuid
+          description: A record you can see.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        notes:
+          type: string
+          maxLength: 5000
+        dueDate:
+          type: string
+          format: date
+          description: Today or later (workspace time).
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs sales.followup.reassign
+            with scope team or all.'
+      required:
+      - dueDate
+      - targetId
+      - targetType
+      - title
+    SalesFollowUpPage:
+      type: object
+      properties:
+        counts:
+          allOf:
+          - $ref: '#/components/schemas/SalesFollowUpCounts'
+          description: Pending follow-ups per bucket, over the same filters.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesFollowUp'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - counts
+      - data
+      - nextCursor
+    SalesFollowUpReassignInRequest:
+      type: object
+      properties:
+        ownerId:
+          type: string
+          format: uuid
+      required:
+      - ownerId
+    SalesFollowUpRescheduleInRequest:
+      type: object
+      properties:
+        dueDate:
+          type: string
+          format: date
+          description: Today or later (workspace time).
+      required:
+      - dueDate
+    SalesFollowUpStatusEnum:
+      enum:
+      - pending
+      - done
+      - cancelled
+      type: string
+    SalesFollowUpTargetTypeEnum:
+      enum:
+      - sales.lead
+      - sales.opportunity
+      - sales.company
+      type: string
+    SalesFollowUpUpdateInStatusEnum:
+      enum:
+      - cancelled
+      type: string
     SalesHoliday:
       type: object
       properties:
@@ -12202,6 +13251,11 @@ components:
           type: string
           nullable: true
           readOnly: true
+        lastActivityAt:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The latest activity or completed follow-up.
         notes:
           type: string
       required:
@@ -12221,6 +13275,7 @@ components:
       - email
       - estimatedValue
       - id
+      - lastActivityAt
       - notes
       - owner
       - ownerId
@@ -12567,7 +13622,13 @@ components:
           type: string
           nullable: true
           readOnly: true
-          description: Set by activities (S3).
+          description: The latest activity or completed follow-up on the opportunity.
+        lastContactAt:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The latest call, visit, meeting or email on the opportunity
+            or its company.
         version:
           type: integer
           description: Send it back with move, won, lost, reopen and edits.
@@ -12602,6 +13663,7 @@ components:
       - flags
       - id
       - lastActivityAt
+      - lastContactAt
       - lostAt
       - lostNote
       - lostReason
@@ -12647,10 +13709,11 @@ components:
           description: Open with an expected close date before today.
         noNextStep:
           type: boolean
-          description: Open with no pending follow-up. Always false until S3.
+          description: Open with no pending follow-up on it.
         stale:
           type: boolean
-          description: No activity for staleDays. Always false until S3.
+          description: Open with no activity (or completed follow-up) for staleDays;
+            counted from creation without any.
       required:
       - noNextStep
       - overdueClose
@@ -13186,6 +14249,97 @@ components:
           maxItems: 50
       required:
       - stageIds
+    SalesTargetBrief:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SalesTargetTypeEnum'
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: The lead's display name, the opportunity's title, or the name.
+      required:
+      - id
+      - name
+      - type
+    SalesTargetTypeEnum:
+      enum:
+      - sales.lead
+      - sales.opportunity
+      - sales.company
+      - sales.contact
+      type: string
+    SalesTimelineActivity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          description: call, visit, meeting, email, note, other or quotation.
+        occurredAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+          nullable: true
+        summary:
+          type: string
+        outcome:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - durationMinutes
+      - id
+      - occurredAt
+      - outcome
+      - ownerId
+      - summary
+      - targetId
+      - targetType
+      - type
+    SalesTimelineFollowUp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          description: pending, done or cancelled (current).
+        targetType:
+          type: string
+        targetId:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - dueDate
+      - id
+      - ownerId
+      - status
+      - targetId
+      - targetType
+      - title
     SalesTimelineItem:
       type: object
       properties:
@@ -13195,7 +14349,7 @@ components:
         kind:
           allOf:
           - $ref: '#/components/schemas/SalesTimelineItemKindEnum'
-          description: S3 adds activity and follow-up kinds.
+          description: Ignore kinds you don't know.
         at:
           type: string
           format: date-time
@@ -13214,11 +14368,13 @@ components:
           - $ref: '#/components/schemas/SalesTimelineQuotation'
           nullable: true
         activity:
+          allOf:
+          - $ref: '#/components/schemas/SalesTimelineActivity'
           nullable: true
-          description: null until S3.
         followUp:
+          allOf:
+          - $ref: '#/components/schemas/SalesTimelineFollowUp'
           nullable: true
-          description: null until S3.
       required:
       - activity
       - actor
@@ -13241,6 +14397,10 @@ components:
       - quotation_accepted
       - quotation_rejected
       - quotation_expired
+      - activity_logged
+      - followup_scheduled
+      - followup_completed
+      - followup_cancelled
       type: string
     SalesTimelinePage:
       type: object

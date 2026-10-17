@@ -11,10 +11,13 @@ from typing import Any
 from django.db.models import (
     Count,
     DecimalField,
+    Exists,
     ExpressionWrapper,
     F,
+    OuterRef,
     Q,
     QuerySet,
+    Subquery,
     Sum,
     Value,
 )
@@ -245,7 +248,23 @@ def opportunity_for(user: Any, opp: Opportunity) -> Opportunity:
 
 
 def related(qs: QuerySet[Opportunity]) -> QuerySet[Opportunity]:
-    return qs.select_related("owner", "company", "contact", "product", "stage", "credited_user", "lost_reason")
+    qs = qs.select_related("owner", "company", "contact", "product", "stage", "credited_user", "lost_reason")
+    return with_flags(qs)
+
+
+def with_flags(qs: QuerySet[Opportunity]) -> QuerySet[Opportunity]:
+    """S3 annotations for the flags, without N+1: `has_next_step` (a pending follow-up on the opportunity) and
+    `last_contact_at` (the latest call, visit, meeting or email on the opportunity or its company)."""
+    from .models import Activity, FollowUp
+
+    pending = FollowUp.objects.unscoped().filter(opportunity=OuterRef("pk"), status=FollowUp.PENDING)
+    contact = (
+        Activity.objects.unscoped()
+        .filter(Q(opportunity=OuterRef("pk")) | Q(company=OuterRef("company_id")), type__in=Activity.CONTACT_TYPES)
+        .order_by("-occurred_at")
+        .values("occurred_at")[:1]
+    )
+    return qs.annotate(has_next_step=Exists(pending), last_contact_at=Subquery(contact))
 
 
 # ───────────────────────── pipeline board ─────────────────────────
@@ -377,8 +396,8 @@ def _item(item_id: str, kind: str, at: dt.datetime, actor: Any, summary: str, **
         "summary": summary,
         "stageChange": parts.get("stageChange"),
         "quotation": parts.get("quotation"),
-        "activity": None,
-        "followUp": None,
+        "activity": parts.get("activity"),
+        "followUp": parts.get("followUp"),
     }
 
 
@@ -433,7 +452,11 @@ TIMELINE_SOURCES = [_stage_items, _quotation_items]
 def timeline(opp: Opportunity, params: Any) -> dict[str, Any]:
     """Every child of the opportunity, newest first, as `{data, nextCursor}` (keyset on (at, id)). The caller has
     already been checked against the opportunity's view scope; its children are shown whatever their own owner."""
-    items = [item for source in TIMELINE_SOURCES for item in source(opp)]
+    return page_items([item for source in TIMELINE_SOURCES for item in source(opp)], params)
+
+
+def page_items(items: list[dict[str, Any]], params: Any) -> dict[str, Any]:
+    """Timeline items newest first as a cursor page (keyset on (at, id))."""
     items.sort(key=lambda i: (i["at"], i["id"]), reverse=True)
     limit = parse_limit(params.get("limit"), 50, 200)
     cursor = params.get("cursor")

@@ -8,6 +8,7 @@ schema can't. Each stage appends its endpoints here.
 |---|---|
 | S1 reference data and customers | §1–§8 |
 | S2 leads, opportunities and pipeline | §9–§13 (and the S2 notes in §1, §5, §6.4, §8) |
+| S3 activities and follow-ups | §14–§17 |
 
 ## 1. Conventions
 
@@ -678,3 +679,85 @@ where sales is off.
 
 Collab targets, search types, trash kinds, audit groups and the job are listed in §8. Indexes (spec §11):
 opportunities `(workspace, owner, stage)`, `(workspace, won_at)`, `(workspace, expected_close_date)`.
+
+## 14. Activities (S3)
+
+`SalesActivity`: `{id, type, occurredAt, durationMinutes, targetType, targetId, target: {type, id, name}, companyId,
+company: {id, name} | null, quotationId, summary, outcome, ownerId, owner, canEdit, canDelete, createdAt, updatedAt}`.
+
+| Route | Permission | Body / query | Answer |
+|---|---|---|---|
+| `GET /sales/workspaces/{slug}/activities` | activity.view | `filter[type]`, `filter[owner]`, `filter[team]`, `filter[targetType]`, `filter[target]` (record id), `filter[company]`, `filter[occurredFrom]` / `filter[occurredTo]` (workspace dates), `q`, `sort` = `-occurredAt` (default) / `occurredAt` / `createdAt`, `cursor`, `limit` | 200 `SalesActivityPage` |
+| `POST /sales/workspaces/{slug}/activities` | activity.create | `{type, targetType, targetId, occurredAt?, durationMinutes?, summary?, outcome?, followUp?: {title?, dueDate, notes?}}` | 201 `{activity, followUp \| null}` |
+| `GET/PATCH/DELETE /sales/activities/{id}` | activity.view / edit / delete (scope) | PATCH: any field; `targetType` + `targetId` together | 200 / 204 |
+
+- Types: `call`, `visit`, `meeting`, `email`, `note`, `other`, plus **`quotation`**, written by the system when a
+  quotation is sent (spec §5); it can't be logged or changed by hand (422 `type`). Its `quotationId` is set.
+- Targets: `sales.lead|opportunity|company|contact`, a live record of the workspace in the caller's view scope for
+  its type, else 422 `targetId`. `company` is the target's company (kept in sync when the record changes company).
+- `occurredAt` defaults to now; later than now + 5 minutes → 422 (plan it as a follow-up).
+- `followUp` creates a follow-up on the same record (a contact's company) in the same transaction; it needs
+  `sales.followup.create` (403).
+- Activities are owned by whoever logged them and scoped by that owner. Hard delete. Audit `sales.activity.*`.
+- Every write refreshes `lastActivityAt` (opportunities, leads, companies): the latest activity or completed
+  follow-up (a company's covers all its records). It never bumps an opportunity's `version`.
+
+## 15. Follow-ups (S3)
+
+`SalesFollowUp`: `{id, title, notes, dueDate, status: pending|done|cancelled, bucket, completedAt,
+completedActivityId, cancelledAt, targetType (lead, opportunity or company), targetId, target, companyId, company,
+createdById, createdBy, ownerId, owner, canEdit, canDelete, canComplete, canReassign, createdAt, updatedAt}`.
+
+| Route | Permission | Body | Answer |
+|---|---|---|---|
+| `GET /sales/workspaces/{slug}/follow-ups` | followup.view | `bucket` = `overdue` / `today` / `upcoming` / `all` (default); `filter[status]`, `filter[owner]`, `filter[team]`, `filter[targetType]`, `filter[target]`, `filter[company]`, `filter[dueFrom]` / `filter[dueTo]`, `q`, `sort` = `dueDate` (default) / `createdAt` / `updatedAt` | 200 `{data, nextCursor, counts: {overdue, today, upcoming}}` |
+| `POST /sales/workspaces/{slug}/follow-ups` | followup.create | `{targetType, targetId, title, dueDate, notes?, ownerId?}` | 201 |
+| `GET/PATCH/DELETE /sales/follow-ups/{id}` | followup.view / edit / delete | PATCH `{title?, notes?, dueDate?, status?: "cancelled"}` | 200 / 204 |
+| `POST /sales/follow-ups/{id}/complete` | followup.complete | `{activity?: {type, summary?, outcome?, occurredAt?, durationMinutes?}, createNext?: {dueDate, title?}}` | 200 `{followUp, activity \| null, next \| null}` |
+| `POST /sales/follow-ups/{id}/reschedule` | followup.edit | `{dueDate}` | 200 |
+| `POST /sales/follow-ups/{id}/reassign` | followup.reassign | `{ownerId}` | 200 |
+
+- **Buckets** (pending only, workspace time): overdue = due before today; today; upcoming = after today up to today +
+  `upcomingDays`. The row's `bucket` adds `later` (beyond the window) and is null when done or cancelled. `counts`
+  cover the same filters, whatever `bucket`.
+- `dueDate` must be today or later on create, edit, reschedule and `createNext` (422).
+- Only pending follow-ups can be edited, cancelled, rescheduled, reassigned or completed: else 409
+  `invalid_transition`, `details: {status, action}`. Delete works in every status (hard delete).
+- `ownerId` someone else (create) and `reassign` need `sales.followup.reassign` with scope `team` / `all` and §3's
+  owner rule (403 / 422). Audited (`sales.followup.created`, `.updated`, `.cancelled`, `.rescheduled`, `.reassigned`,
+  `.completed`, `.deleted`).
+- `complete`: the activity is logged on the same record (needs `sales.activity.create`), the next follow-up keeps the
+  owner and record (needs `sales.followup.create`); one transaction. Updates `lastActivityAt`; event
+  `sales.followup.completed` `{followUpId, ownerId, targetType, targetId, activityId, nextFollowUpId}`.
+- Children of a record in the trash are hidden (404, out of lists, digests and counts) until it is restored.
+
+## 16. Flags, last contact and timelines (S3)
+
+- Opportunities: `flags.noNextStep` = open with no pending follow-up on it; `flags.stale` = open with
+  `lastActivityAt` (else `createdAt`) older than `staleDays`; new field `lastContactAt` = the latest call, visit,
+  meeting or email on the opportunity or its company. Computed with annotations (lists and the board: no N+1).
+- Leads and companies gain `lastActivityAt`.
+- Timeline kinds added: `activity_logged` (`activity` filled; `quotation` too for quotation entries),
+  `followup_scheduled`, `followup_completed`, `followup_cancelled` (`followUp` filled). The opportunity timeline
+  leaves out `quotation` activities (the send is already the `quotation_sent` item).
+- `GET /sales/companies/{id}/timeline` (company.view scope, cursor page): every activity and follow-up on the company
+  or any of its records, whatever their owner. The company summary now fills `openFollowUpCount` (pending, in the
+  caller's follow-up scope), `lastContactAt` and `timeline` (the newest 20 items).
+
+## 17. Notifications and jobs (S3)
+
+Preference rows (in-app, plus the `sales_notice` email where on by default):
+
+| Type | Default | Sent to |
+|---|---|---|
+| `sales.followup.due_today` | in-app, email | the morning digest (below) |
+| `sales.followup.overdue` | in-app, email | the morning digest when nothing is due today, or `due_today` is off |
+| `sales.opportunity.reassigned` (“assigned to me”) | in-app, email | the new owner on reassignment, bulk assign, or an opportunity created / converted for them by someone else |
+| `sales.opportunity.won` | in-app | the leads of the credited user's teams and members whose `sales.dailyreport.review` scope reaches the credited user (`all`, or `team` sharing a team); never the actor or the credited user |
+| `sales.quotation.expiring` | in-app, email | the owner, once per quotation and `validUntil`, from 3 days before it |
+
+- Job `sales_followup_digest` (`daily 07:30`, workspace time): one notification per owner of pending follow-ups due
+  today or overdue, payload `{date, dueToday, overdue}`; idempotent per (workspace, user, date); skipped where sales is
+  off. `sales_expire_quotations` (nightly) now also sends the expiring notices.
+- Recipients must still see the record; handlers are skipped where sales is off.
+

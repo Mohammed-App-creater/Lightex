@@ -211,6 +211,11 @@ SPECTACULAR_SETTINGS = {
         "SalesLeadEditableStatusEnum": ["new", "contacted"],
         "SalesLeadSourceEnum": ["referral", "website", "call", "event", "visit", "social", "other"],
         "SalesQuotationStatusEnum": ["draft", "sent", "accepted", "rejected", "expired"],
+        # Sales (S3)
+        "SalesActivityTypeEnum": ["call", "visit", "meeting", "email", "note", "other", "quotation"],
+        "SalesActivityLoggedTypeEnum": ["call", "visit", "meeting", "email", "note", "other"],
+        "SalesTargetTypeEnum": ["sales.lead", "sales.opportunity", "sales.company", "sales.contact"],
+        "SalesFollowUpTargetTypeEnum": ["sales.lead", "sales.opportunity", "sales.company"],
     },
     # The root /health is the load balancer's probe; /api/v1/health is the documented one.
     "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],

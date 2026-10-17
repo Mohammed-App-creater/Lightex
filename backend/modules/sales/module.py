@@ -222,21 +222,35 @@ DEFAULT_ROLES: tuple[DefaultRole, ...] = tuple(
 
 # ───────────────────────── domain events (spec §9) ─────────────────────────
 #
-# Registered without a notification preference row: S3 adds the notification types (assigned to you, won, …) and their
-# preferences. The labels name the events in the event log and audit tooling.
+# Internal events have no notification preference row. The user-facing ones (S3, `notifications.py`) are rows of the
+# preference matrix and send in-app notifications and the `sales_notice` email.
 
-EVENT_TYPES: tuple[EventTypeDef, ...] = tuple(
+_INTERNAL: tuple[EventTypeDef, ...] = tuple(
     EventTypeDef(key, label, preference=False)
     for key, label in (
         ("sales.lead.created", "Lead created"),
         ("sales.lead.converted", "Lead converted"),
         ("sales.opportunity.created", "Opportunity created"),
         ("sales.opportunity.moved", "Opportunity moved"),
-        ("sales.opportunity.won", "Opportunity won"),
         ("sales.opportunity.lost", "Opportunity lost"),
-        ("sales.opportunity.reassigned", "Opportunity reassigned"),
         ("sales.quotation.sent", "Quotation sent"),
+        ("sales.followup.completed", "Follow-up completed"),
+        ("sales.followup.digest", "Follow-up digest"),
     )
+)
+_IN_APP = {"in_app": True}
+_IN_APP_EMAIL = {"in_app": True, "email": True}
+_NOTICE = ("sales_notice",)
+
+EVENT_TYPES: tuple[EventTypeDef, ...] = (
+    *_INTERNAL,
+    EventTypeDef(
+        "sales.followup.due_today", "Follow-ups due today (morning digest)", _IN_APP_EMAIL, email_templates=_NOTICE
+    ),
+    EventTypeDef("sales.followup.overdue", "Overdue follow-ups", _IN_APP_EMAIL, email_templates=_NOTICE),
+    EventTypeDef("sales.opportunity.reassigned", "Opportunity assigned to me", _IN_APP_EMAIL, email_templates=_NOTICE),
+    EventTypeDef("sales.opportunity.won", "Deals won by people I lead or review", _IN_APP, email_templates=_NOTICE),
+    EventTypeDef("sales.quotation.expiring", "My quotations expiring", _IN_APP_EMAIL, email_templates=_NOTICE),
 )
 
 DEFINITION = ModuleDefinition(

@@ -7,9 +7,11 @@ The `*_data` functions serialize pages of owned records with their per-record hi
 
 from __future__ import annotations
 
+import datetime as dt
 from decimal import Decimal
 from typing import Any
 
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -18,6 +20,7 @@ from core.workspaces.timezone import workspace_today
 
 from . import module as perms
 from . import scope
+from .defaults import ensure_defaults
 from .models import Lead, Opportunity, PipelineStage, Quotation
 from .pipeline_selectors import probability_of, related, status_of, weighted_value
 from .serializers import (
@@ -41,6 +44,10 @@ TIMELINE_KINDS = (
     "quotation_accepted",
     "quotation_rejected",
     "quotation_expired",
+    "activity_logged",
+    "followup_scheduled",
+    "followup_completed",
+    "followup_cancelled",
 )
 
 
@@ -89,6 +96,7 @@ class SalesLeadSerializer(_Owned):
     disqualifyReason = serializers.CharField(source="disqualify_reason")
     convertedOpportunityId = serializers.UUIDField(source="converted_opportunity_id", allow_null=True)
     convertedAt = serializers.SerializerMethodField()
+    lastActivityAt = serializers.SerializerMethodField(help_text="The latest activity or completed follow-up.")
     notes = serializers.CharField()
 
     @extend_schema_field(SalesCompanyBriefSerializer(allow_null=True))
@@ -105,6 +113,9 @@ class SalesLeadSerializer(_Owned):
 
     def get_convertedAt(self, obj) -> str | None:
         return iso(obj.converted_at)
+
+    def get_lastActivityAt(self, obj) -> str | None:
+        return iso(obj.last_activity_at)
 
 
 class SalesLeadIn(serializers.Serializer):
@@ -206,8 +217,10 @@ class SalesBulkAssignResultSerializer(serializers.Serializer):
 
 class SalesOpportunityFlagsSerializer(serializers.Serializer):
     overdueClose = serializers.BooleanField(help_text="Open with an expected close date before today.")
-    noNextStep = serializers.BooleanField(help_text="Open with no pending follow-up. Always false until S3.")
-    stale = serializers.BooleanField(help_text="No activity for staleDays. Always false until S3.")
+    noNextStep = serializers.BooleanField(help_text="Open with no pending follow-up on it.")
+    stale = serializers.BooleanField(
+        help_text="Open with no activity (or completed follow-up) for staleDays; counted from creation without any."
+    )
 
 
 class SalesOpportunitySerializer(_Owned):
@@ -237,7 +250,12 @@ class SalesOpportunitySerializer(_Owned):
     lostReasonId = serializers.UUIDField(source="lost_reason_id", allow_null=True)
     lostReason = serializers.SerializerMethodField()
     lostNote = serializers.CharField(source="lost_note")
-    lastActivityAt = serializers.SerializerMethodField(help_text="Set by activities (S3).")
+    lastActivityAt = serializers.SerializerMethodField(
+        help_text="The latest activity or completed follow-up on the opportunity."
+    )
+    lastContactAt = serializers.SerializerMethodField(
+        help_text="The latest call, visit, meeting or email on the opportunity or its company."
+    )
     version = serializers.IntegerField(help_text="Send it back with move, won, lost, reopen and edits.")
     notes = serializers.CharField()
     flags = serializers.SerializerMethodField()
@@ -287,12 +305,19 @@ class SalesOpportunitySerializer(_Owned):
     def get_lastActivityAt(self, obj) -> str | None:
         return iso(obj.last_activity_at)
 
+    def get_lastContactAt(self, obj) -> str | None:
+        return iso(getattr(obj, "last_contact_at", None))
+
     @extend_schema_field(SalesOpportunityFlagsSerializer())
     def get_flags(self, obj) -> dict[str, bool]:
         today = self.context.get("today")
         open_ = obj.stage.category == PipelineStage.OPEN
         overdue = bool(open_ and today and obj.expected_close_date and obj.expected_close_date < today)
-        return {"overdueClose": overdue, "noNextStep": False, "stale": False}
+        stale_before = self.context.get("stale_before")
+        last = obj.last_activity_at or obj.created_at
+        stale = bool(open_ and stale_before and last < stale_before)
+        no_next = bool(open_ and not getattr(obj, "has_next_step", False))
+        return {"overdueClose": overdue, "noNextStep": no_next, "stale": stale}
 
     def get_canMove(self, obj) -> bool:
         return str(obj.pk) in self.context.get("movable", ())
@@ -430,16 +455,38 @@ class SalesTimelineQuotationSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Quotation.STATUSES, help_text="The quotation's current status.")
 
 
+class SalesTimelineActivitySerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    type = serializers.CharField(help_text="call, visit, meeting, email, note, other or quotation.")
+    occurredAt = serializers.DateTimeField()
+    durationMinutes = serializers.IntegerField(allow_null=True)
+    summary = serializers.CharField()
+    outcome = serializers.CharField()
+    targetType = serializers.CharField()
+    targetId = serializers.UUIDField()
+    ownerId = serializers.UUIDField(allow_null=True)
+
+
+class SalesTimelineFollowUpSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField()
+    dueDate = serializers.DateField()
+    status = serializers.CharField(help_text="pending, done or cancelled (current).")
+    targetType = serializers.CharField()
+    targetId = serializers.UUIDField()
+    ownerId = serializers.UUIDField(allow_null=True)
+
+
 class SalesTimelineItemSerializer(serializers.Serializer):
     id = serializers.CharField(help_text="Unique within the timeline (not always a record id).")
-    kind = serializers.ChoiceField(choices=TIMELINE_KINDS, help_text="S3 adds activity and follow-up kinds.")
+    kind = serializers.ChoiceField(choices=TIMELINE_KINDS, help_text="Ignore kinds you don't know.")
     at = serializers.DateTimeField()
     actor = SalesUserBriefSerializer(allow_null=True)
     summary = serializers.CharField()
     stageChange = SalesTimelineStageChangeSerializer(allow_null=True)
     quotation = SalesTimelineQuotationSerializer(allow_null=True)
-    activity = serializers.JSONField(allow_null=True, help_text="null until S3.")
-    followUp = serializers.JSONField(allow_null=True, help_text="null until S3.")
+    activity = SalesTimelineActivitySerializer(allow_null=True)
+    followUp = SalesTimelineFollowUpSerializer(allow_null=True)
 
 
 # ───────────────────────── quotations ─────────────────────────
@@ -540,6 +587,7 @@ def opportunity_data(user: Any, rows: list[Opportunity], workspace: Any = None) 
     ctx = _hints(user, rows[0].workspace_id, Opportunity, rows, OPPORTUNITY_HINTS)
     ws = workspace if workspace is not None and hasattr(workspace, "timezone") else rows[0].workspace
     ctx["today"] = workspace_today(ws)
+    ctx["stale_before"] = timezone.now() - dt.timedelta(days=ensure_defaults(ws).stale_days)
     return SalesOpportunitySerializer(rows, many=True, context=ctx).data
 
 

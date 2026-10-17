@@ -1,5 +1,6 @@
 """Sales tables (docs/sales/spec.md §4). S1: reference data and settings, companies and contacts. S2: leads,
-opportunities with their stage history, quotations and the per-workspace number sequence.
+opportunities with their stage history, quotations and the per-workspace number sequence. S3: activities and
+follow-ups.
 
 Every table has a non-null `workspace`. Companies, contacts, leads, opportunities and quotations are soft-deleted and
 owned (`OwnedModel`: data scope through `visible_to()`). Money is `Decimal(14, 2)`; there is no currency field (ETB
@@ -162,6 +163,8 @@ class Company(WorkspaceScopedSoftDeleteModel, OwnedModel):
     website = models.CharField(max_length=200, blank=True, default="")
     status = models.CharField(max_length=8, choices=[(s, s) for s in STATUSES], default=PROSPECT)
     notes = models.TextField(blank=True, default="")
+    #: Denormalized (S3): the latest activity or completed follow-up on the company or any record of it.
+    last_activity_at = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -231,6 +234,8 @@ class Lead(WorkspaceScopedSoftDeleteModel, OwnedModel):
     )
     converted_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True, default="")
+    #: Denormalized (S3): the latest activity or completed follow-up on the lead.
+    last_activity_at = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -279,7 +284,7 @@ class Opportunity(WorkspaceScopedSoftDeleteModel, OwnedModel):
     lost_at = models.DateTimeField(null=True, blank=True)
     lost_reason = models.ForeignKey(LostReason, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     lost_note = models.CharField(max_length=1000, blank=True, default="")
-    #: Denormalized by activities (S3).
+    #: Denormalized (S3): the latest activity or completed follow-up on the opportunity (`activity_services`).
     last_activity_at = models.DateTimeField(null=True, blank=True)
     version = models.PositiveIntegerField(default=1)
     notes = models.TextField(blank=True, default="")
@@ -370,3 +375,96 @@ class SalesSequence(WorkspaceScopedModel):
 
     class Meta(WorkspaceScopedModel.Meta):
         constraints = [models.UniqueConstraint(fields=["workspace", "key"], name="sales_sequence_unique")]
+
+
+# ───────────────────────── activities and follow-ups (S3) ─────────────────────────
+
+
+class _Targeted(models.Model):
+    """A child of a lead, opportunity, company or contact. `target_type` / `target_id` name it (the API's shape); the
+    matching foreign key is set too (`target_company` for a company), so purging the parent removes its children and
+    joins stay cheap. `company` is denormalized: the target's company (a lead's linked company, an opportunity's or a
+    contact's company, or the company itself); purging that company only clears it."""
+
+    LEAD, OPPORTUNITY, COMPANY, CONTACT = "sales.lead", "sales.opportunity", "sales.company", "sales.contact"
+    #: target type → foreign key field.
+    TARGET_FIELDS = {LEAD: "lead", OPPORTUNITY: "opportunity", COMPANY: "target_company", CONTACT: "contact"}
+
+    target_type = models.CharField(max_length=20)
+    target_id = models.UUIDField()
+    lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    opportunity = models.ForeignKey(Opportunity, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    contact = models.ForeignKey(Contact, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    target_company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+
+    class Meta:
+        abstract = True
+
+
+class Activity(WorkspaceScopedModel, OwnedModel, _Targeted):
+    """A logged touch: a call, visit, meeting, email, note or other (spec §4). `quotation` entries are written by the
+    system when a quotation is sent (`pipeline_services.on_quotation_sent`); people can't log that type."""
+
+    CALL, VISIT, MEETING, EMAIL, NOTE, OTHER = "call", "visit", "meeting", "email", "note", "other"
+    QUOTATION = "quotation"
+    TYPES = (CALL, VISIT, MEETING, EMAIL, NOTE, OTHER, QUOTATION)
+    #: The types a person logs.
+    LOGGED_TYPES = (CALL, VISIT, MEETING, EMAIL, NOTE, OTHER)
+    #: Customer contact: spec §5 `last_contact`.
+    CONTACT_TYPES = (CALL, VISIT, MEETING, EMAIL)
+    TARGET_TYPES = (_Targeted.LEAD, _Targeted.OPPORTUNITY, _Targeted.COMPANY, _Targeted.CONTACT)
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    type = models.CharField(max_length=10, choices=[(t, t) for t in TYPES], default=CALL)
+    occurred_at = models.DateTimeField()
+    duration_minutes = models.PositiveIntegerField(null=True, blank=True)
+    summary = models.CharField(max_length=1000, blank=True, default="")
+    outcome = models.CharField(max_length=1000, blank=True, default="")
+    #: The quotation a `quotation` entry records.
+    quotation = models.ForeignKey(Quotation, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+
+    class Meta(WorkspaceScopedModel.Meta):
+        indexes = [
+            # Spec §11 hot path.
+            models.Index(fields=["workspace", "owner", "occurred_at"], name="sales_activity_ws_owner_at"),
+            models.Index(fields=["workspace", "occurred_at"], name="sales_activity_ws_at"),
+            models.Index(fields=["opportunity", "occurred_at"], name="sales_activity_opp_at"),
+            models.Index(fields=["company", "occurred_at"], name="sales_activity_company_at"),
+            models.Index(fields=["lead", "occurred_at"], name="sales_activity_lead_at"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.type} {self.occurred_at:%Y-%m-%d}"
+
+
+class FollowUp(WorkspaceScopedModel, OwnedModel, _Targeted):
+    """A dated next step on a lead, opportunity or company (spec §4): pending, then done (`complete`) or cancelled."""
+
+    PENDING, DONE, CANCELLED = "pending", "done", "cancelled"
+    STATUSES = (PENDING, DONE, CANCELLED)
+    TARGET_TYPES = (_Targeted.LEAD, _Targeted.OPPORTUNITY, _Targeted.COMPANY)
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    title = models.CharField(max_length=200)
+    notes = models.TextField(blank=True, default="")
+    due_date = models.DateField()
+    status = models.CharField(max_length=9, choices=[(s, s) for s in STATUSES], default=PENDING)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_activity = models.ForeignKey(Activity, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(WorkspaceScopedModel.Meta):
+        indexes = [
+            # Spec §11 hot path: the buckets and the digest.
+            models.Index(fields=["workspace", "owner", "status", "due_date"], name="sales_followup_ws_owner_due"),
+            models.Index(fields=["workspace", "status", "due_date"], name="sales_followup_ws_status_due"),
+            models.Index(fields=["opportunity", "status"], name="sales_followup_opp_status"),
+            models.Index(fields=["company", "status"], name="sales_followup_company_status"),
+        ]
+
+    def __str__(self) -> str:
+        return self.title

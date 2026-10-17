@@ -227,6 +227,12 @@ class SalesCompanySerializer(_Owned):
     website = serializers.CharField()
     status = serializers.ChoiceField(choices=Company.STATUSES)
     notes = serializers.CharField()
+    lastActivityAt = serializers.SerializerMethodField(
+        help_text="The latest activity or completed follow-up on the company or any of its records."
+    )
+
+    def get_lastActivityAt(self, obj) -> str | None:
+        return iso(obj.last_activity_at)
 
 
 class SalesCompanyIn(serializers.Serializer):
@@ -294,19 +300,3 @@ class SalesContactIn(serializers.Serializer):
 class SalesContactUpdateIn(SalesContactIn):
     companyId = serializers.UUIDField(source="company_id", required=False)
     name = serializers.CharField(max_length=120, required=False)
-
-
-class SalesCompanySummarySerializer(serializers.Serializer):
-    company = SalesCompanySerializer()
-    contactCount = serializers.IntegerField(help_text="Contacts of this company the caller can see.")
-    primaryContact = SalesContactSerializer(allow_null=True)
-    openOpportunityCount = serializers.IntegerField(help_text="Open opportunities of the company the caller can see.")
-    pipelineValue = serializers.DecimalField(
-        max_digits=14, decimal_places=2, help_text="Sum of their expected values (open opportunities in scope)."
-    )
-    wonValue = serializers.DecimalField(
-        max_digits=14, decimal_places=2, help_text="Sum of won values of won opportunities in scope."
-    )
-    openFollowUpCount = serializers.IntegerField(help_text="0 until S3.")
-    lastContactAt = serializers.DateTimeField(allow_null=True, help_text="null until S3.")
-    timeline = serializers.ListField(child=serializers.JSONField(), help_text="Empty until S3 defines its items.")

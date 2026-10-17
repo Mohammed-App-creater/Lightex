@@ -73,7 +73,7 @@ def test_create_read_update_opportunity(world):
     )
     assert (body["probability"], body["probabilityOverride"], body["weightedValue"]) == (20, None, "50000.10")
     assert body["company"] == {"id": str(world.companies["rep"].pk), "name": "Rep Trading PLC"}
-    assert body["flags"] == {"overdueClose": True, "noNextStep": False, "stale": False}
+    assert body["flags"] == {"overdueClose": True, "noNextStep": True, "stale": False}  # S3: no follow-up yet
     assert (body["canEdit"], body["canDelete"], body["canMove"], body["canClose"]) == (True, False, True, True)
     assert (body["creditedUserId"], body["wonAt"], body["lostReason"]) == (None, None, None)
     assert rep.get(opp_url(body["id"])).json() == body

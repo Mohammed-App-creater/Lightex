@@ -25,6 +25,7 @@ from core.workspaces.timezone import local_date, workspace_today, workspace_zone
 
 from . import module as perms
 from . import scope
+from .activity_services import sync_company
 from .defaults import ensure_defaults
 from .models import (
     Company,
@@ -180,6 +181,7 @@ def update_lead(actor: Any, lead: Lead, data: dict[str, Any]) -> Lead:
     scope.require_in_scope(actor, lead, perms.LEAD_EDIT)
     lead = _lock_lead(lead)
     _lead_open(lead)
+    before_company = lead.company_id
     changes = _apply(lead, data, LEAD_LABELS)
     changes += _lead_refs(actor, lead.workspace_id, lead, data)
     if "owner_id" in data and str(data["owner_id"]) != str(lead.owner_id):
@@ -191,6 +193,7 @@ def update_lead(actor: Any, lead: Lead, data: dict[str, Any]) -> Lead:
         _lead_named(lead)
         lead.save()
         _audit(actor, lead.workspace_id, "sales.lead.updated", lead, lead.display_name, changes=changes)
+        sync_company("lead", lead, before_company)
     return lead
 
 
@@ -297,6 +300,7 @@ def convert_lead(actor: Any, lead: Lead, data: dict[str, Any]) -> dict[str, Any]
     if lead.status == Lead.DISQUALIFIED:
         raise conflict("lead_disqualified", "This lead is disqualified. Qualify it again before converting it.")
     workspace = _workspace(lead)
+    before_company = lead.company_id
     owner_id = lead.owner_id or actor.pk
     company, company_created = _convert_company(actor, workspace, lead, data, owner_id)
     contact, contact_created = _convert_contact(actor, workspace, lead, data, company, owner_id)
@@ -319,6 +323,7 @@ def convert_lead(actor: Any, lead: Lead, data: dict[str, Any]) -> dict[str, Any]
     lead.status, lead.converted_opportunity, lead.converted_at = Lead.CONVERTED, opp, timezone.now()
     lead.company, lead.contact = company, contact
     lead.save()
+    sync_company("lead", lead, before_company)
     payload = {
         "leadId": str(lead.pk),
         "opportunityId": str(opp.pk),
@@ -538,6 +543,8 @@ def _reassign(actor: Any, opp: Opportunity, owner_id: Any) -> dict[str, Any] | N
     Quotation.all_objects.for_workspace(opp.workspace_id).filter(opportunity=opp).update(
         owner=new_owner, updated_at=timezone.now()
     )
+    # Saved before the event, so its handlers (the new owner's notification) see the new owner.
+    opp.save(update_fields=["owner", "updated_at"])
     _event(
         "sales.opportunity.reassigned",
         opp,
@@ -598,6 +605,7 @@ def update_opportunity(actor: Any, opp: Opportunity, data: dict[str, Any]) -> Op
     scope.require_in_scope(actor, opp, perms.OPPORTUNITY_EDIT)
     opp = _lock_opportunity(opp)
     check_version(actor, opp, data.get("version"), required=False)
+    before_company = opp.company_id
     changes = _apply(opp, data, OPPORTUNITY_LABELS)
     changes += _opportunity_refs(actor, opp, data)
     if "owner_id" in data:
@@ -612,6 +620,7 @@ def update_opportunity(actor: Any, opp: Opportunity, data: dict[str, Any]) -> Op
         opp.version += 1
         opp.save()
         _audit(actor, opp.workspace_id, "sales.opportunity.updated", opp, opp.title, changes=changes)
+        sync_company("opportunity", opp, before_company)
     return opp
 
 
@@ -925,9 +934,11 @@ def update_quotation(actor: Any, q: Quotation, data: dict[str, Any]) -> Quotatio
 
 
 def on_quotation_sent(q: Quotation, actor: Any) -> None:
-    """Hook for S3: spec §5 says sending creates a `quotation` activity entry on the opportunity. Until activities
-    exist (S3), the timeline shows the send from the quotation's `sent_at` (item kind `quotation_sent`); S3 creates
-    the Activity here (and updates the opportunity's `last_activity_at`)."""
+    """Spec §5: sending creates a `quotation` activity on the opportunity (and updates its `last_activity_at`). The
+    opportunity timeline keeps showing the send as `quotation_sent` and leaves that activity out."""
+    from .activity_services import log_quotation_sent
+
+    log_quotation_sent(q, actor)
 
 
 @transaction.atomic
@@ -984,6 +995,37 @@ def answer_quotation(actor: Any, q: Quotation, status: str) -> Quotation:
         changes=[change("Status", Quotation.SENT, status, kind="status")],
     )
     return q
+
+
+#: A sent quotation is "expiring" (one notification to its owner) from this many days before `valid_until`.
+EXPIRING_DAYS = 3
+
+
+def notify_expiring_quotations(workspace: Any, *, now: dt.datetime) -> int:
+    """Runs with the nightly job: one `sales.quotation.expiring` event per sent quotation valid until today or the
+    next `EXPIRING_DAYS` days, once per quotation and valid-until date (`core.jobs.services.claim`)."""
+    from core.jobs.services import claim
+
+    today = now.date()
+    rows = Quotation.objects.for_workspace(workspace).filter(
+        status=Quotation.SENT,
+        valid_until__gte=today,
+        valid_until__lte=today + dt.timedelta(days=EXPIRING_DAYS),
+        opportunity__deleted_at__isnull=True,
+    )
+    sent = 0
+    for q in rows.order_by("valid_until", "id"):
+        if claim(workspace, "sales_expire_quotations", f"expiring:{q.pk}:{q.valid_until}"):
+            payload = {"quotationId": str(q.pk), "number": q.number, "validUntil": q.valid_until.isoformat()}
+            emit(
+                "sales.quotation.expiring",
+                workspace=workspace,
+                target_type="sales.quotation",
+                target_id=q.pk,
+                payload=payload,
+            )
+            sent += 1
+    return sent
 
 
 def expire_quotations(workspace: Any, *, now: dt.datetime) -> int:

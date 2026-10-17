@@ -491,6 +491,7 @@ def create_contact(actor: Any, workspace: Any, data: dict[str, Any]) -> Contact:
 @transaction.atomic
 def update_contact(actor: Any, contact: Contact, data: dict[str, Any]) -> Contact:
     scope.require_in_scope(actor, contact, perms.CONTACT_EDIT)
+    before_company = contact.company_id
     changes = _apply(contact, data, CONTACT_LABELS)
     if "company_id" in data and str(data["company_id"]) != str(contact.company_id):
         company = _visible_company(actor, contact.workspace_id, data["company_id"])
@@ -510,6 +511,9 @@ def update_contact(actor: Any, contact: Contact, data: dict[str, Any]) -> Contac
             f"{contact.name} ({contact.company.name})",
             changes=changes,
         )
+        from .activity_services import sync_company
+
+        sync_company("contact", contact, before_company)
     return contact
 
 

@@ -92,6 +92,14 @@ def CONTACT(w):
     return {"contact_id": w.contacts["rep"].pk}
 
 
+def ACTIVITY(w):
+    return {"activity_id": w.extra["activity"].pk}
+
+
+def FOLLOWUP(w):
+    return {"follow_up_id": w.extra["followup"].pk}
+
+
 ROWS: list[Row] = [
     # ── reference data: read by anyone in Sales, written with sales.settings.manage ──
     Row("sales-settings", "GET", allow=EVERY_SALES_USER),
@@ -192,6 +200,42 @@ ROWS: list[Row] = [
     Row("sales-quotation-send", "POST", QUOTE, allow=WRITERS, body=lambda w: {}),
     Row("sales-quotation-accept", "POST", SENT, allow=WRITERS),
     Row("sales-quotation-reject", "POST", SENT, allow=WRITERS),
+    # ── activities, follow-ups and the company timeline (S3) ──
+    Row("sales-company-timeline", "GET", COMPANY, allow=EVERY_SALES_USER),
+    Row("sales-activities", "GET", allow=EVERY_SALES_USER),
+    Row(
+        "sales-activities",
+        "POST",
+        allow=WRITERS,
+        body=lambda w: {"type": "call", "targetType": "sales.opportunity", "targetId": str(w.opportunities["rep"].pk)},
+    ),
+    Row("sales-activity-detail", "GET", ACTIVITY, allow=EVERY_SALES_USER),
+    Row("sales-activity-detail", "PATCH", ACTIVITY, allow=WRITERS, body=lambda w: {"summary": "Edited"}),
+    Row("sales-activity-detail", "DELETE", ACTIVITY, allow=WRITERS),
+    Row("sales-follow-ups", "GET", allow=EVERY_SALES_USER, query="?bucket=today"),
+    Row(
+        "sales-follow-ups",
+        "POST",
+        allow=WRITERS,
+        body=lambda w: {
+            "targetType": "sales.company",
+            "targetId": str(w.companies["rep"].pk),
+            "title": "Call back",
+            "dueDate": "2099-01-01",
+        },
+    ),
+    Row("sales-follow-up-detail", "GET", FOLLOWUP, allow=EVERY_SALES_USER),
+    Row("sales-follow-up-detail", "PATCH", FOLLOWUP, allow=WRITERS, body=lambda w: {"title": "Edited"}),
+    Row("sales-follow-up-detail", "DELETE", FOLLOWUP, allow=WRITERS),
+    Row("sales-follow-up-complete", "POST", FOLLOWUP, allow=WRITERS, body=lambda w: {}),
+    Row("sales-follow-up-reschedule", "POST", FOLLOWUP, allow=WRITERS, body=lambda w: {"dueDate": "2099-02-01"}),
+    Row(
+        "sales-follow-up-reassign",
+        "POST",
+        FOLLOWUP,
+        allow=ASSIGNERS,
+        body=lambda w: {"ownerId": str(w.users["rep2"].pk)},
+    ),
 ]
 
 
@@ -254,6 +298,16 @@ def _world() -> SalesWorld:
     w.extra["product"] = Product.objects.create(workspace=w.ws, name="Switch")
     w.extra["lost_reason"] = LostReason.objects.create(workspace=w.ws, name="Price")
     w.extra["holiday"] = Holiday.objects.create(workspace=w.ws, date="2026-09-11", name="Enkutatash")
+    from modules.sales.models import Activity, FollowUp
+
+    opp = w.opportunities["rep"]
+    on_opp = {"target_type": "sales.opportunity", "target_id": opp.pk, "opportunity": opp, "company": opp.company}
+    w.extra["activity"] = Activity.objects.create(
+        workspace=w.ws, owner=rep, type="call", occurred_at=timezone.now(), **on_opp
+    )
+    w.extra["followup"] = FollowUp.objects.create(
+        workspace=w.ws, owner=rep, created_by=rep, title="Call back", due_date="2099-01-01", **on_opp
+    )
     return w
 
 

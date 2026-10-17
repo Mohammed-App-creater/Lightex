@@ -3,6 +3,7 @@
 
 from django.urls import path
 
+from . import activity_views as av
 from . import pipeline_views as pv
 from . import views
 
@@ -63,4 +64,17 @@ urlpatterns = [
     path("quotations/<uuid:quotation_id>/send", pv.QuotationSendView.as_view(), name="sales-quotation-send"),
     path("quotations/<uuid:quotation_id>/accept", pv.QuotationAcceptView.as_view(), name="sales-quotation-accept"),
     path("quotations/<uuid:quotation_id>/reject", pv.QuotationRejectView.as_view(), name="sales-quotation-reject"),
+    # S3: activities, follow-ups and the company timeline
+    path(f"{W}/activities", av.ActivityListView.as_view(), name="sales-activities"),
+    path("activities/<uuid:activity_id>", av.ActivityDetailView.as_view(), name="sales-activity-detail"),
+    path(f"{W}/follow-ups", av.FollowUpListView.as_view(), name="sales-follow-ups"),
+    path("follow-ups/<uuid:follow_up_id>", av.FollowUpDetailView.as_view(), name="sales-follow-up-detail"),
+    path("follow-ups/<uuid:follow_up_id>/complete", av.FollowUpCompleteView.as_view(), name="sales-follow-up-complete"),
+    path(
+        "follow-ups/<uuid:follow_up_id>/reschedule",
+        av.FollowUpRescheduleView.as_view(),
+        name="sales-follow-up-reschedule",
+    ),
+    path("follow-ups/<uuid:follow_up_id>/reassign", av.FollowUpReassignView.as_view(), name="sales-follow-up-reassign"),
+    path("companies/<uuid:company_id>/timeline", av.CompanyTimelineView.as_view(), name="sales-company-timeline"),
 ]
