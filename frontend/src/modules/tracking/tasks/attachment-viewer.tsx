@@ -176,7 +176,7 @@ function Viewer({
     setDragging(false);
   };
 
-  const by = cur ? users.get(cur.uploaderId) : undefined;
+  const by = cur?.uploaderId ? users.get(cur.uploaderId) : undefined;
   const pct = `${Math.round(scale * 100)}%`;
   const loadKey = cur ? `${cur.id}:${attempt[cur.id] ?? 0}` : "";
   const error = cur ? Boolean(broken[cur.id]) : false;

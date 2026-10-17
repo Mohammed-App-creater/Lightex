@@ -1,6 +1,7 @@
 import { MODULE_DEFS, enabledModules, isModuleOn, moduleDef, toWorkspaceModule, writeModule } from "../modules";
 import { fail, invalid, requireWs, route, wsBySlug } from "../router";
 import { audit } from "./workspaces";
+import { mockBus } from "../realtime";
 
 /*
  * Platform Stage 3 (docs/platform/stage3-contract.md §3, §4): the workspace's modules, and the sales module's
@@ -49,6 +50,8 @@ export function registerModules() {
     if (isModuleOn(ctx.db, ws.id, def.key) !== enabled) {
       writeModule(ctx.db, ws.id, def.key, enabled, ctx.userId);
       audit(ctx.db, ws.id, ctx.userId!, enabled ? "core.module.enabled" : "core.module.disabled", def.name);
+      // Stage 5: every member's sidebar and route guards follow (sent on commit, like the backend's publish).
+      mockBus.publish("core.module.changed", { workspaceId: ws.id, projectId: null, actorId: ctx.userId, data: { module: def.key, enabled } });
     }
     return toWorkspaceModule(ctx.db, ws.id, def);
   });

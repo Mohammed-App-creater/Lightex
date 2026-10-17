@@ -22,6 +22,7 @@ const st = (id: string, category: Status["category"], position: number): Status 
   category,
   glyph: "todo",
   position,
+  taskCount: 0,
 });
 
 const statuses = [st("backlog", "todo", 0), st("todo", "todo", 1), st("prog", "in_progress", 2), st("rev", "in_progress", 3), st("done", "done", 4)];
@@ -64,8 +65,8 @@ describe("project settings lib", () => {
 
   it("labels: next free colour and name errors", () => {
     const labels: Label[] = [
-      { id: "a", projectId: "p", name: "bug", color: "var(--text-3)" },
-      { id: "b", projectId: "p", name: "feature", color: "var(--todo)" },
+      { id: "a", projectId: "p", name: "bug", color: "var(--text-3)", taskCount: 0 },
+      { id: "b", projectId: "p", name: "feature", color: "var(--todo)", taskCount: 0 },
     ];
     expect(nextFreeColor(labels)).toBe("var(--accent-t)");
     expect(labelNameError("Bug", labels)).toBe("Already exists");

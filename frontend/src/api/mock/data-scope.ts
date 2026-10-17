@@ -1,7 +1,7 @@
 import { DATA_SCOPES, type DataScope, type DataScopeMap } from "@/api/types";
 import { PERMISSION_CATALOGUE, isScopable } from "@/platform/roles/catalogue";
 import type { MockDB, RoleRec } from "./db-types";
-import { wsMembership } from "./derive";
+import { wsMembership, wsPermissions } from "./derive";
 import { onlyEnabled } from "./modules";
 import { fail, invalid } from "./router";
 
@@ -58,4 +58,26 @@ export function myDataScopes(db: MockDB, userId: string, workspaceId: string): D
   const m = wsMembership(db, userId, workspaceId);
   const role = m && db.roles.find((r) => r.id === m.roleId);
   return role ? roleDataScopes(db, role) : {};
+}
+
+const RANK: Record<DataScope, number> = { own: 0, team: 1, all: 2 };
+/** The workspace owner's permission (the backend's OWNER_PERMISSION): owners are exempt from the widening rule. */
+const OWNER_PERMISSION = "core.workspace.delete";
+
+/**
+ * Stage 5 (stage5-contract.md §1.7): a scope set or changed by this write can't be wider than the actor's own scope
+ * for that code (no scope of their own counts as narrower than any). 403 `data_scope_exceeds_own`, details
+ * `{code, dataScope, yours}`, for the first offending code in catalogue order. Owners are exempt.
+ */
+export function assertWithinOwnScope(db: MockDB, actorId: string, workspaceId: string, next: DataScopeMap, stored: DataScopeMap = {}) {
+  const changed = Object.entries(next).filter(([code, scope]) => scope !== stored[code]);
+  if (!changed.length || wsPermissions(db, actorId, workspaceId).includes(OWNER_PERMISSION as never)) return;
+  const mine = myDataScopes(db, actorId, workspaceId);
+  const order = (code: string) => PERMISSION_CATALOGUE.findIndex((p) => p.key === code);
+  for (const [code, scope] of changed.sort(([a], [b]) => order(a) - order(b))) {
+    const own = mine[code];
+    if (!own || RANK[scope] > RANK[own]) {
+      fail(403, "data_scope_exceeds_own", "You can’t grant a wider data scope than your own.", { code, dataScope: scope, yours: own ?? null });
+    }
+  }
 }

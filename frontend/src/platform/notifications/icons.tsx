@@ -1,5 +1,4 @@
-import type { NotificationType } from "@/api/types";
-import { EVENTS } from "./events";
+import { eventMeta } from "./events";
 
 /* Icons drawn from the design board paths (16 viewBox, round caps). */
 
@@ -22,8 +21,9 @@ function Svg({ d, size, stroke = 1.5, color, className }: { d: string; size: num
   );
 }
 
-export function EventIcon({ type, size = 15, stroke = 1.5 }: { type: NotificationType; size?: number; stroke?: number }) {
-  const ev = EVENTS[type];
+/** `type`: a notification kind (unknown kinds get a neutral bell). */
+export function EventIcon({ type, size = 15, stroke = 1.5 }: { type: string; size?: number; stroke?: number }) {
+  const ev = eventMeta(type);
   return <Svg d={ev.path} size={size} stroke={stroke} color={ev.color} />;
 }
 

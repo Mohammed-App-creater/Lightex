@@ -22,7 +22,8 @@ export function setTransport(t: Transport) {
   transportPromise = Promise.resolve(t);
 }
 
-type Opts = Pick<RequestOptions, "signal" | "anonymous" | "keepalive">;
+/** `query` on a write: a query parameter the schema puts next to the body (e.g. `?workspace=` on a channel test). */
+type Opts = Pick<RequestOptions, "signal" | "anonymous" | "keepalive" | "query">;
 
 async function request<T>(options: RequestOptions) {
   const t = await getTransport();

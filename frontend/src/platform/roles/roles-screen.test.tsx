@@ -125,4 +125,23 @@ describe("RolesScreen data scope", () => {
     expect(await within(editor).findByText("Choose Own, Team or All")).toBeInTheDocument();
     expect(await screen.findByText("Couldn’t save role")).toBeInTheDocument();
   });
+
+  it("shows data_scope_exceeds_own as an error toast naming the permission and both scopes", async () => {
+    vi.spyOn(api.roles, "update").mockRejectedValueOnce(
+      new ApiError({
+        status: 403,
+        code: "data_scope_exceeds_own",
+        message: "You can’t grant a wider data scope than your own.",
+        details: { code: CODE, dataScope: "all", yours: "team" },
+      }),
+    );
+    const { editor } = await mount();
+    await userEvent.click(widgetSwitch(editor));
+    await userEvent.click(within(selector()!).getByRole("button", { name: "All" }));
+    await save();
+    // (The toast store outlives a test, so match the body, which only this toast has.)
+    expect(await screen.findByText("View widgets: you hold Team, so you can’t grant All. Ask the workspace owner.")).toBeInTheDocument();
+    // Not a scope-selection problem: the selector shows no inline error.
+    expect(within(editor).queryByText("Choose Own, Team or All")).not.toBeInTheDocument();
+  });
 });

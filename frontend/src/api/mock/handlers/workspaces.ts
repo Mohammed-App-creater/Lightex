@@ -1,13 +1,13 @@
 import { auditTargetFields } from "@/lib/audit";
-import type { SearchResult, WorkspaceMember } from "@/api/types";
+import type { Paginated, PermissionInfo, SearchResult, WorkspaceMember } from "@/api/types";
 import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { nowISO, uid } from "../db";
 import type { MockDB, RoleRec } from "../db-types";
-import { projectMembership, toProject, toRole, toTask, toUser, toWorkspace, wsMembership } from "../derive";
+import { projectMembership, toActivity, toProject, toRole, toTask, toUser, toWorkspace, wsMembership } from "../derive";
 import { isModuleOn, moduleOfCode, onlyEnabled, writeModule } from "../modules";
 import { auditList } from "./audit";
 import { creationModules } from "./modules";
-import { resolveDataScopes } from "../data-scope";
+import { assertWithinOwnScope, resolveDataScopes } from "../data-scope";
 import { toInvite } from "./auth";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
@@ -132,7 +132,7 @@ export function registerWorkspaces() {
   });
 
   /* members */
-  route("GET", "/workspaces/:slug/members", (ctx) => {
+  route("GET", "/workspaces/:slug/members", (ctx): Paginated<WorkspaceMember> => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const q = String(ctx.query.q ?? "").toLowerCase();
     const roles = filterValues(ctx.query, "role");
@@ -235,7 +235,7 @@ export function registerWorkspaces() {
   });
 
   /* roles */
-  route("GET", "/permissions", () => PERMISSION_CATALOGUE);
+  route("GET", "/permissions", (): PermissionInfo[] => PERMISSION_CATALOGUE);
 
   route("GET", "/workspaces/:slug/roles", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
@@ -269,6 +269,8 @@ export function registerWorkspaces() {
       // Stage 4: every granted scopable code needs a scope (400 data_scope_required / data_scope_not_allowed).
       dataScopes: resolveDataScopes(permissions, body.dataScopes),
     };
+    // Stage 5: no wider than the actor's own scope (403 data_scope_exceeds_own; owners exempt).
+    assertWithinOwnScope(ctx.db, ctx.userId!, ws.id, role.dataScopes ?? {});
     ctx.db.roles.push(role);
     audit(ctx.db, ws.id, ctx.userId!, "core.role.created", role.name);
     return toRole(ctx.db, role);
@@ -278,24 +280,32 @@ export function registerWorkspaces() {
     const role = roleForManage(ctx);
     if (role.isSystem) fail(403, "forbidden", "System roles are locked. Duplicate to customize.");
     const body = ctx.body as Partial<RoleRec>;
+    // Everything is validated before anything is written.
+    let name = role.name;
     if (body.name !== undefined) {
-      const name = body.name.trim();
+      name = body.name.trim();
       if (!name) invalid({ name: "Name is required" });
       if (ctx.db.roles.some((r) => r.id !== role.id && r.workspaceId === role.workspaceId && r.scope === role.scope && r.name.toLowerCase() === name.toLowerCase()))
         invalid({ name: "A role with this name exists" });
-      role.name = name.slice(0, 40);
     }
-    if (body.description !== undefined) role.description = body.description.slice(0, 80);
+    let permissions = role.permissions;
     if (body.permissions) {
       const allowed = onlyEnabled(ctx.db, role.workspaceId, PERMISSION_CATALOGUE.filter((p) => p.scope === role.scope).map((p) => p.key));
       // Stage 3: the client never sees a disabled module's grants, so they are kept as stored.
       const hidden = role.permissions.filter((p) => !isModuleOn(ctx.db, role.workspaceId, moduleOfCode(p)));
-      role.permissions = [...body.permissions.filter((p) => allowed.includes(p)), ...hidden];
+      permissions = [...body.permissions.filter((p) => allowed.includes(p)), ...hidden];
     }
+    let dataScopes = role.dataScopes;
     // Stage 4: validated against the final grants; stored scopes stand in for codes the request leaves out.
     if (body.permissions || body.dataScopes !== undefined) {
-      role.dataScopes = resolveDataScopes(role.permissions, body.dataScopes, role.dataScopes);
+      dataScopes = resolveDataScopes(permissions, body.dataScopes, role.dataScopes);
+      // Stage 5: no wider than the actor's own scope (403 data_scope_exceeds_own; owners exempt).
+      assertWithinOwnScope(ctx.db, ctx.userId!, role.workspaceId, dataScopes, role.dataScopes);
     }
+    role.name = name.slice(0, 40);
+    if (body.description !== undefined) role.description = body.description.slice(0, 80);
+    role.permissions = permissions;
+    role.dataScopes = dataScopes;
     audit(ctx.db, role.workspaceId, ctx.userId!, "core.role.updated", role.name);
     return toRole(ctx.db, role);
   });
@@ -323,7 +333,7 @@ export function registerWorkspaces() {
   route("GET", "/tracking/workspaces/:slug/activity", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const ids = visibleProjectIds(ctx.db, ctx.userId!, ws.id);
-    const list = ctx.db.activity.filter((a) => ids.includes(a.projectId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const list = ctx.db.activity.filter((a) => ids.includes(a.projectId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(toActivity);
     return paginate(list, ctx.query, 20);
   });
 
@@ -339,7 +349,7 @@ export function registerWorkspaces() {
     return paginate(list, ctx.query, 200);
   });
 
-  route("GET", "/workspaces/:slug/search", (ctx) => searchHandler(ctx));
+  route("GET", "/workspaces/:slug/search", (ctx): SearchResult[] => searchHandler(ctx));
 }
 
 function roleForManage(ctx: Ctx) {

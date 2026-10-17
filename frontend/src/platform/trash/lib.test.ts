@@ -22,6 +22,7 @@ const now = Date.parse("2026-10-07T12:00:00Z");
 function item(p: Partial<TrashItem> & Pick<TrashItem, "kind" | "id">): TrashItem {
   return {
     title: "Thing",
+    module: "tracking",
     key: null,
     hue: null,
     parentKey: null,

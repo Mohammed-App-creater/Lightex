@@ -6,7 +6,7 @@ import { mockSession, resetDB } from "@/api/mock/db";
 import { MockTransport } from "@/api/mock/transport";
 import { auditTime, isWordDiff, toCsv, wordDiff } from "./lib";
 
-const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", action: "tracking.task.updated", target: "T", createdAt: "2026-10-07T14:32:05.000Z", ...p });
+const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", action: "tracking.task.updated", target: "T", createdAt: "2026-10-07T14:32:05.000Z", actorName: null, actorKind: "user", entityType: "", module: null, targetType: "", targetId: null, entityKey: null, source: "web", requestId: null, changes: [], ...p });
 
 describe("audit vocabulary", () => {
   it("maps wire actions to the eight action kinds and entity types", () => {

@@ -43,8 +43,10 @@ export const MODULE_DEFS: MockModuleDef[] = [
     toggleable: false,
     dependsOn: [],
     navItems: [
-      { key: "my-tasks", label: "My tasks", icon: "circle-check", path: "my-tasks", permission: null },
-      { key: "timesheet", label: "Timesheet", icon: "clock", path: "timesheet", permission: null },
+      // As the backend's tracking module declares them (Stage 5: `permission` is never null).
+      { key: "projects", label: "Projects", icon: "folder", path: "", permission: "core.workspace.view" },
+      { key: "my-tasks", label: "My tasks", icon: "check-square", path: "my-tasks", permission: "core.workspace.view" },
+      { key: "timesheet", label: "Timesheet", icon: "clock", path: "timesheet", permission: "core.workspace.view" },
     ],
     defaultRoleGrants: {},
   },

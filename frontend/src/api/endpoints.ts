@@ -2,101 +2,143 @@ import { apiUrl } from "@/lib/env";
 import { enc, http } from "./client";
 import type { ListQuery } from "./transport";
 import type {
+  AcceptInviteResult,
   AccessRequest,
+  AccessRequestWithUser,
   ActivityEntry,
   Attachment,
   AuditPage,
-  BurndownPoint,
+  AuthResult,
+  AuthorizeUrl,
+  AvailableRepository,
+  BacklogData,
+  BoardData,
+  BurndownReport,
+  ChannelTestResult,
   Comment,
-  TargetRef,
+  ConfirmConnect,
   CustomField,
   CustomFieldInput,
   CustomFieldPatch,
-  CycleBin,
-  ISODateTime,
+  CycleTimeReport,
+  Dashboard,
+  DashboardCreate,
+  DashboardPatch,
+  DashboardSummary,
+  DashboardWidgetInput,
   DependencyRelation,
+  DevAutomationRule,
+  DevBranch,
+  DevItem,
   Epic,
   EpicWrite,
+  GitLabConnectBody,
+  ImportCreate,
+  ImportCreated,
+  ImportErrorReport,
   ImportJob,
   ImportJobSummary,
   ImportMapping,
   ImportRowPreview,
-  ImportSource,
+  Integration,
+  IntegrationsOverview,
   Invite,
   Label,
+  LabelPatch,
+  Me,
   Milestone,
+  MilestoneWrite,
+  MyWorkspaceAccessRequest,
   Notification,
+  NotificationChannels,
+  NotificationPage,
   NotificationPreferences,
+  NotificationPreferencesInput,
   Objective,
+  ObjectiveWrite,
   Paginated,
   PermissionInfo,
-  Project,
-  ProjectAccessInfo,
-  ProjectMember,
-  ProjectSummary,
-  ProgressRow,
-  Team,
-  TeamDetail,
-  TeamMember,
-  DataScopeMap,
-  Dashboard,
-  DashboardSummary,
-  DashboardTemplate,
-  DashboardVisibility,
-  DashboardWidgetInput,
   PresenceHeartbeat,
   PresenceRoster,
   PresenceUpdate,
-  WorkloadReport,
+  ProgressRow,
+  Project,
+  ProjectCreate,
+  ProjectDirectoryItem,
+  ProjectMember,
+  ProjectPatch,
+  ProjectSummary,
+  PushDevice,
+  PushSubscriptionInput,
+  ReadAllResult,
+  RecentItem,
+  ReportKpis,
+  Repository,
   RichDoc,
   Role,
+  RoleCreate,
+  RolePatch,
+  SalesHealth,
+  SavedView,
+  SavedViewInput,
+  SavedViewPatch,
   SearchResult,
+  SearchType,
+  SlugAvailability,
+  SmsVerification,
+  SmsVerificationInput,
+  SmsVerifyResult,
   Sprint,
+  SprintWrite,
   Status,
+  StatusCreate,
+  StatusPatch,
+  TargetRef,
   Task,
+  TaskBulk,
   TaskCreate,
   TaskDependencies,
   TaskDetail,
+  TaskDevelopment,
   TaskMove,
   TaskPatch,
+  Team,
+  TeamDetail,
+  TeamMember,
+  TelegramLink,
+  TestableChannel,
+  ThroughputReport,
+  TimeEntry,
+  TimeEntryInput,
+  TimerStart,
+  TimerState,
+  TimerStop,
+  Timesheet,
+  TrackedRepositoryInput,
   TrashKind,
   TrashList,
   TrashRef,
-  ThroughputPoint,
-  TimeEntry,
-  Timesheet,
-  RunningTimer,
+  UnreadCount,
+  UploadRequest,
   UploadTicket,
-  User,
-  VelocityPoint,
+  VapidKey,
+  VelocityReport,
+  WorkloadReport,
   Workspace,
   WorkspaceAccessRequest,
+  WorkspaceCreate,
   WorkspaceMember,
   WorkspaceModule,
-  AvailableRepository,
-  DevAutomationRule,
-  DevBranch,
-  DevItem,
-  Integration,
-  IntegrationsOverview,
-  Repository,
-  TaskDevelopment,
-  ChannelTestResult,
-  NotificationChannels,
-  PushDevice,
-  PushSubscriptionInput,
-  SmsConnection,
-  SmsVerification,
-  TelegramLink,
-  TestableChannel,
+  WorkspacePatch,
 } from "./types";
+import type { components } from "./schema";
+
+type WS = components["schemas"];
 
 /*
  * Every backend endpoint, grouped as in docs/api-contract.md. Screens import `api` only;
  * nothing else in the app knows a URL. Swapping to the real backend = HttpTransport.
  */
-
-type AuthResult = { accessToken: string; user: User };
 
 export const auth = {
   login: (email: string, password: string) => http.post<AuthResult>("/auth/login", { email, password }, { anonymous: true }),
@@ -107,8 +149,8 @@ export const auth = {
   forgotPassword: (email: string) => http.post<void>("/auth/forgot-password", { email }, { anonymous: true }),
   resetPassword: (token: string, password: string) =>
     http.post<void>("/auth/reset-password", { token, password }, { anonymous: true }),
-  me: () => http.get<User>("/auth/me"),
-  updateMe: (body: { name?: string; avatarUrl?: string | null }) => http.patch<User>("/auth/me", body),
+  me: () => http.get<Me>("/auth/me"),
+  updateMe: (body: WS["PatchedProfileInRequest"]) => http.patch<Me>("/auth/me", body),
   changePassword: (currentPassword: string, newPassword: string) =>
     http.put<void>("/auth/me/password", { currentPassword, newPassword }),
   /**
@@ -119,20 +161,20 @@ export const auth = {
   googleStartUrl: (next: string) => `${apiUrl}/api/v1/auth/google/start?next=${enc(next)}`,
   invite: (token: string) => http.get<Invite>(`/invites/${enc(token)}`, undefined, { anonymous: true }),
   acceptInvite: (token: string, body: { name?: string; password?: string }) =>
-    http.post<AuthResult & { workspaceSlug: string }>(`/invites/${enc(token)}/accept`, body, { anonymous: true }),
+    http.post<AcceptInviteResult>(`/invites/${enc(token)}/accept`, body, { anonymous: true }),
 };
 
 export const workspaces = {
   list: () => http.get<Workspace[]>("/workspaces"),
   /** Stage 3: `modules` turns on extra modules at creation (tracking is always on). */
-  create: (body: { name: string; slug: string; modules?: string[] }) => http.post<Workspace>("/workspaces", body),
+  create: (body: WorkspaceCreate) => http.post<Workspace>("/workspaces", body),
   get: (slug: string) => http.get<Workspace>(`/workspaces/${enc(slug)}`),
   /** Board 38: `notificationPolicy` (the SMS switch) also needs `core.workspace.update`. */
-  update: (slug: string, body: { name?: string; slug?: string; notificationPolicy?: { sms: boolean } }) =>
+  update: (slug: string, body: WorkspacePatch) =>
     http.patch<Workspace>(`/workspaces/${enc(slug)}`, body),
   remove: (slug: string, confirm: string) => http.del(`/workspaces/${enc(slug)}`, { confirm }),
   slugAvailability: (slug: string, q: string) =>
-    http.get<{ slug: string; available: boolean }>(`/workspaces/${enc(slug)}/slug-availability`, { q }),
+    http.get<SlugAvailability>(`/workspaces/${enc(slug)}/slug-availability`, { q }),
   members: (slug: string, query?: ListQuery) => http.get<Paginated<WorkspaceMember>>(`/workspaces/${enc(slug)}/members`, query),
   updateMember: (slug: string, userId: string, roleId: string) =>
     http.patch<WorkspaceMember>(`/workspaces/${enc(slug)}/members/${enc(userId)}`, { roleId }),
@@ -148,10 +190,10 @@ export const workspaces = {
   assignedTasks: (slug: string, assignee: string) =>
     http.get<Paginated<Task>>(`/tracking/workspaces/${enc(slug)}/tasks`, { filter: { assignee }, limit: 200 }),
   projectDirectory: (slug: string) =>
-    http.get<(ProjectAccessInfo & { isMember: boolean; status: Project["status"] })[]>(`/tracking/workspaces/${enc(slug)}/project-directory`),
+    http.get<ProjectDirectoryItem[]>(`/tracking/workspaces/${enc(slug)}/project-directory`),
   /** Board 24: my pending "add me to a project" request to the workspace admins (or null). */
   myAccessRequest: (slug: string) =>
-    http.get<{ request: WorkspaceAccessRequest | null }>(`/workspaces/${enc(slug)}/access-requests/mine`),
+    http.get<MyWorkspaceAccessRequest>(`/workspaces/${enc(slug)}/access-requests/mine`),
   requestAccess: (slug: string) => http.post<WorkspaceAccessRequest>(`/workspaces/${enc(slug)}/access-requests`),
   withdrawAccessRequest: (slug: string) => http.del(`/workspaces/${enc(slug)}/access-requests/mine`),
 };
@@ -163,9 +205,9 @@ export const roles = {
    * Stage 4: `dataScopes` gives the scope of each granted scopable code. 400 `data_scope_required` (`details.codes`)
    * when one is missing, 400 `data_scope_not_allowed` for a scope on a non-scopable code.
    */
-  create: (slug: string, body: Pick<Role, "name" | "description" | "scope" | "permissions"> & { dataScopes?: DataScopeMap }) =>
+  create: (slug: string, body: RoleCreate) =>
     http.post<Role>(`/workspaces/${enc(slug)}/roles`, body),
-  update: (id: string, body: Partial<Pick<Role, "name" | "description" | "permissions">> & { dataScopes?: DataScopeMap }) =>
+  update: (id: string, body: RolePatch) =>
     http.patch<Role>(`/roles/${enc(id)}`, body),
   remove: (id: string, reassignTo?: string) => http.del(`/roles/${enc(id)}`, reassignTo ? { reassignTo } : undefined),
   catalogue: () => http.get<PermissionInfo[]>("/permissions"),
@@ -174,9 +216,9 @@ export const roles = {
 export const projects = {
   list: (slug: string, query?: ListQuery) => http.get<Project[]>(`/tracking/workspaces/${enc(slug)}/projects`, query),
   get: (slug: string, key: string) => http.get<Project>(`/tracking/workspaces/${enc(slug)}/projects/${enc(key)}`),
-  create: (slug: string, body: { name: string; key: string; description?: string; template?: Project["template"] }) =>
+  create: (slug: string, body: ProjectCreate) =>
     http.post<Project>(`/tracking/workspaces/${enc(slug)}/projects`, body),
-  update: (id: string, body: Partial<Pick<Project, "name" | "description" | "key" | "hue">>) => http.patch<Project>(`/tracking/projects/${enc(id)}`, body),
+  update: (id: string, body: ProjectPatch) => http.patch<Project>(`/tracking/projects/${enc(id)}`, body),
   archive: (id: string) => http.post<Project>(`/tracking/projects/${enc(id)}/archive`),
   unarchive: (id: string) => http.post<Project>(`/tracking/projects/${enc(id)}/unarchive`),
   remove: (id: string, confirm: string) => http.del(`/tracking/projects/${enc(id)}`, { confirm }),
@@ -187,19 +229,19 @@ export const projects = {
   removeMember: (id: string, userId: string) => http.del(`/tracking/projects/${enc(id)}/members/${enc(userId)}`),
   requestAccess: (id: string, message?: string) => http.post<AccessRequest>(`/tracking/projects/${enc(id)}/access-requests`, { message }),
   withdrawAccessRequest: (id: string) => http.del(`/tracking/projects/${enc(id)}/access-requests/mine`),
-  accessRequests: (id: string) => http.get<(AccessRequest & { user: User })[]>(`/tracking/projects/${enc(id)}/access-requests`),
+  accessRequests: (id: string) => http.get<AccessRequestWithUser[]>(`/tracking/projects/${enc(id)}/access-requests`),
   denyAccessRequest: (id: string, requestId: string) =>
     http.post<AccessRequest>(`/tracking/projects/${enc(id)}/access-requests/${enc(requestId)}/deny`),
   statuses: (id: string) => http.get<Status[]>(`/tracking/projects/${enc(id)}/statuses`),
-  createStatus: (id: string, body: { name: string; category: Status["category"] }) => http.post<Status>(`/tracking/projects/${enc(id)}/statuses`, body),
-  updateStatus: (id: string, statusId: string, body: { name?: string; position?: number; color?: string | null }) =>
+  createStatus: (id: string, body: StatusCreate) => http.post<Status>(`/tracking/projects/${enc(id)}/statuses`, body),
+  updateStatus: (id: string, statusId: string, body: StatusPatch) =>
     http.patch<Status>(`/tracking/projects/${enc(id)}/statuses/${enc(statusId)}`, body),
   /** `moveTo`: status that receives the deleted status's tasks (required when it has tasks). */
   removeStatus: (id: string, statusId: string, moveTo?: string) =>
     http.del(`/tracking/projects/${enc(id)}/statuses/${enc(statusId)}`, moveTo ? { moveTo } : undefined),
   labels: (id: string) => http.get<Label[]>(`/tracking/projects/${enc(id)}/labels`),
   createLabel: (id: string, name: string, color?: string) => http.post<Label>(`/tracking/projects/${enc(id)}/labels`, { name, color }),
-  updateLabel: (id: string, labelId: string, body: { name?: string; color?: string }) =>
+  updateLabel: (id: string, labelId: string, body: LabelPatch) =>
     http.patch<Label>(`/tracking/projects/${enc(id)}/labels/${enc(labelId)}`, body),
   removeLabel: (id: string, labelId: string) => http.del(`/tracking/projects/${enc(id)}/labels/${enc(labelId)}`),
   activity: (id: string, query?: ListQuery) => http.get<Paginated<ActivityEntry>>(`/tracking/projects/${enc(id)}/activity`, query),
@@ -208,15 +250,15 @@ export const projects = {
 
 export const planning = {
   objectives: (projectId: string) => http.get<Objective[]>(`/tracking/projects/${enc(projectId)}/objectives`),
-  createObjective: (projectId: string, body: Partial<Objective>) => http.post<Objective>(`/tracking/projects/${enc(projectId)}/objectives`, body),
-  updateObjective: (id: string, body: Partial<Objective>) => http.patch<Objective>(`/tracking/objectives/${enc(id)}`, body),
+  createObjective: (projectId: string, body: ObjectiveWrite) => http.post<Objective>(`/tracking/projects/${enc(projectId)}/objectives`, body),
+  updateObjective: (id: string, body: ObjectiveWrite) => http.patch<Objective>(`/tracking/objectives/${enc(id)}`, body),
   removeObjective: (id: string) => http.del(`/tracking/objectives/${enc(id)}`),
   linkTasks: (id: string, taskIds: string[]) => http.post<Objective>(`/tracking/objectives/${enc(id)}/tasks`, { taskIds }),
   unlinkTask: (id: string, taskId: string) => http.del<Objective>(`/tracking/objectives/${enc(id)}/tasks/${enc(taskId)}`),
   milestones: (projectId: string) => http.get<Milestone[]>(`/tracking/projects/${enc(projectId)}/milestones`),
-  createMilestone: (projectId: string, body: Partial<Milestone> & { taskIds?: string[] }) =>
+  createMilestone: (projectId: string, body: MilestoneWrite) =>
     http.post<Milestone>(`/tracking/projects/${enc(projectId)}/milestones`, body),
-  updateMilestone: (id: string, body: Partial<Milestone> & { taskIds?: string[]; completed?: boolean }) =>
+  updateMilestone: (id: string, body: MilestoneWrite) =>
     http.patch<Milestone>(`/tracking/milestones/${enc(id)}`, body),
   removeMilestone: (id: string) => http.del(`/tracking/milestones/${enc(id)}`),
   epics: (projectId: string) => http.get<Epic[]>(`/tracking/projects/${enc(projectId)}/epics`),
@@ -224,10 +266,10 @@ export const planning = {
   updateEpic: (id: string, body: EpicWrite) => http.patch<Epic>(`/tracking/epics/${enc(id)}`, body),
   removeEpic: (id: string) => http.del(`/tracking/epics/${enc(id)}`),
   sprints: (projectId: string) => http.get<Sprint[]>(`/tracking/projects/${enc(projectId)}/sprints`),
-  createSprint: (projectId: string, body: Partial<Sprint> = {}) => http.post<Sprint>(`/tracking/projects/${enc(projectId)}/sprints`, body),
-  updateSprint: (id: string, body: Partial<Sprint>) => http.patch<Sprint>(`/tracking/sprints/${enc(id)}`, body),
+  createSprint: (projectId: string, body: SprintWrite = {}) => http.post<Sprint>(`/tracking/projects/${enc(projectId)}/sprints`, body),
+  updateSprint: (id: string, body: SprintWrite) => http.patch<Sprint>(`/tracking/sprints/${enc(id)}`, body),
   removeSprint: (id: string) => http.del(`/tracking/sprints/${enc(id)}`),
-  startSprint: (id: string, body: Partial<Pick<Sprint, "startDate" | "endDate" | "goal">> = {}) =>
+  startSprint: (id: string, body: Pick<SprintWrite, "startDate" | "endDate" | "goal"> = {}) =>
     http.post<Sprint>(`/tracking/sprints/${enc(id)}/start`, body),
   completeSprint: (id: string, moveOpenTasksTo: string) => http.post<Sprint>(`/tracking/sprints/${enc(id)}/complete`, { moveOpenTasksTo }),
   activeSprint: (projectId: string) => http.get<Sprint | null>(`/tracking/projects/${enc(projectId)}/active-sprint`),
@@ -240,7 +282,7 @@ export const tasks = {
   update: (id: string, patch: TaskPatch, version?: number) => http.patch<Task>(`/tracking/tasks/${enc(id)}`, { ...patch, version }),
   remove: (id: string) => http.del(`/tracking/tasks/${enc(id)}`),
   restore: (id: string) => http.post<Task>(`/tracking/tasks/${enc(id)}/restore`),
-  bulk: (projectId: string, body: { ids: string[]; patch?: TaskPatch; delete?: boolean; restore?: boolean }) =>
+  bulk: (projectId: string, body: TaskBulk) =>
     http.post<Task[]>(`/tracking/projects/${enc(projectId)}/tasks/bulk`, body),
   activity: (id: string) => http.get<ActivityEntry[]>(`/tracking/tasks/${enc(id)}/activity`),
   /** Board 32 (requested addition): tasks whose effective span overlaps [from, to] (inclusive), one page. */
@@ -257,13 +299,13 @@ export const tasks = {
 
 export const board = {
   get: (projectId: string, sprint: string = "active") =>
-    http.get<{ statuses: Status[]; tasks: Task[]; sprintId: string | null }>(`/tracking/projects/${enc(projectId)}/board`, { filter: { sprint } }),
+    http.get<BoardData>(`/tracking/projects/${enc(projectId)}/board`, { filter: { sprint } }),
   move: (taskId: string, body: TaskMove) => http.post<Task>(`/tracking/tasks/${enc(taskId)}/move`, body),
 };
 
 export const backlog = {
   get: (projectId: string) =>
-    http.get<{ sprints: { sprintId: string; tasks: Task[] }[]; backlog: Task[] }>(`/tracking/projects/${enc(projectId)}/backlog`),
+    http.get<BacklogData>(`/tracking/projects/${enc(projectId)}/backlog`),
 };
 
 /** Platform Stage 2: `targets/{targetType}/{targetId}/…` (for tasks: "tracking.task" and `Task.id`). */
@@ -278,7 +320,7 @@ export const comments = {
 
 export const attachments = {
   list: (target: TargetRef) => http.get<Attachment[]>(`${targetPath(target)}/attachments`),
-  uploadUrl: (target: TargetRef, file: { fileName: string; size: number; mimeType: string }) =>
+  uploadUrl: (target: TargetRef, file: UploadRequest) =>
     http.post<UploadTicket>(`${targetPath(target)}/attachments/upload-url`, file),
   /** The ticket's `uploadId` is the pending attachment's id. */
   confirm: (uploadId: string) => http.post<Attachment>(`/attachments/${enc(uploadId)}/confirm`),
@@ -286,39 +328,28 @@ export const attachments = {
 };
 
 export type ReportRange = "last2" | "last6" | "last90" | "custom";
-export type ReportKpis = {
-  sprint: { name: string; number: number; startDate: string; endDate: string; dayIndex: number; lengthDays: number } | null;
-  completedThisSprint: number;
-  plannedThisSprint: number;
-  avgCycleTimeDays: number;
-  p85CycleTimeDays: number;
-  overdueCount: number;
-  oldestOverdueKey: string | null;
-  scopeChangePts: number;
-  completedSprints: number;
-};
 
 const rq = (range: ReportRange, from?: string, to?: string): ListQuery => ({ filter: { range, from, to } });
 
 export const reports = {
   kpis: (projectId: string) => http.get<ReportKpis>(`/tracking/projects/${enc(projectId)}/reports/kpis`),
   burndown: (projectId: string, sprintId?: string) =>
-    http.get<{ sprint: { id: string; name: string; startDate: string; endDate: string } | null; points: BurndownPoint[] }>(
+    http.get<BurndownReport>(
       `/tracking/projects/${enc(projectId)}/reports/burndown`,
       sprintId ? { filter: { sprint: sprintId } } : undefined,
     ),
   velocity: (projectId: string, range: ReportRange, from?: string, to?: string) =>
-    http.get<{ points: VelocityPoint[]; insufficient: boolean; completedSprints: number }>(
+    http.get<VelocityReport>(
       `/tracking/projects/${enc(projectId)}/reports/velocity`,
       rq(range, from, to),
     ),
   cycleTime: (projectId: string, range: ReportRange, from?: string, to?: string) =>
-    http.get<{ bins: CycleBin[]; total: number; medianDays: number; insufficient: boolean }>(
+    http.get<CycleTimeReport>(
       `/tracking/projects/${enc(projectId)}/reports/cycle-time`,
       rq(range, from, to),
     ),
   throughput: (projectId: string, range: ReportRange, from?: string, to?: string) =>
-    http.get<{ points: ThroughputPoint[]; insufficient: boolean }>(`/tracking/projects/${enc(projectId)}/reports/throughput`, rq(range, from, to)),
+    http.get<ThroughputReport>(`/tracking/projects/${enc(projectId)}/reports/throughput`, rq(range, from, to)),
   progress: (projectId: string) => http.get<ProgressRow[]>(`/tracking/projects/${enc(projectId)}/reports/progress`),
   /** Board 33 (W1, requested addition): open work per person in a sprint, points or hours (minutes). */
   workload: (projectId: string, q: { sprintId?: string | null; unit: "points" | "hours"; person?: string | null }) =>
@@ -331,22 +362,19 @@ export type NotificationTab = "all" | "mentions" | "assigned";
 
 export const notifications = {
   list: (tab: NotificationTab, workspaceId?: string, query?: ListQuery) =>
-    http.get<Paginated<Notification> & { counts: { all: number; mentions: number; assigned: number; unread: number } }>(
-      "/notifications",
-      { ...query, filter: { tab, workspace: workspaceId } },
-    ),
-  unreadCount: (workspaceId?: string) => http.get<{ count: number }>("/notifications/unread-count", { filter: { workspace: workspaceId } }),
+    http.get<NotificationPage>("/notifications", { ...query, filter: { tab, workspace: workspaceId } }),
+  unreadCount: (workspaceId?: string) => http.get<UnreadCount>("/notifications/unread-count", { filter: { workspace: workspaceId } }),
   setRead: (id: string, read: boolean) => http.post<Notification>(`/notifications/${enc(id)}/read`, { read }),
-  readAll: (ids?: string[]) => http.post<{ ids: string[] }>("/notifications/read-all", { ids }),
-  unreadAgain: (ids: string[]) => http.post<{ ids: string[] }>("/notifications/read-all", { ids, unread: true }),
+  readAll: (ids?: string[]) => http.post<ReadAllResult>("/notifications/read-all", { ids }),
+  unreadAgain: (ids: string[]) => http.post<ReadAllResult>("/notifications/read-all", { ids, unread: true }),
   preferences: () => http.get<NotificationPreferences>("/notification-preferences"),
-  savePreferences: (prefs: NotificationPreferences) => http.put<NotificationPreferences>("/notification-preferences", prefs),
+  savePreferences: (prefs: NotificationPreferencesInput) => http.put<NotificationPreferences>("/notification-preferences", prefs),
 };
 
 export const search = {
-  query: (slug: string, q: string, types?: ("task" | "project" | "user")[], limit?: number, signal?: AbortSignal) =>
+  query: (slug: string, q: string, types?: SearchType[], limit?: number, signal?: AbortSignal) =>
     http.get<SearchResult[]>(`/workspaces/${enc(slug)}/search`, { q, limit, filter: { type: types } }, { signal }),
-  recents: () => http.get<{ kind: "task" | "project"; id: string; at: string }[]>("/tracking/me/recents"),
+  recents: () => http.get<RecentItem[]>("/tracking/me/recents"),
 };
 
 export const audit = {
@@ -355,15 +383,14 @@ export const audit = {
 };
 
 /** Saved filter views + per-user sidebar pins (board 30). Requested API addition. */
-type SavedViewT = import("./types").SavedView;
 export const views = {
-  list: (slug: string) => http.get<SavedViewT[]>(`/tracking/workspaces/${enc(slug)}/views`),
-  create: (slug: string, body: import("./types").SavedViewInput) => http.post<SavedViewT>(`/tracking/workspaces/${enc(slug)}/views`, body),
-  update: (id: string, body: Partial<Pick<SavedViewT, "name" | "icon" | "visibility" | "filters" | "pinned">>) =>
-    http.patch<SavedViewT>(`/tracking/views/${enc(id)}`, body),
+  list: (slug: string) => http.get<SavedView[]>(`/tracking/workspaces/${enc(slug)}/views`),
+  create: (slug: string, body: SavedViewInput) => http.post<SavedView>(`/tracking/workspaces/${enc(slug)}/views`, body),
+  update: (id: string, body: SavedViewPatch) =>
+    http.patch<SavedView>(`/tracking/views/${enc(id)}`, body),
   remove: (id: string) => http.del(`/tracking/views/${enc(id)}`),
   /** Sets the current user's pin order (ids of pinned views, top to bottom). */
-  reorder: (slug: string, ids: string[]) => http.put<SavedViewT[]>(`/tracking/workspaces/${enc(slug)}/views/order`, { ids }),
+  reorder: (slug: string, ids: string[]) => http.put<SavedView[]>(`/tracking/workspaces/${enc(slug)}/views/order`, { ids }),
 };
 
 /**
@@ -372,23 +399,29 @@ export const views = {
  */
 export const bareTrashKind = (kind: string): TrashKind => (kind.includes(".") ? kind.slice(kind.lastIndexOf(".") + 1) : kind) as TrashKind;
 
-const bareTrashRef = (r: TrashRef): TrashRef => ({ ...r, kind: bareTrashKind(r.kind) });
+const bareTrashRef = (r: WS["TrashRef"]): TrashRef => ({ ...r, kind: bareTrashKind(r.kind) });
 
-export function normalizeTrashList(list: TrashList): TrashList {
+/** The wire list (namespaced kinds) → the client's `TrashList` (bare kinds: the `TrashKind` extension). */
+export function normalizeTrashList(list: WS["TrashList"]): TrashList {
   return {
     ...list,
     kinds: list.kinds.map(bareTrashKind),
-    data: list.data.map((it) => ({ ...it, kind: bareTrashKind(it.kind), module: it.module ?? (it.kind.includes(".") ? it.kind.split(".")[0] : undefined) })),
+    data: list.data.map((it) => ({
+      ...it,
+      kind: bareTrashKind(it.kind),
+      module: it.module || (it.kind.includes(".") ? it.kind.split(".")[0]! : ""),
+      project: (it.project ?? null) as TrashList["data"][number]["project"],
+    })),
   };
 }
 
 /** Workspace trash (board 29): soft-deleted tasks, comments and projects, kept 30 days. */
 export const trash = {
-  list: (slug: string) => http.get<TrashList>(`/workspaces/${enc(slug)}/trash`).then(normalizeTrashList),
+  list: (slug: string) => http.get<WS["TrashList"]>(`/workspaces/${enc(slug)}/trash`).then(normalizeTrashList),
   restore: (slug: string, items: TrashRef[]) =>
-    http.post<{ restored: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/restore`, { items }).then((r) => ({ restored: r.restored.map(bareTrashRef) })),
+    http.post<WS["TrashRestored"]>(`/workspaces/${enc(slug)}/trash/restore`, { items }).then((r) => ({ restored: r.restored.map(bareTrashRef) })),
   purge: (slug: string, items: TrashRef[]) =>
-    http.post<{ purged: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/purge`, { items }).then((r) => ({ purged: r.purged.map(bareTrashRef) })),
+    http.post<WS["TrashPurged"]>(`/workspaces/${enc(slug)}/trash/purge`, { items }).then((r) => ({ purged: r.purged.map(bareTrashRef) })),
 };
 
 /* ───────── Board 39 (v2): custom fields, dependencies, time tracking. Requested API additions. ───────── */
@@ -410,11 +443,11 @@ export const dependencies = {
 
 export const time = {
   entries: (taskId: string) => http.get<TimeEntry[]>(`/tracking/tasks/${enc(taskId)}/time-entries`),
-  log: (taskId: string, body: { minutes: number; date: string; note?: string }) => http.post<TimeEntry>(`/tracking/tasks/${enc(taskId)}/time-entries`, body),
+  log: (taskId: string, body: TimeEntryInput) => http.post<TimeEntry>(`/tracking/tasks/${enc(taskId)}/time-entries`, body),
   remove: (entryId: string) => http.del(`/tracking/time-entries/${enc(entryId)}`),
-  timer: () => http.get<{ timer: RunningTimer | null }>("/tracking/me/timer"),
-  startTimer: (taskId: string, date: string) => http.post<{ timer: RunningTimer; stopped: TimeEntry | null }>(`/tracking/tasks/${enc(taskId)}/timer`, { date }),
-  stopTimer: (date: string, note?: string) => http.post<{ entry: TimeEntry }>("/tracking/me/timer/stop", { date, note }),
+  timer: () => http.get<TimerState>("/tracking/me/timer"),
+  startTimer: (taskId: string, date: string) => http.post<TimerStart>(`/tracking/tasks/${enc(taskId)}/timer`, { date }),
+  stopTimer: (date: string, note?: string) => http.post<TimerStop>("/tracking/me/timer/stop", { date, note }),
   timesheet: (slug: string, week: string, projectId?: string) =>
     http.get<Timesheet>(`/tracking/workspaces/${enc(slug)}/timesheet`, { filter: { week, project: projectId } }),
 };
@@ -425,8 +458,8 @@ export const imports = {
   /** I9: newest first, max 20, drafts excluded. */
   list: (projectId: string) => http.get<ImportJobSummary[]>(`/tracking/projects/${enc(projectId)}/imports`),
   /** I1: creates a draft job and returns a signed upload ticket for the CSV. */
-  create: (projectId: string, body: { source: ImportSource; fileName: string; size: number }) =>
-    http.post<{ job: ImportJob; upload: UploadTicket }>(`/tracking/projects/${enc(projectId)}/imports`, body),
+  create: (projectId: string, body: ImportCreate) =>
+    http.post<ImportCreated>(`/tracking/projects/${enc(projectId)}/imports`, body),
   /** I3: the job (polled every 1 s while queued / running). */
   get: (id: string) => http.get<ImportJob>(`/tracking/imports/${enc(id)}`),
   /** I2: parses the uploaded file and suggests a mapping (draft → ready). */
@@ -440,7 +473,7 @@ export const imports = {
   /** I7: cancels a draft / ready / queued / failed job; a running job stops after its batch. */
   cancel: (id: string) => http.post<ImportJob>(`/tracking/imports/${enc(id)}/cancel`),
   /** I8: a short-lived download URL for the CSV error report. */
-  errorReport: (id: string) => http.get<{ url: string; fileName: string; expiresAt: ISODateTime }>(`/tracking/imports/${enc(id)}/error-report`),
+  errorReport: (id: string) => http.get<ImportErrorReport>(`/tracking/imports/${enc(id)}/error-report`),
 };
 
 /* ───────── Board 33 (v2): dashboards, presence, realtime. Requested API additions (docs/v2/33-dashboards-presence.md §5). ───────── */
@@ -449,12 +482,12 @@ export const dashboards = {
   /** DB1: shared (A–Z), then the caller's personal ones (A–Z). */
   list: (projectId: string) => http.get<DashboardSummary[]>(`/tracking/projects/${enc(projectId)}/dashboards`),
   /** DB2: 201 Dashboard (version 1). */
-  create: (projectId: string, body: { name: string; visibility: DashboardVisibility; template?: DashboardTemplate }) =>
+  create: (projectId: string, body: DashboardCreate) =>
     http.post<Dashboard>(`/tracking/projects/${enc(projectId)}/dashboards`, body),
   /** DB3 */
   get: (id: string) => http.get<Dashboard>(`/tracking/dashboards/${enc(id)}`),
   /** DB4: rename / visibility; `version` required (409 version_conflict with details.current). */
-  update: (id: string, body: { name?: string; visibility?: DashboardVisibility; version: number }) =>
+  update: (id: string, body: DashboardPatch) =>
     http.patch<Dashboard>(`/tracking/dashboards/${enc(id)}`, body),
   /** DB5: the complete ordered widget list (items without id are created, missing ones deleted). */
   saveLayout: (id: string, version: number, widgets: DashboardWidgetInput[]) =>
@@ -477,32 +510,32 @@ export const presence = {
 
 /* ───────── Board 37 (v2): integrations & development. Requested API additions (docs/v2/37-integrations-github-gitlab.md §5). ───────── */
 
-export type GitLabConnectBody = { method: "oauth" } | { method: "token"; baseUrl: string; token: string };
+export type { GitLabConnectBody };
 
 export const integrations = {
   /** G1: providers (both, GitHub first) and the workspace's connections. Every member. */
   overview: (slug: string) => http.get<IntegrationsOverview>(`/tracking/workspaces/${enc(slug)}/integrations`),
   /** G2: 200 `{ authorizeUrl }` (GitHub App install page; the client navigates there). */
-  connectGitHub: (slug: string) => http.post<{ authorizeUrl: string }>(`/tracking/workspaces/${enc(slug)}/integrations/github/connect`, {}),
+  connectGitHub: (slug: string) => http.post<AuthorizeUrl>(`/tracking/workspaces/${enc(slug)}/integrations/github/connect`, {}),
   /** G3: OAuth → 200 `{ authorizeUrl }`; token → 201 `Integration` (synchronous checks, 422 per field, 409 integration_exists). */
   connectGitLab: (slug: string, body: GitLabConnectBody) =>
-    http.post<{ authorizeUrl: string } | Integration>(`/tracking/workspaces/${enc(slug)}/integrations/gitlab/connect`, body),
+    http.post<AuthorizeUrl | Integration>(`/tracking/workspaces/${enc(slug)}/integrations/gitlab/connect`, body),
   /** G6: the `#connect=<attempt>.<token>` fragment, sent back by the signed-in admin. Any mismatch → 404. */
-  confirm: (slug: string, body: { attempt: string; token: string }) => http.post<Integration>(`/tracking/workspaces/${enc(slug)}/integrations/confirm`, body),
+  confirm: (slug: string, body: ConfirmConnect) => http.post<Integration>(`/tracking/workspaces/${enc(slug)}/integrations/confirm`, body),
   /** G7 */
   get: (id: string) => http.get<Integration>(`/tracking/integrations/${enc(id)}`),
   /** G8: live from the provider (cached 60 s), `q` filters by full path. 409 integration_error, 502 provider_failed. */
   availableRepositories: (id: string, q?: string) =>
     http.get<AvailableRepository[]>(`/tracking/integrations/${enc(id)}/available-repositories`, q ? { q } : undefined),
   /** G9: the complete tracked set (1–200). `projectIds` omitted or [] = all projects. */
-  setRepositories: (id: string, repositories: { externalId: string; projectIds?: string[] }[]) =>
+  setRepositories: (id: string, repositories: TrackedRepositoryInput[]) =>
     http.put<Integration>(`/tracking/integrations/${enc(id)}/repositories`, { repositories }),
   /** G10: [] = all projects. */
   scopeRepository: (repoId: string, projectIds: string[]) => http.patch<Repository>(`/tracking/repositories/${enc(repoId)}`, { projectIds }),
   /** G11: 202 with `syncing: true`; 429 sync_throttled (details.nextSyncAt) within 2 minutes; 409 integration_error. */
   sync: (id: string) => http.post<Integration>(`/tracking/integrations/${enc(id)}/sync`, {}),
   /** G12: `{ authorizeUrl }` (GitHub / GitLab OAuth) or `Integration` (GitLab token, body `{ token }`). */
-  reconnect: (id: string, body: { token?: string } = {}) => http.post<{ authorizeUrl: string } | Integration>(`/tracking/integrations/${enc(id)}/reconnect`, body),
+  reconnect: (id: string, body: WS["ReconnectInRequest"] = {}) => http.post<AuthorizeUrl | Integration>(`/tracking/integrations/${enc(id)}/reconnect`, body),
   /** G13: 204; linked PRs stay on tasks. */
   disconnect: (id: string) => http.del(`/tracking/integrations/${enc(id)}`),
 };
@@ -515,7 +548,7 @@ export const development = {
   /** D3: manual → deleted; auto / created → suppressed. 204. */
   unlink: (taskId: string, linkId: string) => http.del(`/tracking/tasks/${enc(taskId)}/development/links/${enc(linkId)}`),
   /** D4: from the repository's default branch. 409 branch_exists. */
-  createBranch: (taskId: string, body: { repositoryId: string; name: string }) => http.post<DevBranch>(`/tracking/tasks/${enc(taskId)}/development/branches`, body),
+  createBranch: (taskId: string, body: WS["DevBranchInRequest"]) => http.post<DevBranch>(`/tracking/tasks/${enc(taskId)}/development/branches`, body),
   /** A1: always all three triggers, in order. */
   rules: (projectId: string) => http.get<DevAutomationRule[]>(`/tracking/projects/${enc(projectId)}/dev-automation`),
   /** A2: `tracking.status.manage`; an enabled rule needs a status of this project, pr_merged a done-category one. */
@@ -535,26 +568,26 @@ export const channels = {
   /** C5 */
   disconnectTelegram: () => http.del("/me/notification-channels/telegram"),
   /** C6: sends a code. 422 field errors, 429 throttled (`details.reason`, `retryAt`), 502 channel_send_failed. */
-  startSms: (body: { country: string; nationalNumber: string; timezone?: string }) =>
+  startSms: (body: SmsVerificationInput) =>
     http.post<SmsVerification>("/me/notification-channels/sms/verifications", body),
   /** C7: a new code; tries reset. 429 resend_cooldown before `resendAt`. */
   resendSms: (id: string) => http.post<SmsVerification>(`/me/notification-channels/sms/verifications/${enc(id)}/resend`),
   /** C8: 422 invalid_code / too_many_attempts, 410 code_expired. */
   verifySms: (id: string, code: string) =>
-    http.post<{ connection: SmsConnection }>(`/me/notification-channels/sms/verifications/${enc(id)}/verify`, { code }),
+    http.post<SmsVerifyResult>(`/me/notification-channels/sms/verifications/${enc(id)}/verify`, { code }),
   /** C9 */
   removeSms: () => http.del("/me/notification-channels/sms"),
   /** C10: public, for clients that need the key before C1 (logout clean-up). */
-  vapidKey: () => http.get<{ publicKey: string }>("/push/vapid-public-key", undefined, { anonymous: true }),
+  vapidKey: () => http.get<VapidKey>("/push/vapid-public-key", undefined, { anonymous: true }),
   /** C11: subscribe (upsert, moves the endpoint to the caller) or refresh (404 when not the caller's). */
   savePush: (body: PushSubscriptionInput) => http.put<PushDevice>("/me/push-subscriptions", body),
   /** C12: this browser (Turn off, logout). Idempotent. */
   removePushByEndpoint: (endpoint: string) => http.post<void>("/me/push-subscriptions/remove", { endpoint }),
   /** C13: a device from the list. */
   removePushDevice: (id: string) => http.del(`/me/push-subscriptions/${enc(id)}`),
-  /** C14: synchronous test; ignores quiet hours. */
-  test: (channel: TestableChannel, body?: { deviceId?: string; workspace?: string }) =>
-    http.post<ChannelTestResult>(`/me/notification-channels/${channel}/test`, body ?? {}),
+  /** C14: synchronous test; ignores quiet hours. `workspace` (a slug) is a query parameter, as in the schema. */
+  test: (channel: TestableChannel, body: WS["ChannelTestInRequest"] = {}, workspace?: string) =>
+    http.post<ChannelTestResult>(`/me/notification-channels/${channel}/test`, body, workspace ? { query: { workspace } } : undefined),
 };
 
 /** Platform Stage 3 (docs/platform/stage3-contract.md §3): the workspace's modules. */
@@ -572,14 +605,14 @@ export const modules = {
 export const teams = {
   list: (slug: string) => http.get<Team[]>(`/workspaces/${enc(slug)}/teams`),
   /** 409 `team_name_taken` (case-insensitive, per workspace). */
-  create: (slug: string, body: { name: string; description?: string }) => http.post<TeamDetail>(`/workspaces/${enc(slug)}/teams`, body),
+  create: (slug: string, body: WS["TeamInRequest"]) => http.post<TeamDetail>(`/workspaces/${enc(slug)}/teams`, body),
   get: (id: string) => http.get<TeamDetail>(`/teams/${enc(id)}`),
   /** 409 `team_name_taken`. */
-  update: (id: string, body: { name?: string; description?: string }) => http.patch<TeamDetail>(`/teams/${enc(id)}`, body),
+  update: (id: string, body: WS["PatchedTeamUpdateInRequest"]) => http.patch<TeamDetail>(`/teams/${enc(id)}`, body),
   remove: (id: string) => http.del(`/teams/${enc(id)}`),
   members: (id: string) => http.get<TeamMember[]>(`/teams/${enc(id)}/members`),
   /** 400 `not_a_workspace_member`, 409 `already_a_member`. */
-  addMember: (id: string, body: { userId: string; isLead?: boolean }) => http.post<TeamMember>(`/teams/${enc(id)}/members`, body),
+  addMember: (id: string, body: WS["TeamMemberInRequest"]) => http.post<TeamMember>(`/teams/${enc(id)}/members`, body),
   updateMember: (id: string, userId: string, body: { isLead: boolean }) =>
     http.patch<TeamMember>(`/teams/${enc(id)}/members/${enc(userId)}`, body),
   removeMember: (id: string, userId: string) => http.del(`/teams/${enc(id)}/members/${enc(userId)}`),
@@ -587,7 +620,7 @@ export const teams = {
 
 /** Platform Stage 3: the sales module's placeholder endpoint (behind the module guard). */
 export const sales = {
-  health: (slug: string) => http.get<{ status: "ok"; module: "sales"; workspace: string }>(`/sales/workspaces/${enc(slug)}/health`),
+  health: (slug: string) => http.get<SalesHealth>(`/sales/workspaces/${enc(slug)}/health`),
 };
 
 /** S1. The stream is not a JSON request: src/platform/realtime opens it. The path is kept here for the paper trail. */

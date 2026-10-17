@@ -353,7 +353,7 @@ export function MembersScreen() {
                   <InviteAvatar email={inv.email} />
                   <span className="min-w-0 flex-1 truncate max-[760px]:basis-[calc(100%-44px)]">{inv.email}</span>
                   <span className="text-fg-2">{roleName(inv.roleId) === "—" ? inv.roleName : roleName(inv.roleId)}</span>
-                  <span className="w-[76px] font-mono text-[12px] text-fg-3">{monthDay(inv.createdAt)}</span>
+                  <span className="w-[76px] font-mono text-[12px] text-fg-3">{inv.createdAt ? monthDay(inv.createdAt) : "—"}</span>
                   <span className="ml-auto flex items-center gap-1">
                     {sent[inv.id] ? (
                       <span role="status" className="inline-flex h-[30px] animate-[fade-in_160ms_var(--ease)] items-center gap-1 px-[11px] text-[12px] font-medium text-ok">
@@ -563,7 +563,7 @@ function InviteRow({
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-fg-2">{invite.email}</span>
         <span className={cn("truncate text-[12px] text-fg-3", !mobile && "@min-[720px]:hidden")}>
-          Invited {monthDay(invite.createdAt)}
+          Invited {invite.createdAt ? monthDay(invite.createdAt) : "—"}
         </span>
       </span>
     </span>
@@ -590,7 +590,7 @@ function InviteRow({
         {who}
       </span>
       <span role="cell" className="hidden truncate text-fg-2 @min-[720px]:block">
-        Invited {monthDay(invite.createdAt)}
+        Invited {invite.createdAt ? monthDay(invite.createdAt) : "—"}
       </span>
       <span role="cell" className="truncate text-fg-2">
         {invite.roleName}

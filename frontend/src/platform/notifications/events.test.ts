@@ -5,6 +5,7 @@ import { dueLabel, glyphForStatusName, groupByDay, rowLabel, verbText } from "./
 const base: Notification = {
   id: "n1",
   type: "mention",
+  eventType: "core.comment.mentioned",
   actorId: "u1",
   projectId: "p",
   projectName: "Platform Rebuild",
@@ -14,6 +15,10 @@ const base: Notification = {
   payload: {},
   createdAt: new Date().toISOString(),
   readAt: null,
+  targetType: "tracking.task",
+  targetId: "t",
+  title: "Token refresh race on cold start",
+  link: null,
 };
 const mk = (p: Partial<Notification>): Notification => ({ ...base, ...p });
 

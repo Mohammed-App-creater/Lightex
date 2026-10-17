@@ -76,7 +76,7 @@ function readFields(ctx: Ctx, workspaceId: string, selfId: string | null, partia
 const memberLabel = (db: MockDB, t: TeamRec, userId: string) => `${t.name}: ${db.users.find((u) => u.id === userId)?.name ?? userId}`;
 
 export function registerTeams() {
-  route("GET", "/workspaces/:slug/teams", (ctx) => {
+  route("GET", "/workspaces/:slug/teams", (ctx): Team[] => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     return live(ctx.db, ws.id).sort(byName).map((t) => toTeam(ctx.db, t));
   });

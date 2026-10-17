@@ -9,6 +9,7 @@ import { Skeleton } from "@/ui/feedback";
 import { Tooltip } from "@/ui/tooltip";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError, isNotFound } from "@/api/errors";
+import { tokenStore } from "@/api/session";
 import type { Invite } from "@/api/types";
 import { routes } from "@/platform/routes";
 import { useAuthFlow } from "./auth-flow";
@@ -83,7 +84,7 @@ function InviteProblem({ kind, invite }: { kind: "invalid" | "expired" | "revoke
     invalid: { title: "This invite link isn’t valid", body: "Check the link in your email, or ask a workspace admin for a new invite." },
     expired: {
       title: "This invite has expired",
-      body: `Ask ${invite?.invitedBy.name ?? "a workspace admin"} to send you a new invite to ${invite?.workspaceName ?? "the workspace"}.`,
+      body: `Ask ${invite?.invitedBy?.name ?? "a workspace admin"} to send you a new invite to ${invite?.workspaceName ?? "the workspace"}.`,
     },
     revoked: {
       title: "This invite was withdrawn",
@@ -134,7 +135,10 @@ function AcceptForm({ token, invite, onGone }: { token: string; invite: Invite; 
     setAlert(null);
     try {
       const res = await api.auth.acceptInvite(token, { name: v.name.trim(), password: v.password });
-      finish(res, { to: routes.home(res.workspaceSlug), workspaceName: invite.workspaceName });
+      // `AcceptInviteOut` carries only the token and the workspace: load the user with it.
+      tokenStore.set(res.accessToken);
+      const user = await api.auth.me();
+      finish({ accessToken: res.accessToken, user }, { to: routes.home(res.workspaceSlug), workspaceName: invite.workspaceName });
     } catch (err) {
       setBusy(false);
       if (isApiError(err) && (err.status === 410 || err.status === 404)) {
@@ -167,12 +171,14 @@ function AcceptForm({ token, invite, onGone }: { token: string; invite: Invite; 
           <h1 id={titleId} className="m-0 text-[20px] font-semibold leading-7 tracking-[-0.015em]">
             Join {invite.workspaceName}
           </h1>
-          <p className="m-0 flex items-center gap-2 text-ui text-fg-2">
-            <Avatar name={invite.invitedBy.name} hue={invite.invitedBy.hue} size={20} ring={false} decorative />
-            <span>
-              <b className="font-medium text-fg">{invite.invitedBy.name}</b> invited you
-            </span>
-          </p>
+          {invite.invitedBy ? (
+            <p className="m-0 flex items-center gap-2 text-ui text-fg-2">
+              <Avatar name={invite.invitedBy.name} hue={invite.invitedBy.hue} size={20} ring={false} decorative />
+              <span>
+                <b className="font-medium text-fg">{invite.invitedBy.name}</b> invited you
+              </span>
+            </p>
+          ) : null}
           {roleHint ? (
             <Tooltip content={roleHint}>
               <span tabIndex={0} className="rounded-full">

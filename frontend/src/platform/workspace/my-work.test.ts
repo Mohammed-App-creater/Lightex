@@ -8,10 +8,10 @@ const t = (id: string, dueDate: string | null, extra: Partial<Task> = {}) =>
   ({ id, key: id, dueDate, priority: 2, statusId: "todo", completedAt: null, updatedAt: "2026-10-01T00:00:00Z", ...extra }) as Task;
 
 const ST: Record<string, Status> = {
-  todo: { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 1 },
-  prog: { id: "prog", projectId: "p", name: "In progress", category: "in_progress", glyph: "progress", position: 2 },
-  done: { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 4 },
-  cancel: { id: "cancel", projectId: "p", name: "Canceled", category: "done", glyph: "canceled", position: 5 },
+  todo: { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 1, taskCount: 0 },
+  prog: { id: "prog", projectId: "p", name: "In progress", category: "in_progress", glyph: "progress", position: 2, taskCount: 0 },
+  done: { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 4, taskCount: 0 },
+  cancel: { id: "cancel", projectId: "p", name: "Canceled", category: "done", glyph: "canceled", position: 5, taskCount: 0 },
 };
 const statusOf = (x: Task) => ST[x.statusId];
 

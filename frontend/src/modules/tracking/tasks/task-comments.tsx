@@ -121,7 +121,7 @@ function Comments({
       ) : (
         <ul className="m-0 flex list-none flex-col p-0">
           {comments.map((c) => (
-            <CommentItem key={c.id} task={task} comment={c} author={userById.get(c.authorId)} meId={me.id} people={people} deleted={deleted} />
+            <CommentItem key={c.id} task={task} comment={c} author={c.authorId ? userById.get(c.authorId) : undefined} meId={me.id} people={people} deleted={deleted} />
           ))}
         </ul>
       )}

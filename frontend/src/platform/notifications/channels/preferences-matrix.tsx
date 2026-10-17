@@ -1,7 +1,7 @@
 "use client";
 
 import { Switch } from "@/ui/choice";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences } from "@/api/types";
+import type { NotificationChannel, NotificationEvent, NotificationPreferencesInput } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { EVENTS, PREF_ROWS } from "@/platform/notifications/events";
 import { EventIcon } from "@/platform/notifications/icons";
@@ -69,7 +69,7 @@ export function PreferencesMatrix({
   onConnect,
   onRetry,
 }: {
-  prefs: NotificationPreferences;
+  prefs: NotificationPreferencesInput;
   columns: Record<NotificationChannel, ColumnState>;
   onToggle: (event: NotificationEvent, channel: NotificationChannel, on: boolean) => void;
   onConnect?: (channel: NotificationChannel) => void;

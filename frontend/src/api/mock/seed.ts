@@ -1,4 +1,4 @@
-import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, TaskType, Priority } from "@/api/types";
+import type { NotificationPreferencesInput, RichDoc, Status, StatusGlyph, TaskType, Priority } from "@/api/types";
 import { DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { keysBetween } from "@/lib/utils/fractional-index";
 import { ensureExt39 } from "./handlers/extensions";
@@ -16,6 +16,7 @@ import type {
   RoleRec,
   TaskRec,
   WsMemberRec,
+  LabelRec,
 } from "./db-types";
 
 /**
@@ -286,7 +287,7 @@ export function createSeed(): MockDB {
       db.projectMembers.push(m);
     }
     for (const [lname, color] of labels) {
-      const l: Label = { id: `${id}-lb-${lname}`, projectId: id, name: lname, color };
+      const l: LabelRec = { id: `${id}-lb-${lname}`, projectId: id, name: lname, color };
       db.labels.push(l);
     }
   };
@@ -789,7 +790,7 @@ function addDays(iso: string, days: number) {
 }
 
 /** v1's in_app / email defaults plus the board 38 channel keys and quiet hours (§3.8). */
-export function defaultPrefs(): NotificationPreferences {
+export function defaultPrefs(): NotificationPreferencesInput {
   return defaultPreferences();
 }
 

@@ -6,7 +6,7 @@ import type {
   Label,
   Milestone,
   Notification,
-  NotificationPreferences,
+  NotificationPreferencesInput,
   PushDevice,
   SmsConnection,
   SmsVerification,
@@ -106,11 +106,14 @@ export type InviteRec = {
 };
 export type ProjectRec = Omit<
   Project,
-  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber" | "devEnabled" | "myDataScopes"
+  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "doneTaskCount" | "activeSprintId" | "nextTaskNumber" | "devEnabled" | "myDataScopes"
 > & { taskSeq: number };
+/** Statuses and labels: `taskCount` is computed per request (`toStatus` / `toLabel`). */
+export type StatusRec = Omit<Status, "taskCount">;
+export type LabelRec = Omit<Label, "taskCount">;
 export type ProjectMemberRec = { projectId: string; userId: string; roleId: string; addedAt: string };
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
-export type MilestoneRec = Omit<Milestone, "progress">;
+export type MilestoneRec = Omit<Milestone, "progress" | "taskIds">;
 // Board 27 fields are optional on the record (older seeds lack them); toEpic normalizes to null.
 // Board 32 dates are optional too (cached databases predate them); toEpic normalizes to null.
 export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archivedAt" | "startDate" | "dueDate"> &
@@ -129,7 +132,16 @@ export type TaskRec = Omit<
   timeEstimateMinutes?: number | null;
 };
 export type AttachmentRec = Attachment & { content?: string };
-export type NotificationRec = Notification & { recipientId: string };
+/*
+ * Feed rows. Fields the schema made required later (Stage 5) are optional on the record, so databases cached in
+ * localStorage still load; `toActivity` / `toAudit` / `toNotification` (derive.ts) fill them on the way out.
+ */
+type ActivityLate = "actorName" | "actorKind";
+export type ActivityRec = Omit<ActivityEntry, ActivityLate> & Partial<Pick<ActivityEntry, ActivityLate>>;
+type AuditLate = "actorName" | "actorKind" | "entityType" | "module" | "targetType" | "targetId" | "entityKey" | "source" | "requestId" | "changes";
+export type AuditRec = Omit<AuditEntry, AuditLate> & Partial<Pick<AuditEntry, AuditLate>> & { workspaceId: string };
+type NotificationLate = "eventType" | "targetType" | "targetId" | "title" | "link";
+export type NotificationRec = Omit<Notification, NotificationLate> & Partial<Pick<Notification, NotificationLate>> & { recipientId: string };
 
 export interface MockDB {
   schema: number;
@@ -146,8 +158,8 @@ export interface MockDB {
   projects: ProjectRec[];
   projectMembers: ProjectMemberRec[];
   accessRequests: AccessRequest[];
-  statuses: Status[];
-  labels: Label[];
+  statuses: StatusRec[];
+  labels: LabelRec[];
   objectives: ObjectiveRec[];
   milestones: MilestoneRec[];
   epics: EpicRec[];
@@ -156,9 +168,9 @@ export interface MockDB {
   comments: Comment[];
   attachments: AttachmentRec[];
   notifications: NotificationRec[];
-  prefs: { userId: string; prefs: NotificationPreferences }[];
-  activity: ActivityEntry[];
-  audit: (AuditEntry & { workspaceId: string })[];
+  prefs: { userId: string; prefs: NotificationPreferencesInput }[];
+  activity: ActivityRec[];
+  audit: AuditRec[];
   resetTokens: { token: string; userId: string; expiresAt: string }[];
   recents: { userId: string; kind: "task" | "project"; id: string; at: string }[];
   /** Workspace-level "add me to a project" requests (board 24). Optional: created lazily by handlers/home.ts. */

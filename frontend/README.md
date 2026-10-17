@@ -41,6 +41,8 @@ reset data). The component gallery is at `/dev/ui`.
 | `npm test` | Vitest unit and component tests |
 | `npm run test:e2e` | Playwright smoke suite: sign-in, board, task panel, palette, plus permission hiding for every default role. Reuses a server already running on port 3100, or starts one. Run `npx playwright install chromium` once first. |
 | `npm run check` | typecheck + lint + tests |
+| `npm run gen:api` | Regenerates `src/api/schema.d.ts` from the backend's `../docs/openapi.yaml` (openapi-typescript) |
+| `npm run check:api` | Fails when `src/api/schema.d.ts` is stale (also part of `npm test`) |
 
 ## Mock vs live
 
@@ -67,7 +69,8 @@ NEXT_PUBLIC_APP_URL=https://app.example.com    # absolute Open Graph / icon URLs
 The backend must:
 
 - allow this origin with credentials (CORS);
-- implement the contract in [`docs/api-contract.md`](docs/api-contract.md): REST under `/api/v1`, errors as
+- implement `docs/openapi.yaml` (repo root), which the client's types are generated from (`npm run gen:api`;
+  [`docs/api-contract.md`](docs/api-contract.md) is the readable summary): REST under `/api/v1`, errors as
   `{ code, message, details }`, cursor pagination, `filter[...]`, `sort`, `?q=`;
 - return `my_permissions` on workspace and project responses, with module-namespaced codes (`core.*`,
   `tracking.*`), and serve tracking routes under `/api/v1/tracking/` (see `docs/platform/stage1-contract.md`
@@ -104,7 +107,8 @@ src/
                             module.tsx (its registry entry), services.ts (target types, notification text)
     sales/                  placeholder (platform Stage 3)
   registry/                 module registry: nav items and UI slots (index.ts), non-UI services (services.ts)
-  api/                      types, endpoints, transports, query keys, optimistic helpers, uploads
+  api/                      endpoints, transports, query keys, optimistic helpers, uploads; schema.d.ts (generated
+                            from docs/openapi.yaml) and types.ts (aliases into it)
     mock/                   seed, in-memory DB, router and handlers (mock backend)
   ui/                       design-system primitives (button, menu, modal, side panel, toast, glyphs, ...)
     brand/                  logo, app loader, illustrations
@@ -115,7 +119,7 @@ src/
 docs/
   frontend-plan.md          plan and key decisions
   frontend-conventions.md   rules every screen follows (states, permissions, motion, a11y)
-  api-contract.md           the REST contract the client expects
+  api-contract.md           readable summary of the REST contract (docs/openapi.yaml is the source of truth)
   final-report.md           what was built, deviations, requested API additions, known gaps
 design/                     the design source (HTML boards) and extracted notes
 e2e/                        Playwright smoke suite

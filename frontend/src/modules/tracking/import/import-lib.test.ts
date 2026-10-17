@@ -155,14 +155,14 @@ describe("permissions catalogue and default roles (§3)", () => {
 });
 
 describe("activity, audit and inbox vocabulary", () => {
-  const act = (data: ActivityEntry["data"], taskId: string | null): ActivityEntry => ({ id: "a", actorId: "u", verb: "imported", projectId: "p", taskId, taskKey: taskId ? "PRJ-61" : null, taskTitle: null, data, createdAt: "" });
+  const act = (data: ActivityEntry["data"], taskId: string | null): ActivityEntry => ({ id: "a", actorId: "u", verb: "imported", projectId: "p", taskId, taskKey: taskId ? "PRJ-61" : null, taskTitle: null, data, createdAt: "", actorName: null, actorKind: "user" });
   it("activityText for imported", () => {
     expect(activityText(act({ imported: 44, fileName: "tasks-export.csv" }, null))).toBe("imported 44 tasks from tasks-export.csv");
     expect(activityText(act({ imported: 1, fileName: "a.csv" }, null))).toBe("imported 1 task from a.csv");
     expect(activityText(act({ fileName: "tasks-export.csv" }, "t1"))).toBe("imported this task from tasks-export.csv");
   });
   it("auditActionKind", () => {
-    const row = (action: string): AuditEntry => ({ id: "a", actorId: "u", action, target: "T", createdAt: "" });
+    const row = (action: string): AuditEntry => ({ id: "a", actorId: "u", action, target: "T", createdAt: "", actorName: null, actorKind: "user", entityType: "", module: null, targetType: "", targetId: null, entityKey: null, source: "web", requestId: null, changes: [] });
     expect(auditActionKind(row("tracking.task.imported"))).toBe("created");
     expect(auditActionKind(row("tracking.project.import_started"))).toBe("updated");
     expect(auditActionKind(row("tracking.project.import_completed"))).toBe("updated");

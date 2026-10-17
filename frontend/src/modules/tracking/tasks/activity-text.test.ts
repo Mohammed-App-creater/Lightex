@@ -6,8 +6,8 @@ import { activityText } from "./activity-text";
 
 /* Board 39 vocabulary: audit kinds, activity verbs and the new default-role grants. */
 
-const row = (action: string): AuditEntry => ({ id: "a", actorId: "u", action, target: "T", createdAt: "" });
-const act = (verb: ActivityEntry["verb"], data: ActivityEntry["data"]): ActivityEntry => ({ id: "a", actorId: "u", verb, projectId: "p", taskId: "t", taskKey: "PRJ-42", taskTitle: "T", data, createdAt: "" });
+const row = (action: string): AuditEntry => ({ id: "a", actorId: "u", action, target: "T", createdAt: "", actorName: null, actorKind: "user", entityType: "", module: null, targetType: "", targetId: null, entityKey: null, source: "web", requestId: null, changes: [] });
+const act = (verb: ActivityEntry["verb"], data: ActivityEntry["data"]): ActivityEntry => ({ id: "a", actorId: "u", verb, projectId: "p", taskId: "t", taskKey: "PRJ-42", taskTitle: "T", data, createdAt: "", actorName: null, actorKind: "user" });
 
 describe("board 39 vocabulary", () => {
   it("maps the new audit actions to kinds", () => {

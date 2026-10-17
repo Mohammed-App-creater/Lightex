@@ -24,6 +24,8 @@ const entry = (id: string, actorId: string, verb: ActivityEntry["verb"], ago: nu
   taskTitle: null,
   data,
   createdAt: min(ago),
+  actorName: null,
+  actorKind: "user",
 });
 
 const FEED: ActivityEntry[] = [

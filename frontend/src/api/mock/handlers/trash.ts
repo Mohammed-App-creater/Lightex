@@ -1,4 +1,7 @@
-import type { Permission, ProjectPermission, RichDoc, TrashItem, TrashKind, TrashList, TrashRef } from "@/api/types";
+import type { ApiSchemas, Permission, ProjectPermission, RichDoc, TrashKind, TrashRef } from "@/api/types";
+
+/* The wire shapes: namespaced kinds ("tracking.task"); the client strips them (`normalizeTrashList`). */
+type WireTrashItem = ApiSchemas["TrashItem"];
 import { DAY } from "@/lib/domain/progress";
 import { nowISO } from "../db";
 import type { MockDB, ProjectRec, TaskRec, TrashStore } from "../db-types";
@@ -96,7 +99,7 @@ function rolePerms(db: MockDB, roleId: string | undefined): Permission[] {
 
 type Access = {
   task: (projectId: string) => boolean;
-  comment: (projectId: string, authorId: string, deletedBy: string | null) => boolean;
+  comment: (projectId: string, authorId: string | null, deletedBy: string | null) => boolean;
   project: (tp: TrashStore["projects"][number]) => boolean;
   any: boolean;
   scope: "all" | "own";
@@ -136,7 +139,7 @@ function accessFor(db: MockDB, userId: string, workspaceId: string): Access {
  * also in the restore / purge echo; requests accept the namespaced and the old bare kinds.
  */
 const KIND_MODULE: Record<TrashKind, string> = { task: "tracking", comment: "core", project: "tracking" };
-const wireKind = (kind: TrashKind) => `${KIND_MODULE[kind]}.${kind}` as TrashKind;
+const wireKind = (kind: TrashKind) => `${KIND_MODULE[kind]}.${kind}`;
 const bareKind = (kind: string) => (kind.includes(".") ? kind.slice(kind.lastIndexOf(".") + 1) : kind) as TrashKind;
 
 const purgeAt = (iso: string) => new Date(new Date(iso).getTime() + RETENTION_DAYS * DAY).toISOString();
@@ -157,9 +160,9 @@ function person(db: MockDB, id: string | null | undefined) {
   return u ? { id: u.id, name: u.name, hue: u.hue } : null;
 }
 
-function listItems(db: MockDB, userId: string, workspaceId: string, acc: Access): TrashItem[] {
+function listItems(db: MockDB, userId: string, workspaceId: string, acc: Access): WireTrashItem[] {
   const store = trashOf(db);
-  const items: TrashItem[] = [];
+  const items: WireTrashItem[] = [];
   const projectIds = new Set(db.projects.filter((p) => p.workspaceId === workspaceId).map((p) => p.id));
   const proj = (id: string) => {
     const p = db.projects.find((x) => x.id === id)!;
@@ -302,12 +305,12 @@ export function registerTrash() {
     return { ws, userId, acc };
   };
 
-  route("GET", "/workspaces/:slug/trash", (ctx): TrashList => {
+  route("GET", "/workspaces/:slug/trash", (ctx): ApiSchemas["TrashList"] => {
     const { ws, userId, acc } = setup(ctx);
     return { data: listItems(ctx.db, userId, ws.id, acc), scope: acc.scope, kinds: acc.kinds.map(wireKind), retentionDays: RETENTION_DAYS };
   });
 
-  route("POST", "/workspaces/:slug/trash/restore", (ctx) => {
+  route("POST", "/workspaces/:slug/trash/restore", (ctx): ApiSchemas["TrashRestored"] => {
     const { ws, userId, acc } = setup(ctx);
     const refs = refsOf(ctx);
     refs.forEach((r) => findVisible(ctx.db, userId, ws.id, acc, r));
@@ -315,7 +318,7 @@ export function registerTrash() {
     return { restored: refs.map((r) => ({ ...r, kind: wireKind(r.kind) })) };
   });
 
-  route("POST", "/workspaces/:slug/trash/purge", (ctx) => {
+  route("POST", "/workspaces/:slug/trash/purge", (ctx): ApiSchemas["TrashPurged"] => {
     const { ws, userId, acc } = setup(ctx);
     const refs = refsOf(ctx);
     refs.forEach((r) => findVisible(ctx.db, userId, ws.id, acc, r));

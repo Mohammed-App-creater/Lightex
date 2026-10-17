@@ -1,9 +1,12 @@
-# Lightex REST contract (frontend assumption)
+# Lightex REST contract (frontend view)
 
-> No backend API document was provided. This is the contract the frontend is written against. It is
-> implemented by the in-browser mock (`src/api/mock`) and the live HTTP transport (`src/api`).
-> **Every endpoint below is a "requested API addition" until the backend confirms it.**
-> Paths live in exactly one place: `src/api/endpoints.ts`.
+> **Since platform Stage 5 the backend's `docs/openapi.yaml` (repo root) is the source of truth.** `npm run gen:api`
+> turns it into `src/api/schema.d.ts`; every request and response type in `src/api/types.ts` is an alias into its
+> `components["schemas"]` (narrowed where the schema is loose), and a unit test (`npm run check:api`) fails when
+> `schema.d.ts` is stale. This page is the readable summary the client was first written against, kept for its notes
+> on behaviour; where it and the schema disagree, the schema wins. The schema gaps the client still works around are
+> listed in `docs/final-report.md` §6 ("Remaining known gaps"). Paths live in exactly one place:
+> `src/api/endpoints.ts`; the in-browser mock (`src/api/mock`) answers with the same generated types.
 
 ## Conventions
 
@@ -103,6 +106,26 @@ A team from another workspace is a 404. Removing someone from the workspace remo
 responses carry `dataScopes`; workspace and project responses carry `myDataScopes` (the same workspace-level map,
 disabled modules excluded). The client reads it with `useDataScope(code)`; the server applies the scope itself.
 
+## Stage 5 (platform cleanup)
+
+`docs/platform/stage5-contract.md` §2 is binding. What changed for the client:
+
+- **Notifications:** `Notification.eventType` (the registered event-type key, e.g. `tracking.task.assigned`); `type`
+  is a plain string (the display kind: `assigned`, `mention`, …; unknown kinds render as a generic row);
+  `projectName`, `taskKey` and `taskTitle` are snapshots taken when the notification was created.
+- **Data scope widening:** a role create / update that sets or changes a data scope wider than the actor's own scope
+  for that code is 403 `data_scope_exceeds_own`, `details {code, dataScope, yours}` (`yours` null when the actor
+  doesn't hold the code). Owners (`core.workspace.delete`) are exempt. The role editor shows it as an error toast.
+- **Realtime:** `core.module.changed` `{module, enabled}` (durable, whole workspace): the client refetches the
+  workspace (`enabledModules`, `my_permissions`), the module list and the workspace list, so the sidebar and route
+  guards follow.
+- **Typed responses:** search, audit, trash, members, activity, saved views and reports now have schema types; the
+  trash restore / purge body is `{items: [{kind, id}]}`.
+- **Shapes the client now follows** (it used to assume otherwise): `POST /invites/:token/accept` returns
+  `{accessToken, workspaceSlug}` (no user: the client loads `/auth/me`); `GET /auth/me` returns `Me` (with
+  `hasPassword`), sign-in responses a plain `User`; `POST /me/notification-channels/:channel/test` takes `workspace`
+  as a query parameter; module `navItems[].permission` is always a string.
+
 ## Auth
 | Method | Path | Body → Response |
 |---|---|---|
@@ -112,11 +135,11 @@ disabled modules excluded). The client reads it with `useDataScope(code)`; the s
 | POST | /auth/logout | — → 204 (clears cookie) |
 | POST | /auth/forgot-password | `{email}` → 204 (always 204, no account enumeration) |
 | POST | /auth/reset-password | `{token,password}` → 204 (revokes other sessions) |
-| GET | /auth/me | → `User` |
-| PATCH | /auth/me | `{name?, avatarUploadId?, theme?}` → `User` |
+| GET | /auth/me | → `Me` (`User` + `hasPassword`) |
+| PATCH | /auth/me | `{name?, avatarUrl?}` → `Me` |
 | PUT | /auth/me/password | `{currentPassword,newPassword}` → 204 |
 | GET | /invites/:token | → `Invite` (workspace, inviter, email, role) |
-| POST | /invites/:token/accept | `{name,password}` → `{accessToken,user,workspaceSlug}` |
+| POST | /invites/:token/accept | `{name,password}` → `{accessToken,workspaceSlug}` (the client then loads `/auth/me`) |
 
 ## Workspaces, members, roles
 | Method | Path | Notes |
@@ -134,9 +157,9 @@ disabled modules excluded). The client reads it with `useDataScope(code)`; the s
 | DELETE | /workspaces/:slug/invites/:id | revoke |
 | POST | /workspaces/:slug/invites/:id/resend | |
 | GET | /workspaces/:slug/roles?filter[scope]=workspace\|project | → `Role[]` |
-| POST | /workspaces/:slug/roles | `{name, scope, permissions[]}` (`core.roles.manage`) |
+| POST | /workspaces/:slug/roles | `{name, scope, permissions[], dataScopes?}` (`core.roles.manage`; 403 `data_scope_exceeds_own`) |
 | PATCH/DELETE | /roles/:id | system roles: 403 on PATCH/DELETE; DELETE in use → 409 `role_in_use` |
-| GET | /permissions | → catalogue `{key, module, scope, group, label, description}[]` (`module`: `core`, `tracking` or `sales`) |
+| GET | /permissions | → catalogue `{key, module, scope, group, label, description, scopable}[]` (`module`: `core`, `tracking` or `sales`) |
 | GET | /workspaces/:slug/audit | paginated (`core.audit.view`) |
 | GET | /tracking/workspaces/:slug/activity | recent activity across visible projects |
 | GET | /tracking/workspaces/:slug/tasks?filter[assignee]=me | my tasks across projects |
@@ -205,7 +228,7 @@ type that is not a raster image. HTML and SVG are always served as downloads.
 | GET | /notifications | `filter[tab]=all|mentions|assigned`, `filter[unread]`, cursor |
 | GET | /notifications/unread-count | `{count}` |
 | POST | /notifications/:id/read | `{read: boolean}` |
-| POST | /notifications/read-all | `{before}` (so undo can re-mark) |
+| POST | /notifications/read-all | `{ids?}` → `{ids}` changed; `{ids, unread: true}` undoes |
 | GET/PUT | /notification-preferences | `{events: {event: {in_app, email, telegram, sms, push}}, emailDelivery: instant|hourly|daily, quietHours}`; event keys: `tracking.task.assigned`, `core.comment.mentioned`, `tracking.task.status_changed`, `core.comment.created`, `tracking.task.due_soon`, `tracking.sprint.started`; optional `labels` (Stage 2) |
 
 ## Additions found while building the client

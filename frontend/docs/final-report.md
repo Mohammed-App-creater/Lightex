@@ -8,7 +8,7 @@ Each step passed its checks before it was committed.
 | `npm run build` | passes |
 | `npm run typecheck` | clean (TypeScript strict) |
 | `npm run lint` | 0 errors, 1 warning (expected React Compiler note on TanStack Virtual's `useVirtualizer`) |
-| `npm test` | 52 files, 814 tests passing (after board 38; run with `--maxWorkers=2` on this machine) |
+| `npm test` | 63 files, 876 tests passing (after platform Stage 5, including the `schema.d.ts` staleness check; run with `--maxWorkers=2` on this machine) |
 | `npm run test:e2e` | 8 Playwright tests passing (sign-in → board → task panel → palette; role-hiding matrix) |
 | Route sweep | 29 routes × {navy 1440, light 1440, near-black 390, light 390}: all render, no console errors, no horizontal scroll |
 
@@ -94,6 +94,11 @@ pointer events, and the widget charts reuse Recharts.
 Board 37 (integrations) adds **no** dependency: key matching, branch names and the connect fragment are plain
 TypeScript, and the Create branch popover reuses Radix Popover.
 
+Platform Stage 5 adds **`openapi-typescript`** (dev dependency only, never shipped): `npm run gen:api` generates
+`src/api/schema.d.ts` from the backend's `docs/openapi.yaml`, so the API types can't drift from the backend, and the
+staleness test (`src/api/schema.test.ts`, `npm run check:api`) uses its programmatic API to regenerate and compare.
+Hand-writing the types again was the alternative; it is what let the client and the schema disagree in the first place.
+
 Board 38 (notification channels) adds **no** dependency. The spec (§8.10) proposes **`uqr`** (unjs, zero-dependency,
 ~12 KB min, lazily loaded with the Telegram dialog) to draw the Telegram QR code. **Pending the user's decision; not
 installed.** Until it is approved the dialog has no QR (a TODO marks the spot in `telegram-dialog.tsx`); the
@@ -140,8 +145,15 @@ The rule applied was: docs win for behaviour, design wins for appearance.
 
 ## 5. Requested API additions
 
-`docs/api-contract.md` was written from the brief, so **the whole contract needs backend confirmation**. These
-items were needed by the designed screens and go beyond what the brief names. All are implemented in the mock.
+**Status (platform Stage 5): delivered.** The backend serves every endpoint and field requested below, and its
+`docs/openapi.yaml` describes them. The client's types are now generated from that schema (`src/api/schema.d.ts`,
+aliased in `src/api/types.ts`), so this section is the history of what was asked for and why. What the schema still
+doesn't describe, or describes wrongly, is listed in §6 under "Remaining known gaps"; the items under "Needed by the
+design, with no client call yet" below were never built on either side and stay hidden or "Coming soon".
+
+The original note: `docs/api-contract.md` was written from the brief, so the whole contract needed backend
+confirmation. These items were needed by the designed screens and go beyond what the brief names. All are implemented
+in the mock.
 
 **Endpoints the client calls, implemented in the mock**
 
@@ -572,7 +584,7 @@ implemented in the mock (`src/api/mock/modules.ts`, `handlers/modules.ts`, the g
 Assumed where the contract is silent: `enabledBy` is a user id (nullable) and `enabledAt` is null for core;
 `navItems` is `[]` for a disabled module and not filtered by permission (the client filters); `module_disabled`
 carries `details: {module}`; `POST workspaces` with an unknown module key is a 422 on `modules`. The client sends
-`modules: []` for "Core tracking only". A module toggle publishes no realtime event; other tabs catch up on focus.
+`modules: []` for "Core tracking only". Since Stage 5 a toggle publishes `core.module.changed` (below).
 
 ### Platform Stage 4: teams and data scope
 
@@ -592,9 +604,70 @@ UI takes it from the workspace member list); `data_scope_not_allowed` carries `d
 is a 422 on `dataScopes`; a role PATCH that leaves `dataScopes` out keeps the stored scopes. Team writes publish no
 realtime event.
 
+### Platform Stage 5: generated types and cleanup
+
+From `docs/platform/stage5-contract.md` §2. All delivered by the backend and in `docs/openapi.yaml`; implemented in the
+mock:
+
+- `Notification.eventType` (registry key); `type` a plain string; `projectName` / `taskKey` / `taskTitle` snapshots. The
+  inbox keys its icons and verbs by the known kinds (`NotificationKind`) and falls back to a neutral row for others.
+- 403 `data_scope_exceeds_own` `details {code, dataScope, yours}` on role create / update (owners exempt): the role
+  editor shows an error toast naming the permission and both scopes; the mock enforces it (`assertWithinOwnScope`).
+- Realtime `core.module.changed` `{module, enabled}`: the client invalidates the workspace, its modules and the
+  workspace list (sidebar, route guards, Settings → Modules follow); the mock publishes it on a real toggle.
+
+**Where the schema and the client disagreed, the client and mock now follow the schema:**
+
+| Area | Before | Now (schema) |
+|---|---|---|
+| `POST /invites/:token/accept` | `{accessToken, user, workspaceSlug}` | `{accessToken, workspaceSlug}`; the client loads `/auth/me` with the new token |
+| `GET /auth/me` vs sign-in | one `User` with optional `hasPassword` | `Me` (with `hasPassword`) vs `User`; the session holds `User & Partial<Pick<Me, "hasPassword">>` |
+| Channel test | `workspace` in the body | `?workspace=` query parameter (`http.post` gained `query`) |
+| `Notification` | closed `type` union, no `eventType`, optional target fields | `type: string`, `eventType`, `targetType` / `targetId` / `title` / `link` always present (nullable) |
+| Notification preferences | `labels` optional | `labels` always in responses; requests send `NotificationPreferencesInput` (no `labels`) |
+| `Status.taskCount`, `Label.taskCount` | optional, only on the list routes | always present: the mock adds them on board, create and update responses too |
+| `Milestone.taskIds` | missing | present (the mock derives it) |
+| `Project.doneTaskCount`, `Role.dataScopes`, `Workspace.myDataScopes` / `notificationPolicy`, `PermissionInfo.scopable`, `TrashItem.module`, `AuditPage.total` | optional | required |
+| `ActivityEntry.actorName` / `actorKind` | optional | required (the mock fills `null` / `"user"`) |
+| `AuditEntry` | `actorId` non-null; `entityType`, `module`, `targetType`, `targetId`, `entityKey`, `source`, `requestId`, `changes` optional | `actorId` nullable (integrations); all of those required |
+| `Comment.authorId`, `Attachment.uploaderId` | non-null | nullable (deleted users); the UI guards the lookups |
+| `Invite.invitedBy` / `createdAt` / `expiresAt`, `User.createdAt`, `Team.createdAt`, member `joinedAt` | non-null | nullable; the UI shows "—" or hides the inviter line |
+| `ProgressRow.dueDate` / `quarter` | optional | required (the mock sends the objective's due date) |
+| Module `navItems[].permission` | nullable, tracking items `null` | always a string; the mock's tracking items match the backend (`projects`, `my-tasks`, `timesheet` with `core.workspace.view`) |
+| Trash kinds | typed as bare kinds on the wire | the wire kind is a string (`tracking.task`); the bare `TrashKind` is a client extension made by `normalizeTrashList()` |
+
+Extension types kept (client-side narrowing of loosely typed schema fields, each checked against the schema by
+`Refine` in `src/api/types.ts`): the permission-code unions, `Priority` 0–4, `RichDoc` (Tiptap JSON bodies), the
+notification payload, saved-view filter fields, widget configs, the import job's analysis / validation / progress /
+result, presence locations, workload rows, the `DevItem` union, quiet-hours `days` as a 7-tuple, and the bare
+`TrashKind` (client-computed). `ProjectAccessInfo` stays hand-written: it is the 403's `details.project`, and the schema
+has no components for error details.
+
 ---
 
 ## 6. Known gaps
+
+**Remaining known gaps (platform Stage 5).** `docs/openapi.yaml` is wrong or silent here; the client works around
+each with a commented `SchemaGap` or extension type in `src/api/types.ts`, to remove when the backend fixes the schema:
+
+- `NotificationPage.data` is a single `Notification` (the server sends an array).
+- `NotificationChannels`: `telegram.connection` and `sms.connection` aren't nullable, `sms.countries` and
+  `push.devices` are single objects (arrays on the wire); `TelegramLink.connection` isn't nullable either.
+- `GET targets/{type}/{id}/comments` and `…/attachments` are typed as one `Comment` / `Attachment` (lists on the wire).
+- `ProjectDirectoryEntry` has only `id` (the server sends the access info plus `isMember` and `status`).
+- `ReportKpis` lists only `completedThisSprint` (the server sends the sprint, planned, cycle-time, overdue and
+  scope-change figures too).
+- `PatchedWorkspaceUpdateInRequest` lacks `notificationPolicy` (board 38's SMS switch, which PATCH accepts).
+- Loose types the client narrows: unions sent as `string` (activity verbs, audit `source`, invite / access-request
+  `status`, `PermissionInfo.module|scope|group`, saved-view filter `field` / `op`), JSON as `unknown` (rich-text
+  bodies, payloads, widget config, import job parts, presence locations, workload rows, `TaskDetail.project`), and
+  `DevItemOut` flat instead of a union.
+- Undocumented but used: bodies on `DELETE` (`confirm`, `reassignTo`, `moveTo`), and `filter[scope]` on
+  `GET workspaces/{slug}/roles`; the backend reads them.
+- Still not built on either side: the avatar signed upload (the profile page sends a data URL), workspace restore,
+  changing a pending invite's role, "request a different role", report PNG/PDF export, and the bundle-1 field requests
+  the client never used (`Role.systemKey` / `assignable`, `Workspace.taskCount`, `Notification.glyph` / `category`).
+
 
 - **Live mode is untested against a real backend,** because none was available. The HTTP transport, refresh/retry
   logic and query-string format have unit tests, and everything else was proven in mock mode only.

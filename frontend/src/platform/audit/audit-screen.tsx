@@ -58,7 +58,7 @@ export function AuditScreen() {
       .map((m) => ({ id: m.userId, name: m.user.name, hue: m.user.hue, integration: false }));
     const seen = new Set(opts.map((o) => o.id));
     for (const e of log.all) {
-      if (!seen.has(e.actorId) && e.actorKind === "integration") {
+      if (e.actorId && !seen.has(e.actorId) && e.actorKind === "integration") {
         seen.add(e.actorId);
         opts.push({ id: e.actorId, name: e.actorName ?? e.actorId, integration: true });
       }
@@ -355,7 +355,7 @@ export function AuditScreen() {
                           </span>
                         </Cell>
                         <Cell>
-                          <ActorAvatar name={name} hue={people.get(e.actorId)?.hue} integration={e.actorKind === "integration"} />
+                          <ActorAvatar name={name} hue={e.actorId ? people.get(e.actorId)?.hue : undefined} integration={e.actorKind === "integration"} />
                           <span className="min-w-0 truncate">{name}</span>
                         </Cell>
                         <Cell>

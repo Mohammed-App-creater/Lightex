@@ -2,7 +2,6 @@ import { auditTargetFields } from "@/lib/audit";
 import { suggestBranch, validateBranch } from "@/modules/tracking/integrations/lib/branch-name";
 import { aggregateChecks, PROVIDER_NAME } from "@/modules/tracking/integrations/lib/dev-lib";
 import type {
-  ActivityEntry,
   AuditChange,
   AvailableRepository,
   CheckState,
@@ -24,7 +23,7 @@ import type {
   TaskDevelopment,
 } from "@/api/types";
 import { getDB, nowISO, persist, uid } from "../db";
-import type { ConnectAttemptRec, DevLinkRec, DevRuleRec, IntegrationRec, MockDB, ProjectRec, RepositoryRec, TaskRec } from "../db-types";
+import type { ActivityRec, ConnectAttemptRec, DevLinkRec, DevRuleRec, IntegrationRec, MockDB, ProjectRec, RepositoryRec, TaskRec } from "../db-types";
 import { activeReposFor, linkItem, orderPrs, repoApplies, visibleLinks } from "../dev-derive";
 import { projectPermissions, statusesOf, wsMembership, wsPermissions } from "../derive";
 import { mockBus, publishProject, publishTask } from "../realtime";
@@ -455,7 +454,7 @@ function auditRow(db: MockDB, a: AuditInput) {
 const change = (field: string, before: string | null, after: string | null): AuditChange => ({ field, kind: "text", before, after });
 const integTarget = (i: IntegrationRec) => `${PROVIDER_NAME[i.provider]} · ${i.account.login}`;
 
-function activity(db: MockDB, e: Omit<ActivityEntry, "id" | "createdAt">) {
+function activity(db: MockDB, e: Omit<ActivityRec, "id" | "createdAt">) {
   db.activity.unshift({ ...e, id: uid("act"), createdAt: nowISO() });
   if (db.activity.length > 500) db.activity.length = 500;
 }

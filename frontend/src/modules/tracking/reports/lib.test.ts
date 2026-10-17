@@ -111,7 +111,7 @@ describe("CSV", () => {
       velocity: [{ sprint: "S8", committed: 40, completed: 41 }],
       cycle: { bins: [{ label: "<1d", count: 18 }], total: 18, medianDays: 0.5 },
       throughput: [{ week: "2026-09-28", done: 11 }],
-      progress: [{ id: "o1", kind: "objective", name: "Ship, beta", percent: 42, expected: 60 }],
+      progress: [{ id: "o1", kind: "objective", name: "Ship, beta", percent: 42, expected: 60, dueDate: null, quarter: null }],
     });
     const lines = csv.split("\r\n");
     expect(lines[0]).toBe('Project,Platform Rebuild (PRJ)');

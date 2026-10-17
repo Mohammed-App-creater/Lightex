@@ -1,4 +1,4 @@
-import type { Notification, NotificationEvent, NotificationType, StatusGlyph } from "@/api/types";
+import type { Notification, NotificationEvent, NotificationKind, StatusGlyph } from "@/api/types";
 import { notificationText } from "@/registry/services";
 import { ago, addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 
@@ -16,7 +16,7 @@ export type EventMeta = {
   path: string;
 };
 
-export const EVENTS: Record<NotificationType, EventMeta> = {
+export const EVENTS: Record<NotificationKind, EventMeta> = {
   assigned: {
     pref: "Assigned to me",
     verb: "assigned you",
@@ -69,7 +69,18 @@ export const EVENTS: Record<NotificationType, EventMeta> = {
 };
 
 /** Preferences matrix rows, in design order, mapped to the inbox type that carries the icon. */
-export const PREF_ROWS: { event: NotificationEvent; type: NotificationType }[] = [
+/** A kind this client doesn't know (`Notification.type` is a plain string since Stage 5): a neutral bell row. */
+const OTHER_EVENT: EventMeta = {
+  pref: "Other",
+  verb: "",
+  color: "var(--text-2)",
+  path: "M4 11.5V7a4 4 0 018 0v4.5l1 1H3zM6.5 13.5a1.5 1.5 0 003 0",
+};
+
+/** The display meta of a notification kind, with a fallback for kinds this client doesn't know. */
+export const eventMeta = (type: string): EventMeta => (type in EVENTS ? EVENTS[type as NotificationKind] : OTHER_EVENT);
+
+export const PREF_ROWS: { event: NotificationEvent; type: NotificationKind }[] = [
   { event: "tracking.task.assigned", type: "assigned" },
   { event: "core.comment.mentioned", type: "mention" },
   { event: "tracking.task.status_changed", type: "status" },
@@ -105,7 +116,7 @@ export function lineParts(n: Notification, actorName: string | null, today = tod
   const via = n.payload.via === "github" ? "GitHub" : n.payload.via === "gitlab" ? "GitLab" : null;
   const lead = via ?? actorName ?? (n.actorId ? "Someone" : "Lightex");
   if (n.type === "sprint") return { lead, verb: n.payload.sprintName ? `started ${n.payload.sprintName}` : "started a sprint" };
-  return { lead, verb: EVENTS[n.type].verb };
+  return { lead, verb: eventMeta(n.type).verb };
 }
 
 /** Plain-text version of line 1 ("Riley Chen moved to In review"). */

@@ -3,9 +3,9 @@ import type { Status, Task } from "@/api/types";
 import { clampWidth, groupTasks, labelSlots, sortTasks, type Ctx } from "./list-model";
 
 const statuses: Status[] = [
-  { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 1 },
-  { id: "prog", projectId: "p", name: "In progress", category: "in_progress", glyph: "progress", position: 2 },
-  { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 4 },
+  { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 1, taskCount: 0 },
+  { id: "prog", projectId: "p", name: "In progress", category: "in_progress", glyph: "progress", position: 2, taskCount: 0 },
+  { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 4, taskCount: 0 },
 ];
 const t = (n: number, over: Partial<Task> = {}): Task =>
   ({ id: `t${n}`, key: `PRJ-${n}`, number: n, title: `Task ${n}`, statusId: "todo", priority: 0, assigneeId: null, labelIds: [], dueDate: null, epicId: null, sprintId: null, milestoneId: null, ...over }) as Task;

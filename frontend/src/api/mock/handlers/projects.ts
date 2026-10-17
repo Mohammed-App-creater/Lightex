@@ -1,8 +1,8 @@
-import type { ProjectAccessInfo, ProjectSummary, ProjectTemplate, Status } from "@/api/types";
+import type { ProjectAccessInfo, ProjectDirectoryItem, ProjectSummary, ProjectTemplate, Status } from "@/api/types";
 import { DAY, isDoneStatus } from "@/lib/domain/progress";
 import { TEMPLATE_IDS, templateDef } from "@/lib/domain/project-templates";
 import { nowISO, uid } from "../db";
-import type { MockDB, ProjectRec } from "../db-types";
+import type { MockDB, ProjectRec, StatusRec } from "../db-types";
 import {
   liveTasks,
   projectMembership,
@@ -11,6 +11,9 @@ import {
   toSprint,
   toUser,
   wsMembership,
+  toActivity,
+  toLabel,
+  toStatus,
 } from "../derive";
 import { audit } from "./workspaces";
 import { trashProject } from "./trash";
@@ -79,7 +82,7 @@ export function registerProjects() {
   });
 
   /** Lightweight directory: every project in the workspace (for "assign admin" and 403 context). */
-  route("GET", "/tracking/workspaces/:slug/project-directory", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/project-directory", (ctx): ProjectDirectoryItem[] => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     return ctx.db.projects
       .filter((p) => p.workspaceId === ws.id)
@@ -274,8 +277,7 @@ export function registerProjects() {
   /* statuses, labels */
   route("GET", "/tracking/projects/:id/statuses", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
-    const live = liveTasks(ctx.db, p.id);
-    return statusesOf(ctx.db, p.id).map((s) => ({ ...s, taskCount: live.filter((t) => t.statusId === s.id).length }));
+    return statusesOf(ctx.db, p.id).map((s) => toStatus(ctx.db, s));
   });
   route("POST", "/tracking/projects/:id/statuses", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
@@ -286,14 +288,14 @@ export function registerProjects() {
     const glyph = category === "todo" ? "todo" : category === "done" ? "done" : "progress";
     const list = statusesOf(ctx.db, p.id);
     if (list.some((x) => x.name.toLowerCase() === name.toLowerCase())) invalid({ name: `${name} already exists` });
-    const s: Status = { id: uid("st"), projectId: p.id, name: name.slice(0, 30), category, glyph, position: list.length };
+    const s: StatusRec = { id: uid("st"), projectId: p.id, name: name.slice(0, 30), category, glyph, position: list.length };
     // Board 28: a new status goes to the end of its category group.
     const order = ["todo", "in_progress", "done"];
     const at = list.filter((x) => order.indexOf(x.category) <= order.indexOf(category)).length;
     list.splice(at, 0, s);
     list.forEach((x, i) => (x.position = i));
     ctx.db.statuses.push(s);
-    return s;
+    return toStatus(ctx.db, s);
   });
   route("PATCH", "/tracking/projects/:id/statuses/:statusId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
@@ -313,7 +315,7 @@ export function registerProjects() {
       list.splice(Math.max(0, Math.min(position, list.length)), 0, s);
       list.forEach((x, i) => (x.position = i));
     }
-    return s;
+    return toStatus(ctx.db, s);
   });
   route("DELETE", "/tracking/projects/:id/statuses/:statusId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
@@ -339,10 +341,7 @@ export function registerProjects() {
   });
   route("GET", "/tracking/projects/:id/labels", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
-    const live = liveTasks(ctx.db, p.id);
-    return ctx.db.labels
-      .filter((l) => l.projectId === p.id)
-      .map((l) => ({ ...l, taskCount: live.filter((t) => t.labelIds.includes(l.id)).length }));
+    return ctx.db.labels.filter((l) => l.projectId === p.id).map((l) => toLabel(ctx.db, l));
   });
   /* Board 28: label rename / recolor / delete (tracking.project.update). */
   route("PATCH", "/tracking/projects/:id/labels/:labelId", (ctx) => {
@@ -359,7 +358,7 @@ export function registerProjects() {
     }
     const color = str(ctx.body, "color");
     if (color !== undefined && /^var\(--[a-z0-9-]+\)$/.test(color)) l.color = color;
-    return l;
+    return toLabel(ctx.db, l);
   });
   route("DELETE", "/tracking/projects/:id/labels/:labelId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
@@ -380,16 +379,16 @@ export function registerProjects() {
     const name = (str(ctx.body, "name") ?? "").trim().toLowerCase().slice(0, 24);
     if (!name) invalid({ name: "Name the label" });
     const existing = ctx.db.labels.find((l) => l.projectId === p.id && l.name === name);
-    if (existing) return existing;
+    if (existing) return toLabel(ctx.db, existing);
     const l = { id: uid("lb"), projectId: p.id, name, color: str(ctx.body, "color") ?? "var(--text-3)" };
     ctx.db.labels.push(l);
-    return l;
+    return toLabel(ctx.db, l);
   });
 
   /* activity + summary */
   route("GET", "/tracking/projects/:id/activity", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
-    return paginate(ctx.db.activity.filter((a) => a.projectId === p.id), ctx.query, 20);
+    return paginate(ctx.db.activity.filter((a) => a.projectId === p.id).map(toActivity), ctx.query, 20);
   });
 
   route("GET", "/tracking/projects/:id/summary", (ctx): ProjectSummary => {

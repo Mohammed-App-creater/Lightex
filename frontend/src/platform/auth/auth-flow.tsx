@@ -8,7 +8,7 @@ import { Wordmark } from "@/ui/brand/logo";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import type { User, Workspace } from "@/api/types";
+import type { SessionUser as User, Workspace } from "@/api/types";
 import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { AuthStyles, authStylesClasses as s } from "./auth-styles";

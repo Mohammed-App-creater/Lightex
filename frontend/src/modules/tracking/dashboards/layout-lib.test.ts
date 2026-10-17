@@ -112,9 +112,9 @@ describe("widget data", () => {
 
   it("objectives: objective rows only, by quarter; behind when > 10 points under expected", () => {
     const rows: ProgressRow[] = [
-      { id: "o1", kind: "objective", name: "A", percent: 62, expected: 70, quarter: "Q4" },
-      { id: "o2", kind: "objective", name: "B", percent: 40, expected: 55, quarter: "Q3" },
-      { id: "m1", kind: "milestone", name: "M", percent: 10, expected: 10, quarter: null },
+      { id: "o1", kind: "objective", name: "A", percent: 62, expected: 70, dueDate: null, quarter: "Q4" },
+      { id: "o2", kind: "objective", name: "B", percent: 40, expected: 55, dueDate: null, quarter: "Q3" },
+      { id: "m1", kind: "milestone", name: "M", percent: 10, expected: 10, dueDate: null, quarter: null },
     ];
     expect(objectiveRows(rows, "Q4").map((r) => r.id)).toEqual(["o1"]);
     expect(objectiveRows(rows, null).map((r) => r.id)).toEqual(["o1", "o2"]);

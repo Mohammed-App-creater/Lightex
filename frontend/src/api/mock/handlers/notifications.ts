@@ -1,14 +1,26 @@
 import { publishInbox } from "../realtime";
 import { CHANNEL_ORDER, withDefaults } from "@/platform/notifications/channels/model";
 import { isKnownTimeZone, isValidTime } from "@/platform/notifications/channels/quiet";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences, QuietHours } from "@/api/types";
+import type { NotificationChannel, NotificationEvent, NotificationPage, NotificationPreferences, NotificationPreferencesInput, QuietHours, RecentItem } from "@/api/types";
+
+/** Row labels from the event type registry (as the backend's EventTypeDefs name them). */
+const PREF_LABELS: Record<NotificationEvent, string> = {
+  "tracking.task.assigned": "Assigned to me",
+  "core.comment.mentioned": "Mentioned",
+  "tracking.task.status_changed": "Status change on my tasks",
+  "core.comment.created": "New comment",
+  "tracking.task.due_soon": "Due soon",
+  "tracking.sprint.started": "Sprint started",
+};
+const withLabels = ({ labels: _l, ...p }: NotificationPreferencesInput): NotificationPreferences => ({ ...p, labels: { ...PREF_LABELS } });
 import { retimeDeferred } from "../channels-dispatch";
 import { nowISO } from "../db";
+import { toNotification } from "../derive";
 import { defaultPrefs } from "../seed";
 import { fail, filterValues, invalid, paginate, requireUser, route } from "../router";
 
 export function registerNotifications() {
-  route("GET", "/notifications", (ctx) => {
+  route("GET", "/notifications", (ctx): NotificationPage => {
     const userId = requireUser(ctx);
     const tab = filterValues(ctx.query, "tab")[0] ?? "all";
     const unread = filterValues(ctx.query, "unread")[0] === "true";
@@ -19,7 +31,7 @@ export function registerNotifications() {
       .filter((n) => tab === "all" || (tab === "mentions" ? n.type === "mention" : n.type === "assigned"))
       .filter((n) => !unread || !n.readAt)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .map(({ recipientId: _r, ...n }) => n);
+      .map(toNotification);
     return {
       ...paginate(list, ctx.query, 100),
       counts: {
@@ -47,8 +59,7 @@ export function registerNotifications() {
     const read = (ctx.body as { read?: boolean })?.read !== false;
     n.readAt = read ? nowISO() : null;
     publishInbox(ctx.db, userId);
-    const { recipientId: _r, ...rest } = n;
-    return rest;
+    return toNotification(n);
   });
 
   /** Returns the ids it changed so the client can offer Undo (re-mark those unread). */
@@ -81,7 +92,7 @@ export function registerNotifications() {
     }
     // Board 38: a row cached before v2 gains the channel keys and quiet hours.
     rec.prefs = withDefaults(rec.prefs);
-    return rec.prefs;
+    return withLabels(rec.prefs);
   });
 
   /*
@@ -90,7 +101,7 @@ export function registerNotifications() {
    */
   route("PUT", "/notification-preferences", (ctx) => {
     const userId = requireUser(ctx);
-    const next = ctx.body as Partial<NotificationPreferences> | null;
+    const next = ctx.body as Partial<NotificationPreferencesInput> | null;
     if (!next?.events || !["instant", "hourly", "daily"].includes(next.emailDelivery ?? "")) invalid({ prefs: "Invalid preferences" });
     let rec = ctx.db.prefs.find((p) => p.userId === userId);
     if (!rec) {
@@ -125,13 +136,13 @@ export function registerNotifications() {
       for (const ch of CHANNEL_ORDER) if (ch in incoming) row[ch] = Boolean(incoming[ch]);
       events[ev] = row;
     }
-    const prefs: NotificationPreferences = { events, emailDelivery: next.emailDelivery!, quietHours: quiet };
+    const prefs: NotificationPreferencesInput = { events, emailDelivery: next.emailDelivery!, quietHours: quiet };
     rec.prefs = prefs;
     if (next.quietHours !== undefined) retimeDeferred(ctx.db, userId, quiet);
-    return prefs;
+    return withLabels(prefs);
   });
 
-  route("GET", "/tracking/me/recents", (ctx) => {
+  route("GET", "/tracking/me/recents", (ctx): RecentItem[] => {
     const userId = requireUser(ctx);
     return ctx.db.recents.filter((r) => r.userId === userId).slice(0, 8);
   });

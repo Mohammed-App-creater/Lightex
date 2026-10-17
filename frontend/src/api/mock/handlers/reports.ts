@@ -1,4 +1,4 @@
-import type { BurndownPoint, CycleBin, ProgressRow, ThroughputPoint, VelocityPoint } from "@/api/types";
+import type { BurndownPoint, CycleBin, ProgressRow, ReportKpis, ThroughputPoint, VelocityPoint } from "@/api/types";
 import { DAY, isDoneStatus, parseDate, startOfToday } from "@/lib/domain/progress";
 import type { MockDB } from "../db-types";
 import { liveTasks, statusesOf, toMilestone, toObjective } from "../derive";
@@ -61,7 +61,7 @@ export function registerReports() {
     return p;
   };
 
-  route("GET", "/tracking/projects/:id/reports/kpis", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/kpis", (ctx): ReportKpis => {
     const p = guard(ctx);
     const statuses = statusesOf(ctx.db, p.id);
     const tasks = liveTasks(ctx.db, p.id);
@@ -213,7 +213,7 @@ export function registerReports() {
         const created = o.createdAt.slice(0, 10);
         const expected = o.dueDate ? expectedBetween(created, o.dueDate) : null;
         // Board 33 (additive): the objective's quarter, for the dashboard's objectives widget.
-        rows.push({ id: o.id, kind: "objective", name: o.title, percent: o.progress.percent, expected, quarter: o.quarter ?? null });
+        rows.push({ id: o.id, kind: "objective", name: o.title, percent: o.progress.percent, expected, dueDate: o.dueDate, quarter: o.quarter ?? null });
       });
     ctx.db.milestones
       .filter((m) => m.projectId === p.id)

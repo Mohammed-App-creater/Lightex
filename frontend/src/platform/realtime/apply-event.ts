@@ -224,6 +224,11 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
         // Board 38: the channel rows / matrix columns, and an open Telegram dialog polls its link at once.
         invalidate(qk.channels(), ["notification-channels", "telegram-link"]);
         return;
+      case "core.module.changed":
+        // Stage 5: enabledModules and the filtered my_permissions (sidebar, route guards, role editor), the module
+        // list on Settings → Modules, the workspace switcher, and project responses (their my_permissions).
+        invalidate(qk.workspace(ctx.slug), qk.modules(ctx.slug), qk.workspaces(), ["project", ctx.slug]);
+        return;
       case "tracking.import.progress":
         return; // reserved (board 40 keeps polling)
       default:

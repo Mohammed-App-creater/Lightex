@@ -1,3 +1,4 @@
+import type { MyWorkspaceAccessRequest } from "@/api/types";
 import { nowISO, uid } from "../db";
 import { wsPermissions } from "../derive";
 import { fail, requireUser, route, wsBySlug } from "../router";
@@ -7,7 +8,7 @@ import { fail, requireUser, route, wsBySlug } from "../router";
  * added to a project. One pending request per user per workspace.
  */
 export function registerHome() {
-  route("GET", "/workspaces/:slug/access-requests/mine", (ctx) => {
+  route("GET", "/workspaces/:slug/access-requests/mine", (ctx): MyWorkspaceAccessRequest => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = requireUser(ctx);
     const request = (ctx.db.wsAccessRequests ?? []).find((r) => r.workspaceId === ws.id && r.userId === userId) ?? null;

@@ -218,4 +218,27 @@ describe("data scope", () => {
     as("u_alex");
     expect((await call<Workspace>("GET", "/workspaces/platform")).myDataScopes).toEqual({});
   });
+
+  it("Stage 5: a non-owner can't grant a wider scope than their own (403 data_scope_exceeds_own); owners can", async () => {
+    // u_jordan (Admin) holds the code with Team.
+    const admin = getDB().roles.find((r) => r.id === getDB().wsMembers.find((m) => m.userId === "u_jordan" && m.workspaceId === "ws_platform")!.roleId)!;
+    admin.permissions = [...admin.permissions, CODE];
+    admin.dataScopes = { ...admin.dataScopes, [CODE]: "team" };
+    as("u_jordan");
+    const role = await createRole({ permissions: [CODE], dataScopes: { [CODE]: "team" } });
+    let e = await failure(call("PATCH", `/roles/${role.id}`, { dataScopes: { [CODE]: "all" } }));
+    expect([e.status, e.code, e.details]).toEqual([403, "data_scope_exceeds_own", { code: CODE, dataScope: "all", yours: "team" }]);
+    // Nothing was written; narrowing is fine.
+    expect(getDB().roles.find((r) => r.id === role.id)!.dataScopes).toEqual({ [CODE]: "team" });
+    expect((await call<Role>("PATCH", `/roles/${role.id}`, { dataScopes: { [CODE]: "own" } })).dataScopes).toEqual({ [CODE]: "own" });
+    e = await failure(createRole({ name: "Wide", permissions: [CODE], dataScopes: { [CODE]: "all" } }));
+    expect(e.code).toBe("data_scope_exceeds_own");
+    // Without the code yourself, any scope is wider than yours.
+    admin.permissions = admin.permissions.filter((c) => c !== CODE);
+    e = await failure(createRole({ name: "Mine", permissions: [CODE], dataScopes: { [CODE]: "own" } }));
+    expect([e.status, e.details?.yours]).toEqual([403, null]);
+    // The owner is exempt.
+    as("u_alex");
+    expect((await call<Role>("PATCH", `/roles/${role.id}`, { dataScopes: { [CODE]: "all" } })).dataScopes).toEqual({ [CODE]: "all" });
+  });
 });

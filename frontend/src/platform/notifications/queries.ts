@@ -5,7 +5,7 @@ import { toast } from "@/ui/toast";
 import { api, type NotificationTab } from "@/api/endpoints";
 import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
-import type { Notification, NotificationPreferences } from "@/api/types";
+import type { Notification, NotificationPreferencesInput } from "@/api/types";
 import { POLL_MS } from "@/platform/workspace/queries";
 import { useLiveInterval } from "@/platform/realtime/status-store";
 
@@ -153,6 +153,6 @@ export function usePrefs() {
 export function useSavePrefs() {
   return useMutation({
     mutationKey: ["notification-prefs", "save"],
-    mutationFn: (prefs: NotificationPreferences) => api.notifications.savePreferences(prefs),
+    mutationFn: (prefs: NotificationPreferencesInput) => api.notifications.savePreferences(prefs),
   });
 }

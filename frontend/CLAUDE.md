@@ -20,6 +20,8 @@ API additions, known gaps), `docs/frontend-conventions.md` (rules every screen f
 - `npm run test:e2e` — Playwright smoke suite (`e2e/smoke.spec.ts`). It reuses a server already on port 3100, or
   starts one.
 - `npm run build` — must pass. Stop any running `next dev` first, because both use `.next`.
+- `npm run gen:api` — regenerates `src/api/schema.d.ts` from `../docs/openapi.yaml`. `npm run check:api` (also in
+  `npm test`, `src/api/schema.test.ts`) fails when it is stale: regenerate, then fix what typecheck reports.
 
 Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-library` on TanStack Virtual's
 `useVirtualizer` in `list-screen.tsx`). Ignore Tailwind "canonical class" IDE hints.
@@ -63,6 +65,13 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **`src/platform/shell/`** — sidebar, top bar (`TopBarActions` portal), global hotkeys, dev tools, edge screens
   (404/403/500).
 - **`src/api/`** — the only place that talks to a server.
+  - **Types come from the backend's schema (platform Stage 5).** `schema.d.ts` is generated (never edit it);
+    `types.ts` aliases `components["schemas"]` with `Wire` (drops `readonly`), `Refine` (narrows a loose field; the
+    override must be assignable to the schema's, so drift fails typecheck) and `SchemaGap` (a known wrong schema
+    field, listed in `docs/final-report.md` §6). Don't hand-write a wire shape: add the field to the backend schema,
+    regenerate, alias it. Client-only types (catalogue, filters, timeline modes) and the few extensions for
+    client-computed fields (the bare `TrashKind`) are commented as such. `ApiSchemas` exposes the raw components for
+    wire shapes the client normalizes (the mock's trash routes answer with them).
   - Screens call `api.<group>.<fn>` from `endpoints.ts`, with query keys from `qk` in `query-keys.ts`.
   - `getTransport()` picks `HttpTransport` (live) or `MockTransport` (mock) based on `NEXT_PUBLIC_API_MODE`.
   - Errors: `ApiError { code, message, details, status }`.
@@ -79,6 +88,9 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - The mock enforces permissions and `version` conflicts server-side. Keep the UI's gating identical.
   - Data is cached in localStorage (`lightex-mock-db`). Bump `SCHEMA` in `seed.ts` only when the seed shape really
     changes; new collections are added as optional fields instead.
+  - Records (`db-types.ts`) are the generated types minus derived fields; fields the schema made required later are
+    optional on the record and filled on the way out (`toStatus`, `toLabel`, `toActivity`, `toAudit`,
+    `toNotification` in `derive.ts`), so cached databases still load.
 - **`src/platform/roles/`** — the permission catalogue, the 7 default roles, and `useCan`, `<Can>`, `can()`,
   `canEditTask`.
 - **Layout (platform Stage 1, `docs/platform-architecture.md` §11 and `docs/platform/stage1-contract.md` at the
@@ -111,6 +123,12 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   a scopable permission yet: tests push a fixture entry into `PERMISSION_CATALOGUE`, which the mock reads too
   (`mock/data-scope.ts`). The seed (SCHEMA 7) has Frontend, Backend and Infrastructure in `platform` and Brand in
   `design-guild`.
+- **Stage 5 (cleanup, `docs/platform/stage5-contract.md` §2).** Generated API types (above). `Notification.type` is a
+  plain string: `NotificationKind` lists the kinds the inbox draws, `eventMeta()` falls back for others, and
+  `eventType` carries the registry key. A non-owner widening a role's data scope beyond their own gets 403
+  `data_scope_exceeds_own` (`details {code, dataScope, yours}`): an error toast in the role editor, enforced by the
+  mock (`assertWithinOwnScope`). Realtime `core.module.changed` `{module, enabled}` invalidates the workspace, its
+  modules and the workspace list, so the sidebar follows a toggle made elsewhere.
 - **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
   (everything project-related), plus `sales.health.view`; catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
   (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
@@ -172,9 +190,9 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     from the API, never an env var. The Telegram QR code is **not drawn**: it needs `uqr`, a new dependency pending
     the user's decision (TODO in `telegram-dialog.tsx`); the deep link and the 6-character code work without it.
     SMS texts and test previews never carry task titles or comments.
-- **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
-  `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
-  `docs/final-report.md`.
+- **No new endpoints without the paper trail.** An endpoint or field is only added with all of: the backend schema
+  (regenerated types) + `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections
+  of `docs/final-report.md`.
 - **No new npm dependencies** without a reason recorded in `docs/final-report.md` §2.
 
 ## Design sources
@@ -234,6 +252,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 
 - The repo root is a monorepo: `frontend/` (this app) and `backend/`, which another session or team works on.
 - **Commit only frontend paths** (`git commit -- frontend`); never stage someone else's in-progress `backend/` changes.
-- **Backend contract:** the backend publishes `docs/openapi.yaml` at the repo root. `frontend/docs/api-contract.md`
-  was written earlier, from the brief. Reconcile the two before switching to live mode.
+- **Backend contract:** the backend publishes `docs/openapi.yaml` at the repo root, and the client's types are
+  generated from it (`npm run gen:api`). `frontend/docs/api-contract.md` is a readable summary; the schema wins. The
+  schema gaps the client still works around are in `docs/final-report.md` §6.
 - **Commit messages** end with the Co-Authored-By attribution line.

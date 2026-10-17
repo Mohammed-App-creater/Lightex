@@ -159,6 +159,11 @@ export function RolesScreen() {
         },
       });
     } catch (e) {
+      // Stage 5: a non-owner can't grant a wider data scope than their own (403 data_scope_exceeds_own).
+      if (isApiError(e) && e.code === "data_scope_exceeds_own") {
+        toast.error("Couldn’t save role", { body: exceedsOwnMessage(e.details, cat) });
+        return;
+      }
       if (isApiError(e) && e.fieldErrors.name) setNameError(e.fieldErrors.name);
       else if (isApiError(e) && e.code === "data_scope_required") setScopeErrors(scopeCodes(e.details) ?? missingScopes(working, cat));
       else setSaveError(true);
@@ -193,7 +198,8 @@ export function RolesScreen() {
           },
         });
       } catch (e) {
-        toast.error("Couldn’t create role", { body: errorMessage(e) });
+        const exceeds = isApiError(e) && e.code === "data_scope_exceeds_own";
+        toast.error("Couldn’t create role", { body: exceeds ? exceedsOwnMessage(e.details, cat) : errorMessage(e) });
       } finally {
         setPending(null);
       }
@@ -305,7 +311,7 @@ export function RolesScreen() {
                 variant="ghost"
                 className="mt-2 justify-start max-[760px]:h-11"
                 loading={pending === "create"}
-                onClick={() => create({ name: uniqueName("New role", list.map((r) => r.name)), description: "", permissions: [] }, "create")}
+                onClick={() => create({ name: uniqueName("New role", list.map((r) => r.name)), description: "", permissions: [], dataScopes: {} }, "create")}
               >
                 <Plus size={13} aria-hidden /> New role
               </Button>
@@ -719,6 +725,22 @@ function DataScopeRow({
       )}
     </div>
   );
+}
+
+const SCOPE_WORD: Record<DataScope, string> = { own: "Own", team: "Team", all: "All" };
+
+/**
+ * The toast body for a 403 data_scope_exceeds_own (`details {code, dataScope, yours}`): which permission, the scope
+ * asked for and the actor's own (null = they don't hold the permission).
+ */
+function exceedsOwnMessage(details: Record<string, unknown> | undefined, cat: readonly PermissionInfo[]): string {
+  const code = String(details?.code ?? "");
+  const label = cat.find((p) => p.key === code)?.label ?? code;
+  const asked = SCOPE_WORD[details?.dataScope as DataScope] ?? String(details?.dataScope ?? "");
+  const yours = details?.yours ? SCOPE_WORD[details.yours as DataScope] : null;
+  return yours
+    ? `${label}: you hold ${yours}, so you can’t grant ${asked}. Ask the workspace owner.`
+    : `${label}: you don’t hold this permission, so you can’t give it a data scope. Ask the workspace owner.`;
 }
 
 /** `details.codes` of a 400 data_scope_required, if present. */

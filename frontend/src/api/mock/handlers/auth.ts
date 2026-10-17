@@ -1,4 +1,4 @@
-import type { Invite } from "@/api/types";
+import type { AcceptInviteResult, Invite, Me } from "@/api/types";
 import { mockSession, nowISO, uid } from "../db";
 import type { MockDB } from "../db-types";
 import { toMe } from "../derive";
@@ -123,7 +123,7 @@ export function registerAuth() {
     { anonymous: true },
   );
 
-  route("GET", "/auth/me", (ctx) => {
+  route("GET", "/auth/me", (ctx): Me => {
     const id = requireUser(ctx);
     const u = ctx.db.users.find((x) => x.id === id);
     if (!u) fail(401, "unauthorized", "Not signed in.");
@@ -192,7 +192,8 @@ export function registerAuth() {
       inv.status = "accepted";
       mockSession.set(user.id);
       const ws = db.workspaces.find((w) => w.id === inv.workspaceId)!;
-      return { accessToken: "mock-access-token", user: toMe(user), workspaceSlug: ws.slug };
+      // `AcceptInviteOut`: no user (the client loads it from /auth/me with the new token).
+      return { accessToken: "mock-access-token", workspaceSlug: ws.slug } satisfies AcceptInviteResult;
     },
     { anonymous: true },
   );

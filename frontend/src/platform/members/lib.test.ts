@@ -36,6 +36,7 @@ const role = (id: string, scope: Role["scope"], isSystem: boolean, permissions: 
   isSystem,
   permissions: permissions as Permission[],
   memberCount: 0,
+  dataScopes: {},
 });
 
 describe("email chips", () => {

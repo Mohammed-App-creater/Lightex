@@ -5,6 +5,7 @@ import type {
   NotificationChannels,
   NotificationEvent,
   NotificationPreferences,
+  NotificationPreferencesInput,
   PushDevice,
   TestableChannel,
 } from "@/api/types";
@@ -32,7 +33,7 @@ export const DEFAULT_EVENTS: NotificationPreferences["events"] = {
   "tracking.sprint.started": { in_app: true, email: false, telegram: false, sms: false, push: false },
 };
 
-export function defaultPreferences(): NotificationPreferences {
+export function defaultPreferences(): NotificationPreferencesInput {
   return {
     events: structuredClone(DEFAULT_EVENTS),
     emailDelivery: "instant",
@@ -41,16 +42,21 @@ export function defaultPreferences(): NotificationPreferences {
 }
 
 /** Fills missing channel keys and quiet hours (an older payload) without touching the values that are there. */
-export function withDefaults(p: Partial<NotificationPreferences> | undefined): NotificationPreferences {
+export function withDefaults(p: Partial<NotificationPreferencesInput> | undefined): NotificationPreferencesInput {
   const d = defaultPreferences();
   const events = Object.fromEntries(
     (Object.keys(d.events) as NotificationEvent[]).map((ev) => [ev, { ...d.events[ev], ...(p?.events?.[ev] ?? {}) }]),
   ) as NotificationPreferences["events"];
-  return { events, emailDelivery: p?.emailDelivery ?? d.emailDelivery, quietHours: p?.quietHours ? { ...d.quietHours, ...p.quietHours } : d.quietHours };
+  return {
+    events,
+    emailDelivery: p?.emailDelivery ?? d.emailDelivery,
+    quietHours: p?.quietHours ? { ...d.quietHours, ...p.quietHours } : d.quietHours,
+    ...(p?.labels ? { labels: p.labels } : {}),
+  };
 }
 
 /** One matrix switch → the next preferences (only that cell changes). */
-export function toggleCell(p: NotificationPreferences, event: NotificationEvent, channel: NotificationChannel, on: boolean): NotificationPreferences {
+export function toggleCell<P extends NotificationPreferencesInput>(p: P, event: NotificationEvent, channel: NotificationChannel, on: boolean): P {
   return { ...p, events: { ...p.events, [event]: { ...p.events[event], [channel]: on } } };
 }
 

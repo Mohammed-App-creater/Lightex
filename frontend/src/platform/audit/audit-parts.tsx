@@ -35,7 +35,7 @@ export function Path16({ d, size = 13, color, className, label }: { d: string; s
 }
 
 export function actorLabel(e: AuditEntry, people: PeopleIndex) {
-  return people.get(e.actorId)?.name ?? e.actorName ?? "Unknown";
+  return (e.actorId ? people.get(e.actorId)?.name : undefined) ?? e.actorName ?? "Unknown";
 }
 
 /** Member avatar, or a square mono tile for integrations (ci-bot, Automation). */
@@ -226,7 +226,7 @@ export function EventCard({ e, people, open, onToggle }: { e: AuditEntry; people
         className="flex w-full flex-col gap-[7px] px-3 py-[11px] text-left"
       >
         <span className="flex min-w-0 items-center gap-2">
-          <ActorAvatar name={name} hue={people.get(e.actorId)?.hue} integration={e.actorKind === "integration"} />
+          <ActorAvatar name={name} hue={e.actorId ? people.get(e.actorId)?.hue : undefined} integration={e.actorKind === "integration"} />
           <span className="min-w-0 flex-1 truncate font-semibold">{name}</span>
           <span className="font-mono text-[11.5px] text-fg-3">{auditTime(e.createdAt).cell}</span>
         </span>

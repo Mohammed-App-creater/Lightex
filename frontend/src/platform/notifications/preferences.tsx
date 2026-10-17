@@ -10,7 +10,7 @@ import { useWorkspace } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences, PushDevice, QuietHours, TestableChannel, Workspace } from "@/api/types";
+import type { NotificationChannel, NotificationEvent, NotificationPreferencesInput, PushDevice, QuietHours, TestableChannel, Workspace } from "@/api/types";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { ChannelsSection } from "./channels/channels-section";
@@ -61,7 +61,7 @@ export function NotificationPreferencesPage() {
   const clear = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const token = useRef(0);
   /** Last copy the server confirmed, for rollback. */
-  const confirmed = useRef<NotificationPreferences | null>(null);
+  const confirmed = useRef<NotificationPreferencesInput | null>(null);
 
   useEffect(
     () => () => {
@@ -89,7 +89,7 @@ export function NotificationPreferencesPage() {
     clear.current = setTimeout(() => setState("idle"), 2050);
   };
 
-  const commit = (next: NotificationPreferences) => {
+  const commit = (next: NotificationPreferencesInput) => {
     if (!confirmed.current && prefsQ.data) confirmed.current = prefsQ.data;
     qc.setQueryData(qk.prefs(), next);
     setState("saving");
@@ -153,7 +153,7 @@ export function NotificationPreferencesPage() {
     run(`${channel}:test`, async () => {
       if (channel !== "in_app") {
         try {
-          await api.channels.test(channel as TestableChannel, ws ? { workspace: ws.slug } : undefined);
+          await api.channels.test(channel as TestableChannel, {}, ws?.slug);
         } catch (e) {
           const copy = testErrorCopy(channel as TestableChannel, e);
           toast.error(copy.title, { body: copy.body });

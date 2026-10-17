@@ -1,9 +1,9 @@
-import type { ActivityEntry, Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/api/types";
+import type { Attachment, BoardData, Comment, RichDoc, TaskDetail, TaskPatch } from "@/api/types";
 import { validateUpload } from "@/lib/files";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { nowISO, uid } from "../db";
-import type { AttachmentRec, MockDB, TaskRec } from "../db-types";
-import { projectPermissions, statusesOf, toProject, toTask } from "../derive";
+import type { ActivityRec, AttachmentRec, MockDB, TaskRec } from "../db-types";
+import { projectPermissions, statusesOf, toActivity, toProject, toStatus, toTask } from "../derive";
 import { logActivity, notify } from "./common";
 import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
@@ -446,7 +446,7 @@ export function registerTasks() {
     // Board 40: the task's own feed starts with "imported this task from …" (task.imported), derived
     // from the import rows so a 1,000-row import doesn't flood the shared activity log.
     const imported = importedActivity(ctx.db, t);
-    return [...ctx.db.activity.filter((a) => a.taskId === t.id), ...(imported ? [imported] : [])];
+    return [...ctx.db.activity.filter((a) => a.taskId === t.id), ...(imported ? [imported] : [])].map(toActivity);
   });
 
   /* board + backlog */
@@ -463,7 +463,7 @@ export function registerTasks() {
       .sort(comparePosition)
       .map((t) => toTask(ctx.db, t));
     recordRecent(ctx.db, ctx.userId!, "project", p.id);
-    return { statuses, tasks, sprintId };
+    return { statuses: statuses.map((s) => toStatus(ctx.db, s)), tasks, sprintId } satisfies BoardData;
   });
 
   route("POST", "/tracking/tasks/:id/move", (ctx) => {
@@ -618,7 +618,7 @@ export function registerTasks() {
   });
 }
 
-function importedActivity(db: MockDB, t: TaskRec): ActivityEntry | null {
+function importedActivity(db: MockDB, t: TaskRec): ActivityRec | null {
   const row = db.importRows?.find((r) => r.taskId === t.id);
   const job = row && db.imports?.find((j) => j.id === row.jobId);
   if (!row || !job) return null;

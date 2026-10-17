@@ -1,6 +1,7 @@
-import type { AuditChange, AuditEntry } from "@/api/types";
+import type { AuditChange, AuditPage } from "@/api/types";
 import { auditActionKind, auditEntity, auditTargetFields } from "@/lib/audit";
-import type { MockDB } from "../db-types";
+import type { AuditRec, MockDB } from "../db-types";
+import { toAudit } from "../derive";
 import { filterValues, paginate, requireWs, wsBySlug, type Ctx } from "../router";
 
 /*
@@ -9,9 +10,9 @@ import { filterValues, paginate, requireWs, wsBySlug, type Ctx } from "../router
  * filter[entity] (entity type), filter[since] (ISO). Responds with { data, nextCursor, total }.
  */
 
-type Row = AuditEntry & { workspaceId: string };
+type Row = AuditRec;
 
-export function auditList(ctx: Ctx) {
+export function auditList(ctx: Ctx): AuditPage {
   const ws = wsBySlug(ctx, ctx.params.slug!);
   requireWs(ctx, ws.id, "core.audit.view");
   ensureAuditFixtures(ctx.db);
@@ -21,12 +22,12 @@ export function auditList(ctx: Ctx) {
   const since = filterValues(ctx.query, "since")[0];
   const list = ctx.db.audit
     .filter((a) => a.workspaceId === ws.id)
-    .filter((a) => !actors.length || actors.includes(a.actorId))
+    .map(toAudit)
+    .filter((a) => !actors.length || (!!a.actorId && actors.includes(a.actorId)))
     .filter((a) => !action || auditActionKind(a) === action)
     .filter((a) => !entity || auditEntity(a) === entity)
     .filter((a) => !since || a.createdAt >= since)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map(({ workspaceId: _ws, ...rest }) => rest);
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return { ...paginate(list, ctx.query, 25), total: list.length };
 }
 

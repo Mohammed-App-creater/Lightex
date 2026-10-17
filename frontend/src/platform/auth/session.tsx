@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api } from "@/api/endpoints";
 import { logoutPush } from "@/platform/notifications/channels/push";
 import { authEvents, tokenStore } from "@/api/session";
-import type { User } from "@/api/types";
+import type { SessionUser as User } from "@/api/types";
 import { apiMode } from "@/lib/env";
 
 type Status = "loading" | "anonymous" | "authenticated";

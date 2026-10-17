@@ -1,5 +1,11 @@
 import type {
+  ActivityEntry,
+  AuditEntry,
+  Notification,
   Epic,
+  Label,
+  Me,
+  Status,
   Milestone,
   Objective,
   Permission,
@@ -23,18 +29,24 @@ import type {
   RoleRec,
   SprintRec,
   TaskRec,
+  StatusRec,
+  LabelRec,
+  ActivityRec,
+  AuditRec,
+  NotificationRec,
   UserRec,
   WorkspaceRec,
 } from "./db-types";
 import { devEnabledOf, devSummaryOf } from "./dev-derive";
 import { enabledModules, onlyEnabled } from "./modules";
 import { myDataScopes, roleDataScopes } from "./data-scope";
+import { auditTargetFields } from "@/lib/audit";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
 export const toUser = ({ password: _password, ...u }: UserRec): User => u;
 /** The signed-in user's own profile, which also says whether the account has a password. */
-export const toMe = (u: UserRec): User => ({ ...toUser(u), hasPassword: Boolean(u.password) });
+export const toMe = (u: UserRec): Me => ({ ...toUser(u), hasPassword: Boolean(u.password) });
 
 export function wsMembership(db: MockDB, userId: string, workspaceId: string) {
   return db.wsMembers.find((m) => m.userId === userId && m.workspaceId === workspaceId && m.status === "active");
@@ -113,6 +125,16 @@ export function statusesOf(db: MockDB, projectId: string) {
   return db.statuses.filter((s) => s.projectId === projectId).sort((a, b) => a.position - b.position);
 }
 
+/** A status as the API sends it: with its live task count. */
+export function toStatus(db: MockDB, s: StatusRec): Status {
+  return { ...s, taskCount: liveTasks(db, s.projectId).filter((t) => t.statusId === s.id).length };
+}
+
+/** A label as the API sends it: with its live task count. */
+export function toLabel(db: MockDB, l: LabelRec): Label {
+  return { ...l, taskCount: liveTasks(db, l.projectId).filter((t) => t.labelIds.includes(l.id)).length };
+}
+
 export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
   const statuses = statusesOf(db, p.id);
   const live = liveTasks(db, p.id);
@@ -188,7 +210,7 @@ export function toMilestone(db: MockDB, m: MilestoneRec): Milestone {
   const done = Boolean(m.completedAt);
   const percent = done ? 100 : base.percent;
   const expected = expectedPercent(m.startDate, m.dueDate);
-  return { ...m, progress: { ...base, percent, expected, atRisk: isAtRisk(percent, expected, done) } };
+  return { ...m, taskIds: tasks.map((t) => t.id), progress: { ...base, percent, expected, atRisk: isAtRisk(percent, expected, done) } };
 }
 
 export function toEpic(db: MockDB, e: EpicRec): Epic {
@@ -211,4 +233,48 @@ export function toSprint(db: MockDB, s: SprintRec): Sprint {
   const points = tasks.reduce((a, t) => a + (t.estimate ?? 0), 0);
   const donePoints = tasks.filter((t) => isDoneStatus(t.statusId, statuses)).reduce((a, t) => a + (t.estimate ?? 0), 0);
   return { ...s, progress: { ...base, points, donePoints } };
+}
+
+/* ───────── feed rows (Stage 5: every schema field present) ───────── */
+
+export function toActivity({ actorName, actorKind, ...a }: ActivityRec): ActivityEntry {
+  return { ...a, actorName: actorName ?? null, actorKind: actorKind ?? "user" };
+}
+
+export function toAudit({ workspaceId: _ws, ...a }: AuditRec): AuditEntry {
+  return {
+    ...auditTargetFields(a.action),
+    ...a,
+    actorName: a.actorName ?? null,
+    actorKind: a.actorKind ?? "user",
+    targetId: a.targetId ?? null,
+    entityKey: a.entityKey ?? null,
+    source: a.source ?? "web",
+    requestId: a.requestId ?? null,
+    changes: a.changes ?? [],
+  } as AuditEntry;
+}
+
+/** The registered event-type key for each notification kind (the backend's event registry). */
+const NOTIFICATION_EVENT_TYPE: Record<string, string> = {
+  assigned: "tracking.task.assigned",
+  mention: "core.comment.mentioned",
+  status: "tracking.task.status_changed",
+  comment: "core.comment.created",
+  due: "tracking.task.due_soon",
+  sprint: "tracking.sprint.started",
+  access: "tracking.project.access_requested",
+  import: "tracking.import.finished",
+};
+export const notificationEventType = (type: string) => NOTIFICATION_EVENT_TYPE[type] ?? `tracking.${type}`;
+
+export function toNotification({ recipientId: _r, ...n }: NotificationRec): Notification {
+  return {
+    ...n,
+    eventType: n.eventType ?? notificationEventType(n.type),
+    targetType: n.targetType ?? null,
+    targetId: n.targetId ?? null,
+    title: n.title ?? null,
+    link: n.link ?? null,
+  };
 }

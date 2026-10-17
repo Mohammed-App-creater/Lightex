@@ -4,6 +4,7 @@ import type { Role, SearchResult, Workspace, WorkspaceModule } from "@/api/types
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
 import { MODULE_DEFS } from "./modules";
+import { mockBus } from "./realtime";
 import { MockTransport } from "./transport";
 
 /* Platform Stage 3 (docs/platform/stage3-contract.md §3–§4): modules API, guard and hiding effects in the mock. */
@@ -42,6 +43,23 @@ describe("GET workspaces/{slug}/modules", () => {
     expect(list.find((m) => m.key === "sales")!.navItems).toEqual([]);
     const ws = await req<Workspace>("GET", "/workspaces/platform");
     expect(ws.enabledModules).toEqual(["core", "tracking"]);
+  });
+});
+
+describe("core.module.changed (Stage 5)", () => {
+  it("is published to the workspace on a real toggle, and not for a no-op", async () => {
+    const seen: { type: string; ws?: string; projectId?: string | null; data: unknown }[] = [];
+    const off = mockBus.subscribe((e) => seen.push(e));
+    await setSales(true);
+    await setSales(true);
+    await setSales(false);
+    off();
+    const events = seen.filter((e) => e.type === "core.module.changed");
+    expect(events.map((e) => e.data)).toEqual([
+      { module: "sales", enabled: true },
+      { module: "sales", enabled: false },
+    ]);
+    expect(events[0]).toMatchObject({ ws: "ws_platform", projectId: null });
   });
 });
 

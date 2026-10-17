@@ -160,6 +160,20 @@ describe("applyEvent", () => {
     expect(invalid(qk.me())).toBe(true);
   });
 
+  it("module.changed (Stage 5): refetches the workspace, its modules and the workspace list", () => {
+    set(qk.workspace(SLUG), { enabledModules: ["core", "tracking"] });
+    set(qk.modules(SLUG), []);
+    set(qk.workspaces(), []);
+    set(qk.prefs(), { events: {} });
+    const a = applier();
+    a.apply(ev("core.module.changed", { module: "sales", enabled: true }, { projectId: null }));
+    flush();
+    expect(invalid(qk.workspace(SLUG))).toBe(true);
+    expect(invalid(qk.modules(SLUG))).toBe(true);
+    expect(invalid(qk.workspaces())).toBe(true);
+    expect(invalid(qk.prefs())).toBe(false);
+  });
+
   it("presence.updated: replaces one location and ignores an older snapshot", () => {
     const a = applier();
     const person = (id: string) => ({ user: { id, name: id, hue: 1, avatarUrl: null }, state: "viewing" as const, field: null, typing: false, since: "2026-10-09T09:00:00Z" });

@@ -1,8 +1,32 @@
 /*
- * Frontend entity types. They mirror docs/api-contract.md (no backend docs were provided, so the
- * contract there is the assumption). Field names are camelCase except `my_permissions`, which the
- * brief specifies verbatim.
+ * API types. Every request and response type is derived from the generated OpenAPI schema
+ * (`schema.d.ts`, `npm run gen:api` from `../docs/openapi.yaml`; the backend serializes camelCase, plus the verbatim
+ * `my_permissions`). Nothing here restates a wire shape by hand. Three helpers adjust a schema type:
+ *
+ * - `Wire<T>`: the schema type without `readonly` (the client builds and patches these objects).
+ * - `Refine<T, N>`: narrows fields the schema types loosely (a known union the schema sends as `string`, JSON the
+ *   schema leaves as `unknown`, a field the serializer always sends but marks optional because it has a default).
+ *   Each override must be assignable to the schema's own field type, so a schema change that breaks it fails here.
+ * - `SchemaGap<T, N>`: an override the schema contradicts. Each use is a known `docs/openapi.yaml` gap listed in
+ *   docs/final-report.md ("Remaining known gaps"); remove it when the backend fixes the schema.
+ *
+ * Client-only types (the permission catalogue, filters, timeline modes, the import parser's types) and the few
+ * extension types for client-computed fields are marked as such.
  */
+
+import type { components } from "./schema";
+
+type S = components["schemas"];
+/** The raw schema components, for wire shapes the client normalizes (the mock answers with these). */
+export type ApiSchemas = S;
+
+/** A schema type without `readonly`. */
+export type Wire<T> = { -readonly [K in keyof T]: T[K] };
+type Flat<T> = { [K in keyof T]: T[K] };
+/** Narrow some fields of a schema type; each override must be assignable to the schema's field (see above). */
+export type Refine<T, N extends { [K in keyof N]: K extends keyof T ? T[K] : never }> = Flat<Wire<Omit<T, keyof N>> & N>;
+/** Override fields the schema gets wrong (known gaps only, see above). Keys must exist on the schema type. */
+type SchemaGap<T, N extends { [K in keyof N]: K extends keyof T ? unknown : never }> = Flat<Wire<Omit<T, keyof N>> & N>;
 
 export type ID = string;
 /** YYYY-MM-DD */
@@ -10,7 +34,7 @@ export type ISODate = string;
 /** ISO-8601 UTC timestamp */
 export type ISODateTime = string;
 
-/* ───────────────────────── Permissions ───────────────────────── */
+/* ───────────────────────── Permissions (client catalogue) ───────────────────────── */
 
 export const WORKSPACE_PERMISSIONS = [
   "core.workspace.view",
@@ -23,7 +47,6 @@ export const WORKSPACE_PERMISSIONS = [
   /* Board 37 (v2): connect GitHub / GitLab, choose repositories, disconnect. */
   "tracking.integration.manage",
   "core.audit.view",
-  /* Stage 1 (platform): no endpoints or UI yet (Stages 3 and 4). */
   "core.modules.manage",
   "core.teams.manage",
   /* Stage 3 (platform): the sales module's placeholder page. Hidden while sales is off. */
@@ -67,195 +90,103 @@ export const PROJECT_PERMISSIONS = [
 export type WorkspacePermission = (typeof WORKSPACE_PERMISSIONS)[number];
 export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
 export type Permission = WorkspacePermission | ProjectPermission;
-export type RoleScope = "workspace" | "project";
+export type RoleScope = S["RoleScopeEnum"];
 
 export type PermissionGroup = "Tasks" | "Planning" | "Collaboration" | "Reports" | "Administration";
 
 /** Who owns a permission (Stage 1 contract §1). Independent of `scope`. */
 export type PermissionModule = "core" | "tracking" | "sales";
 
-export interface PermissionInfo {
-  key: Permission;
-  module: PermissionModule;
-  scope: RoleScope;
-  group: PermissionGroup;
-  label: string;
-  description: string;
-  /**
-   * Platform Stage 4: a scopable permission carries a data scope (own / team / all) on every role that grants it.
-   * Workspace scope only in this phase. Optional so older payloads still parse (missing = false).
-   */
-  scopable?: boolean;
-}
+/** `GET /permissions` item. `scopable` (Stage 4): the grant carries an own / team / all data scope. */
+export type PermissionInfo = Refine<
+  S["PermissionInfo"],
+  { key: Permission; module: PermissionModule; scope: RoleScope; group: PermissionGroup }
+>;
 
-/** Platform Stage 4 (stage4-contract.md §2): how much of the workspace's data a scopable grant reaches. */
-export type DataScope = "own" | "team" | "all";
+/** Platform Stage 4: how much of the workspace's data a scopable grant reaches. */
+export type DataScope = NonNullable<S["RoleInRequest"]["dataScopes"]>[string];
 export const DATA_SCOPES: readonly DataScope[] = ["own", "team", "all"];
 /** `{code: scope}` for scopable codes. */
 export type DataScopeMap = Record<string, DataScope>;
 
-export interface Role {
-  id: ID;
-  workspaceId: ID;
-  name: string;
-  description: string;
-  scope: RoleScope;
-  isSystem: boolean;
-  permissions: Permission[];
-  memberCount: number;
-  /** Platform Stage 4: the scope of each granted scopable code. Optional so older payloads still parse. */
-  dataScopes?: DataScopeMap;
-}
+export type Role = Refine<S["Role"], { description: string; permissions: Permission[]; dataScopes: DataScopeMap }>;
+export type RoleCreate = Refine<S["RoleInRequest"], { name: string; scope: RoleScope; permissions: Permission[] }>;
+export type RolePatch = Refine<S["PatchedRoleInRequest"], { permissions?: Permission[] }>;
 
 /* ───────────────────────── People and workspaces ───────────────────────── */
 
-export interface User {
-  id: ID;
-  name: string;
-  email: string;
-  /** Avatar hue for oklch(var(--av-l) var(--av-c) hue). */
-  hue: number;
-  avatarUrl: string | null;
-  createdAt: ISODateTime;
-  /** Only on the signed-in user (`/auth/me`, sign-in responses). False for Google-only accounts. */
-  hasPassword?: boolean;
-}
+/** `hue`: avatar hue for oklch(var(--av-l) var(--av-c) hue); always sent (the schema marks it optional: it has a default). */
+export type User = Refine<S["User"], { hue: number }>;
+/** The signed-in user (`/auth/me`). `hasPassword` is false for Google-only accounts. */
+export type Me = Refine<S["Me"], { hue: number }>;
+export type AuthResult = Refine<S["AuthOut"], { user: User }>;
+export type AcceptInviteResult = Wire<S["AcceptInviteOut"]>;
 
-export interface Workspace {
-  id: ID;
-  slug: string;
-  name: string;
-  hue: number;
-  createdAt: ISODateTime;
-  memberCount: number;
-  myRoleId: ID;
-  my_permissions: WorkspacePermission[];
-  /** Board 38 (additive, optional so older payloads still parse). PATCH needs `core.workspace.update`. */
-  notificationPolicy?: { sms: boolean };
-  /** Platform Stage 3: module keys turned on for this workspace. Always contains "core". */
-  enabledModules: string[];
-  /** Platform Stage 4: the scope of each scopable code the user holds (disabled modules excluded). */
-  myDataScopes?: DataScopeMap;
-}
+export type Workspace = Refine<
+  S["Workspace"],
+  {
+    hue: number;
+    my_permissions: WorkspacePermission[];
+    /** Platform Stage 4: the scope of each scopable code the user holds (disabled modules excluded). */
+    myDataScopes: DataScopeMap;
+    /** Board 38: PATCH needs `core.workspace.update`. */
+    notificationPolicy: { sms: boolean };
+  }
+>;
+export type WorkspaceCreate = Refine<S["WorkspaceCreateInRequest"], { name: string; slug: string }>;
+/** `notificationPolicy` (board 38) is accepted by PATCH but missing from `PatchedWorkspaceUpdateInRequest` (known gap). */
+export type WorkspacePatch = Wire<S["PatchedWorkspaceUpdateInRequest"]> & { notificationPolicy?: { sms: boolean } };
+export type SlugAvailability = Wire<S["SlugAvailability"]>;
 
-/* Platform Stage 4 (stage4-contract.md §1): flat teams inside a workspace. */
-
-/** `GET workspaces/{slug}/teams` item. */
-export interface Team {
-  id: ID;
-  name: string;
-  description: string;
-  memberCount: number;
-  leadIds: ID[];
-  createdAt: ISODateTime;
-}
-
-/** A team member. User fields as in the workspace member serializer (no hue: the UI takes it from the member list). */
-export interface TeamMember {
-  userId: ID;
-  name: string;
-  email: string;
-  avatarUrl: string | null;
-  isLead: boolean;
-}
-
-/** `GET teams/{id}`: the list item plus its members. */
-export interface TeamDetail extends Team {
-  members: TeamMember[];
-}
+/* Platform Stage 4: flat teams inside a workspace. */
+export type Team = Refine<S["Team"], { description: string }>;
+/** A team member (no hue: the UI takes it from the member list). */
+export type TeamMember = Wire<S["TeamMember"]>;
+export type TeamDetail = Refine<S["TeamDetail"], { description: string }>;
 
 /** A nav item a module contributes (Stage 3 contract §1); `path` is relative to the workspace. */
-export interface ModuleNavItemInfo {
-  key: string;
-  label: string;
-  icon: string;
-  path: string;
-  permission: string | null;
-}
+export type ModuleNavItemInfo = Wire<S["NavItem"]>;
+/** `GET workspaces/{slug}/modules`. `core` is listed too (always on, not toggleable). */
+export type WorkspaceModule = Wire<S["WorkspaceModule"]>;
 
-/** `GET workspaces/{slug}/modules` (Stage 3 contract §3). `core` is listed too (always on, not toggleable). */
-export interface WorkspaceModule {
-  key: string;
-  name: string;
-  description: string;
-  isCore: boolean;
-  toggleable: boolean;
-  enabled: boolean;
-  dependsOn: string[];
-  /** null for core (it has no row) and for modules never turned on. */
-  enabledAt: ISODateTime | null;
-  /** The user id that last turned the module on (assumed: an id, not a user object). */
-  enabledBy: ID | null;
-  /** Empty while the module is disabled. */
-  navItems: ModuleNavItemInfo[];
-}
+export type MemberStatus = S["WorkspaceMemberStatusEnum"];
+export type WorkspaceMember = Refine<S["WorkspaceMember"], { status: MemberStatus; user: User }>;
 
-export type MemberStatus = "active" | "deactivated";
-
-export interface WorkspaceMember {
-  userId: ID;
-  workspaceId: ID;
-  roleId: ID;
-  user: User;
-  status: MemberStatus;
-  joinedAt: ISODateTime;
-  lastActiveAt: ISODateTime | null;
-}
-
-export interface Invite {
-  id: ID;
-  workspaceId: ID;
-  workspaceName: string;
-  email: string;
-  roleId: ID;
-  roleName: string;
-  invitedBy: Pick<User, "id" | "name" | "hue">;
-  createdAt: ISODateTime;
-  expiresAt: ISODateTime;
-  status: "pending" | "accepted" | "revoked" | "expired";
-}
+export type InviteStatus = "pending" | "accepted" | "revoked" | "expired";
+export type Invite = Refine<S["Invite"], { invitedBy: Pick<User, "id" | "name" | "hue"> | null; status: InviteStatus }>;
 
 /* ───────────────────────── Projects ───────────────────────── */
 
-/** "simple" added by board 24 (4 templates). */
-export type ProjectTemplate = "simple" | "kanban" | "scrum" | "bugs";
+export type ProjectTemplate = S["ProjectTemplateEnum"];
+export type ProjectStatus = S["ProjectStatusEnum"];
 
-export interface Project {
-  id: ID;
-  workspaceId: ID;
-  /** Task key prefix, e.g. PRJ. */
-  key: string;
-  name: string;
-  description: string;
-  hue: number;
-  leadId: ID | null;
-  status: "active" | "archived";
-  template: ProjectTemplate;
-  createdAt: ISODateTime;
-  memberCount: number;
-  openTaskCount: number;
-  /** Board 24 (home project ring): tasks in a done-category status. Optional for older payloads. */
-  doneTaskCount?: number;
-  activeSprintId: ID | null;
-  myRoleId: ID | null;
-  my_permissions: ProjectPermission[];
-  /** Board 40: `task_seq + 1`, the number the next task gets (import picker "next key" PRJ-61). */
-  nextTaskNumber: number;
-  /** Board 37: at least one active integration has a tracked repository that applies to this project. */
-  devEnabled: boolean;
-  /** Platform Stage 4: the same workspace-level map as `Workspace.myDataScopes` (for symmetry). */
-  myDataScopes?: DataScopeMap;
-}
+export type Project = Refine<
+  S["Project"],
+  {
+    description: string;
+    hue: number;
+    status: ProjectStatus;
+    template: ProjectTemplate;
+    my_permissions: ProjectPermission[];
+    /** Platform Stage 4: the same workspace-level map as `Workspace.myDataScopes`. */
+    myDataScopes: DataScopeMap;
+  }
+>;
+export type ProjectCreate = Refine<S["ProjectInRequest"], { name: string; key: string }>;
+export type ProjectPatch = Wire<S["PatchedProjectInRequest"]>;
 
 /** Board 24 "Not on any project": a member asks workspace admins to be added to a project. */
-export interface WorkspaceAccessRequest {
-  id: ID;
-  workspaceId: ID;
-  userId: ID;
-  createdAt: ISODateTime;
-}
+export type WorkspaceAccessRequest = Wire<S["WorkspaceAccessRequest"]>;
+export type MyWorkspaceAccessRequest = Wire<S["MyWsAccessRequest"]>;
 
-/** Returned with a 403 for a project the user is not a member of. */
+export type AccessRequestStatus = "pending" | "approved" | "denied" | "withdrawn";
+export type AccessRequest = Refine<S["AccessRequest"], { status: AccessRequestStatus }>;
+export type AccessRequestWithUser = Refine<S["AccessRequestWithUser"], { status: AccessRequestStatus; user: User }>;
+
+/**
+ * Error details, not a response body: `details.project` of the 403 `not_a_project_member` (the schema has no
+ * components for error details). Also the shape of a project-directory row (see `ProjectDirectoryItem`).
+ */
 export interface ProjectAccessInfo {
   id: ID;
   key: string;
@@ -264,135 +195,48 @@ export interface ProjectAccessInfo {
   admins: Pick<User, "id" | "name" | "hue">[];
   myRequest: AccessRequest | null;
 }
+/** Known gap: the schema's `ProjectDirectoryEntry` has only `id`; the server sends the access info plus these. */
+export type ProjectDirectoryItem = Wire<S["ProjectDirectoryEntry"]> & ProjectAccessInfo & { isMember: boolean; status: ProjectStatus };
 
-export interface ProjectMember {
-  projectId: ID;
-  userId: ID;
-  roleId: ID;
-  user: User;
-  addedAt: ISODateTime;
-}
+export type ProjectMember = Refine<S["ProjectMember"], { user: User }>;
 
-export interface AccessRequest {
-  id: ID;
-  projectId: ID;
-  userId: ID;
-  message: string;
-  createdAt: ISODateTime;
-  status: "pending" | "approved" | "denied" | "withdrawn";
-}
+export type StatusCategory = S["StatusCategoryEnum"];
+export type StatusGlyph = S["GlyphEnum"];
 
-export type StatusCategory = "todo" | "in_progress" | "done";
-export type StatusGlyph = "backlog" | "todo" | "progress" | "review" | "done" | "canceled";
+/** `position` is always sent (optional in the schema: it has a default). `color`: CSS token, null = the glyph's default. */
+export type Status = Refine<S["Status"], { position: number }>;
+export type StatusCreate = Refine<S["StatusInRequest"], { name: string; category: StatusCategory }>;
+export type StatusPatch = Wire<S["PatchedStatusInRequest"]>;
 
-export interface Status {
-  id: ID;
-  projectId: ID;
-  name: string;
-  category: StatusCategory;
-  /** Display glyph. Optional on the wire; derived from category when absent. */
-  glyph: StatusGlyph;
-  position: number;
-  /** CSS colour token for the glyph (board 28). Null/absent = the glyph's default colour. */
-  color?: string | null;
-  /** Live tasks in this status (returned by GET /projects/:id/statuses). */
-  taskCount?: number;
-}
-
-export interface Label {
-  id: ID;
-  projectId: ID;
-  name: string;
-  /** CSS colour token, e.g. "var(--low)". */
-  color: string;
-  /** Live tasks carrying this label (returned by GET /projects/:id/labels). */
-  taskCount?: number;
-}
+/** `color`: CSS colour token, e.g. "var(--low)"; always sent. */
+export type Label = Refine<S["Label"], { color: string }>;
+export type LabelPatch = Wire<S["PatchedLabelInRequest"]>;
 
 /* ───────────────────────── Planning ───────────────────────── */
 
-export interface Progress {
-  done: number;
-  total: number;
-  /** 0–100, computed from tasks; never stored. */
-  percent: number;
-}
+/** 0–100 `percent`, computed from tasks; never stored. */
+export type Progress = Wire<S["ProgressOut"]>;
+export type Objective = Wire<S["ObjectiveOut"]>;
+export type ObjectiveWrite = Wire<S["PatchedObjectiveInRequest"]>;
+/** `progress.expected`: share of the start→due window elapsed today, 0–100. */
+export type Milestone = Wire<S["MilestoneOut"]>;
+export type MilestoneWrite = Wire<S["PatchedMilestoneInRequest"]>;
+/** Board 32: `startDate` / `dueDate` both or neither (null = the timeline derives the span from the tasks). */
+export type Epic = Wire<S["EpicOut"]>;
+/** Create / update body. `archived` toggles archivedAt server-side. */
+export type EpicWrite = Wire<S["PatchedEpicInRequest"]>;
 
-export interface Objective {
-  id: ID;
-  projectId: ID;
-  title: string;
-  description: string;
-  ownerId: ID | null;
-  quarter: string;
-  dueDate: ISODate | null;
-  status: "active" | "achieved" | "dropped";
-  taskIds: ID[];
-  progress: Progress;
-  createdAt: ISODateTime;
-}
-
-export interface Milestone {
-  id: ID;
-  projectId: ID;
-  name: string;
-  description: string;
-  ownerId: ID | null;
-  startDate: ISODate;
-  dueDate: ISODate;
-  completedAt: ISODateTime | null;
-  progress: Progress & {
-    /** Share of the start→due window elapsed today, 0–100. */
-    expected: number;
-    atRisk: boolean;
-  };
-}
-
-export interface Epic {
-  id: ID;
-  projectId: ID;
-  name: string;
-  description: string;
-  hue: number;
-  /** Board 27: epic owner, target milestone, archive state. */
-  ownerId: ID | null;
-  milestoneId: ID | null;
-  archivedAt: ISODateTime | null;
-  /** Board 32: both or neither. Null = the timeline derives the span from the epic's tasks. */
-  startDate: ISODate | null;
-  /** Board 32: target date ("Target" in the UI). */
-  dueDate: ISODate | null;
-  progress: Progress;
-}
-
-/** Board 27: body for create / update epic. `archived` toggles archivedAt server-side. Board 32 adds the dates (both or neither). */
-export type EpicWrite = Partial<Pick<Epic, "name" | "description" | "hue" | "ownerId" | "milestoneId">> & {
-  archived?: boolean;
-  startDate?: ISODate | null;
-  dueDate?: ISODate | null;
-};
-
-export type SprintState = "planned" | "active" | "completed";
-
-export interface Sprint {
-  id: ID;
-  projectId: ID;
-  name: string;
-  number: number;
-  goal: string;
-  startDate: ISODate;
-  endDate: ISODate;
-  state: SprintState;
-  completedAt: ISODateTime | null;
-  progress: Progress & { points: number; donePoints: number };
-}
+export type SprintState = S["SprintOutStateEnum"];
+export type Sprint = Wire<S["SprintOut"]>;
+export type SprintWrite = Wire<S["PatchedSprintInRequest"]>;
 
 /* ───────────────────────── Tasks ───────────────────────── */
 
-export type TaskType = "feature" | "bug" | "chore" | "spike";
+export type TaskType = S["TaskTypeEnum"];
+/** 0 none … 4 urgent (the schema types it `integer`). */
 export type Priority = 0 | 1 | 2 | 3 | 4;
 
-/** Tiptap / ProseMirror JSON. Never rendered as raw HTML. */
+/** Tiptap / ProseMirror JSON (the schema types it `unknown`). Never rendered as raw HTML. */
 export type RichDoc = { type: "doc"; content?: RichNode[] };
 export type RichNode = {
   type: string;
@@ -402,161 +246,60 @@ export type RichNode = {
   marks?: { type: string; attrs?: Record<string, unknown> }[];
 };
 
-export interface Task {
-  id: ID;
-  projectId: ID;
-  /** PRJ-42 */
-  key: string;
-  number: number;
-  title: string;
-  type: TaskType;
-  priority: Priority;
-  statusId: ID;
-  assigneeId: ID | null;
-  reporterId: ID;
-  estimate: number | null;
-  /** Board 32. Effective span = [startDate ?? dueDate, dueDate ?? startDate]. */
-  startDate: ISODate | null;
-  dueDate: ISODate | null;
-  epicId: ID | null;
-  milestoneId: ID | null;
-  sprintId: ID | null;
-  parentId: ID | null;
-  objectiveIds: ID[];
-  labelIds: ID[];
-  /** Fractional index (string) for ordering within a column / backlog. */
-  position: string;
-  /** Optimistic-concurrency version; sent back on every mutation. */
-  version: number;
-  createdAt: ISODateTime;
-  updatedAt: ISODateTime;
-  completedAt: ISODateTime | null;
-  deletedAt: ISODateTime | null;
-  subtaskCount: number;
-  subtaskDoneCount: number;
-  commentCount: number;
-  attachmentCount: number;
-  /* Board 39 (v2): requested API fields. */
-  /** Set custom-field values only, keyed by field id (select → option id, user → user id, date → ISO). */
-  customFields: Record<ID, CustomFieldValue>;
-  /** At least one open blocker (a live blocker not in a done-category status). Derived. */
-  isBlocked: boolean;
-  /** The open blockers, ordered by task number. */
-  openBlockers: TaskRef[];
-  /** Time estimate in minutes (separate from story points). */
-  timeEstimateMinutes: number | null;
-  /** Sum of the task's time entries, all users. */
-  loggedMinutes: number;
-  /* Board 37 (v2). */
-  /** Linked development work (headline PR + counts); null when the task has no visible links. */
-  dev: TaskDevSummary | null;
-}
+/** select → option id, user → user id, date → ISODate, number → number, text → string. */
+export type CustomFieldValue = string | number;
 
-/** Full task as returned by GET /workspaces/:slug/tasks/:key. */
-export interface TaskDetail extends Task {
-  description: RichDoc | null;
-  subtasks: Task[];
-  project: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">;
-  /** Board 39: both sides of the task's dependencies. */
-  dependencies: TaskDependencies;
-}
+/**
+ * `position`: fractional index; `version`: optimistic-concurrency version sent back on every mutation; board 39
+ * `customFields` (set values only, keyed by field id), `isBlocked` / `openBlockers`; board 37 `dev`.
+ */
+export type Task = Refine<S["TaskOut"], { priority: Priority; customFields: Record<ID, CustomFieldValue> }>;
 
-export type TaskPatch = Partial<
-  Pick<
-    Task,
-    | "title"
-    | "type"
-    | "priority"
-    | "statusId"
-    | "assigneeId"
-    | "estimate"
-    | "startDate"
-    | "dueDate"
-    | "epicId"
-    | "milestoneId"
-    | "sprintId"
-    | "objectiveIds"
-    | "labelIds"
-  >
-> & {
-  description?: RichDoc | null;
-  /** Board 39. Merge: listed keys are set, null clears, unlisted keys are untouched. */
-  customFields?: Record<ID, CustomFieldValue | null>;
-  /** Board 39. 1–60 000 minutes, or null to clear. */
-  timeEstimateMinutes?: number | null;
-};
+/** Full task as returned by GET /tracking/workspaces/:slug/tasks/:key. */
+export type TaskDetail = Refine<
+  S["TaskDetailOut"],
+  {
+    priority: Priority;
+    customFields: Record<ID, CustomFieldValue>;
+    description: RichDoc | null;
+    subtasks: Task[];
+    project: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">;
+    dependencies: TaskDependencies;
+  }
+>;
 
-export interface TaskCreate {
-  title: string;
-  statusId?: ID;
-  type?: TaskType;
-  priority?: Priority;
-  assigneeId?: ID | null;
-  sprintId?: ID | null;
-  epicId?: ID | null;
-  milestoneId?: ID | null;
-  dueDate?: ISODate | null;
-  /** Board 32 (API symmetry and seed; the create dialog doesn't show it). */
-  startDate?: ISODate | null;
-  parentId?: ID | null;
-  labelIds?: ID[];
-  description?: RichDoc | null;
-  /** Story points (board 30 create dialog). */
-  estimate?: number | null;
-}
-
-export interface TaskMove {
-  statusId?: ID;
-  /** null moves to the backlog. */
-  sprintId?: ID | null;
-  position: string;
-  version: number;
-}
+/** PATCH body. `customFields` merges (null clears); `timeEstimateMinutes` 1–60 000 or null. */
+export type TaskPatch = Refine<
+  Omit<S["PatchedTaskWriteInRequest"], "version">,
+  { priority?: Priority; description?: RichDoc | null; customFields?: Record<ID, CustomFieldValue | null> }
+>;
+export type TaskCreate = Refine<
+  Omit<S["TaskWriteInRequest"], "version" | "customFields" | "timeEstimateMinutes">,
+  { title: string; priority?: Priority; description?: RichDoc | null }
+>;
+/** `sprintId: null` moves to the backlog. */
+export type TaskMove = Wire<S["TaskMoveRequest"]>;
+export type TaskBulk = Refine<S["BulkInRequest"], { patch?: TaskPatch }>;
+export type BoardData = Refine<S["Board"], { statuses: Status[]; tasks: Task[] }>;
+export type BacklogData = Refine<S["Backlog"], { sprints: { sprintId: ID; tasks: Task[] }[]; backlog: Task[] }>;
 
 /**
  * Platform Stage 2: comments and attachments hang off a generic target (`targets/{targetType}/{targetId}/…`).
  * `targetType` is "<module>.<entity>" ("tracking.task"); `targetId` is the record's id (for tasks, `Task.id`).
  */
-export interface TargetRef {
-  targetType: string;
-  targetId: ID;
-}
+export type TargetRef = Pick<S["Comment"], "targetType" | "targetId">;
 
-export interface Comment extends TargetRef {
-  id: ID;
-  authorId: ID;
-  body: RichDoc;
-  mentions: ID[];
-  createdAt: ISODateTime;
-  editedAt: ISODateTime | null;
-}
+export type Comment = Refine<S["Comment"], { body: RichDoc }>;
 
-export type AttachmentKind = "image" | "code" | "text";
-
-export interface Attachment extends TargetRef {
-  id: ID;
-  uploaderId: ID;
-  fileName: string;
-  size: number;
-  mimeType: string;
-  kind: AttachmentKind;
-  /** Short-lived signed URL; served as a download for anything but raster images. */
-  downloadUrl: string;
-  /** Raster images only (png/jpg/gif/webp). Never set for SVG or HTML. */
-  previewUrl: string | null;
-  createdAt: ISODateTime;
-}
-
-export interface UploadTicket {
-  uploadId: ID;
-  url: string;
-  method: "PUT";
-  headers: Record<string, string>;
-  expiresAt: ISODateTime;
-}
+export type AttachmentKind = S["AttachmentKindEnum"];
+/** `downloadUrl`: short-lived, a download for anything but raster images. `previewUrl`: raster images only. */
+export type Attachment = Wire<S["Attachment"]>;
+export type UploadTicket = Wire<S["UploadTicket"]>;
+export type UploadRequest = Wire<S["UploadUrlInRequest"]>;
 
 /* ───────────────────────── Activity, notifications ───────────────────────── */
 
+/** The verbs the feeds render (the schema types `verb` as `string`). */
 export type ActivityVerb =
   | "created"
   | "status_changed"
@@ -572,70 +315,56 @@ export type ActivityVerb =
   | "member_added"
   | "dependency_added"
   | "dependency_removed"
-  /** Board 40: `tracking.task.imported` (task feed) and `tracking.project.import_completed` (project / workspace feeds). */
+  /** Board 40: `tracking.task.imported` and `tracking.project.import_completed`. */
   | "imported"
   /* Board 37: `tracking.task.dev_linked` (PR/MR), `tracking.task.dev_branch_created`, `tracking.task.dev_pr_state` → merged. */
   | "dev_linked"
   | "dev_branch_created"
   | "dev_pr_merged";
 
-export interface ActivityEntry {
-  id: ID;
-  actorId: ID | null;
-  verb: ActivityVerb;
-  projectId: ID;
-  taskId: ID | null;
-  taskKey: string | null;
-  taskTitle: string | null;
-  data: Record<string, string | number | null>;
-  createdAt: ISODateTime;
-  /** Board 37: the actor's display name for integration rows ("GitHub"); actorId is null then. */
-  actorName?: string | null;
-  /** Board 37: "integration" rows render the square integration avatar. */
-  actorKind?: "user" | "integration";
+/** Board 37: `actorKind` "integration" rows (actorId null, actorName "GitHub") render the integration avatar. */
+export type ActivityEntry = Refine<S["ActivityOut"], { verb: ActivityVerb; data: Record<string, string | number | null> }>;
+
+/**
+ * The display kinds the inbox knows. `Notification.type` is a plain string on the wire (Stage 5): the module that
+ * notifies picks it, so an unknown kind falls back to a generic row. "access": someone asked to join a project you
+ * manage; "import" (board 40): an import you started finished, stopped or failed.
+ */
+export type NotificationKind = "assigned" | "mention" | "status" | "comment" | "due" | "sprint" | "access" | "import";
+export type NotificationType = S["Notification"]["type"];
+
+/** The free-form payload (the schema types it `unknown`). */
+export interface NotificationPayload {
+  quote?: string;
+  fromStatus?: string;
+  toStatus?: string;
+  dueDate?: ISODate;
+  sprintName?: string;
+  projectKey?: string;
+  /* Board 40 ("import"). */
+  importId?: ID;
+  imported?: number;
+  skipped?: number;
+  importStatus?: "completed" | "canceled" | "failed";
+  /** Board 37: the change was made by an automation of this provider ("GitHub moved PRJ-42 to Done"). */
+  via?: Provider;
 }
 
-/** "access": someone asked to join a project you manage (no task; payload.projectKey, optional quote). */
-/** "import" (board 40): an import you started finished, stopped or failed (system row, no task). */
-export type NotificationType = "assigned" | "mention" | "status" | "comment" | "due" | "sprint" | "access" | "import";
+/**
+ * `eventType` (Stage 5): the registered event-type key ("tracking.task.assigned"). `projectName`, `taskKey` and
+ * `taskTitle` are snapshots taken when the notification was created. `title` / `link` come from the target's
+ * describe() (the mock sends an app-relative link).
+ */
+export type Notification = Refine<S["Notification"], { payload: NotificationPayload }>;
+/** Known gap: the schema's `NotificationPage.data` is a single object; the server sends an array. */
+export type NotificationPage = SchemaGap<
+  S["NotificationPage"],
+  { data: Notification[]; counts: { all: number; mentions: number; assigned: number; unread: number } }
+>;
+export type UnreadCount = Wire<S["UnreadCount"]>;
+export type ReadAllResult = Wire<S["ReadAllOut"]>;
 
-export interface Notification {
-  id: ID;
-  type: NotificationType;
-  /** null for system notifications (e.g. "Due tomorrow"). */
-  actorId: ID | null;
-  /** Platform Stage 2: null for notifications whose target has no project. */
-  projectId: ID | null;
-  projectName: string | null;
-  taskId: ID | null;
-  taskKey: string | null;
-  taskTitle: string | null;
-  payload: {
-    quote?: string;
-    fromStatus?: string;
-    toStatus?: string;
-    dueDate?: ISODate;
-    sprintName?: string;
-    projectKey?: string;
-    /* Board 40 ("import"). */
-    importId?: ID;
-    imported?: number;
-    skipped?: number;
-    importStatus?: "completed" | "canceled" | "failed";
-    /** Board 37: the change was made by an automation of this provider ("GitHub moved PRJ-42 to Done"). */
-    via?: Provider;
-  };
-  createdAt: ISODateTime;
-  readAt: ISODateTime | null;
-  /* Platform Stage 2 (additive; optional so older rows still parse). */
-  targetType?: string | null;
-  targetId?: ID | null;
-  /** The target's title from the module's describe() (task title, project name…). */
-  title?: string | null;
-  /** Absolute URL of the target, from describe() (the mock sends an app-relative path). */
-  link?: string | null;
-}
-
+/** Notification preference keys (client: the matrix rows). */
 export type NotificationEvent =
   | "tracking.task.assigned"
   | "core.comment.mentioned"
@@ -645,235 +374,124 @@ export type NotificationEvent =
   | "tracking.sprint.started";
 /** Board 38 (v2): the channels that leave the app. */
 export type ExternalChannel = "telegram" | "sms" | "push";
-/** Widened from v1 (`in_app` | `email`) by board 38. */
 export type NotificationChannel = "in_app" | "email" | ExternalChannel;
 
-/** Board 38. Holds Telegram, SMS and Push only (in-app is never held; email keeps its own delivery setting). */
-export interface QuietHours {
-  enabled: boolean;
-  /** "22:00" (24 h, local to `timezone`). */
-  from: string;
-  /** "08:00"; `from > to` is an overnight window. */
-  to: string;
-  /** IANA name; null until first set. Quiet hours are inactive while it is null. */
-  timezone: string | null;
-  /** Mon..Sun. A day means "the window that starts on this day". */
-  days: [boolean, boolean, boolean, boolean, boolean, boolean, boolean];
-  /** Tasks with priority 4 (Urgent) still notify. */
-  urgentBypass: boolean;
-}
+/** Board 38. Holds Telegram, SMS and Push only. `days` is Mon..Sun; `from > to` is an overnight window. */
+export type QuietHours = Refine<S["QuietHours"], { days: [boolean, boolean, boolean, boolean, boolean, boolean, boolean] }>;
 
-export interface NotificationPreferences {
-  events: Record<NotificationEvent, Record<NotificationChannel, boolean>>;
-  emailDelivery: "instant" | "hourly" | "daily";
-  /** Board 38. */
-  quietHours: QuietHours;
-  /** Platform Stage 2: row labels from the event type registry, when the server sends them. */
-  labels?: Partial<Record<NotificationEvent, string>>;
-}
+/** `labels`: row labels from the event type registry (read-only). */
+export type NotificationPreferences = Refine<
+  S["NotificationPreferences"],
+  {
+    events: Record<NotificationEvent, Record<NotificationChannel, boolean>>;
+    emailDelivery: "instant" | "hourly" | "daily";
+    quietHours: QuietHours;
+  }
+>;
+export type NotificationPreferencesInput = Omit<NotificationPreferences, "labels"> & Partial<Pick<NotificationPreferences, "labels">>;
 
 /* ───────── Board 38 (v2): Telegram, SMS and push channels ───────── */
 
-export interface TelegramConnection {
-  id: ID;
-  /** "alexkim" (no @); null when the Telegram account has no username. */
-  username: string | null;
-  firstName: string;
-  status: "active" | "blocked";
-  connectedAt: ISODateTime;
-  /** "You blocked the bot in Telegram." */
-  lastError: string | null;
-}
+export type TelegramConnection = Wire<S["TelegramConnection"]>;
+export type SmsConnection = Wire<S["SmsConnection"]>;
+export type PushDevice = Wire<S["PushDevice"]>;
+export type SmsCountry = Wire<S["SmsCountry"]>;
 
-export interface SmsConnection {
-  id: ID;
-  /** E.164, owner only. */
-  phoneNumber: string;
-  /** "+1 (415) 555-0132" */
-  display: string;
-  country: string;
-  status: "active" | "opted_out" | "invalid";
-  verifiedAt: ISODateTime;
-  lastError: string | null;
-}
+/**
+ * C1 `GET /me/notification-channels`. Known gaps: the schema has `telegram.connection` and `sms.connection`
+ * non-nullable, and `sms.countries` / `push.devices` as single objects; the server sends null / arrays.
+ */
+export type NotificationChannels = SchemaGap<
+  S["NotificationChannels"],
+  {
+    email: Wire<S["EmailChannel"]>;
+    telegram: SchemaGap<S["TelegramChannel"], { connection: TelegramConnection | null }>;
+    sms: SchemaGap<S["SmsChannel"], { connection: SmsConnection | null; countries: SmsCountry[] }>;
+    push: SchemaGap<S["PushChannel"], { devices: PushDevice[] }>;
+  }
+>;
 
-export interface PushDevice {
-  id: ID;
-  /** "Chrome on macOS" (derived from the User-Agent). */
-  label: string;
-  /** First 16 hex chars of sha256(endpoint): lets a browser find itself. */
-  endpointHash: string;
-  status: "active" | "expired";
-  createdAt: ISODateTime;
-  lastSeenAt: ISODateTime;
-  lastSuccessAt: ISODateTime | null;
-}
+/** C2 / C3. `code` and `deepLink` only while pending. Known gap: `connection` is nullable on the wire. */
+export type TelegramLink = SchemaGap<S["TelegramLink"], { connection: TelegramConnection | null }>;
+export type SmsVerification = Wire<S["SmsVerification"]>;
+export type SmsVerificationInput = Wire<S["SmsVerificationInRequest"]>;
+export type SmsVerifyResult = Wire<S["SmsVerifyOut"]>;
+export type VapidKey = Wire<S["VapidKey"]>;
 
-export interface SmsCountry {
-  code: string;
-  dial: string;
-  label: string;
-  /** National digit count. */
-  digits: number;
-  /** "(XXX) XXX-XXXX" */
-  pattern: string;
-}
+/** C11 body: the browser's `PushSubscription.toJSON()` (the schema types it `unknown`) plus a mode. */
+export type PushSubscriptionInput = Refine<
+  S["PushSubscriptionInputRequest"],
+  { subscription: { endpoint: string; expirationTime: number | null; keys: { p256dh: string; auth: string } } }
+>;
 
-/** C1 `GET /me/notification-channels`. */
-export interface NotificationChannels {
-  email: { address: string };
-  telegram: { available: boolean; botUsername: string | null; connection: TelegramConnection | null };
-  sms: { available: boolean; countries: SmsCountry[]; connection: SmsConnection | null; dailyCap: number; sentToday: number };
-  push: { available: boolean; vapidPublicKey: string | null; devices: PushDevice[] };
-}
+export type TestableChannel = S["ChannelEnum"];
+export type ChannelTestResult = Wire<S["ChannelTestResult"]>;
 
-/** C2 / C3. `code` and `deepLink` only while pending. */
-export interface TelegramLink {
-  id: ID;
-  status: "pending" | "linked" | "expired" | "canceled";
-  code?: string;
-  deepLink?: string;
-  botUsername: string;
-  expiresAt: ISODateTime;
-  connection: TelegramConnection | null;
-}
+/* ───────────────────────── Audit ───────────────────────── */
 
-/** C6 / C7. */
-export interface SmsVerification {
-  id: ID;
-  phoneNumber: string;
-  display: string;
-  expiresAt: ISODateTime;
-  resendAt: ISODateTime;
-  attemptsLeft: number;
-}
+/** Field-level change. status: glyph key; priority: 0–4; person: user id; text/value: plain string; null = none. */
+export type AuditChange = Refine<S["AuditChange"], { before: string | number | null; after: string | number | null }>;
 
-/** C11 body: the browser's `PushSubscription.toJSON()` plus a mode. */
-export interface PushSubscriptionInput {
-  mode: "subscribe" | "refresh";
-  subscription: { endpoint: string; expirationTime: number | null; keys: { p256dh: string; auth: string } };
-  timezone?: string;
-}
-
-export type TestableChannel = "email" | ExternalChannel;
-
-/** C14. */
-export interface ChannelTestResult {
-  channel: TestableChannel;
-  status: "sent";
-  deliveryId: ID;
-  sentAt: ISODateTime;
-}
-
-export interface AuditEntry {
-  id: ID;
-  actorId: ID;
-  /** "<entity>.<verb>", e.g. "tracking.task.status_changed", "core.member.invited". */
-  action: string;
-  /** Human-readable entity name at the time of the event (task title, email, role name…). */
-  target: string;
-  createdAt: ISODateTime;
-  /* Board 31 additions (requested API fields; optional so older rows still parse). */
-  /** Actor display name snapshot; used for integrations ("ci-bot") and removed members. */
-  actorName?: string | null;
-  /** "user" (a workspace member) or "integration" (API token / automation). */
-  actorKind?: "user" | "integration";
-  entityType?: string;
-  /** Task key ("PRJ-42") or project key ("PRJ") when the entity has one. */
-  entityKey?: string | null;
-  /** Board 40 adds "import" (rows written by an import job); board 37 adds "webhook" (integration rows). */
-  source?: "web" | "api" | "import" | "webhook";
-  requestId?: string | null;
-  changes?: AuditChange[];
-  /* Platform Stage 2 (additive). `entityType` / `targetType` may be namespaced ("tracking.task"). */
-  module?: string;
-  targetType?: string | null;
-  targetId?: ID | null;
-}
-
-/** Field-level change. `kind` tells the UI how to render values (status glyph, priority bars…). */
-export interface AuditChange {
-  field: string;
-  kind: "text" | "status" | "priority" | "person" | "value";
-  /** status: glyph key; priority: 0–4; person: user id; text/value: plain string. null = none. */
-  before: string | number | null;
-  after: string | number | null;
-}
-
-/** Audit list response: Paginated plus an optional total for the "312 events" counter. */
-export interface AuditPage {
-  data: AuditEntry[];
-  nextCursor: string | null;
-  total?: number;
-}
+/**
+ * `action` is "<module>.<entity>.<verb>"; `target` the entity name at the time. `entityType` / `targetType` may be
+ * namespaced ("tracking.task"): `auditEntity()` strips the module.
+ */
+export type AuditEntry = Refine<S["AuditEntry"], { source: "web" | "api" | "import" | "webhook"; changes: AuditChange[] }>;
+export type AuditPage = Refine<S["AuditPage"], { data: AuditEntry[] }>;
 
 /* ───────────────────────── Search, reports, misc ───────────────────────── */
 
-/** Platform Stage 2: every result names its target ("tracking.task", "core.user"…); `link` is null for users. */
-export interface SearchTarget {
-  targetType?: string;
-  targetId?: ID;
-  title?: string;
-  link?: string | null;
-}
-
 /**
- * Workspace search results. The global `GET /search` also returns `comment` results
- * (`comment: {id, targetType, targetId, authorId, excerpt, createdAt}`, `taskKey`, `taskTitle`, `projectKey`); the client
- * doesn't call it.
+ * Workspace search results. Every result names its target; besides it carries the provider's record under the key
+ * named by `type` (the schema leaves that part open). The global `GET /search` also returns `comment` results; the
+ * client doesn't call it.
  */
-export type SearchResult = SearchTarget &
+export type SearchResult = Wire<Omit<S["SearchResult"], "type">> &
   (
     | { type: "task"; task: Task; projectKey: string; projectName: string; status: Pick<Status, "name" | "glyph"> }
     | { type: "project"; project: Project }
     | { type: "user"; user: User; roleName: string }
   );
+export type SearchType = SearchResult["type"];
+export type RecentItem = Refine<S["Recent"], { kind: "task" | "project" }>;
 
-export interface ProjectSummary {
-  openTasks: number;
-  doneThisSprint: number;
-  cycleTimeDays: number;
-  dueThisWeek: number;
-}
+export type ProjectSummary = Wire<S["ProjectSummary"]>;
+export type BurndownPoint = Wire<S["BurndownPoint"]>;
+export type BurndownReport = Wire<S["BurndownReport"]>;
+export type VelocityPoint = Wire<S["VelocityPoint"]>;
+export type VelocityReport = Wire<S["VelocityReport"]>;
+export type CycleBin = Wire<S["CycleTimeBin"]>;
+export type CycleTimeReport = Wire<S["CycleTimeReport"]>;
+export type ThroughputPoint = Wire<S["ThroughputPoint"]>;
+export type ThroughputReport = Wire<S["ThroughputReport"]>;
+export type ProgressRow = Wire<S["ProgressRow"]>;
+/** Known gap: the schema's `ReportKpis` lists only `completedThisSprint`; the server sends all of these. */
+export type ReportKpis = Wire<S["ReportKpis"]> & {
+  sprint: { name: string; number: number; startDate: ISODate; endDate: ISODate; dayIndex: number; lengthDays: number } | null;
+  plannedThisSprint: number;
+  avgCycleTimeDays: number;
+  p85CycleTimeDays: number;
+  overdueCount: number;
+  oldestOverdueKey: string | null;
+  scopeChangePts: number;
+  completedSprints: number;
+};
 
-export interface BurndownPoint {
-  date: ISODate;
-  remaining: number | null;
-  ideal: number;
-}
-export interface VelocityPoint {
-  sprint: string;
-  committed: number;
-  completed: number;
-}
-export interface CycleBin {
-  label: string;
-  count: number;
-}
-export interface ThroughputPoint {
-  week: string;
-  done: number;
-}
-export interface ProgressRow {
-  id: ID;
-  kind: "objective" | "milestone";
-  name: string;
-  percent: number;
-  expected: number | null;
-  dueDate?: ISODate | null;
-  /** Board 33 (additive): the objective's quarter; null on milestone rows. Optional so older payloads parse. */
-  quarter?: string | null;
-}
+/** Every cursor page (`TaskPageOut`, `ActivityPage`, `WorkspaceMemberPage`, …) has this shape. */
+export type Paginated<T> = Omit<Wire<S["TaskPageOut"]>, "data"> & { data: T[] };
 
-export interface Paginated<T> {
-  data: T[];
-  nextCursor: string | null;
-}
-
+/**
+ * Client state: the access token (live mode; null in mock mode) and the signed-in user. Sign-in responses carry a
+ * `User`, `/auth/me` a `Me`; `hasPassword` is known only after the latter (missing = has one).
+ */
+export type SessionUser = User & Partial<Pick<Me, "hasPassword">>;
 export interface Session {
   accessToken: string | null;
-  user: User;
+  user: SessionUser;
 }
+
+export type SalesHealth = Wire<S["SalesHealth"]>;
+export type DownloadUrl = Wire<S["DownloadUrl"]>;
 
 /* ───────────────────────── Saved views (board 30) ───────────────────────── */
 
@@ -884,82 +502,35 @@ export type FilterField = BaseFilterField | "blocked" | `cf.${string}`;
 export type FilterOp = "is" | "not" | "any" | "empty" | "before" | "after" | "set" | "gt" | "lt";
 
 /**
- * One filter row; rows combine with AND. Values are ids (status, label, sprint, epic, user;
- * "me" = the viewer), priority numbers as strings, or for `due` an ISO date or a relative
- * token: "today", "tomorrow", "week" (today + 7) or "sprint" (active sprint end).
+ * One filter row; rows combine with AND. Values are ids (status, label, sprint, epic, user; "me" = the viewer),
+ * priority numbers as strings, or for `due` an ISO date or a relative token: "today", "tomorrow", "week" or "sprint".
  */
-export interface FilterRule {
-  field: FilterField;
-  op: FilterOp;
-  values: string[];
-}
+export type FilterRule = Refine<S["SavedViewFilter"], { field: FilterField; op: FilterOp }>;
 
-export type ViewIcon = "filter" | "star" | "user" | "calendar" | "bolt" | "flag";
-
-export interface SavedView {
-  id: ID;
-  workspaceId: ID;
-  projectId: ID;
-  ownerId: ID;
-  name: string;
-  icon: ViewIcon;
-  /** "me" = only the owner sees it; "project" = every project member sees it. */
-  visibility: "me" | "project";
-  layout: "board" | "list";
-  filters: FilterRule[];
-  /** Pinned to the current user's sidebar, and the user's pin order. */
-  pinned: boolean;
-  position: number;
-  /** Tasks in the project that match, for the current user ("me"). */
-  count: number;
-  createdAt: ISODateTime;
-}
-
-export type SavedViewInput = Pick<SavedView, "projectId" | "name" | "icon" | "visibility" | "layout" | "filters"> & { pinned?: boolean };
+export type ViewIcon = S["SavedViewIconEnum"];
+/** `pinned` / `position`: the current user's pins; `count`: matching tasks for the current user. */
+export type SavedView = Refine<S["SavedView"], { filters: FilterRule[] }>;
+export type SavedViewInput = Refine<
+  S["SavedViewCreateInRequest"],
+  { icon: ViewIcon; visibility: SavedView["visibility"]; layout: SavedView["layout"]; filters: FilterRule[] }
+>;
+export type SavedViewPatch = Refine<S["PatchedSavedViewUpdateInRequest"], { filters?: FilterRule[] }>;
 
 /* ───────────────────────── Trash (board 29) ───────────────────────── */
 
+/**
+ * Extension (client-computed): the server sends namespaced kinds ("tracking.task", "core.comment");
+ * `normalizeTrashList()` / `bareTrashKind()` turn them into these bare kinds, which the UI works on.
+ */
 export type TrashKind = "task" | "comment" | "project";
-
-/** Reference to one trashed entity (restore / purge bodies). */
-export interface TrashRef {
-  kind: TrashKind;
-  id: ID;
-}
-
-export interface TrashItem extends TrashRef {
-  /** Task title, comment excerpt or project name. */
-  title: string;
-  /** Task key (PRJ-88) or project key (LA). */
-  key: string | null;
-  /** Project badge hue for project items. */
-  hue: number | null;
-  /** Comments: key of the task the comment was on. */
-  parentKey: string | null;
-  /** Projects: live task count inside the trashed project. */
-  taskCount: number | null;
-  /** Platform Stage 2: the module that registered the kind ("tracking", "core"). */
-  module?: string;
-  /** Owning project for tasks and comments; null for projects. */
-  project: Pick<Project, "id" | "key" | "name" | "hue"> | null;
-  deletedBy: Pick<User, "id" | "name" | "hue"> | null;
-  deletedAt: ISODateTime;
-  /** deletedAt + 30 days; the item is purged automatically after this. */
-  purgeAt: ISODateTime;
-}
-
-export interface TrashList {
-  data: TrashItem[];
-  /** "own" = the user only sees items they deleted ("Only yours"). */
-  scope: "all" | "own";
-  /** Kinds this user may see (Projects is admin-only). */
-  kinds: TrashKind[];
-  retentionDays: number;
-}
+export type TrashRef = Refine<S["TrashRef"], { kind: TrashKind }>;
+/** The wire item with the bare kind (extension above). `project` is `{id, key, name, hue}` when the item has one. */
+export type TrashItem = Refine<S["TrashItem"], { kind: TrashKind; project: Pick<Project, "id" | "key" | "name" | "hue"> | null }>;
+export type TrashList = Refine<S["TrashList"], { data: TrashItem[]; kinds: TrashKind[] }>;
 
 /* ───────────────────────── Custom fields, dependencies, time (board 39, v2) ───────────────────────── */
 
-export type CustomFieldType = "text" | "number" | "select" | "date" | "user";
+export type CustomFieldType = S["CustomFieldTypeEnum"];
 export const FIELD_COLORS = [
   "var(--low)",
   "var(--accent-t)",
@@ -972,102 +543,28 @@ export const FIELD_COLORS = [
 ] as const;
 export type FieldColor = (typeof FIELD_COLORS)[number];
 
-export interface CustomFieldOption {
-  id: ID;
-  name: string;
-  color: FieldColor;
-  position: number;
-}
-export interface CustomField {
-  id: ID;
-  projectId: ID;
-  name: string;
-  type: CustomFieldType;
-  required: boolean;
-  position: number;
-  options: CustomFieldOption[];
-  /** Live tasks with a value for this field. */
-  taskCount: number;
-  createdAt: ISODateTime;
-}
-export interface CustomFieldInput {
-  name: string;
-  type: CustomFieldType;
-  required?: boolean;
-  options?: { id?: ID; name: string; color: FieldColor }[];
-}
-export type CustomFieldPatch = Partial<Pick<CustomFieldInput, "name" | "required" | "options">>;
-/** select → option id, user → user id, date → ISODate, number → number, text → string. */
-export type CustomFieldValue = string | number;
+export type CustomFieldOption = Refine<S["CustomFieldOptionOut"], { color: FieldColor }>;
+export type CustomField = Refine<S["CustomFieldOut"], { options: CustomFieldOption[] }>;
+type FieldOptionInput = Refine<S["CustomFieldOptionInRequest"], { color: FieldColor }>;
+export type CustomFieldInput = Refine<S["CustomFieldInRequest"], { options?: FieldOptionInput[] }>;
+export type CustomFieldPatch = Refine<S["PatchedCustomFieldPatchInRequest"], { options?: FieldOptionInput[] }>;
 
-export type DependencyRelation = "blocked_by" | "blocks";
-export interface TaskRef {
-  id: ID;
-  key: string;
-  title: string;
-}
-export interface DependencyTask extends TaskRef {
-  statusId: ID;
-  status: Pick<Status, "name" | "glyph" | "category">;
-  assigneeId: ID | null;
-}
-export interface DependencyItem {
-  id: ID;
-  task: DependencyTask;
-  createdAt: ISODateTime;
-  createdById: ID | null;
-}
-export interface TaskDependencies {
-  taskId: ID;
-  isBlocked: boolean;
-  blockedBy: DependencyItem[];
-  blocks: DependencyItem[];
-}
+export type DependencyRelation = S["RelationEnum"];
+export type TaskRef = Wire<S["TaskRefOut"]>;
+export type DependencyTask = Refine<S["DependencyTaskOut"], { status: Pick<Status, "name" | "glyph" | "category"> }>;
+export type DependencyItem = Refine<S["DependencyItemOut"], { task: DependencyTask }>;
+export type TaskDependencies = Refine<S["TaskDependenciesOut"], { blockedBy: DependencyItem[]; blocks: DependencyItem[] }>;
 
-export interface TimeEntry {
-  id: ID;
-  taskId: ID;
-  projectId: ID;
-  userId: ID;
-  minutes: number;
-  date: ISODate;
-  note: string;
-  source: "manual" | "timer";
-  createdAt: ISODateTime;
-}
-export interface RunningTimer {
-  taskId: ID;
-  taskKey: string;
-  taskTitle: string;
-  projectId: ID;
-  startedAt: ISODateTime;
-}
-export interface TimesheetSlice {
-  projectId: ID;
-  taskId: ID | null;
-  key: string;
-  name: string;
-  hue: number;
-  minutes: number;
-}
-export interface TimesheetCell {
-  date: ISODate;
-  minutes: number;
-  breakdown: TimesheetSlice[];
-}
-export interface TimesheetRow {
-  user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
-  cells: TimesheetCell[];
-  totalMinutes: number;
-}
-export interface Timesheet {
-  weekStart: ISODate;
-  days: ISODate[];
-  projects: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">[];
-  rows: TimesheetRow[];
-  dayTotals: number[];
-  totalMinutes: number;
-}
+export type TimeEntry = Wire<S["TimeEntryOut"]>;
+export type TimeEntryInput = Wire<S["TimeEntryInRequest"]>;
+export type RunningTimer = Wire<S["RunningTimerOut"]>;
+export type TimerState = Wire<S["TimerStateOut"]>;
+export type TimerStart = Wire<S["TimerStartOut"]>;
+export type TimerStop = Wire<S["TimerStopOut"]>;
+export type TimesheetSlice = Wire<S["TimesheetSliceOut"]>;
+export type TimesheetCell = Wire<S["TimesheetCellOut"]>;
+export type TimesheetRow = Wire<S["TimesheetRowOut"]>;
+export type Timesheet = Refine<S["TimesheetOut"], { projects: Refine<S["TimesheetProjectOut"], { my_permissions: ProjectPermission[] }>[] }>;
 
 /* ───────────────────────── Timeline & calendar (board 32, v2), client-only ───────────────────────── */
 
@@ -1077,42 +574,26 @@ export type CalendarMode = "month" | "week";
 
 /* ───────────────────────── Import (board 40, v2) ───────────────────────── */
 
-export type ImportSource = "csv" | "jira";
-export type ImportPreset = "generic" | "jira" | "linear" | "asana";
-export type ImportStatus = "draft" | "ready" | "queued" | "running" | "completed" | "failed" | "canceled";
-export type ImportField =
-  | "title"
-  | "description"
-  | "status"
-  | "assignee"
-  | "priority"
-  | "estimate"
-  | "dueDate"
-  | "labels"
-  | "type"
-  | "timeEstimate"
-  | "startDate"
-  | "epic"
-  | "sprint"
-  | "parent"
-  | "sourceId"
-  | "blockedBy"
-  | "blocks"
-  | "customField"
-  | "skip";
+export type ImportSource = S["ImportSourceEnum"];
+export type ImportPreset = S["PresetEnum"];
+export type ImportStatus = S["ImportStatusEnum"];
+export type ImportField = S["FieldEnum"];
+export type ImportTimeUnit = S["ImportColumnMappingUnitEnum"];
 export type ImportTaskType = TaskType | "epic";
+export type ImportFileInfo = Wire<S["ImportFileInfo"]>;
+export type ImportColumnMapping = Wire<S["ImportColumnMappingRequest"]>;
+export type ImportMapping = Refine<S["ImportMappingInRequest"], { types: Record<string, ImportTaskType | null> }>;
+export type ImportCreate = Wire<S["ImportCreateInRequest"]>;
+export type ImportCreated = Refine<S["ImportCreated"], { job: ImportJob }>;
+export type ImportErrorReport = Wire<S["ImportErrorReport"]>;
+export type ImportFailure = Wire<S["ImportFailure"]>;
+
+/*
+ * The job's analysis / validation / progress / result and a row preview's issues / values are free-form JSON in the
+ * schema (`unknown`, described in docs/v2/40-import-wizard.md §4). These client types give them their §4 shape.
+ */
 export type ImportColumnType = "empty" | "text" | "number" | "date" | "duration" | "list" | "person";
 export type ImportDateOrder = "ymd" | "mdy" | "dmy" | "jira" | "text";
-export type ImportTimeUnit = "minutes" | "hours" | "seconds";
-
-export interface ImportFileInfo {
-  name: string;
-  size: number;
-  encoding: "" | "utf-8" | "utf-16" | "windows-1252";
-  delimiter: "" | "," | ";" | "	" | "|";
-  rowCount: number;
-  columnCount: number;
-}
 export interface ImportColumn {
   index: number;
   name: string;
@@ -1121,18 +602,6 @@ export interface ImportColumn {
   emptyCount: number;
   distinctCount: number;
   dateOrder: ImportDateOrder | null;
-}
-export interface ImportColumnMapping {
-  field: ImportField;
-  customFieldId?: ID;
-  unit?: ImportTimeUnit;
-}
-export interface ImportMapping {
-  revision: number;
-  columns: ImportColumnMapping[];
-  statuses: Record<string, ID | null>;
-  types: Record<string, ImportTaskType | null>;
-  people: Record<string, ID | null>;
 }
 export interface ImportValue {
   key: string;
@@ -1170,7 +639,7 @@ export interface ImportIssue {
   reason: string;
   value: string;
 }
-export type ImportOutcome = "task" | "epic" | "skipped";
+export type ImportOutcome = S["OutcomeEnum"];
 export interface ImportRowValues {
   title: string;
   type: ImportTaskType;
@@ -1187,13 +656,7 @@ export interface ImportRowValues {
   parent: { ref: string; row?: number; taskId?: ID } | null;
   customFields: Record<ID, CustomFieldValue>;
 }
-export interface ImportRowPreview {
-  row: number;
-  outcome: ImportOutcome;
-  key: string | null;
-  issues: ImportIssue[];
-  values: ImportRowValues;
-}
+export type ImportRowPreview = Refine<S["ImportRowPreview"], { issues: ImportIssue[]; values: ImportRowValues }>;
 export interface ImportLogLine {
   row: number;
   outcome: ImportOutcome;
@@ -1223,48 +686,22 @@ export interface ImportResult {
   issueCount: number;
   issues: (ImportIssue & { row: number })[];
 }
-export interface ImportJob {
-  id: ID;
-  projectId: ID;
-  source: ImportSource;
-  preset: ImportPreset;
-  status: ImportStatus;
-  cancelRequested: boolean;
-  file: ImportFileInfo;
-  analysis: { columns: ImportColumn[] } | null;
-  mapping: ImportMapping | null;
-  validation: ImportValidation | null;
-  progress: ImportProgress | null;
-  result: ImportResult | null;
-  error: { code: string; message: string } | null;
-  createdById: ID | null;
-  createdAt: ISODateTime;
-  startedAt: ISODateTime | null;
-  finishedAt: ISODateTime | null;
-  expiresAt: ISODateTime | null;
-}
-export interface ImportJobSummary {
-  id: ID;
-  projectId: ID;
-  source: ImportSource;
-  status: ImportStatus;
-  fileName: string;
-  imported: number;
-  skipped: number;
-  firstKey: string | null;
-  lastKey: string | null;
-  hasErrorReport: boolean;
-  createdById: ID | null;
-  createdAt: ISODateTime;
-  startedAt: ISODateTime | null;
-  finishedAt: ISODateTime | null;
-  expiresAt: ISODateTime | null;
-  error: { code: string; message: string } | null;
-}
+export type ImportJob = Refine<
+  S["ImportJob"],
+  {
+    analysis: { columns: ImportColumn[] } | null;
+    mapping: ImportMapping | null;
+    validation: ImportValidation | null;
+    progress: ImportProgress | null;
+    result: ImportResult | null;
+  }
+>;
+export type ImportJobSummary = Wire<S["ImportJobSummary"]>;
 
 /* ───────────────────────── Dashboards (v2, board 33) ───────────────────────── */
 
-export type WidgetType = "burndown" | "my_tasks" | "objectives" | "workload" | "velocity" | "activity";
+export type WidgetType = S["DashboardWidgetTypeEnum"];
+/** Widget configs per type (the schema types `config` as `unknown` and describes these). */
 export interface WidgetConfigMap {
   burndown: { sprintId: ID | null };
   my_tasks: { showDone: boolean };
@@ -1275,36 +712,20 @@ export interface WidgetConfigMap {
 }
 /** One widget; the array order of `Dashboard.widgets` is the layout order (positions are computed by `pack`). */
 export type DashboardWidget = {
-  [T in WidgetType]: { id: ID; type: T; w: number; h: number; config: WidgetConfigMap[T] };
+  [T in WidgetType]: Refine<S["DashboardWidget"], { type: T; config: WidgetConfigMap[T] }>;
 }[WidgetType];
 /** A layout item for `PUT /dashboards/:id/layout`: no `id` means "create". */
-type WithOptionalId<W> = W extends { id: ID } ? Omit<W, "id"> & { id?: ID } : never;
-export type DashboardWidgetInput = WithOptionalId<DashboardWidget>;
-export type DashboardVisibility = "shared" | "personal";
-export type DashboardTemplate = "blank" | "sprint_health";
-export interface Dashboard {
-  id: ID;
-  projectId: ID;
-  name: string;
-  visibility: DashboardVisibility;
-  ownerId: ID;
-  owner: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
-  version: number;
-  widgets: DashboardWidget[];
-  createdAt: ISODateTime;
-  updatedAt: ISODateTime;
-}
-export interface DashboardSummary {
-  id: ID;
-  projectId: ID;
-  name: string;
-  visibility: DashboardVisibility;
-  ownerId: ID;
-  widgetCount: number;
-  updatedAt: ISODateTime;
-}
+export type DashboardWidgetInput = {
+  [T in WidgetType]: Refine<S["DashboardWidgetInputRequest"], { type: T; config: WidgetConfigMap[T] }>;
+}[WidgetType];
+export type DashboardVisibility = S["DashboardVisibilityEnum"];
+export type DashboardTemplate = S["DashboardCreateTemplateEnum"];
+export type Dashboard = Refine<S["Dashboard"], { widgets: DashboardWidget[] }>;
+export type DashboardSummary = Wire<S["DashboardSummary"]>;
+export type DashboardCreate = Wire<S["DashboardCreateRequest"]>;
+export type DashboardPatch = Refine<S["PatchedDashboardPatchRequest"], { version: number }>;
 
-/* Workload report (W1). Hours are minutes on the wire. */
+/* Workload report (W1). Hours are minutes on the wire. The schema leaves the nested objects `unknown`. */
 export interface WorkloadRow {
   user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
   inProgress: number;
@@ -1312,255 +733,107 @@ export interface WorkloadRow {
   capacity: number | null;
   unestimated: number;
 }
-export interface WorkloadReport {
-  sprint: { id: ID; name: string; number: number; startDate: ISODate; endDate: ISODate } | null;
-  unit: "points" | "hours";
-  personField: { id: ID; name: string } | null;
-  scale: number;
-  rows: WorkloadRow[];
-  unassigned: { inProgress: number; todo: number; unestimated: number };
-}
+export type WorkloadReport = Refine<
+  S["WorkloadReport"],
+  {
+    sprint: { id: ID; name: string; number: number; startDate: ISODate; endDate: ISODate } | null;
+    personField: { id: ID; name: string } | null;
+    rows: WorkloadRow[];
+    unassigned: { inProgress: number; todo: number; unestimated: number };
+  }
+>;
 
 /* ───────────────────────── Presence (v2, board 33) ───────────────────────── */
 
 export type PresenceLocationKind = "board" | "dashboard" | "task";
+/** `{kind, id}` (the schema types the location as `unknown`). */
 export interface PresenceLocation {
   kind: PresenceLocationKind;
   id: ID;
 }
 export interface PresencePerson {
   user: Pick<User, "id" | "name" | "hue" | "avatarUrl">;
-  state: "viewing" | "editing";
+  state: S["PresenceUpdateStateEnum"];
   field: string | null;
   typing: boolean;
   since: ISODateTime;
 }
-export interface PresenceRoster {
-  projectId: ID;
-  /** Server time of the snapshot; clients drop older snapshots. */
-  at: ISODateTime;
-  /** Only non-empty locations. */
-  locations: { location: PresenceLocation; people: PresencePerson[] }[];
-}
-export interface PresenceUpdate {
-  location: PresenceLocation;
-  state: "viewing" | "editing";
-  field: string | null;
-  typing: boolean;
-}
-export interface PresenceHeartbeat {
-  expiresAt: ISODateTime;
-  heartbeatSec: number;
-  roster: PresenceRoster;
-}
+/** `at`: server time of the snapshot (clients drop older ones); only non-empty locations. */
+export type PresenceRoster = Refine<S["PresenceRoster"], { locations: { location: PresenceLocation; people: PresencePerson[] }[] }>;
+export type PresenceUpdate = Refine<S["PresenceUpdateRequest"], { location: PresenceLocation; field: string | null; typing: boolean }>;
+export type PresenceHeartbeat = Refine<S["PresenceHeartbeat"], { roster: PresenceRoster }>;
 
 /* ───────────────────────── Board 37 (v2): integrations & development ───────────────────────── */
 
-export type Provider = "github" | "gitlab";
-export type IntegrationErrorCode =
-  | "token_expired"
-  | "token_revoked"
-  | "installation_suspended"
-  | "installation_removed"
-  | "insufficient_scope"
-  | "unreachable"
-  | "webhook_failing";
+export type Provider = S["ProviderEnum"];
+export type IntegrationErrorCode = S["CodeEnum"];
+/** `available`: the server has the provider configured; `methods`: github ["app"], gitlab ["oauth", "token"] or ["token"]. */
+export type ProviderInfo = Refine<S["ProviderInfoOut"], { name: "GitHub" | "GitLab" }>;
+export type RepoVisibility = S["RepositoryVisibilityEnum"];
+/** `projectIds` is [] when `allProjects`; `syncState` "paused" while the integration is in error. */
+export type Repository = Wire<S["RepositoryOut"]>;
+export type Integration = Wire<S["IntegrationOut"]>;
+/** `tracked` by this integration; `trackedElsewhere`: by another integration of the workspace (disabled row). */
+export type AvailableRepository = Wire<S["AvailableRepositoryOut"]>;
+export type IntegrationsOverview = Refine<S["IntegrationsOverviewOut"], { providers: ProviderInfo[] }>;
+export type AuthorizeUrl = Wire<S["AuthorizeUrlOut"]>;
+export type GitLabConnectBody = { method: "oauth" } | Refine<S["GitLabConnectInRequest"], { method: "token"; baseUrl: string; token: string }>;
+export type ConfirmConnect = Wire<S["ConfirmInRequest"]>;
+export type TrackedRepositoryInput = Wire<S["TrackedRepositoryInRequest"]>;
 
-export interface ProviderInfo {
-  provider: Provider;
-  name: "GitHub" | "GitLab";
-  /** The server has this provider configured (§2.3). */
-  available: boolean;
-  /** github: ["app"]; gitlab: ["oauth", "token"] or ["token"]. */
-  methods: ("app" | "oauth" | "token")[];
-  /** GitLab OAuth: "https://gitlab.com". */
-  oauthBaseUrl: string | null;
-  canCreateBranch: boolean;
-}
+export type RepoRef = Wire<S["RepoRefOut"]>;
+export type DevAuthor = Wire<S["DevAuthorOut"]>;
+export type CheckState = S["ChecksStateEnum"];
+export type DevCheck = Wire<S["DevCheckOut"]>;
+export type DevLinkSource = S["LinkSourceEnum"];
 
-export type RepoVisibility = "public" | "private" | "internal";
-
-export interface Repository {
-  id: ID;
-  integrationId: ID;
-  provider: Provider;
-  externalId: string;
-  /** "platform-team/web" */
-  fullPath: string;
-  owner: string;
-  name: string;
-  visibility: RepoVisibility;
-  defaultBranch: string;
-  url: string;
-  allProjects: boolean;
-  /** [] when allProjects. */
-  projectIds: ID[];
-  openPullRequests: number;
-  /** "paused" when the integration is in error. */
-  syncState: "idle" | "queued" | "syncing" | "paused" | "failed";
-  lastSyncedAt: ISODateTime | null;
-  /** The provider allows it and the repository isn't archived. */
-  canCreateBranch: boolean;
-}
-
-export interface Integration {
-  id: ID;
-  provider: Provider;
-  authKind: "github_app" | "gitlab_oauth" | "gitlab_token";
-  baseUrl: string;
-  account: { login: string; kind: "organization" | "user" | "bot"; url: string };
-  status: "active" | "error";
-  error: { code: IntegrationErrorCode; message: string; since: ISODateTime } | null;
-  connectedBy: ID | null;
-  connectedAt: ISODateTime;
-  lastSyncedAt: ISODateTime | null;
-  /** A sync run is queued / running / deferred. */
-  syncing: boolean;
-  /** "Sync now" is available again at. */
-  nextSyncAt: ISODateTime | null;
-  tokenExpiresAt: ISODateTime | null;
-  /** GitHub: installation settings (managers only); GitLab token: null. */
-  manageUrl: string | null;
-  /** Tracked only; ordered by full path. */
-  repositories: Repository[];
-}
-
-export interface AvailableRepository {
-  externalId: string;
-  fullPath: string;
-  owner: string;
-  name: string;
-  visibility: RepoVisibility;
-  updatedAt: ISODateTime | null;
-  /** Tracked by this integration. */
-  tracked: boolean;
-  /** Tracked by another integration of this workspace (disabled row). */
-  trackedElsewhere: boolean;
-}
-
-export interface IntegrationsOverview {
-  /** Always both, GitHub first. */
-  providers: ProviderInfo[];
-  /** Active + error; GitHub first, then by connectedAt. */
-  integrations: Integration[];
-}
-
-export interface RepoRef {
-  id: ID;
-  fullPath: string;
-}
-export interface DevAuthor {
-  login: string;
-  name: string | null;
-  userId: ID | null;
-}
-export type CheckState = "passing" | "failing" | "running";
-export interface DevCheck {
-  name: string;
-  state: CheckState;
-  durationSec: number | null;
-  url: string | null;
-}
-export type DevLinkSource = "auto" | "manual" | "created";
-
-export interface DevPullRequest {
-  id: ID;
-  kind: "pull_request";
-  provider: Provider;
-  /** null after a disconnect (repoFullPath still names it). */
-  repository: RepoRef | null;
-  repoFullPath: string;
-  number: number;
-  /** GitHub "#214", GitLab "!12". */
-  ref: string;
-  title: string;
-  url: string;
-  state: "open" | "draft" | "merged" | "closed";
-  headBranch: string;
-  baseBranch: string;
-  author: DevAuthor;
-  checks: { state: CheckState; passed: number; total: number; items: DevCheck[] } | null;
-  approvals: number;
-  linkSource: DevLinkSource;
-  createdAt: ISODateTime;
-  updatedAt: ISODateTime;
-  mergedAt: ISODateTime | null;
-  closedAt: ISODateTime | null;
-}
-export interface DevBranch {
-  id: ID;
-  kind: "branch";
-  provider: Provider;
-  repository: RepoRef | null;
-  repoFullPath: string;
-  name: string;
-  url: string;
-  state: "active" | "deleted";
-  aheadBy: number | null;
-  linkSource: DevLinkSource;
-  updatedAt: ISODateTime;
-}
-export interface DevCommit {
-  id: ID;
-  kind: "commit";
-  provider: Provider;
-  repository: RepoRef | null;
-  repoFullPath: string;
-  sha: string;
-  shortSha: string;
-  message: string;
-  url: string;
-  author: DevAuthor;
-  committedAt: ISODateTime;
-  linkSource: "auto" | "manual";
-}
+/*
+ * The schema has one flat `DevItemOut` ("DevPullRequest | DevBranch | DevCommit, discriminated by kind") with the
+ * kind-specific keys optional. The client narrows it into the union by `kind`.
+ */
+type DevItemWire = Wire<S["DevItemOut"]>;
+type DevCommon = Pick<DevItemWire, "id" | "provider" | "repository" | "repoFullPath" | "url">;
+export type DevPullRequest = DevCommon &
+  Refine<
+    Pick<DevItemWire, "kind" | "number" | "ref" | "title" | "state" | "headBranch" | "baseBranch" | "author" | "checks" | "approvals" | "linkSource" | "createdAt" | "updatedAt" | "mergedAt" | "closedAt">,
+    {
+      kind: "pull_request";
+      number: number;
+      /** GitHub "#214", GitLab "!12". */
+      ref: string;
+      title: string;
+      state: "open" | "draft" | "merged" | "closed";
+      headBranch: string;
+      baseBranch: string;
+      author: DevAuthor;
+      checks: Wire<S["DevChecksOut"]> | null;
+      approvals: number;
+      createdAt: ISODateTime;
+      updatedAt: ISODateTime;
+      mergedAt: ISODateTime | null;
+      closedAt: ISODateTime | null;
+    }
+  >;
+export type DevBranch = DevCommon &
+  Refine<
+    Pick<DevItemWire, "kind" | "name" | "state" | "aheadBy" | "linkSource" | "updatedAt">,
+    { kind: "branch"; name: string; state: "active" | "deleted"; aheadBy: number | null; updatedAt: ISODateTime }
+  >;
+export type DevCommit = DevCommon &
+  Refine<
+    Pick<DevItemWire, "kind" | "sha" | "shortSha" | "message" | "author" | "committedAt" | "linkSource">,
+    { kind: "commit"; sha: string; shortSha: string; message: string; author: DevAuthor; committedAt: ISODateTime; linkSource: "auto" | "manual" }
+  >;
 export type DevItem = DevPullRequest | DevBranch | DevCommit;
 
-export interface DevRepositoryOption {
-  id: ID;
-  provider: Provider;
-  fullPath: string;
-  name: string;
-  defaultBranch: string;
-  canCreateBranch: boolean;
-}
+export type DevRepositoryOption = Wire<S["DevRepositoryOut"]>;
+/** `enabled` mirrors `Project.devEnabled`. */
+export type TaskDevelopment = Refine<
+  S["TaskDevelopmentOut"],
+  { pullRequests: DevPullRequest[]; branches: DevBranch[]; commits: DevCommit[] }
+>;
+/** `pr`: the headline PR (most recently updated open/draft, else merged in the last 14 days, else null). */
+export type TaskDevSummary = Wire<S["TaskDevSummaryOut"]>;
 
-export interface TaskDevelopment {
-  taskId: ID;
-  taskKey: string;
-  /** Project.devEnabled */
-  enabled: boolean;
-  suggestedBranch: string;
-  repositories: DevRepositoryOption[];
-  pullRequests: DevPullRequest[];
-  branches: DevBranch[];
-  commits: DevCommit[];
-  commitTotal: number;
-  syncedAt: ISODateTime | null;
-}
-
-export interface TaskDevSummary {
-  /** The headline PR: most recently updated open/draft, else merged in the last 14 days, else null. */
-  pr: {
-    provider: Provider;
-    number: number;
-    ref: string;
-    state: DevPullRequest["state"];
-    checks: CheckState | null;
-    checksPassed: number;
-    checksTotal: number;
-    approvals: number;
-    baseBranch: string;
-    mergedAt: ISODateTime | null;
-  } | null;
-  prCount: number;
-  branchCount: number;
-  commitCount: number;
-}
-
-export type DevTrigger = "branch_created" | "pr_opened" | "pr_merged";
-export interface DevAutomationRule {
-  trigger: DevTrigger;
-  enabled: boolean;
-  statusId: ID | null;
-}
+export type DevTrigger = S["TriggerEnum"];
+export type DevAutomationRule = Wire<S["AutomationRuleSchema"]>;

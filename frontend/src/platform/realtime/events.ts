@@ -85,6 +85,11 @@ export type ChannelsChangedEvent = RealtimeEnvelope<
   "core.channels.changed",
   { channel: "telegram" | "sms" | "push"; op: "linked" | "disconnected" | "status" }
 >;
+/**
+ * Platform Stage 5: a module was switched on or off in the workspace. Delivered to every member (projectId null),
+ * durable. The client refetches the workspace (enabledModules, my_permissions) and the module list.
+ */
+export type ModuleChangedEvent = RealtimeEnvelope<"core.module.changed", { module: string; enabled: boolean }>;
 /** Reserved for board 40; not emitted in this release (useImportJob keeps polling). */
 export type ImportProgressEvent = RealtimeEnvelope<"tracking.import.progress", { jobId: ID; status: string; progress: unknown }>;
 
@@ -103,6 +108,7 @@ export type RealtimeEvent =
   | PresenceUpdatedEvent
   | IntegrationChangedEvent
   | ChannelsChangedEvent
+  | ModuleChangedEvent
   | ImportProgressEvent;
 
 export type RealtimeEventType = RealtimeEvent["type"];
@@ -118,6 +124,7 @@ export const DURABLE_TYPES: readonly RealtimeEventType[] = [
   "core.access.changed",
   "tracking.integration.changed",
   "core.channels.changed",
+  "core.module.changed",
 ];
 
 /** Parses one `data:` payload. Returns null for anything that isn't a v1 envelope (ignored, never thrown). */

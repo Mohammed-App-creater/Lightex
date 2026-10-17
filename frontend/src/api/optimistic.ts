@@ -35,10 +35,11 @@ export function mapTasksIn(data: unknown, fn: TaskFn): unknown {
   const d = data as Record<string, unknown>;
   // TaskDetail: the task itself (+ its sub-tasks)
   if (isTask(d)) {
-    const self = fn(d as unknown as Task);
-    const subs = Array.isArray(d.subtasks) ? mapList(d.subtasks, fn) : d.subtasks;
+    const self = fn(d);
+    const raw = data as Record<string, unknown>;
+    const subs = Array.isArray(raw.subtasks) ? mapList(raw.subtasks, fn) : raw.subtasks;
     if (self === null) return { ...d, deletedAt: new Date().toISOString() };
-    if (self === d && subs === d.subtasks) return d;
+    if (self === d && subs === raw.subtasks) return d;
     return { ...self, subtasks: subs };
   }
   let changed = false;

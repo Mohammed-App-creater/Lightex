@@ -1,4 +1,5 @@
-import type { ActivityVerb, NotificationEvent, NotificationType } from "@/api/types";
+import type { ActivityVerb, NotificationEvent, NotificationKind } from "@/api/types";
+import { notificationEventType } from "../derive";
 import { nowISO, uid } from "../db";
 import type { MockDB, ProjectRec, TaskRec } from "../db-types";
 import { publishInbox } from "../realtime";
@@ -38,7 +39,7 @@ export function notificationTarget(db: MockDB, task: Pick<TaskRec, "id" | "key" 
 }
 
 /** Preference row per type; access requests have none (they can't be switched off). */
-const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
+const EVENT_FOR: Record<NotificationKind, NotificationEvent | null> = {
   assigned: "tracking.task.assigned",
   mention: "core.comment.mentioned",
   status: "tracking.task.status_changed",
@@ -53,7 +54,7 @@ const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
 export function notify(
   db: MockDB,
   recipientId: string,
-  type: NotificationType,
+  type: NotificationKind,
   actorId: string | null,
   task: TaskRec | null,
   projectId: string,
@@ -74,6 +75,7 @@ export function notify(
     id,
     recipientId,
     type,
+    eventType: notificationEventType(type),
     actorId,
     projectId,
     projectName: project.name,
