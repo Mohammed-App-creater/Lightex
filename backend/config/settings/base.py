@@ -206,6 +206,11 @@ SPECTACULAR_SETTINGS = {
         "SalesStageCategoryEnum": ["open", "won", "lost"],
         "SalesWeekdayEnum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
         "SalesCalendarDisplayEnum": ["gregorian", "ethiopian"],
+        # Sales (S2)
+        "SalesLeadStatusEnum": ["new", "contacted", "qualified", "disqualified", "converted"],
+        "SalesLeadEditableStatusEnum": ["new", "contacted"],
+        "SalesLeadSourceEnum": ["referral", "website", "call", "event", "visit", "social", "other"],
+        "SalesQuotationStatusEnum": ["draft", "sent", "accepted", "rejected", "expired"],
     },
     # The root /health is the load balancer's probe; /api/v1/health is the documented one.
     "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],

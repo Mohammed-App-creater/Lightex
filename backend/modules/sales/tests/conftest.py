@@ -36,6 +36,9 @@ class SalesWorld:
     teams: dict[str, Any] = field(default_factory=dict)
     companies: dict[str, Any] = field(default_factory=dict)
     contacts: dict[str, Any] = field(default_factory=dict)
+    leads: dict[str, Any] = field(default_factory=dict)
+    opportunities: dict[str, Any] = field(default_factory=dict)
+    quotations: dict[str, Any] = field(default_factory=dict)
     extra: dict[str, Any] = field(default_factory=dict)
 
     def client(self, actor: str):
@@ -91,6 +94,52 @@ def build_sales_world() -> SalesWorld:
     return world
 
 
+#: The owners of the world's companies, contacts and (with `add_deals`) leads, opportunities and quotations.
+OWNED = ("rep", "rep2", "rep3", "manager", "sales_admin")
+
+
+def add_deals(world: SalesWorld) -> SalesWorld:
+    """Per owner in OWNED: a new lead, an open opportunity on their company in the first open stage (expected value
+    1000, 2000, ... by position) and a draft quotation on it."""
+    from decimal import Decimal
+
+    from modules.sales.models import Lead, Opportunity, Quotation
+    from modules.sales.selectors import first_open_stage
+
+    stage = first_open_stage(world.ws)
+    for i, actor in enumerate(OWNED):
+        owner = world.users[actor]
+        world.leads[actor] = Lead.objects.create(
+            workspace=world.ws,
+            owner=owner,
+            company_name_text=f"{actor.title()} Prospect",
+            contact_name=f"{actor.title()} Person",
+            phone=f"+251 92{i} 11 11 1{i}",
+        )
+        world.opportunities[actor] = Opportunity.objects.create(
+            workspace=world.ws,
+            owner=owner,
+            company=world.companies[actor],
+            title=f"{actor.title()} Deal",
+            stage=stage,
+            expected_value=Decimal(f"{(i + 1) * 1000}.00"),
+        )
+        world.quotations[actor] = Quotation.objects.create(
+            workspace=world.ws,
+            owner=owner,
+            opportunity=world.opportunities[actor],
+            number=f"Q-2000-{i + 1:04d}",
+            title=f"{actor.title()} Quote",
+            amount=Decimal("500.00"),
+        )
+    return world
+
+
 @pytest.fixture
 def world(db) -> SalesWorld:
     return build_sales_world()
+
+
+@pytest.fixture
+def deals(db) -> SalesWorld:
+    return add_deals(build_sales_world())

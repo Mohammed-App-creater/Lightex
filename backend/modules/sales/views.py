@@ -25,6 +25,7 @@ from core.workspaces.views import WorkspaceScopedView
 from . import module as perms
 from . import scope, selectors, services
 from .models import Company, Contact, Holiday, LostReason, PipelineStage, Product
+from .pipeline_selectors import company_deals
 from .serializers import (
     SalesCalendarIn,
     SalesCalendarSerializer,
@@ -473,14 +474,15 @@ class CompanySummaryView(CompanyRecordView):
         company = selectors.company_for(request.user, self.record)
         summary = selectors.company_summary(request.user, company)
         primary = summary["primaryContact"]
+        deals = company_deals(request.user, company)
         return Response(
             {
                 "company": one_company(request.user, company),
                 "contactCount": summary["contactCount"],
                 "primaryContact": one_contact(request.user, primary) if primary is not None else None,
-                "openOpportunityCount": 0,
-                "pipelineValue": "0.00",
-                "wonValue": "0.00",
+                "openOpportunityCount": deals["openOpportunityCount"],
+                "pipelineValue": f"{deals['pipelineValue']:.2f}",
+                "wonValue": f"{deals['wonValue']:.2f}",
                 "openFollowUpCount": 0,
                 "lastContactAt": None,
                 "timeline": [],

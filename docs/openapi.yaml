@@ -1113,6 +1113,154 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/leads/{lead_id}:
+    get:
+      operationId: sales_leads_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLead'
+          description: ''
+    patch:
+      operationId: sales_leads_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesLeadUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLead'
+          description: ''
+    delete:
+      operationId: sales_leads_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/leads/{lead_id}/convert:
+    post:
+      operationId: sales_leads_convert
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesLeadConvertInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLeadConvertResult'
+          description: ''
+  /api/v1/sales/leads/{lead_id}/disqualify:
+    post:
+      operationId: sales_leads_disqualify
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesLeadDisqualifyInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLead'
+          description: ''
+  /api/v1/sales/leads/{lead_id}/qualify:
+    post:
+      operationId: sales_leads_qualify
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lead_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLead'
+          description: ''
   /api/v1/sales/lost-reasons/{lost_reason_id}:
     patch:
       operationId: sales_lost_reasons_partial_update
@@ -1159,6 +1307,222 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/opportunities/{opportunity_id}:
+    get:
+      operationId: sales_opportunities_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+    patch:
+      operationId: sales_opportunities_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesOpportunityUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+    delete:
+      operationId: sales_opportunities_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/opportunities/{opportunity_id}/lost:
+    post:
+      operationId: sales_opportunities_lost
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityLostInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+  /api/v1/sales/opportunities/{opportunity_id}/move:
+    post:
+      operationId: sales_opportunities_move
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityMoveInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+  /api/v1/sales/opportunities/{opportunity_id}/reopen:
+    post:
+      operationId: sales_opportunities_reopen
+      description: Needs sales.opportunity.reopen and sales.opportunity.close, both
+        reaching the record.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityReopenInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+  /api/v1/sales/opportunities/{opportunity_id}/timeline:
+    get:
+      operationId: sales_opportunities_timeline
+      description: Stage changes and quotation events, newest first; every child of
+        the opportunity, whatever its owner.
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTimelinePage'
+          description: ''
+  /api/v1/sales/opportunities/{opportunity_id}/won:
+    post:
+      operationId: sales_opportunities_won
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityWonInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
   /api/v1/sales/products/{product_id}:
     patch:
       operationId: sales_products_partial_update
@@ -1205,6 +1569,148 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sales/quotations/{quotation_id}:
+    get:
+      operationId: sales_quotations_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
+          description: ''
+    patch:
+      operationId: sales_quotations_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesQuotationUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
+          description: ''
+    delete:
+      operationId: sales_quotations_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/quotations/{quotation_id}/accept:
+    post:
+      operationId: sales_quotations_accept
+      description: sent → accepted. It does not win the opportunity.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
+          description: ''
+  /api/v1/sales/quotations/{quotation_id}/reject:
+    post:
+      operationId: sales_quotations_reject
+      description: sent → rejected.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
+          description: ''
+  /api/v1/sales/quotations/{quotation_id}/send:
+    post:
+      operationId: sales_quotations_send
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: quotation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesQuotationSendInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
+          description: ''
   /api/v1/sales/stages/{stage_id}:
     patch:
       operationId: sales_stages_partial_update
@@ -1587,6 +2093,166 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesHoliday'
           description: ''
+  /api/v1/sales/workspaces/{slug}/leads:
+    get:
+      operationId: sales_leads_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[company]
+        schema:
+          type: array
+          items:
+            type: string
+        description: company id
+      - in: query
+        name: filter[createdFrom]
+        schema:
+          type: string
+        description: YYYY-MM-DD, workspace time, inclusive
+      - in: query
+        name: filter[createdTo]
+        schema:
+          type: string
+        description: YYYY-MM-DD, workspace time, inclusive
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[product]
+        schema:
+          type: array
+          items:
+            type: string
+        description: product id
+      - in: query
+        name: filter[source]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - call
+            - event
+            - other
+            - referral
+            - social
+            - visit
+            - website
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - contacted
+            - converted
+            - disqualified
+            - new
+            - qualified
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches company name, contact name, phone or email
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: -createdAt (default), createdAt, updatedAt, name, status or estimatedValue
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLeadPage'
+          description: ''
+    post:
+      operationId: sales_leads_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesLeadInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLead'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/leads/bulk-assign:
+    post:
+      operationId: sales_leads_bulk_assign
+      description: 'All-or-nothing: every lead must be in the caller''s sales.lead.assign
+        scope. One audit row per changed lead.'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesLeadBulkAssignInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesBulkAssignResult'
+          description: ''
   /api/v1/sales/workspaces/{slug}/lost-reasons:
     get:
       operationId: sales_lost_reasons_list
@@ -1645,6 +2311,229 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesLostReason'
           description: ''
+  /api/v1/sales/workspaces/{slug}/opportunities:
+    get:
+      operationId: sales_opportunities_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[company]
+        schema:
+          type: array
+          items:
+            type: string
+        description: company id
+      - in: query
+        name: filter[expectedCloseFrom]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[expectedCloseTo]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[product]
+        schema:
+          type: array
+          items:
+            type: string
+        description: product id
+      - in: query
+        name: filter[stage]
+        schema:
+          type: array
+          items:
+            type: string
+        description: stage id
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - lost
+            - open
+            - won
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: filter[wonFrom]
+        schema:
+          type: string
+        description: 'YYYY-MM-DD, workspace time: won on or after'
+      - in: query
+        name: filter[wonTo]
+        schema:
+          type: string
+        description: 'YYYY-MM-DD, workspace time: won on or before'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches title or company name
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: -updatedAt (default), createdAt, title, expectedValue, expectedCloseDate
+          or wonAt
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunityPage'
+          description: ''
+    post:
+      operationId: sales_opportunities_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOpportunity'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/opportunities/bulk-assign:
+    post:
+      operationId: sales_opportunities_bulk_assign
+      description: |-
+        All-or-nothing: every opportunity must be in the caller's sales.opportunity.assign scope. Quotations follow;
+        `creditedUser` never changes.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOpportunityBulkAssignInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesBulkAssignResult'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/pipeline:
+    get:
+      operationId: sales_pipeline_retrieve
+      description: 'The board: open stages in order with count, value and weighted
+        value, and the first cards of each.'
+      parameters:
+      - in: query
+        name: filter[expectedCloseFrom]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[expectedCloseTo]
+        schema:
+          type: string
+        description: YYYY-MM-DD, inclusive
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[product]
+        schema:
+          type: array
+          items:
+            type: string
+        description: product id
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Cards per stage, 1–200, default 50
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesPipeline'
+          description: ''
   /api/v1/sales/workspaces/{slug}/products:
     get:
       operationId: sales_products_list
@@ -1702,6 +2591,108 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SalesProduct'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/quotations:
+    get:
+      operationId: sales_quotations_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[opportunity]
+        schema:
+          type: array
+          items:
+            type: string
+        description: opportunity id
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - accepted
+            - draft
+            - expired
+            - rejected
+            - sent
+      - in: query
+        name: filter[team]
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'team id: records owned by its members'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches number, title or company name
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: -createdAt (default), createdAt, updatedAt, number, amount or
+          validUntil
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotationPage'
+          description: ''
+    post:
+      operationId: sales_quotations_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesQuotationInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesQuotation'
           description: ''
   /api/v1/sales/workspaces/{slug}/settings:
     get:
@@ -9619,6 +10610,56 @@ components:
           type: string
           minLength: 1
           maxLength: 120
+    PatchedSalesLeadUpdateInRequest:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SalesLeadSourceEnum'
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+        companyName:
+          type: string
+          maxLength: 200
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        contactName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        estimatedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SalesLeadEditableStatusEnum'
+          description: new or contacted; qualify, disqualify and convert have their
+            own routes.
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs sales.lead.assign.'
     PatchedSalesLostReasonUpdateInRequest:
       type: object
       properties:
@@ -9628,6 +10669,56 @@ components:
           maxLength: 120
         isActive:
           type: boolean
+    PatchedSalesOpportunityUpdateInRequest:
+      type: object
+      description: The stage changes only through move, won, lost and reopen.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        companyId:
+          type: string
+          format: uuid
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        expectedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        probabilityOverride:
+          type: integer
+          maximum: 100
+          minimum: 0
+          nullable: true
+        expectedCloseDate:
+          type: string
+          format: date
+          nullable: true
+        nextAction:
+          type: string
+          maxLength: 300
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: Needs sales.opportunity.assign.
+        creditedUserId:
+          type: string
+          format: uuid
+          description: Won deals only; needs sales.opportunity.reopen. Reassigning
+            never changes it.
+        version:
+          type: integer
+          description: 'Optional here: when sent, a mismatch is a 409.'
     PatchedSalesProductUpdateInRequest:
       type: object
       properties:
@@ -9643,6 +10734,24 @@ components:
           maxLength: 60
         isActive:
           type: boolean
+    PatchedSalesQuotationUpdateInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          maxLength: 5000
     PatchedSalesStageUpdateInRequest:
       type: object
       properties:
@@ -10542,6 +11651,14 @@ components:
       - taskId
       - taskKey
       - taskTitle
+    SalesBulkAssignResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+          description: Records whose owner changed (those already owned are skipped).
+      required:
+      - updated
     SalesCalendar:
       type: object
       properties:
@@ -10736,17 +11853,17 @@ components:
           nullable: true
         openOpportunityCount:
           type: integer
-          description: 0 until S2.
+          description: Open opportunities of the company the caller can see.
         pipelineValue:
           type: string
           format: decimal
           pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
-          description: 0.00 until S2.
+          description: Sum of their expected values (open opportunities in scope).
         wonValue:
           type: string
           format: decimal
           pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
-          description: 0.00 until S2.
+          description: Sum of won values of won opportunities in scope.
         openFollowUpCount:
           type: integer
           description: 0 until S3.
@@ -10884,6 +12001,77 @@ components:
       required:
       - data
       - nextCursor
+    SalesConvertCompanyInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        industry:
+          type: string
+          maxLength: 80
+        region:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          maxLength: 80
+        address:
+          type: string
+          maxLength: 300
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          type: string
+          maxLength: 200
+      required:
+      - name
+    SalesConvertContactInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        jobTitle:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+      required:
+      - name
+    SalesConvertOpportunityInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        expectedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        expectedCloseDate:
+          type: string
+          format: date
+          nullable: true
     SalesDuplicateCheck:
       type: object
       properties:
@@ -10924,6 +12112,282 @@ components:
       required:
       - date
       - name
+    SalesLead:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          description: The linked company's name, else the typed company name, else
+            the contact.
+        source:
+          $ref: '#/components/schemas/SalesLeadSourceEnum'
+        status:
+          $ref: '#/components/schemas/SalesLeadStatusEnum'
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompanyBrief'
+          nullable: true
+          readOnly: true
+        companyName:
+          type: string
+          description: As typed (no company linked yet).
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        contact:
+          allOf:
+          - $ref: '#/components/schemas/SalesNamedBrief'
+          nullable: true
+          readOnly: true
+        contactName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        product:
+          allOf:
+          - $ref: '#/components/schemas/SalesNamedBrief'
+          nullable: true
+          readOnly: true
+        estimatedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        disqualifyReason:
+          type: string
+        convertedOpportunityId:
+          type: string
+          format: uuid
+          nullable: true
+        convertedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        notes:
+          type: string
+      required:
+      - canDelete
+      - canEdit
+      - company
+      - companyId
+      - companyName
+      - contact
+      - contactId
+      - contactName
+      - convertedAt
+      - convertedOpportunityId
+      - createdAt
+      - displayName
+      - disqualifyReason
+      - email
+      - estimatedValue
+      - id
+      - notes
+      - owner
+      - ownerId
+      - phone
+      - product
+      - productId
+      - source
+      - status
+      - updatedAt
+    SalesLeadBulkAssignInRequest:
+      type: object
+      properties:
+        leadIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 200
+        ownerId:
+          type: string
+          format: uuid
+      required:
+      - leadIds
+      - ownerId
+    SalesLeadConvertInRequest:
+      type: object
+      description: |-
+        Everything is optional: without a company, the lead's linked company is used, else a visible company matching
+        the lead's company name or phone, else a new one.
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          description: Link an existing company.
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesConvertCompanyInRequest'
+          description: Create this company (owned by the lead's owner).
+        contactId:
+          type: string
+          format: uuid
+          description: A contact of that company.
+        contact:
+          allOf:
+          - $ref: '#/components/schemas/SalesConvertContactInRequest'
+          description: Create this contact.
+        opportunity:
+          $ref: '#/components/schemas/SalesConvertOpportunityInRequest'
+    SalesLeadConvertResult:
+      type: object
+      properties:
+        lead:
+          $ref: '#/components/schemas/SalesLead'
+        opportunity:
+          $ref: '#/components/schemas/SalesOpportunity'
+        company:
+          $ref: '#/components/schemas/SalesCompany'
+        contact:
+          allOf:
+          - $ref: '#/components/schemas/SalesContact'
+          nullable: true
+        companyCreated:
+          type: boolean
+        contactCreated:
+          type: boolean
+      required:
+      - company
+      - companyCreated
+      - contact
+      - contactCreated
+      - lead
+      - opportunity
+    SalesLeadDisqualifyInRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - reason
+    SalesLeadEditableStatusEnum:
+      enum:
+      - new
+      - contacted
+      type: string
+    SalesLeadInRequest:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SalesLeadSourceEnum'
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+        companyName:
+          type: string
+          maxLength: 200
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        contactName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        estimatedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SalesLeadEditableStatusEnum'
+          description: new or contacted; qualify, disqualify and convert have their
+            own routes.
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs sales.lead.assign.'
+    SalesLeadPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesLead'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesLeadSourceEnum:
+      enum:
+      - referral
+      - website
+      - call
+      - event
+      - visit
+      - social
+      - other
+      type: string
+    SalesLeadStatusEnum:
+      enum:
+      - new
+      - contacted
+      - qualified
+      - disqualified
+      - converted
+      type: string
     SalesLostReason:
       type: object
       properties:
@@ -10959,6 +12423,411 @@ components:
           type: boolean
       required:
       - name
+    SalesNamedBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
+    SalesOpportunity:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          readOnly: true
+          description: open, won or lost (the stage's category).
+        companyId:
+          type: string
+          format: uuid
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompanyBrief'
+          readOnly: true
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        contact:
+          allOf:
+          - $ref: '#/components/schemas/SalesNamedBrief'
+          nullable: true
+          readOnly: true
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        product:
+          allOf:
+          - $ref: '#/components/schemas/SalesNamedBrief'
+          nullable: true
+          readOnly: true
+        stageId:
+          type: string
+          format: uuid
+        stage:
+          allOf:
+          - $ref: '#/components/schemas/SalesStageBrief'
+          readOnly: true
+        expectedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        probabilityOverride:
+          type: integer
+          nullable: true
+        probability:
+          type: integer
+          readOnly: true
+          description: The override, else the stage's default probability.
+        weightedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+          description: expectedValue × probability / 100.
+        expectedCloseDate:
+          type: string
+          format: date
+          nullable: true
+        nextAction:
+          type: string
+        sourceLeadId:
+          type: string
+          format: uuid
+          nullable: true
+        creditedUserId:
+          type: string
+          format: uuid
+          nullable: true
+        creditedUser:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        wonAt:
+          type: string
+          nullable: true
+          readOnly: true
+        wonValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        lostAt:
+          type: string
+          nullable: true
+          readOnly: true
+        lostReasonId:
+          type: string
+          format: uuid
+          nullable: true
+        lostReason:
+          allOf:
+          - $ref: '#/components/schemas/SalesNamedBrief'
+          nullable: true
+          readOnly: true
+        lostNote:
+          type: string
+        lastActivityAt:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Set by activities (S3).
+        version:
+          type: integer
+          description: Send it back with move, won, lost, reopen and edits.
+        notes:
+          type: string
+        flags:
+          allOf:
+          - $ref: '#/components/schemas/SalesOpportunityFlags'
+          readOnly: true
+        canMove:
+          type: boolean
+          readOnly: true
+          description: The caller's move scope reaches this record.
+        canClose:
+          type: boolean
+          readOnly: true
+          description: The caller's close scope reaches this record.
+      required:
+      - canClose
+      - canDelete
+      - canEdit
+      - canMove
+      - company
+      - companyId
+      - contact
+      - contactId
+      - createdAt
+      - creditedUser
+      - creditedUserId
+      - expectedCloseDate
+      - expectedValue
+      - flags
+      - id
+      - lastActivityAt
+      - lostAt
+      - lostNote
+      - lostReason
+      - lostReasonId
+      - nextAction
+      - notes
+      - owner
+      - ownerId
+      - probability
+      - probabilityOverride
+      - product
+      - productId
+      - sourceLeadId
+      - stage
+      - stageId
+      - status
+      - title
+      - updatedAt
+      - version
+      - weightedValue
+      - wonAt
+      - wonValue
+    SalesOpportunityBulkAssignInRequest:
+      type: object
+      properties:
+        opportunityIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 200
+        ownerId:
+          type: string
+          format: uuid
+      required:
+      - opportunityIds
+      - ownerId
+    SalesOpportunityFlags:
+      type: object
+      properties:
+        overdueClose:
+          type: boolean
+          description: Open with an expected close date before today.
+        noNextStep:
+          type: boolean
+          description: Open with no pending follow-up. Always false until S3.
+        stale:
+          type: boolean
+          description: No activity for staleDays. Always false until S3.
+      required:
+      - noNextStep
+      - overdueClose
+      - stale
+    SalesOpportunityInRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        companyId:
+          type: string
+          format: uuid
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        stageId:
+          type: string
+          format: uuid
+          description: An open stage; default the first.
+        expectedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        probabilityOverride:
+          type: integer
+          maximum: 100
+          minimum: 0
+          nullable: true
+        expectedCloseDate:
+          type: string
+          format: date
+          nullable: true
+        nextAction:
+          type: string
+          maxLength: 300
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs sales.opportunity.assign.'
+      required:
+      - companyId
+      - title
+    SalesOpportunityLostInRequest:
+      type: object
+      properties:
+        lostReasonId:
+          type: string
+          format: uuid
+        lostNote:
+          type: string
+          maxLength: 1000
+        version:
+          type: integer
+      required:
+      - lostReasonId
+    SalesOpportunityMoveInRequest:
+      type: object
+      properties:
+        stageId:
+          type: string
+          format: uuid
+          description: An open stage.
+        version:
+          type: integer
+      required:
+      - stageId
+      - version
+    SalesOpportunityPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOpportunity'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesOpportunityReopenInRequest:
+      type: object
+      properties:
+        stageId:
+          type: string
+          format: uuid
+          description: An open stage; default the first.
+        version:
+          type: integer
+    SalesOpportunityWonInRequest:
+      type: object
+      properties:
+        wonValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        wonAt:
+          type: string
+          description: Default now. A timestamp (no offset = workspace time) or a
+            date. An earlier date needs close scope team or all and must be in the
+            current month.
+        version:
+          type: integer
+    SalesPipeline:
+      type: object
+      properties:
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesPipelineColumn'
+          description: Open stages in board order.
+        count:
+          type: integer
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        weightedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        leadCount:
+          type: integer
+          nullable: true
+          description: Open leads (new, contacted, qualified) in scope; null without
+            sales.lead.view.
+      required:
+      - count
+      - leadCount
+      - stages
+      - value
+      - weightedValue
+    SalesPipelineColumn:
+      type: object
+      properties:
+        stage:
+          $ref: '#/components/schemas/SalesStage'
+        count:
+          type: integer
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          description: Sum of expected values.
+        weightedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          description: Sum of expected value × probability.
+        opportunities:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOpportunity'
+          description: The first cards, most recently updated first.
+        nextCursor:
+          type: string
+          nullable: true
+          description: 'More cards: GET opportunities?filter[stage]=<id>&sort=-updatedAt&cursor=…
+            (same filters).'
+      required:
+      - count
+      - nextCursor
+      - opportunities
+      - stage
+      - value
+      - weightedValue
     SalesProduct:
       type: object
       properties:
@@ -11006,6 +12875,162 @@ components:
           type: boolean
       required:
       - name
+    SalesQuotation:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        opportunityId:
+          type: string
+          format: uuid
+        opportunity:
+          allOf:
+          - $ref: '#/components/schemas/SalesQuotationOpportunityBrief'
+          readOnly: true
+        title:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/SalesQuotationStatusEnum'
+        sentAt:
+          type: string
+          nullable: true
+          readOnly: true
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        respondedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        expiredAt:
+          type: string
+          nullable: true
+          readOnly: true
+        notes:
+          type: string
+      required:
+      - amount
+      - canDelete
+      - canEdit
+      - createdAt
+      - expiredAt
+      - id
+      - notes
+      - number
+      - opportunity
+      - opportunityId
+      - owner
+      - ownerId
+      - respondedAt
+      - sentAt
+      - status
+      - title
+      - updatedAt
+      - validUntil
+    SalesQuotationInRequest:
+      type: object
+      properties:
+        opportunityId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          maxLength: 5000
+      required:
+      - amount
+      - opportunityId
+      - title
+    SalesQuotationOpportunityBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        companyId:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+      required:
+      - companyId
+      - companyName
+      - id
+      - title
+    SalesQuotationPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesQuotation'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesQuotationSendInRequest:
+      type: object
+      properties:
+        validUntil:
+          type: string
+          format: date
+          description: 'Default: today + quotationValidityDays (workspace time).'
+    SalesQuotationStatusEnum:
+      enum:
+      - draft
+      - sent
+      - accepted
+      - rejected
+      - expired
+      type: string
     SalesSettings:
       type: object
       properties:
@@ -11116,6 +13141,20 @@ components:
       - isSystem
       - name
       - order
+    SalesStageBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/SalesStageCategoryEnum'
+      required:
+      - category
+      - id
+      - name
     SalesStageCategoryEnum:
       enum:
       - open
@@ -11147,6 +13186,121 @@ components:
           maxItems: 50
       required:
       - stageIds
+    SalesTimelineItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique within the timeline (not always a record id).
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/SalesTimelineItemKindEnum'
+          description: S3 adds activity and follow-up kinds.
+        at:
+          type: string
+          format: date-time
+        actor:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+        summary:
+          type: string
+        stageChange:
+          allOf:
+          - $ref: '#/components/schemas/SalesTimelineStageChange'
+          nullable: true
+        quotation:
+          allOf:
+          - $ref: '#/components/schemas/SalesTimelineQuotation'
+          nullable: true
+        activity:
+          nullable: true
+          description: null until S3.
+        followUp:
+          nullable: true
+          description: null until S3.
+      required:
+      - activity
+      - actor
+      - at
+      - followUp
+      - id
+      - kind
+      - quotation
+      - stageChange
+      - summary
+    SalesTimelineItemKindEnum:
+      enum:
+      - stage_created
+      - stage_moved
+      - stage_won
+      - stage_lost
+      - stage_reopened
+      - quotation_created
+      - quotation_sent
+      - quotation_accepted
+      - quotation_rejected
+      - quotation_expired
+      type: string
+    SalesTimelinePage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesTimelineItem'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesTimelineQuotation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        title:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SalesQuotationStatusEnum'
+          description: The quotation's current status.
+      required:
+      - amount
+      - id
+      - number
+      - status
+      - title
+    SalesTimelineStageChange:
+      type: object
+      properties:
+        fromStageId:
+          type: string
+          format: uuid
+          nullable: true
+        fromStage:
+          type: string
+          nullable: true
+        toStageId:
+          type: string
+          format: uuid
+          nullable: true
+        toStage:
+          type: string
+          nullable: true
+      required:
+      - fromStage
+      - fromStageId
+      - toStage
+      - toStageId
     SalesUserBrief:
       type: object
       properties:

@@ -1,7 +1,9 @@
-"""Sales tables (docs/sales/spec.md §4). S1: reference data and settings, companies and contacts.
+"""Sales tables (docs/sales/spec.md §4). S1: reference data and settings, companies and contacts. S2: leads,
+opportunities with their stage history, quotations and the per-workspace number sequence.
 
-Every table has a non-null `workspace`. Companies and contacts are soft-deleted and owned (`OwnedModel`: data scope
-through `visible_to()`). Money is `Decimal(14, 2)`; there is no currency field (ETB only).
+Every table has a non-null `workspace`. Companies, contacts, leads, opportunities and quotations are soft-deleted and
+owned (`OwnedModel`: data scope through `visible_to()`). Money is `Decimal(14, 2)`; there is no currency field (ETB
+only).
 """
 
 from __future__ import annotations
@@ -199,3 +201,172 @@ class Contact(WorkspaceScopedSoftDeleteModel, OwnedModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+# ───────────────────────── leads and the pipeline (S2) ─────────────────────────
+
+
+class Lead(WorkspaceScopedSoftDeleteModel, OwnedModel):
+    SOURCES = ("referral", "website", "call", "event", "visit", "social", "other")
+    NEW, CONTACTED, QUALIFIED, DISQUALIFIED, CONVERTED = "new", "contacted", "qualified", "disqualified", "converted"
+    STATUSES = (NEW, CONTACTED, QUALIFIED, DISQUALIFIED, CONVERTED)
+    #: Still being worked (the pipeline's leads count).
+    OPEN_STATUSES = (NEW, CONTACTED, QUALIFIED)
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    source = models.CharField(max_length=10, choices=[(s, s) for s in SOURCES], default="other")
+    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL, related_name="leads")
+    #: The company's name as typed, when it isn't a known company yet.
+    company_name_text = models.CharField(max_length=200, blank=True, default="")
+    contact = models.ForeignKey(Contact, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    contact_name = models.CharField(max_length=120, blank=True, default="")
+    phone = models.CharField(max_length=40, blank=True, default="")
+    email = models.CharField(max_length=254, blank=True, default="")
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    estimated_value = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=12, choices=[(s, s) for s in STATUSES], default=NEW)
+    disqualify_reason = models.CharField(max_length=500, blank=True, default="")
+    converted_opportunity = models.ForeignKey(
+        "Opportunity", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    converted_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True, default="")
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
+        indexes = [
+            models.Index(fields=["workspace", "owner", "status"], name="sales_lead_ws_owner_status"),
+            models.Index(fields=["workspace", "created_at"], name="sales_lead_ws_created"),
+        ]
+
+    @property
+    def display_name(self) -> str:
+        """The company (linked or typed), else the contact's name."""
+        if self.company_id is not None and self.company is not None:
+            return self.company.name
+        return self.company_name_text or self.contact_name
+
+    def __str__(self) -> str:
+        return self.display_name
+
+
+class Opportunity(WorkspaceScopedSoftDeleteModel, OwnedModel):
+    """A deal. Open, won or lost follows its stage's category; `version` guards concurrent moves and edits."""
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    #: RESTRICT: a company with opportunities (live or in the trash) can't be deleted on its own (the API answers 409
+    #: `company_has_opportunities`); deleting the whole workspace takes both.
+    company = models.ForeignKey(Company, on_delete=models.RESTRICT, related_name="opportunities")
+    contact = models.ForeignKey(Contact, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    title = models.CharField(max_length=200)
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    expected_value = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    #: 0–100; null = the stage's default probability.
+    probability_override = models.PositiveSmallIntegerField(null=True, blank=True)
+    #: RESTRICT: a stage with opportunities (live or in the trash) can't be deleted (409 `stage_in_use`).
+    stage = models.ForeignKey(PipelineStage, on_delete=models.RESTRICT, related_name="+")
+    expected_close_date = models.DateField(null=True, blank=True)
+    next_action = models.CharField(max_length=300, blank=True, default="")
+    source_lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    #: Who the won value counts for: the owner at the moment it was won. Reassignment never changes it.
+    credited_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    won_at = models.DateTimeField(null=True, blank=True)
+    won_value = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    lost_at = models.DateTimeField(null=True, blank=True)
+    lost_reason = models.ForeignKey(LostReason, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    lost_note = models.CharField(max_length=1000, blank=True, default="")
+    #: Denormalized by activities (S3).
+    last_activity_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
+    notes = models.TextField(blank=True, default="")
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
+        indexes = [
+            # Spec §11 hot paths.
+            models.Index(fields=["workspace", "owner", "stage"], name="sales_opp_ws_owner_stage"),
+            models.Index(fields=["workspace", "won_at"], name="sales_opp_ws_won_at"),
+            models.Index(fields=["workspace", "expected_close_date"], name="sales_opp_ws_close_date"),
+            models.Index(fields=["workspace", "company"], name="sales_opp_ws_company"),
+        ]
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class OpportunityStageHistory(WorkspaceScopedModel):
+    """One row per stage change: creation, move, won, lost and reopen. Stage names are copied so the history reads
+    the same after a stage is renamed or deleted."""
+
+    CREATED, MOVED, WON, LOST, REOPENED = "created", "moved", "won", "lost", "reopened"
+    KINDS = (CREATED, MOVED, WON, LOST, REOPENED)
+    workspace_parent = "opportunity"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name="stage_history")
+    kind = models.CharField(max_length=8, choices=[(k, k) for k in KINDS], default=MOVED)
+    from_stage = models.ForeignKey(PipelineStage, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    from_stage_name = models.CharField(max_length=PipelineStage.NAME_MAX, blank=True, default="")
+    to_stage = models.ForeignKey(PipelineStage, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    to_stage_name = models.CharField(max_length=PipelineStage.NAME_MAX, blank=True, default="")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    changed_at = models.DateTimeField()
+
+    class Meta(WorkspaceScopedModel.Meta):
+        ordering = ["changed_at", "created_at"]
+        indexes = [models.Index(fields=["opportunity", "changed_at"], name="sales_opp_history_opp_at")]
+
+
+class Quotation(WorkspaceScopedSoftDeleteModel, OwnedModel):
+    """A light quotation on an opportunity. Its owner is always the opportunity's owner (kept in sync on
+    reassignment); files go through the generic attachments."""
+
+    DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED = "draft", "sent", "accepted", "rejected", "expired"
+    STATUSES = (DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED)
+    workspace_parent = "opportunity"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name="quotations")
+    #: `Q-<year>-0001`, from the per-workspace, per-year sequence (`SalesSequence`).
+    number = models.CharField(max_length=20)
+    title = models.CharField(max_length=200)
+    amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    status = models.CharField(max_length=8, choices=[(s, s) for s in STATUSES], default=DRAFT)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    valid_until = models.DateField(null=True, blank=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    expired_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True, default="")
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
+        constraints = [models.UniqueConstraint(fields=["workspace", "number"], name="sales_quotation_number_unique")]
+        indexes = [
+            models.Index(fields=["workspace", "owner", "status"], name="sales_quote_ws_owner_status"),
+            models.Index(fields=["workspace", "status", "valid_until"], name="sales_quote_ws_status_valid"),
+            models.Index(fields=["opportunity", "created_at"], name="sales_quote_opp_created"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.number} {self.title}"
+
+
+class SalesSequence(WorkspaceScopedModel):
+    """Per-workspace counters (`quotation:2026` → the last quotation number of 2026), incremented under a row lock."""
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    key = models.CharField(max_length=40)
+    last = models.PositiveIntegerField(default=0)
+
+    class Meta(WorkspaceScopedModel.Meta):
+        constraints = [models.UniqueConstraint(fields=["workspace", "key"], name="sales_sequence_unique")]

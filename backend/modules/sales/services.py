@@ -1,10 +1,10 @@
-"""Sales writes (S1: reference data, companies, contacts). Every mutation writes one audit row
-(`sales.<entity>.<verb>`) inside its transaction. The views have already checked the permission code and the
-record's view scope; the services check the action's scope on the record (`scope.require_in_scope`) and the
-owner-change rule (`scope.check_owner_change`).
+"""Sales writes (S1: reference data, companies, contacts; S2's leads, opportunities and quotations are in
+`pipeline_services.py`). Every mutation writes one audit row (`sales.<entity>.<verb>`) inside its transaction. The
+views have already checked the permission code and the record's view scope; the services check the action's scope on
+the record (`scope.require_in_scope`) and the owner-change rule (`scope.check_owner_change`).
 
-Hooks for later stages are explicit functions below (`stage_in_use`, `product_in_use`, `lost_reason_in_use`,
-`company_has_opportunities`): they answer False in S1, and S2 replaces their bodies with real queries.
+The in-use guards (`stage_in_use`, `product_in_use`, `lost_reason_in_use`, `company_has_opportunities`) look at S2's
+leads and opportunities, including those in the trash.
 """
 
 from __future__ import annotations
@@ -26,7 +26,9 @@ from .models import (
     Company,
     Contact,
     Holiday,
+    Lead,
     LostReason,
+    Opportunity,
     PipelineStage,
     Product,
     SalesCalendar,
@@ -37,27 +39,32 @@ from .selectors import get_calendar
 
 MAX_OPEN_STAGES = 20
 
-# ───────────────────────── hooks for later stages ─────────────────────────
+# ───────────────────────── in-use guards (S2 records) ─────────────────────────
 
 
 def stage_in_use(stage: PipelineStage) -> bool:
-    """S2: True when an opportunity (live or deleted) sits in the stage."""
-    return False
+    """True when an opportunity (live or in the trash) sits in the stage."""
+    return Opportunity.all_objects.for_workspace(stage.workspace_id).filter(stage=stage).exists()
 
 
 def product_in_use(product: Product) -> bool:
-    """S2: True when a lead or an opportunity names the product."""
-    return False
+    """True when a lead or an opportunity (live or in the trash) names the product."""
+    ws = product.workspace_id
+    return (
+        Lead.all_objects.for_workspace(ws).filter(product=product).exists()
+        or Opportunity.all_objects.for_workspace(ws).filter(product=product).exists()
+    )
 
 
 def lost_reason_in_use(reason: LostReason) -> bool:
-    """S2: True when a lost opportunity names the reason."""
-    return False
+    """True when a lost opportunity (live or in the trash) names the reason."""
+    return Opportunity.all_objects.for_workspace(reason.workspace_id).filter(lost_reason=reason).exists()
 
 
 def company_has_opportunities(company: Company) -> bool:
-    """S2: True when the company has opportunities; deleting it is then refused (archive with status inactive)."""
-    return False
+    """True when the company has opportunities (live or in the trash); deleting it is then refused (archive it with
+    status inactive)."""
+    return Opportunity.all_objects.for_workspace(company.workspace_id).filter(company=company).exists()
 
 
 # ───────────────────────── helpers ─────────────────────────

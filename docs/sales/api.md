@@ -7,6 +7,7 @@ schema can't. Each stage appends its endpoints here.
 | Stage | Sections |
 |---|---|
 | S1 reference data and customers | §1–§8 |
+| S2 leads, opportunities and pipeline | §9–§13 (and the S2 notes in §1, §5, §6.4, §8) |
 
 ## 1. Conventions
 
@@ -24,7 +25,7 @@ schema can't. Each stage appends its endpoints here.
      narrower scope than `view`) → 403 `forbidden`, `details: {permission: "<code>"}`.
 - **Errors** use the platform shape `{code, message, details}`. Validation is 422 `validation_failed` with
   `details.fields: {fieldName: "message"}`. Query parameter errors name the parameter (`filter[status]`, `sort`).
-- **Lists of owned records** (companies, contacts) are cursor pages: `{data: [...], nextCursor: string | null}`. Pass
+- **Lists of owned records** (companies, contacts, leads, opportunities, quotations) are cursor pages: `{data: [...], nextCursor: string | null}`. Pass
   `cursor` (opaque) and `limit` (1–200, default 50). A broken cursor is 400 `invalid_cursor`. Filters use
   `filter[field]=value` (repeat a key for OR), free text uses `q`, and ordering uses `sort=<field>` or `sort=-<field>`
   for descending. Results are always tie-broken by id, so pages are stable.
@@ -35,8 +36,8 @@ schema can't. Each stage appends its endpoints here.
   `canDelete` (the caller's `edit` / `delete` scope reaches this record). The UI still checks `my_permissions` for the
   buttons that don't depend on a record (create, settings).
 - **Audit.** Every mutation writes one audit row. Actions are `sales.<entity>.<verb>`; the audit log's
-  `filter[entity]` groups are `company`, `contact` and `sales_settings` (settings, stages, products, lost reasons,
-  calendar, holidays).
+  `filter[entity]` groups are `company`, `contact`, `lead`, `opportunity`, `quotation` and `sales_settings`
+  (settings, stages, products, lost reasons, calendar, holidays).
 
 ## 2. Permissions and default roles
 
@@ -122,8 +123,8 @@ created with sales and whenever sales is turned on. Existing roles are never tou
   (on create or update) needs the entity's `edit` code with scope `team` or `all`; otherwise 403 `forbidden`,
   `details: {permission: "sales.company.edit", scope: "team"}`. The new owner must be an active member (422
   `ownerId`: "Pick a member of this workspace") and, with scope `team`, the caller or a team-mate (422 `ownerId`:
-  "Pick someone in your team"). The change is audited as an `Owner` change on `sales.<entity>.updated`. Leads,
-  opportunities and follow-ups use their `assign` / `reassign` codes (S2, S3).
+  "Pick someone in your team"). The change is audited as an `Owner` change on `sales.<entity>.updated`. Leads and
+  opportunities use their `assign` codes the same way (§9.3, §10.5); follow-ups use `reassign` (S3).
 
 ## 4. Module guard and defaults
 
@@ -176,8 +177,8 @@ Invariants and errors:
   probability is fixed (422 `defaultProbability`). Won and Lost always sort after the open stages; `order` is
   0…n-1.
 - Stage names are unique per workspace, case-insensitively: 409 `name_taken`, `details: {name}`.
-- An open stage can be deleted only if another open stage remains (409 `last_open_stage`) and no opportunity is in it
-  (409 `stage_in_use`, enforced from S2).
+- An open stage can be deleted only if another open stage remains (409 `last_open_stage`) and no opportunity, live
+  or in the trash, is in it (409 `stage_in_use`).
 - At most 20 open stages: 409 `too_many_stages`.
 - Reorder must list every open stage exactly once (no Won/Lost, no duplicates): else 422 `stageIds`.
 - Audit: `sales.stage.created`, `.updated`, `.deleted`, `.reordered`.
@@ -194,14 +195,15 @@ Invariants and errors:
 | `DELETE /sales/products/{id}` | | 204 |
 
 Name unique (case-insensitive) → 409 `name_taken`; a non-empty code unique (case-insensitive) → 409 `code_taken`.
-Deleting a product used by leads or opportunities → 409 `product_in_use` (from S2; deactivate it instead). Audit
+Deleting a product used by leads or opportunities (live or in the trash) → 409 `product_in_use` (deactivate it
+instead). Leads and opportunities can only be given active products; keeping an inactive one is fine. Audit
 `sales.product.*`.
 
 ### 5.4 Lost reasons
 
 `SalesLostReason`: `{id, name, isActive, createdAt, updatedAt}`. Same routes and rules as products under
-`lost-reasons` (`/sales/workspaces/{slug}/lost-reasons`, `/sales/lost-reasons/{id}`); in-use delete → 409
-`lost_reason_in_use` (from S2). Audit `sales.lostreason.*`.
+`lost-reasons` (`/sales/workspaces/{slug}/lost-reasons`, `/sales/lost-reasons/{id}`); in-use delete (a lost
+opportunity names it) → 409 `lost_reason_in_use`. `lost` accepts active reasons only. Audit `sales.lostreason.*`.
 
 ### 5.5 Working calendar — `GET/PUT /sales/workspaces/{slug}/calendar`
 
@@ -254,8 +256,8 @@ trimmed. Audit `sales.company.created` / `.updated` (with the changed fields) / 
 
 **Delete** is a soft delete into the workspace trash (kind `sales.company`), and the company's live contacts go with
 it. Restoring the company from the trash (`POST /workspaces/{slug}/trash/restore`) brings back exactly those
-contacts. Deleting a company that has opportunities → 409 `company_has_opportunities` (from S2; archive with
-`status: "inactive"` instead).
+contacts. Deleting a company that has opportunities (live or in the trash) → 409 `company_has_opportunities`
+(archive with `status: "inactive"` instead).
 
 ### 6.2 List parameters
 
@@ -287,13 +289,14 @@ string | null}`.
   `excludeId` → 422.
 - It warns only: creating a duplicate is allowed.
 
-### 6.4 Summary (S1 stub)
+### 6.4 Summary
 
 `SalesCompanySummary`:
-`{company: SalesCompany, contactCount, primaryContact: SalesContact | null, openOpportunityCount: 0, pipelineValue:
-"0.00", wonValue: "0.00", openFollowUpCount: 0, lastContactAt: null, timeline: []}`. `contactCount` and
-`primaryContact` count only contacts the caller can see. S2 fills the opportunity fields, S3 the follow-up,
-last-contact and timeline fields (S3 defines the timeline item shape).
+`{company: SalesCompany, contactCount, primaryContact: SalesContact | null, openOpportunityCount, pipelineValue,
+wonValue, openFollowUpCount: 0, lastContactAt: null, timeline: []}`. `contactCount` and `primaryContact` count only
+contacts the caller can see. From S2: `openOpportunityCount` and `pipelineValue` (sum of expected values) cover the
+company's **open** opportunities in the caller's `sales.opportunity.view` scope, `wonValue` the won values of its won
+ones in scope. S3 fills the follow-up, last-contact and timeline fields (items use the §10.7 shape).
 
 ## 7. Contacts
 
@@ -322,14 +325,356 @@ last-contact and timeline fields (S3 defines the timeline item shape).
 ## 8. Platform hooks
 
 - **Comments and attachments** (`/api/v1/targets/{targetType}/{targetId}/comments|attachments`) work on
-  `sales.company` and `sales.contact`. Viewing, commenting and attaching need the entity's `view` scope to reach the
-  record (else 404). Deleting someone else's comment or attachment needs the entity's `edit` scope (`details.permission`
-  = `sales.company.edit` / `sales.contact.edit`). Notifications go to the record's owner. `sales.lead`,
-  `sales.opportunity` and `sales.quotation` are registered in S2.
-- **Search**: workspace search (`/workspaces/{slug}/search?filter[type]=company|contact`) and global search
-  (`/search?type=company|contact`) return only records in the caller's view scope. Result:
+  `sales.company`, `sales.contact`, `sales.lead`, `sales.opportunity` and `sales.quotation`. Viewing, commenting and
+  attaching need the entity's `view` scope to reach the record (else 404). Deleting someone else's comment or
+  attachment needs the entity's `edit` scope (`details.permission` = `sales.<entity>.edit`). Notifications go to the
+  record's owner. Contacts of a deleted company and quotations of a deleted opportunity are not targets (404).
+- **Search**: workspace search (`/workspaces/{slug}/search?filter[type]=company|contact|lead|opportunity|quotation`)
+  and global search (`/search?type=…`) return only records in the caller's view scope. Result:
   `{type: "company", company: {id, name, status, city}, targetType: "sales.company", targetId, title, link}` and
   `{type: "contact", contact: {id, name, companyId, companyName}, targetType: "sales.contact", ...}`. Links are
-  `{FRONTEND_URL}/{slug}/sales/companies/{id}` and `/sales/contacts/{id}`.
-- **Trash** kinds `sales.company` and `sales.contact`: listed for users holding the `delete` code, limited to their
-  delete scope; restore and purge use the core trash routes.
+  `{FRONTEND_URL}/{slug}/sales/companies/{id}` and `/sales/contacts/{id}`. S2 adds
+  `{type: "lead", lead: {id, name, status, contactName}, targetType: "sales.lead", …}`,
+  `{type: "opportunity", opportunity: {id, title, status, stageName, companyId, companyName}, …}` and
+  `{type: "quotation", quotation: {id, number, title, status, opportunityId}, …}`, linking to `/sales/leads/{id}`,
+  `/sales/opportunities/{id}` and `/sales/quotations/{id}`.
+- **Trash** kinds `sales.company`, `sales.contact`, `sales.lead`, `sales.opportunity` and `sales.quotation`: listed
+  for users holding the `delete` code, limited to their delete scope; restore and purge use the core trash routes.
+  Deleting an opportunity takes its live quotations along (restoring it brings exactly those back, like a company and
+  its contacts); quotations deleted earlier stay in the trash as their own items.
+- **Jobs** (`core/jobs`): `sales_expire_quotations`, suggested schedule `daily 00:15` (§11.4).
+
+## 9. Leads (S2)
+
+`SalesLead`:
+
+```
+{ id, displayName, source, status, companyId, company: {id, name} | null, companyName, contactId,
+  contact: {id, name} | null, contactName, phone, email, productId, product: {id, name} | null,
+  estimatedValue: money | null, disqualifyReason, convertedOpportunityId, convertedAt,
+  notes, ownerId, owner, canEdit, canDelete, createdAt, updatedAt }
+```
+
+- `source`: `referral`, `website`, `call`, `event`, `visit`, `social`, `other` (default `other`).
+- `status`: `new` → `contacted` (by edit) → `qualified` / `disqualified` (actions) → `converted` (action).
+- `displayName` = the linked company's name, else the typed `companyName`, else `contactName`. `companyName` is the
+  company as typed when it isn't a known company yet.
+
+### 9.1 Routes
+
+| Route | Permission | Body / query | Answer |
+|---|---|---|---|
+| `GET /sales/workspaces/{slug}/leads` | lead.view | §9.2 | 200 `SalesLeadPage` |
+| `POST /sales/workspaces/{slug}/leads` | lead.create | `SalesLeadIn` | 201 `SalesLead` |
+| `POST /sales/workspaces/{slug}/leads/bulk-assign` | lead.assign | `{leadIds: uuid[1..200], ownerId}` | 200 `{updated}` |
+| `GET /sales/leads/{id}` | lead.view (scope) | | 200 `SalesLead` |
+| `PATCH /sales/leads/{id}` | lead.edit (scope) | `SalesLeadUpdateIn` | 200 `SalesLead` |
+| `DELETE /sales/leads/{id}` | lead.delete (scope) | | 204 |
+| `POST /sales/leads/{id}/qualify` | lead.convert (scope) | | 200 `SalesLead` |
+| `POST /sales/leads/{id}/disqualify` | lead.convert (scope) | `{reason}` (required, ≤ 500) | 200 `SalesLead` |
+| `POST /sales/leads/{id}/convert` | lead.convert (scope) | `SalesLeadConvertIn` | 200 `SalesLeadConvertResult` |
+
+`SalesLeadIn`: `source`, `companyId` (a company the caller can see, else 422 `companyId`), `companyName` (≤ 200),
+`contactId` (a contact the caller can see, of `companyId` when one is set, else 422 `contactId`), `contactName`
+(≤ 120), `phone`, `email`, `productId` (an active product, else 422 `productId`), `estimatedValue` (≥ 0 or null),
+`status` (`new` or `contacted` only; else 422 — use the actions), `notes`, `ownerId`. A lead needs `companyId`,
+`companyName` or `contactName` (422 `companyName`: "Name the company or the contact"). The update body takes the same
+fields, all optional; changing the company clears a contact of the old company.
+
+- **Owner**: `ownerId` someone else (create or edit) needs `sales.lead.assign` — scope `team` or `all`, reaching the
+  record on edit — with §3's rules (403 `{permission: "sales.lead.assign", scope: "team"}`, 422 `ownerId`).
+- **Converted leads are read-only**: edit, qualify, disqualify and convert answer 409 `lead_converted`,
+  `details: {opportunityId}`. Delete still works.
+- **Qualify** (from `new`, `contacted` or `disqualified`) clears the disqualify reason; qualifying a qualified lead is
+  a no-op 200. **Disqualify** needs a `reason` (422 `reason`).
+- Delete is a soft delete into the trash (kind `sales.lead`). Audit `sales.lead.created`, `.updated` (owner changes
+  included), `.qualified`, `.disqualified`, `.converted`, `.deleted`, `.restored`, `.purged`. Events
+  `sales.lead.created` `{leadId, ownerId}` and `sales.lead.converted` (§9.4).
+
+### 9.2 List parameters
+
+| Parameter | Meaning |
+|---|---|
+| `filter[status]`, `filter[source]` | repeatable; unknown values → 422 |
+| `filter[owner]` | user id or `me` (repeatable) |
+| `filter[team]` | team id (repeatable): leads owned by its members; unknown teams → 422 |
+| `filter[product]`, `filter[company]` | ids (repeatable) |
+| `filter[createdFrom]`, `filter[createdTo]` | `YYYY-MM-DD`, business dates in the workspace time zone, inclusive |
+| `q` | contains, in company name (typed or linked), contact name, phone or email |
+| `sort` | `-createdAt` (default), `createdAt`, `updatedAt`, `name` (display name), `status`, `estimatedValue` (no value sorts first) |
+
+Always limited to the caller's `sales.lead.view` scope.
+
+### 9.3 Bulk assign
+
+All or nothing: every id must be a live lead the caller can see (else 422 `leadIds`, nothing changes) and reach with
+`sales.lead.assign` (else 403 `{permission: "sales.lead.assign"}`); the new owner follows §3 (`team` scope: a
+team-mate). Leads already owned by `ownerId` are skipped; a converted lead in the batch → 409 `lead_converted`. One
+audit row per changed lead (`sales.lead.updated`, an `Owner` change, `data: {bulk: true}`). Answer `{updated: n}`.
+
+### 9.4 Convert
+
+`SalesLeadConvertIn` (everything optional):
+
+```
+{ companyId?: uuid, company?: {name, industry?, region?, city?, address?, phone?, email?, website?},
+  contactId?: uuid, contact?: {name, jobTitle?, phone?, email?},
+  opportunity?: {title?, expectedValue?, expectedCloseDate?} }
+```
+
+1. **Company**: `companyId` (a company the caller can see) → linked; else `company` → created; else the lead's linked
+   company (if live); else the oldest company **in the caller's company view scope** whose normalized name (the
+   lead's `companyName`, else `contactName`) or phone matches, with the duplicate check's normalization (§6.3) →
+   linked; else a new company from the lead (name, phone, email). Sending both `companyId` and `company` → 422.
+2. **Contact**: `contactId` (of that company) → linked; else `contact` → created; else the lead's contact if it
+   belongs to that company; else a contact of the company with the same name (case-insensitive) → linked; else, when
+   the lead has a `contactName`, a new contact (with the lead's phone and email). Created contacts are primary when
+   the company has none.
+3. **Opportunity**: created in the **first open stage**, owned by the lead's owner, with the lead's product,
+   `expectedValue` = the lead's estimated value (0 without one) and `title` = "Company – Product" (or the company
+   name); `opportunity` overrides title, value and expected close date. `sourceLeadId` = the lead.
+4. The lead becomes `converted` with `convertedOpportunityId`, `convertedAt`, and its `companyId` / `contactId` set
+   to the result. Companies and contacts created here are owned by the lead's owner (§3's owner rule applies to the
+   caller, so a manager converting a team-mate's lead works).
+
+Answer `SalesLeadConvertResult`: `{lead, opportunity: SalesOpportunity, company: SalesCompany, contact: SalesContact |
+null, companyCreated, contactCreated}`. Errors: 409 `lead_converted` (converting twice: the lead row is locked, so
+concurrent conversions make one opportunity), 409 `lead_disqualified` (qualify it first), 422 `company` (nothing to
+name a new company after). Audit `sales.lead.converted` (plus the company, contact and opportunity `created` rows);
+event `sales.lead.converted` `{leadId, opportunityId, companyId, contactId, companyCreated, contactCreated}` (and
+`sales.opportunity.created`).
+
+## 10. Opportunities and the pipeline (S2)
+
+`SalesOpportunity`:
+
+```
+{ id, title, status: "open" | "won" | "lost", companyId, company: {id, name}, contactId, contact: {id, name} | null,
+  productId, product: {id, name} | null, stageId, stage: {id, name, category}, expectedValue: money,
+  probabilityOverride: 0..100 | null, probability, weightedValue: money, expectedCloseDate, nextAction,
+  sourceLeadId, creditedUserId, creditedUser: {id, name, hue} | null, wonAt, wonValue: money | null, lostAt,
+  lostReasonId, lostReason: {id, name} | null, lostNote, lastActivityAt, version,
+  notes, flags: {overdueClose, noNextStep, stale},
+  ownerId, owner, canEdit, canDelete, canMove, canClose, createdAt, updatedAt }
+```
+
+- `status` is the stage's category. `probability` = `probabilityOverride` if set, else the stage's default
+  probability (so won = 100, lost = 0). `weightedValue` = `expectedValue × probability / 100`, rounded half up to
+  cents.
+- `flags.overdueClose`: open with `expectedCloseDate` before today (workspace time). `noNextStep` and `stale` are in
+  the shape now and always `false` until S3 (follow-ups and activities).
+- `canMove` / `canClose`: the caller's `move` / `close` scope reaches the record (like `canEdit`).
+- `version` starts at 1 and goes up on every change (edit, move, won, lost, reopen, reassignment).
+
+### 10.1 Routes
+
+| Route | Permission | Body / query | Answer |
+|---|---|---|---|
+| `GET /sales/workspaces/{slug}/opportunities` | opportunity.view | §10.2 | 200 `SalesOpportunityPage` |
+| `POST /sales/workspaces/{slug}/opportunities` | opportunity.create | `SalesOpportunityIn` | 201 `SalesOpportunity` |
+| `POST /sales/workspaces/{slug}/opportunities/bulk-assign` | opportunity.assign | `{opportunityIds, ownerId}` | 200 `{updated}` |
+| `GET /sales/workspaces/{slug}/pipeline` | opportunity.view | §10.6 | 200 `SalesPipeline` |
+| `GET /sales/opportunities/{id}` | opportunity.view (scope) | | 200 |
+| `PATCH /sales/opportunities/{id}` | opportunity.edit (scope) | `SalesOpportunityUpdateIn` | 200 |
+| `DELETE /sales/opportunities/{id}` | opportunity.delete (scope) | | 204 |
+| `POST /sales/opportunities/{id}/move` | opportunity.move (scope) | `{stageId, version}` | 200 |
+| `POST /sales/opportunities/{id}/won` | opportunity.close (scope) | `{wonValue?, wonAt?, version?}` | 200 |
+| `POST /sales/opportunities/{id}/lost` | opportunity.close (scope) | `{lostReasonId, lostNote?, version?}` | 200 |
+| `POST /sales/opportunities/{id}/reopen` | opportunity.reopen + close (scope) | `{stageId?, version?}` | 200 |
+| `GET /sales/opportunities/{id}/timeline` | opportunity.view (scope) | `cursor`, `limit` | 200 `SalesTimelinePage` |
+
+`SalesOpportunityIn`: `title` (required, ≤ 200), `companyId` (required; a company the caller can see, else 422),
+`contactId` (a contact the caller can see, of that company), `productId` (active), `stageId` (an **open** stage;
+default the first; won/lost → 422 `stageId`), `expectedValue` (≥ 0, default 0), `probabilityOverride` (0–100 or
+null), `expectedCloseDate`, `nextAction` (≤ 300), `notes`, `ownerId` (someone else needs `sales.opportunity.assign`,
+§3's rules). The update body takes the same fields except `stageId` (stages change only through the actions below),
+plus `creditedUserId` (§10.5) and an optional `version` (sent → a mismatch is 409 `version_conflict`). Changing the
+company clears a contact of the old company.
+
+Delete is a soft delete into the trash (kind `sales.opportunity`), taking the opportunity's live quotations along.
+Audit `sales.opportunity.created`, `.updated` (owner and credit changes included), `.moved`, `.won`, `.lost`,
+`.reopened`, `.deleted`, `.restored`, `.purged`. Events §10.8.
+
+### 10.2 List parameters
+
+| Parameter | Meaning |
+|---|---|
+| `filter[status]` | `open`, `won`, `lost` (repeatable) |
+| `filter[stage]`, `filter[product]`, `filter[company]` | ids (repeatable) |
+| `filter[owner]`, `filter[team]` | as for leads (§9.2) |
+| `filter[expectedCloseFrom]`, `filter[expectedCloseTo]` | `YYYY-MM-DD`, inclusive |
+| `filter[wonFrom]`, `filter[wonTo]` | `YYYY-MM-DD` business dates in the workspace time zone, inclusive, on `wonAt` |
+| `q` | contains, in title or company name |
+| `sort` | `-updatedAt` (default), `createdAt`, `title`, `expectedValue`, `expectedCloseDate` (no date sorts last), `wonAt` (open deals by creation) |
+
+### 10.3 Move and versions
+
+`POST …/move {stageId, version}`. Checks in order: `move` scope (403), `version` required (422) and equal to the
+current version, else **409 `version_conflict`** with `details.current` = the opportunity as it is now (the board
+reloads the card); the opportunity must be open (409 `opportunity_closed`, `details.status`); the stage must be an
+open stage of the workspace (422 `stageId`; Won and Lost are reached only through `won` and `lost`). The same stage
+is a no-op 200. A move bumps `version`, writes a stage-history row, audit `sales.opportunity.moved` (a `Stage`
+change) and event `sales.opportunity.moved` `{opportunityId, fromStageId, toStageId}`.
+
+`won`, `lost`, `reopen` and edits accept an optional `version` with the same 409 when it doesn't match.
+
+### 10.4 Won, lost, reopen
+
+- **Won** (open deals only, else 409 `opportunity_closed`): moves to the Won stage; `wonValue` defaults to
+  `expectedValue`; `creditedUser` = the current owner; clears any lost fields; the company becomes `active` (audited
+  as `sales.company.updated`); event `sales.opportunity.won` `{opportunityId, wonValue, wonAt, creditedUserId,
+  companyId}`.
+- **`wonAt`** (default now): a timestamp (`2026-10-14T23:30:00+03:00`; without an offset it is workspace time) or a
+  date (`2026-10-14` = that date at 12:00 workspace time; today's date = now). Rules:
+  - never in the future (422 `wonAt`);
+  - any time **earlier today** (workspace date) is fine for anyone who may close the deal;
+  - an **earlier business date** needs `sales.opportunity.close` with scope `team` or `all` (else 403 `forbidden`,
+    `details: {permission: "sales.opportunity.close", scope: "team"}`), and must fall in the **current closing
+    period, the current calendar month in the workspace time zone** (else 422 `wonAt`: "Pick a date in the current
+    period (from YYYY-MM-DD)"). Closed months stay closed, so monthly actuals never move after the month ends.
+  - KPIs count a won deal on the **workspace date** of `wonAt` (`filter[wonFrom]` / `filter[wonTo]`): a deal won at
+    23:30 Addis time counts that day, one at 00:30 the next day, though both are the same UTC date.
+- **Lost** (open deals only): `lostReasonId` required and active (422), `lostNote` optional (≤ 1000); moves to the
+  Lost stage, sets `lostAt`, clears won fields; event `sales.opportunity.lost` `{opportunityId, lostReasonId,
+  lostReason}`.
+- **Reopen** (closed deals only, else 409 `opportunity_open`): the route needs `sales.opportunity.reopen`; both
+  `reopen` and `close` must reach the record (403 with the missing code). Back to `stageId` (an open stage) or the
+  first open stage; clears `wonAt`, `wonValue`, `creditedUser`, `lostAt`, `lostReason`, `lostNote`. Audited
+  (`sales.opportunity.reopened` with the cleared values); no event.
+
+Every won, lost and reopen writes a stage-history row and bumps `version`.
+
+### 10.5 Reassignment and credit
+
+- Changing `ownerId` (edit or `opportunities/bulk-assign`) needs `sales.opportunity.assign` reaching the record and
+  §3's owner rule. It moves the opportunity's quotations (live and trashed) to the new owner, bumps `version`, is
+  audited as an `Owner` change and emits `sales.opportunity.reassigned` `{opportunityId, fromOwnerId, toOwnerId}`.
+  It **never changes `creditedUser`**.
+- Bulk assign works like leads (§9.3): all or nothing, 422 `opportunityIds` / 403, one audit row per changed deal.
+- `creditedUserId` on edit: won deals only (else 422 `creditedUserId`); needs `sales.opportunity.reopen` reaching the
+  record (403); must be an active member (422). Audited as a `Credited to` change.
+
+### 10.6 Pipeline board — `GET /sales/workspaces/{slug}/pipeline`
+
+Filters: `filter[owner]`, `filter[team]`, `filter[product]`, `filter[expectedCloseFrom]`, `filter[expectedCloseTo]`;
+`limit` = cards per stage (1–200, default 50). Always limited to the caller's `sales.opportunity.view` scope.
+
+```
+SalesPipeline = { stages: [{ stage: SalesStage, count, value, weightedValue,
+                             opportunities: SalesOpportunity[], nextCursor }],
+                  count, value, weightedValue, leadCount: int | null }
+```
+
+- Open stages only, in board order. Won and lost deals are listed with `opportunities?filter[status]=won|lost`.
+- `value` = sum of expected values, `weightedValue` = sum of `expectedValue × probability`; the top-level totals add
+  up the columns (the weighted pipeline of spec §6).
+- Each column's cards are the most recently updated first. `nextCursor` continues the column on the list endpoint:
+  `GET opportunities?filter[stage]=<id>&sort=-updatedAt&cursor=<nextCursor>` with the same filters.
+- `leadCount`: open leads (`new`, `contacted`, `qualified`) in the caller's `sales.lead.view` scope with the same
+  owner, team and product filters (the dashboard's "leads" column); null without `sales.lead.view`.
+
+### 10.7 Timeline — `GET /sales/opportunities/{id}/timeline`
+
+Every child of the opportunity, **whatever the child's own owner** (spec §3: the timeline returns all children of a
+parent the caller can view), newest first, as a cursor page `{data: SalesTimelineItem[], nextCursor}` (`limit` 1–200,
+default 50; keyset on `(at, id)`).
+
+```
+SalesTimelineItem = { id: string, kind, at: timestamp, actor: {id, name, hue} | null, summary: string,
+                      stageChange: {fromStageId, fromStage, toStageId, toStage} | null,
+                      quotation: {id, number, title, amount, status} | null,
+                      activity: null, followUp: null }
+```
+
+- `id` is unique within the timeline (a stage-history id, or `<quotationId>:<event>`), not always a record id.
+- S2 kinds: `stage_created` (`fromStage` null), `stage_moved`, `stage_won`, `stage_lost`, `stage_reopened`;
+  `quotation_created`, `quotation_sent`, `quotation_accepted`, `quotation_rejected`, `quotation_expired` (`actor`
+  null: the nightly job). A quotation's `status` is its current status.
+- S3 adds activity and follow-up kinds, filling `activity` / `followUp` (null otherwise); clients should ignore kinds
+  they don't know. Stage names are copied at the time of the change, so renaming or deleting a stage doesn't rewrite
+  history. Deleted quotations drop out.
+
+### 10.8 Events
+
+| Event | Payload |
+|---|---|
+| `sales.opportunity.created` | `{opportunityId, ownerId, sourceLeadId}` |
+| `sales.opportunity.moved` | `{opportunityId, fromStageId, toStageId}` |
+| `sales.opportunity.won` | `{opportunityId, wonValue, wonAt, creditedUserId, companyId}` |
+| `sales.opportunity.lost` | `{opportunityId, lostReasonId, lostReason}` |
+| `sales.opportunity.reassigned` | `{opportunityId, fromOwnerId, toOwnerId}` |
+
+Events carry `targetType: "sales.opportunity"` and the actor. All S2 event types are registered without a notification
+preference row; S3 adds the notification types.
+
+## 11. Quotations (S2)
+
+`SalesQuotation`:
+
+```
+{ id, number, opportunityId, opportunity: {id, title, companyId, companyName}, title, amount: money,
+  status: "draft" | "sent" | "accepted" | "rejected" | "expired", sentAt, validUntil, respondedAt, expiredAt,
+  notes, ownerId, owner, canEdit, canDelete, createdAt, updatedAt }
+```
+
+### 11.1 Routes
+
+| Route | Permission | Body / query | Answer |
+|---|---|---|---|
+| `GET /sales/workspaces/{slug}/quotations` | quotation.view | `filter[status]`, `filter[opportunity]`, `filter[owner]`, `filter[team]`, `q` (number, title, company name), `sort` = `-createdAt` (default) / `createdAt` / `updatedAt` / `number` / `amount` / `validUntil`, `cursor`, `limit` | 200 `SalesQuotationPage` |
+| `POST /sales/workspaces/{slug}/quotations` | quotation.create | `{opportunityId, title, amount, validUntil?, notes?}` | 201 |
+| `GET /sales/quotations/{id}` | quotation.view (scope) | | 200 |
+| `PATCH /sales/quotations/{id}` | quotation.edit (scope) | `{title?, amount?, validUntil?, notes?}` | 200 |
+| `DELETE /sales/quotations/{id}` | quotation.delete (scope) | | 204 |
+| `POST /sales/quotations/{id}/send` | quotation.edit (scope) | `{validUntil?}` | 200 |
+| `POST /sales/quotations/{id}/accept` | quotation.edit (scope) | | 200 |
+| `POST /sales/quotations/{id}/reject` | quotation.edit (scope) | | 200 |
+
+- The opportunity must be one the caller can see (422 `opportunityId`). `amount` ≥ 0, `title` ≤ 200.
+- **Owner** = the opportunity's owner, always: set on create, moved on reassignment (§10.5), re-synced on restore.
+  There is no `ownerId` input. Quotations are scoped by that owner (`sales.quotation.*` codes).
+- **Number** `Q-<year>-0001`: a per-workspace counter per year (the workspace's current year at creation), taken
+  under a row lock, so concurrent creates never repeat or skip a number. Numbers are never reused (deleted
+  quotations keep theirs).
+- Quotations of a deleted opportunity are hidden (404) until it is restored.
+
+### 11.2 Transitions
+
+| From | Action | To |
+|---|---|---|
+| draft | `send` | sent (`sentAt` = now; `validUntil` = the body's date, else today + `quotationValidityDays`, workspace time) |
+| sent | `accept` / `reject` | accepted / rejected (`respondedAt` = now) |
+| sent | nightly job, `validUntil` before today | expired (`expiredAt`) |
+| draft, sent | `PATCH` | unchanged |
+
+Anything else → 409 `invalid_transition`, `details: {status, action}`. `send` with a `validUntil` before today → 422.
+**Accepting does not win the opportunity** (use `won`). Audit `sales.quotation.created`, `.updated`, `.sent`,
+`.accepted`, `.rejected`, `.expired` (no actor), `.deleted`, `.restored`, `.purged`. Event `sales.quotation.sent`
+`{quotationId, opportunityId, number, validUntil}`.
+
+Spec §5's "quotation activity entry" on send: activities arrive in S3. Until then the timeline shows the send as a
+`quotation_sent` item; S3 creates the activity from the `on_quotation_sent` hook.
+
+### 11.3 Awaiting response
+
+"Awaiting customer response" = `filter[status]=sent`.
+
+### 11.4 Job `sales_expire_quotations`
+
+Registered with `core/jobs` (suggested schedule `daily 00:15`; `manage.py run_job sales_expire_quotations` or
+`POST /api/v1/internal/jobs/sales_expire_quotations`). Per workspace, in its time zone: sent quotations with
+`validUntil` before the workspace's today become `expired`. Idempotent (a second run finds nothing to do); skipped
+where sales is off.
+
+## 12. Permission notes (S2)
+
+- Default grants are unchanged (§2). In practice: Salespeople create, edit, move, close and convert their own; Sales
+  Managers also assign, delete leads and quotations, within their team; only Sales Admin (and Owner / Admin) delete
+  opportunities, reopen deals and change the credit; CEO / GM view everything and change nothing.
+- `qualify` and `disqualify` use `sales.lead.convert`; `send`, `accept` and `reject` use `sales.quotation.edit`.
+- Back-dating a won date needs `close` scope `team` or `all` (§10.4).
+
+## 13. Platform hooks (S2)
+
+Collab targets, search types, trash kinds, audit groups and the job are listed in §8. Indexes (spec §11):
+opportunities `(workspace, owner, stage)`, `(workspace, won_at)`, `(workspace, expected_close_date)`.

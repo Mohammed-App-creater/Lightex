@@ -3,6 +3,7 @@
 
 from django.urls import path
 
+from . import pipeline_views as pv
 from . import views
 
 W = "workspaces/<str:slug>"
@@ -29,4 +30,37 @@ urlpatterns = [
     path("companies/<uuid:company_id>/summary", views.CompanySummaryView.as_view(), name="sales-company-summary"),
     path(f"{W}/contacts", views.ContactListView.as_view(), name="sales-contacts"),
     path("contacts/<uuid:contact_id>", views.ContactDetailView.as_view(), name="sales-contact-detail"),
+    # S2: leads, opportunities, the pipeline board and quotations
+    path(f"{W}/leads", pv.LeadListView.as_view(), name="sales-leads"),
+    path(f"{W}/leads/bulk-assign", pv.LeadBulkAssignView.as_view(), name="sales-leads-bulk-assign"),
+    path("leads/<uuid:lead_id>", pv.LeadDetailView.as_view(), name="sales-lead-detail"),
+    path("leads/<uuid:lead_id>/qualify", pv.LeadQualifyView.as_view(), name="sales-lead-qualify"),
+    path("leads/<uuid:lead_id>/disqualify", pv.LeadDisqualifyView.as_view(), name="sales-lead-disqualify"),
+    path("leads/<uuid:lead_id>/convert", pv.LeadConvertView.as_view(), name="sales-lead-convert"),
+    path(f"{W}/pipeline", pv.PipelineView.as_view(), name="sales-pipeline"),
+    path(f"{W}/opportunities", pv.OpportunityListView.as_view(), name="sales-opportunities"),
+    path(
+        f"{W}/opportunities/bulk-assign",
+        pv.OpportunityBulkAssignView.as_view(),
+        name="sales-opportunities-bulk-assign",
+    ),
+    path("opportunities/<uuid:opportunity_id>", pv.OpportunityDetailView.as_view(), name="sales-opportunity-detail"),
+    path("opportunities/<uuid:opportunity_id>/move", pv.OpportunityMoveView.as_view(), name="sales-opportunity-move"),
+    path("opportunities/<uuid:opportunity_id>/won", pv.OpportunityWonView.as_view(), name="sales-opportunity-won"),
+    path("opportunities/<uuid:opportunity_id>/lost", pv.OpportunityLostView.as_view(), name="sales-opportunity-lost"),
+    path(
+        "opportunities/<uuid:opportunity_id>/reopen",
+        pv.OpportunityReopenView.as_view(),
+        name="sales-opportunity-reopen",
+    ),
+    path(
+        "opportunities/<uuid:opportunity_id>/timeline",
+        pv.OpportunityTimelineView.as_view(),
+        name="sales-opportunity-timeline",
+    ),
+    path(f"{W}/quotations", pv.QuotationListView.as_view(), name="sales-quotations"),
+    path("quotations/<uuid:quotation_id>", pv.QuotationDetailView.as_view(), name="sales-quotation-detail"),
+    path("quotations/<uuid:quotation_id>/send", pv.QuotationSendView.as_view(), name="sales-quotation-send"),
+    path("quotations/<uuid:quotation_id>/accept", pv.QuotationAcceptView.as_view(), name="sales-quotation-accept"),
+    path("quotations/<uuid:quotation_id>/reject", pv.QuotationRejectView.as_view(), name="sales-quotation-reject"),
 ]

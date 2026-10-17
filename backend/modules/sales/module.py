@@ -9,7 +9,7 @@ source of the default roles; docs/sales/api.md §2 prints it for the frontend.
 from __future__ import annotations
 
 from core.access.catalogue import ALL, OWN, TEAM, PermissionDef, workspace_permission
-from core.modules.registry import DefaultRole, ModuleDefinition, NavItem
+from core.modules.registry import DefaultRole, EventTypeDef, ModuleDefinition, NavItem
 
 KEY = "sales"
 
@@ -220,6 +220,25 @@ DEFAULT_ROLES: tuple[DefaultRole, ...] = tuple(
     for i, (key, name, scope, description) in enumerate(ROLE_COLUMNS)
 )
 
+# ───────────────────────── domain events (spec §9) ─────────────────────────
+#
+# Registered without a notification preference row: S3 adds the notification types (assigned to you, won, …) and their
+# preferences. The labels name the events in the event log and audit tooling.
+
+EVENT_TYPES: tuple[EventTypeDef, ...] = tuple(
+    EventTypeDef(key, label, preference=False)
+    for key, label in (
+        ("sales.lead.created", "Lead created"),
+        ("sales.lead.converted", "Lead converted"),
+        ("sales.opportunity.created", "Opportunity created"),
+        ("sales.opportunity.moved", "Opportunity moved"),
+        ("sales.opportunity.won", "Opportunity won"),
+        ("sales.opportunity.lost", "Opportunity lost"),
+        ("sales.opportunity.reassigned", "Opportunity reassigned"),
+        ("sales.quotation.sent", "Quotation sent"),
+    )
+)
+
 DEFINITION = ModuleDefinition(
     key=KEY,
     name="Sales",
@@ -230,7 +249,8 @@ DEFINITION = ModuleDefinition(
     # Owner and Admin: every sales code, scope `all` (the default for those two roles). Member: nothing.
     default_role_grants={"owner": list(ALL_CODES), "admin": list(ALL_CODES)},
     default_roles=DEFAULT_ROLES,
-    target_types=("sales.company", "sales.contact"),
+    event_types=EVENT_TYPES,
+    target_types=("sales.company", "sales.contact", "sales.lead", "sales.opportunity", "sales.quotation"),
     search_provider=KEY,
     nav_items=(NavItem("sales", "Sales", "briefcase", "sales", DASHBOARD_VIEW),),
     toggleable=True,

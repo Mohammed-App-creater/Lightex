@@ -16,13 +16,14 @@ from typing import Any
 import pytest
 from django.urls import URLPattern, URLResolver, get_resolver, reverse
 
-from .conftest import ACTORS, SalesWorld, build_sales_world
+from .conftest import ACTORS, SalesWorld, add_deals, build_sales_world
 
 SALES_ROLES = ("sales_admin", "ceo", "manager", "rep")
 EVERY_SALES_USER = ("owner", "admin", *SALES_ROLES)
 ADMINS = ("owner", "admin", "sales_admin")
 WRITERS = ("owner", "admin", "sales_admin", "manager", "rep")  # create and edit companies and contacts
 NOBODY_ELSE = ("member", "outsider", "anon")
+ASSIGNERS = ("owner", "admin", "sales_admin", "manager")  # assign leads and deals; delete leads and quotations
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,32 @@ def _open_ids(w):
 
 def _extra(name):
     return lambda w: {f"{name}_id": w.extra[name].pk}
+
+
+def LEAD(w):
+    return {"lead_id": w.leads["rep"].pk}
+
+
+def OPP(w):
+    return {"opportunity_id": w.opportunities["rep"].pk}
+
+
+def CLOSED(w):
+    return {"opportunity_id": w.extra["won"].pk}
+
+
+def QUOTE(w):
+    return {"quotation_id": w.quotations["rep"].pk}
+
+
+def SENT(w):
+    return {"quotation_id": w.extra["sent"].pk}
+
+
+def _second_stage(w):
+    from modules.sales import selectors
+
+    return {"stageId": str(selectors.stages(w.ws).filter(category="open")[1].pk), "version": 1}
 
 
 def COMPANY(w):
@@ -105,6 +132,64 @@ ROWS: list[Row] = [
     Row("sales-contact-detail", "GET", CONTACT, allow=EVERY_SALES_USER),
     Row("sales-contact-detail", "PATCH", CONTACT, allow=WRITERS, body=lambda w: {"jobTitle": "Buyer"}),
     Row("sales-contact-detail", "DELETE", CONTACT, allow=ADMINS),
+    # ── leads (S2) ──
+    Row("sales-leads", "GET", allow=EVERY_SALES_USER),
+    Row("sales-leads", "POST", allow=WRITERS, body=lambda w: {"companyName": "Fresh Co"}),
+    Row(
+        "sales-leads-bulk-assign",
+        "POST",
+        allow=ASSIGNERS,
+        body=lambda w: {"leadIds": [str(w.leads["rep"].pk)], "ownerId": str(w.users["rep2"].pk)},
+    ),
+    Row("sales-lead-detail", "GET", LEAD, allow=EVERY_SALES_USER),
+    Row("sales-lead-detail", "PATCH", LEAD, allow=WRITERS, body=lambda w: {"notes": "Warm"}),
+    Row("sales-lead-detail", "DELETE", LEAD, allow=ASSIGNERS),
+    Row("sales-lead-qualify", "POST", LEAD, allow=WRITERS),
+    Row("sales-lead-disqualify", "POST", LEAD, allow=WRITERS, body=lambda w: {"reason": "No budget"}),
+    Row("sales-lead-convert", "POST", LEAD, allow=WRITERS, body=lambda w: {}),
+    # ── opportunities and the pipeline (S2) ──
+    Row("sales-pipeline", "GET", allow=EVERY_SALES_USER),
+    Row("sales-opportunities", "GET", allow=EVERY_SALES_USER),
+    Row(
+        "sales-opportunities",
+        "POST",
+        allow=WRITERS,
+        body=lambda w: {"title": "New deal", "companyId": str(w.companies["rep"].pk)},
+    ),
+    Row(
+        "sales-opportunities-bulk-assign",
+        "POST",
+        allow=ASSIGNERS,
+        body=lambda w: {"opportunityIds": [str(w.opportunities["rep"].pk)], "ownerId": str(w.users["rep2"].pk)},
+    ),
+    Row("sales-opportunity-detail", "GET", OPP, allow=EVERY_SALES_USER),
+    Row("sales-opportunity-detail", "PATCH", OPP, allow=WRITERS, body=lambda w: {"nextAction": "Call back"}),
+    Row("sales-opportunity-detail", "DELETE", OPP, allow=ADMINS),
+    Row("sales-opportunity-move", "POST", OPP, allow=WRITERS, body=_second_stage),
+    Row("sales-opportunity-won", "POST", OPP, allow=WRITERS, body=lambda w: {}),
+    Row(
+        "sales-opportunity-lost",
+        "POST",
+        OPP,
+        allow=WRITERS,
+        body=lambda w: {"lostReasonId": str(w.extra["lost_reason"].pk)},
+    ),
+    Row("sales-opportunity-reopen", "POST", CLOSED, allow=ADMINS, body=lambda w: {}),
+    Row("sales-opportunity-timeline", "GET", OPP, allow=EVERY_SALES_USER),
+    # ── quotations (S2) ──
+    Row("sales-quotations", "GET", allow=EVERY_SALES_USER),
+    Row(
+        "sales-quotations",
+        "POST",
+        allow=WRITERS,
+        body=lambda w: {"opportunityId": str(w.opportunities["rep"].pk), "title": "Offer", "amount": "100.00"},
+    ),
+    Row("sales-quotation-detail", "GET", QUOTE, allow=EVERY_SALES_USER),
+    Row("sales-quotation-detail", "PATCH", QUOTE, allow=WRITERS, body=lambda w: {"notes": "v2"}),
+    Row("sales-quotation-detail", "DELETE", QUOTE, allow=ASSIGNERS),
+    Row("sales-quotation-send", "POST", QUOTE, allow=WRITERS, body=lambda w: {}),
+    Row("sales-quotation-accept", "POST", SENT, allow=WRITERS),
+    Row("sales-quotation-reject", "POST", SENT, allow=WRITERS),
 ]
 
 
@@ -138,9 +223,32 @@ def _cases():
 
 
 def _world() -> SalesWorld:
-    from modules.sales.models import Holiday, LostReason, Product
+    from django.utils import timezone
 
-    w = build_sales_world()
+    from modules.sales.models import Holiday, LostReason, PipelineStage, Product, Quotation
+
+    w = add_deals(build_sales_world())
+    rep = w.users["rep"]
+    won_stage = PipelineStage.objects.for_workspace(w.ws).get(category="won")
+    w.extra["won"] = w.opportunities["rep"].__class__.objects.create(
+        workspace=w.ws,
+        owner=rep,
+        company=w.companies["rep"],
+        title="Closed deal",
+        stage=won_stage,
+        won_at=timezone.now(),
+        won_value="10.00",
+        credited_user=rep,
+    )
+    w.extra["sent"] = Quotation.objects.create(
+        workspace=w.ws,
+        owner=rep,
+        opportunity=w.opportunities["rep"],
+        number="Q-2000-0099",
+        title="Sent quote",
+        status="sent",
+        sent_at=timezone.now(),
+    )
     w.extra["product"] = Product.objects.create(workspace=w.ws, name="Switch")
     w.extra["lost_reason"] = LostReason.objects.create(workspace=w.ws, name="Price")
     w.extra["holiday"] = Holiday.objects.create(workspace=w.ws, date="2026-09-11", name="Enkutatash")

@@ -62,7 +62,13 @@ def test_the_full_catalogue_is_declared():
         {"key": "sales", "label": "Sales", "icon": "briefcase", "path": "sales", "permission": "sales.dashboard.view"}
     ]
     assert set(m.GRANT_TABLE) == set(SPEC)
-    assert sales.target_types == ("sales.company", "sales.contact")
+    assert sales.target_types == (
+        "sales.company",
+        "sales.contact",
+        "sales.lead",
+        "sales.opportunity",
+        "sales.quotation",
+    )
 
 
 def _grants(key):

@@ -300,9 +300,13 @@ class SalesCompanySummarySerializer(serializers.Serializer):
     company = SalesCompanySerializer()
     contactCount = serializers.IntegerField(help_text="Contacts of this company the caller can see.")
     primaryContact = SalesContactSerializer(allow_null=True)
-    openOpportunityCount = serializers.IntegerField(help_text="0 until S2.")
-    pipelineValue = serializers.DecimalField(max_digits=14, decimal_places=2, help_text="0.00 until S2.")
-    wonValue = serializers.DecimalField(max_digits=14, decimal_places=2, help_text="0.00 until S2.")
+    openOpportunityCount = serializers.IntegerField(help_text="Open opportunities of the company the caller can see.")
+    pipelineValue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, help_text="Sum of their expected values (open opportunities in scope)."
+    )
+    wonValue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, help_text="Sum of won values of won opportunities in scope."
+    )
     openFollowUpCount = serializers.IntegerField(help_text="0 until S3.")
     lastContactAt = serializers.DateTimeField(allow_null=True, help_text="null until S3.")
     timeline = serializers.ListField(child=serializers.JSONField(), help_text="Empty until S3 defines its items.")

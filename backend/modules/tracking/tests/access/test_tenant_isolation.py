@@ -86,8 +86,17 @@ def _sales_objects(w) -> dict:
         get = apps.get_model
         owner = w.users["owner"]
         company = get("sales", "Company").objects.create(workspace=w.ws, owner=owner, name="Abay Trading")
+        stage = get("sales", "PipelineStage").objects.create(workspace=w.ws, name="Discovery")
+        opportunity = get("sales", "Opportunity").objects.create(
+            workspace=w.ws, owner=owner, company=company, title="Abay deal", stage=stage
+        )
         w.extra["sales"] = {
-            "stage_id": get("sales", "PipelineStage").objects.create(workspace=w.ws, name="Discovery").pk,
+            "stage_id": stage.pk,
+            "lead_id": get("sales", "Lead").objects.create(workspace=w.ws, owner=owner, contact_name="Abebe").pk,
+            "opportunity_id": opportunity.pk,
+            "quotation_id": get("sales", "Quotation")
+            .objects.create(opportunity=opportunity, owner=owner, number="Q-2026-0001", title="Offer")
+            .pk,
             "product_id": get("sales", "Product").objects.create(workspace=w.ws, name="Switch").pk,
             "lost_reason_id": get("sales", "LostReason").objects.create(workspace=w.ws, name="Price").pk,
             "holiday_id": get("sales", "Holiday").objects.create(workspace=w.ws, date="2026-09-11", name="New year").pk,
