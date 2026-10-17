@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useCallback, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneeNames, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { StatusGlyph, type GlyphKind } from "@/ui/glyphs";
 import { ProgressRing } from "@/ui/feedback";
 import type { Status, Task, User } from "@/api/types";
@@ -138,7 +139,7 @@ export function TaskRow({
   glyph?: GlyphKind;
   onOpen: (key: string) => void;
 }) {
-  const assignee = task.assigneeId ? people.get(task.assigneeId) : undefined;
+  const assignees = assigneesOf(task.assigneeIds, people);
   return (
     <button
       type="button"
@@ -148,13 +149,9 @@ export function TaskRow({
       {glyph && <StatusGlyph kind={glyph} />}
       <span className="flex-none font-mono text-[11.5px] font-medium text-fg-3">{task.key}</span>
       <span className="min-w-0 flex-1 truncate text-fg">{task.title}</span>
-      {assignee ? (
-        <span title={assignee.name} className="inline-flex">
-          <Avatar name={assignee.name} hue={assignee.hue} size={20} ring={false} />
-        </span>
-      ) : (
-        <UnassignedAvatar size={20} />
-      )}
+      <span title={assigneeNames(assignees)} className="inline-flex">
+        <AssigneeAvatars users={assignees} size={20} />
+      </span>
     </button>
   );
 }

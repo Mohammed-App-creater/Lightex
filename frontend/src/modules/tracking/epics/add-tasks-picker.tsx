@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/choice";
 import { StatusGlyph, type GlyphKind } from "@/ui/glyphs";
@@ -82,7 +82,7 @@ export function AddTasksPicker({
       <div role="listbox" aria-multiselectable="true" aria-label="Tasks without an epic" className="min-h-0 flex-1 overflow-y-auto p-1 min-[761px]:max-h-[300px]">
         {items.map((t) => {
           const on = sel.has(t.id);
-          const a = t.assigneeId ? people.get(t.assigneeId) : undefined;
+          const a = assigneesOf(t.assigneeIds, people);
           return (
             <label
               key={t.id}
@@ -105,7 +105,7 @@ export function AddTasksPicker({
               <StatusGlyph kind={glyphOf(t.statusId)} />
               <span className="flex-none font-mono text-[11.5px] font-medium text-fg-3">{t.key}</span>
               <span className="min-w-0 flex-1 truncate">{t.title}</span>
-              {a ? <Avatar name={a.name} hue={a.hue} size={20} ring={false} decorative /> : <UnassignedAvatar size={20} />}
+              <AssigneeAvatars users={a} size={20} />
             </label>
           );
         })}

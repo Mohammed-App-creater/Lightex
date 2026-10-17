@@ -32,7 +32,7 @@ export const rowHeight = (r: TlRow) => ROW_H[r.kind];
 /**
  * Epic grouping: epics in API order (shown when they have tasks in the response, or explicit dates
  * overlapping the window), then "No epic". Assignee grouping: members by name, former members,
- * then "Unassigned". Tasks inside a group: effective start, then number.
+ * then "Unassigned"; a task with several assignees is listed under each. Tasks inside a group: effective start, then number.
  */
 export function buildGroups(tasks: Task[], by: TimelineGroup, epics: Epic[], members: ProjectMember[], win: Window): TlGroup[] {
   const known = new Set(epics.map((e) => e.id));
@@ -50,9 +50,9 @@ export function buildGroups(tasks: Task[], by: TimelineGroup, epics: Epic[], mem
     return out;
   }
   const byUser = new Map<string, Task[]>();
+  // A task with several assignees appears in each of their groups (row keys carry the group id).
   for (const t of tasks) {
-    const k = t.assigneeId ?? "";
-    byUser.set(k, [...(byUser.get(k) ?? []), t]);
+    for (const k of t.assigneeIds.length ? t.assigneeIds : [""]) byUser.set(k, [...(byUser.get(k) ?? []), t]);
   }
   const memberIds = new Set(members.map((m) => m.userId));
   const out: TlGroup[] = [...members]

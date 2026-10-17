@@ -6,7 +6,8 @@ import { api } from "@/api/endpoints";
 import { errorMessage, isConflict } from "@/api/errors";
 import { commitTask, insertTask, patchTasks, restore, snapshotTasks } from "@/api/optimistic";
 import { qk } from "@/api/query-keys";
-import type { Status, Task, TaskCreate, TaskMove, TaskPatch } from "@/api/types";
+import type { ChecklistItem, ChecklistItemPatch, Status, Task, TaskCreate, TaskDetail, TaskMove, TaskPatch } from "@/api/types";
+import { comparePosition } from "@/lib/utils/fractional-index";
 
 /*
  * Task mutations. "Speed is the brand": the UI changes at 0ms; on failure the cache rolls back
@@ -208,4 +209,92 @@ export function useDeleteTask() {
     },
     onSettled: (_d, _e, task) => invalidateTaskViews(qc, task.projectId),
   });
+}
+
+/* ───────── checklist (docs/tracking/checklist-assignees.md §2) ───────── */
+
+type ChecklistTask = Pick<TaskDetail, "id" | "key" | "projectId">;
+
+const checklistCounts = (items: ChecklistItem[]) => ({ checklistCount: items.length, checklistDoneCount: items.filter((i) => i.done).length });
+
+/** Applies `fn` to the cached detail's checklist (position order kept) and the x/y counts on every cached copy. */
+function patchChecklist(qc: ReturnType<typeof useQueryClient>, task: ChecklistTask, fn: (items: ChecklistItem[]) => ChecklistItem[]) {
+  let counts: ReturnType<typeof checklistCounts> | null = null;
+  qc.setQueriesData({ queryKey: ["task"] }, (old: unknown) => {
+    const d = old as TaskDetail | undefined;
+    if (!d || typeof d !== "object" || d.id !== task.id || !Array.isArray(d.checklist)) return old;
+    const checklist = [...fn(d.checklist)].sort(comparePosition);
+    counts = checklistCounts(checklist);
+    return { ...d, checklist, ...counts };
+  });
+  const c = counts as ReturnType<typeof checklistCounts> | null;
+  if (c) patchTasks(qc, (t) => (t.id === task.id ? { ...t, ...c } : t), task.projectId);
+}
+
+function checklistFail(task: ChecklistTask, what: string, e: unknown, retry: () => void) {
+  toast({ tone: "error", title: `Couldn’t ${what} on ${task.key}`, body: `${errorMessage(e)} Reverted.`, action: { label: "Retry", key: "R", onClick: retry } });
+}
+
+/**
+ * Checklist writes, optimistic with rollback + toast. They don't bump the task's `version`, so nothing else
+ * on the task conflicts; the server's item replaces the optimistic one.
+ */
+export function useChecklistMutations(task: ChecklistTask) {
+  const qc = useQueryClient();
+  // After a failure, refetch the detail (the server may hold something else now, e.g. another tab's edit).
+  const settle = () => {
+    void qc.invalidateQueries({ queryKey: ["task"], predicate: (q) => (q.state.data as { id?: string } | undefined)?.id === task.id });
+  };
+  const add = useMutation({
+    mutationFn: ({ text, position }: { tempId: string; text: string; position: string }) => api.tasks.checklist.add(task.id, { text, position }),
+    onMutate: async ({ tempId, text, position }) => {
+      const snap = await snapshotTasks(qc, task.projectId);
+      const now = new Date().toISOString();
+      patchChecklist(qc, task, (items) => [
+        ...items,
+        { id: tempId, taskId: task.id, text, done: false, position, doneAt: null, doneById: null, createdAt: now, createdById: null },
+      ]);
+      return { snap };
+    },
+    onError: (e, vars, ctx) => {
+      if (ctx) restore(qc, ctx.snap);
+      settle();
+      checklistFail(task, "add the item", e, () => add.mutate(vars));
+    },
+    onSuccess: (item, vars) => patchChecklist(qc, task, (items) => items.map((i) => (i.id === vars.tempId ? item : i))),
+  });
+  const update = useMutation({
+    mutationFn: ({ item, patch }: { item: ChecklistItem; patch: ChecklistItemPatch }) => api.tasks.checklist.update(task.id, item.id, patch),
+    onMutate: async ({ item, patch }) => {
+      const snap = await snapshotTasks(qc, task.projectId);
+      patchChecklist(qc, task, (items) =>
+        items.map((i) =>
+          i.id === item.id
+            ? { ...i, ...patch, ...(patch.done !== undefined ? { doneAt: patch.done ? new Date().toISOString() : null } : {}) }
+            : i,
+        ),
+      );
+      return { snap };
+    },
+    onError: (e, vars, ctx) => {
+      if (ctx) restore(qc, ctx.snap);
+      settle();
+      checklistFail(task, "save the checklist", e, () => update.mutate(vars));
+    },
+    onSuccess: (item) => patchChecklist(qc, task, (items) => items.map((i) => (i.id === item.id ? item : i))),
+  });
+  const remove = useMutation({
+    mutationFn: (item: ChecklistItem) => api.tasks.checklist.remove(task.id, item.id),
+    onMutate: async (item) => {
+      const snap = await snapshotTasks(qc, task.projectId);
+      patchChecklist(qc, task, (items) => items.filter((i) => i.id !== item.id));
+      return { snap };
+    },
+    onError: (e, item, ctx) => {
+      if (ctx) restore(qc, ctx.snap);
+      settle();
+      checklistFail(task, "delete the item", e, () => remove.mutate(item));
+    },
+  });
+  return { add, update, remove };
 }

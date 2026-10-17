@@ -229,7 +229,7 @@ describe("I6 start, the runner, I8 report, I9 history", () => {
     expect(tasks).toHaveLength(44);
     expect(tasks.every((x) => x.sprintId === null && x.reporterId === "u_alex")).toBe(true);
     const first = tasks.find((x) => x.number === seq + 1)!;
-    expect(first).toMatchObject({ title: "Fix login redirect loop", assigneeId: "u_alex", priority: 3, estimate: 3, dueDate: "2026-10-08" });
+    expect(first).toMatchObject({ title: "Fix login redirect loop", assigneeIds: ["u_alex"], priority: 3, estimate: 3, dueDate: "2026-10-08" });
     expect(db.labels.filter((l) => l.projectId === "p_prj" && l.name === "api")).toHaveLength(1);
     expect(prj.taskSeq).toBe(seq + 44);
 
@@ -272,13 +272,13 @@ describe("I6 start, the runner, I8 report, I9 history", () => {
     expect(epic).toMatchObject({ startDate: "2026-10-01", dueDate: "2026-10-30" });
     const byTitle = (title: string) => db.tasks.find((x) => x.projectId === "p_prj" && x.title === title && x.number > seq)!;
     const drawer = byTitle("Cart drawer");
-    expect(drawer).toMatchObject({ epicId: epic.id, estimate: 3, timeEstimateMinutes: 480, startDate: "2026-10-05", dueDate: "2026-10-14", sprintId: "sp_14", assigneeId: "u_jordan" });
+    expect(drawer).toMatchObject({ epicId: epic.id, estimate: 3, timeEstimateMinutes: 480, startDate: "2026-10-05", dueDate: "2026-10-14", sprintId: "sp_14", assigneeIds: ["u_jordan"] });
     expect(drawer.labelIds.map((id) => db.labels.find((l) => l.id === id)!.name).sort()).toEqual(["frontend", "ux"]);
-    expect(byTitle("Cart drawer animation")).toMatchObject({ parentId: drawer.id, assigneeId: "u_jordan", sprintId: "sp_14", epicId: epic.id });
+    expect(byTitle("Cart drawer animation")).toMatchObject({ parentId: drawer.id, assigneeIds: ["u_jordan"], sprintId: "sp_14", epicId: epic.id });
     const bug = byTitle("Price rounding bug");
-    expect(bug).toMatchObject({ priority: 4, assigneeId: "u_sam", epicId: epic.id, statusId: "p_prj-st-done" });
+    expect(bug).toMatchObject({ priority: 4, assigneeIds: ["u_sam"], epicId: epic.id, statusId: "p_prj-st-done" });
     const retry = byTitle("Payment retry");
-    expect(retry).toMatchObject({ assigneeId: null, sprintId: null, statusId: "p_prj-st-review" });
+    expect(retry).toMatchObject({ assigneeIds: [], sprintId: null, statusId: "p_prj-st-review" });
     expect(db.dependencies!.some((d) => d.blockerId === bug.id && d.blockedId === retry.id)).toBe(true);
     expect(done.result!.issues.map((i) => i.reason)).toEqual(["Missing title", "No sprint named “Sprint 99” · added to the backlog"]);
   });

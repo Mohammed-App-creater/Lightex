@@ -65,7 +65,7 @@ export function simulateTeammateEdit(taskId?: string, opts: { projectId?: string
     if (next.glyph === "done") task.completedAt = nowISO();
     if (next.category === "in_progress") task.startedAt ??= nowISO();
     logActivity(db, actor, "status_changed", task.projectId, task, { from: current.name, to: next.name });
-    if (task.assigneeId === me) {
+    if (task.assigneeIds.includes(me)) {
       notify(db, me, "status", actor, task, task.projectId, { fromStatus: current.name, toStatus: next.name });
     }
   }
@@ -82,7 +82,7 @@ export function simulateTeammateEdit(taskId?: string, opts: { projectId?: string
 
 export const PRESENCE_TICK_MS = 7_000;
 const ROTATE_EVERY = 4; // ≈ 30 s
-const PROPERTY_FIELDS = ["dueDate", "priority", "assigneeId"] as const;
+const PROPERTY_FIELDS = ["dueDate", "priority", "assigneeIds"] as const;
 
 type SimState = {
   tick: number;
@@ -150,7 +150,7 @@ function writeTeammate(db: MockDB, userId: string, workspaceId: string, claim: C
 /**
  * One 7 s tick (only while the tab is visible and teammates are on):
  * - keeps up to 2 teammates viewing whatever the user is on, rotating one every ~30 s;
- * - on a task: one teammate edits a property (dueDate, priority, assigneeId) for 10–20 s, another
+ * - on a task: one teammate edits a property (dueDate, priority, assigneeIds) for 10–20 s, another
  *   sometimes edits the description;
  * - with the comment composer on screen: a teammate types for 3–5 s;
  * - every 3rd tick on a dashboard: a real change through the mock DB (task.changed).
@@ -201,7 +201,7 @@ export function presenceTick(now = Date.now(), opts: { visible?: boolean } = {})
     // Only people who could really do it: editors can edit this task, typists can comment.
     const task = db.tasks.find((x) => x.id === claim.location.id);
     const perms = (u: string) => projectPermissions(db, u, project.id);
-    const canEdit = (u: string) => perms(u).includes("tracking.task.edit_any") || (perms(u).includes("tracking.task.edit_own") && !!task && (task.assigneeId === u || task.reporterId === u));
+    const canEdit = (u: string) => perms(u).includes("tracking.task.edit_any") || (perms(u).includes("tracking.task.edit_own") && !!task && (task.assigneeIds.includes(u) || task.reporterId === u));
     const editorsPool = sim.viewers.filter(canEdit);
     const [a, b] = editorsPool;
     if (!sim.editor && a && rand() < 0.6) {

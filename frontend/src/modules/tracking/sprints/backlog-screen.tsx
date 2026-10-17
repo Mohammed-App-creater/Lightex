@@ -18,7 +18,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, GripVertical, MoreHorizontal, Plus } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useMemo, useRef, useState } from "react";
-import { Avatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { ErrorState, Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
@@ -219,7 +219,7 @@ export function BacklogScreen() {
           <DragOverlay dropAnimation={reduced ? null : { duration: 200, easing: "cubic-bezier(.16,1,.3,1)" }}>
             {drag && taskById.get(drag.id) ? (
               <div className="-rotate-[1deg] scale-[1.02] rounded-md border border-line-2 bg-surface shadow-modal motion-reduce:rotate-0 motion-reduce:scale-100">
-                <RowBody task={taskById.get(drag.id)!} status={statusById.get(taskById.get(drag.id)!.statusId)} user={userById.get(taskById.get(drag.id)!.assigneeId ?? "")} />
+                <RowBody task={taskById.get(drag.id)!} status={statusById.get(taskById.get(drag.id)!.statusId)} users={assigneesOf(taskById.get(drag.id)!.assigneeIds, userById)} />
               </div>
             ) : null}
           </DragOverlay>
@@ -341,7 +341,7 @@ function Section({
         <SortableContext id={id} items={ids} strategy={verticalListSortingStrategy}>
           <ul role="list" className="m-0 flex min-h-12 list-none flex-col p-1">
             {tasks.map((t) => (
-              <SortableRow key={t.id} task={t} status={statusById.get(t.statusId)} user={userById.get(t.assigneeId ?? "")} disabled={!canMove} onOpen={onOpen} />
+              <SortableRow key={t.id} task={t} status={statusById.get(t.statusId)} users={assigneesOf(t.assigneeIds, userById)} disabled={!canMove} onOpen={onOpen} />
             ))}
             {tasks.length === 0 && (
               <li className="flex h-12 items-center justify-center rounded-md border border-dashed border-line-2 text-meta text-fg-3">
@@ -359,7 +359,7 @@ function Section({
   );
 }
 
-const RowBody = memo(function RowBody({ task, status, user }: { task: Task; status: Status | undefined; user: User | undefined }) {
+const RowBody = memo(function RowBody({ task, status, users }: { task: Task; status: Status | undefined; users: User[] }) {
   return (
     <div className="flex h-10 items-center gap-3 px-2">
       <GripVertical size={13} aria-hidden className="flex-none text-fg-3" />
@@ -368,12 +368,12 @@ const RowBody = memo(function RowBody({ task, status, user }: { task: Task; stat
       <span className="min-w-0 flex-1 truncate font-medium">{task.title}</span>
       <PriorityIcon level={task.priority} bars />
       <span className="w-12 text-right font-mono text-[11px] text-fg-3">{task.estimate !== null ? `${task.estimate} pts` : "—"}</span>
-      {user ? <Avatar name={user.name} hue={user.hue} size={20} /> : <span className="size-5" />}
+      {users.length ? <AssigneeAvatars users={users} size={20} max={2} /> : <span className="size-5" />}
     </div>
   );
 });
 
-function SortableRow({ task, status, user, disabled, onOpen }: { task: Task; status: Status | undefined; user: User | undefined; disabled: boolean; onOpen: (t: Task, el: HTMLElement) => void }) {
+function SortableRow({ task, status, users, disabled, onOpen }: { task: Task; status: Status | undefined; users: User[]; disabled: boolean; onOpen: (t: Task, el: HTMLElement) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, disabled, transition: { duration: 220, easing: "cubic-bezier(.16,1,.3,1)" } });
   return (
     <li
@@ -392,7 +392,7 @@ function SortableRow({ task, status, user, disabled, onOpen }: { task: Task; sta
       }}
       className={cn("cursor-grab rounded-md outline-none hover:bg-hover focus-visible:shadow-[var(--focus-ring)] active:cursor-grabbing", isDragging && "opacity-0")}
     >
-      <RowBody task={task} status={status} user={user} />
+      <RowBody task={task} status={status} users={users} />
     </li>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { UnassignedAvatar } from "@/ui/avatar";
 import { Button } from "@/ui/button";
 import { Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph, glyphColor, priorityMeta } from "@/ui/glyphs";
@@ -11,6 +11,7 @@ import { dueTone, shortDate } from "@/lib/utils/dates";
 import { usePreviewTask } from "@/platform/notifications/preview-task";
 import type { TargetPreviewProps } from "@/registry";
 import { useStatuses } from "../projects/queries";
+import { AssigneeAvatars, assigneeNames, assigneesOf } from "./task-bits";
 
 /*
  * Tracking's target preview for task notifications in the inbox (platform Stage 3 registry slot): status,
@@ -36,7 +37,7 @@ export function TaskNotificationPreview({ n, slug, members }: TargetPreviewProps
   const statuses = useStatuses(task?.projectId);
   const gone = taskQ.isError && (isNotFound(taskQ.error) || isForbidden(taskQ.error));
   const status = task ? statuses.data?.find((s) => s.id === task.statusId) : undefined;
-  const assignee = task?.assigneeId ? (members.get(task.assigneeId) ?? null) : null;
+  const assignees = task ? assigneesOf(task.assigneeIds, members) : [];
   const tone = task ? dueTone(task.dueDate, status?.category === "done") : "none";
   if (!n.taskKey) return null;
 
@@ -73,8 +74,8 @@ export function TaskNotificationPreview({ n, slug, members }: TargetPreviewProps
             {priorityMeta[task.priority].label}
           </Chip>
           <Chip>
-            {assignee ? <Avatar name={assignee.name} hue={assignee.hue} size={20} ring={false} decorative /> : <UnassignedAvatar size={20} label="" />}
-            {assignee?.name ?? "Unassigned"}
+            {assignees.length ? <AssigneeAvatars users={assignees} size={20} max={2} /> : <UnassignedAvatar size={20} label="" />}
+            <span className="max-w-[220px] truncate">{assignees.length === 1 ? assignees[0]!.name : assigneeNames(assignees, 2)}</span>
           </Chip>
           {task.dueDate && (
             <Chip className={cn("font-mono", tone === "soon" || tone === "late" ? "text-warn" : "text-fg-2")}>Due {shortDate(task.dueDate)}</Chip>

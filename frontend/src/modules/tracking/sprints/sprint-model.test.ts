@@ -19,7 +19,7 @@ const sprint = (p: Partial<Sprint>): Sprint => ({
 });
 
 const task = (id: string, statusId: string, p: Partial<Task> = {}): Task =>
-  ({ id, key: `PRJ-${id}`, number: Number(id), statusId, priority: 2, estimate: 3, assigneeId: null, createdAt: "2026-09-30T10:00:00Z", ...p }) as Task;
+  ({ id, key: `PRJ-${id}`, number: Number(id), statusId, priority: 2, estimate: 3, assigneeIds: [], createdAt: "2026-09-30T10:00:00Z", ...p }) as Task;
 
 const G = { d: "done", c: "canceled", p: "progress", t: "todo" } as const;
 const glyph = (id: string) => G[id as keyof typeof G] ?? "todo";
@@ -67,9 +67,9 @@ describe("reviewStats", () => {
 describe("contributors", () => {
   it("sums done tasks by assignee, most points first", () => {
     const c = contributors([
-      task("1", "d", { assigneeId: "a", estimate: 2 }),
-      task("2", "d", { assigneeId: "b", estimate: 5 }),
-      task("3", "d", { assigneeId: "a", estimate: 1 }),
+      task("1", "d", { assigneeIds: ["a"], estimate: 2 }),
+      task("2", "d", { assigneeIds: ["b"], estimate: 5 }),
+      task("3", "d", { assigneeIds: ["a"], estimate: 1 }),
       task("4", "d"),
     ]);
     expect(c).toEqual([

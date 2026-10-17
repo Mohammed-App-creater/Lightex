@@ -220,16 +220,25 @@ tasks and are read-only.
 ## Tasks, board, backlog
 | Method | Path | Notes |
 |---|---|---|
-| GET | /tracking/projects/:id/tasks | `filter[status|assignee|sprint|epic|milestone|priority|label]`, `sort`, `q`, cursor |
-| POST | /tracking/projects/:id/tasks | `tracking.task.create` |
-| GET | /tracking/workspaces/:slug/tasks/:key | full task (description, sub-tasks, objective ids) |
-| PATCH | /tracking/tasks/:id | partial + `version` (`tracking.task.edit_any` or `tracking.task.edit_own`; assignee change needs `tracking.task.assign`) |
+| GET | /tracking/projects/:id/tasks | `filter[status|assignee|sprint|epic|milestone|priority|label]`, `sort`, `q`, cursor; `filter[assignee]=<id>\|me\|none` matches **any** assignee (`none` = nobody) |
+| POST | /tracking/projects/:id/tasks | `tracking.task.create`; `assigneeIds` other than yourself need `tracking.task.assign` (403 "You can’t assign tasks to others.") |
+| GET | /tracking/workspaces/:slug/tasks/:key | full task (description, sub-tasks, objective ids, `checklist` in position order) |
+| PATCH | /tracking/tasks/:id | partial + `version` (`tracking.task.edit_any`, or `tracking.task.edit_own` as reporter or any assignee); changing the `assigneeIds` set needs `tracking.task.assign` (a reorder alone doesn't); the old `assigneeId` is 422 |
 | DELETE | /tracking/tasks/:id · POST /tracking/tasks/:id/restore | soft delete (`tracking.task.delete`) |
-| POST | /tracking/projects/:id/tasks/bulk | `{ids[], patch}` or `{ids[], delete:true}` |
+| POST | /tracking/projects/:id/tasks/bulk | `{ids[], patch}` or `{ids[], delete:true}`; `patch.assigneeIds` replaces the set (`tracking.task.assign`) |
+| POST | /tracking/tasks/:taskId/checklist | `{text, position?}` → 201 `ChecklistItem` (task edit rule; 409 `checklist_limit` at 100, 409 `task_deleted`) |
+| PATCH/DELETE | /tracking/tasks/:taskId/checklist/:itemId | any of `{text, done, position}` → `ChecklistItem` · 204; no task `version` bump |
 | GET | /tracking/projects/:id/board?filter[sprint]=active | → `{statuses, tasks}` ordered by `position` |
 | POST | /tracking/tasks/:id/move | `{statusId?, sprintId?: string\|null, position, version}` (`tracking.task.move`) |
 | GET | /tracking/projects/:id/backlog | → `{sprints:[{sprint,tasks}], backlog: Task[]}` |
 | GET | /tracking/tasks/:id/activity | `ActivityEntry[]` |
+
+**Task shape (multiple assignees and checklists, `docs/tracking/checklist-assignees.md`).** `Task.assigneeIds:
+string[]` (0–10, in the order last sent) replaced `assigneeId` on `Task`, `TaskDetail` and the dependency task summary;
+writes take `assigneeIds` (`[]` or `null` unassigns everyone, duplicates dropped; 422 "Send a list of ids" · "Assign up
+to 10 people" · "Assign people on this project"). `Task.checklistCount` / `checklistDoneCount`; `TaskDetail.checklist:
+ChecklistItem[]` with `ChecklistItem {id, taskId, text (1–500), done, position, doneAt, doneById, createdAt,
+createdById}`. Checklist writes publish `tracking.task.changed {fields: ["checklist"], version: null}`.
 
 ## Comments and attachments
 | Method | Path | Notes |

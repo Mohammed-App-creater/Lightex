@@ -4,7 +4,9 @@ import * as D from "@radix-ui/react-dialog";
 import { Calendar, ChevronRight, Flag, Hexagon, RefreshCcw, Tag, Timer, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Avatar, ProjectBadge, UnassignedAvatar } from "@/ui/avatar";
+import { ProjectBadge, UnassignedAvatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneeNames } from "./task-bits";
+import { AssigneeMenuItems } from "./assignee-picker";
 import { Button } from "@/ui/button";
 import { Switch } from "@/ui/choice";
 import { DateChip, DatePicker } from "@/ui/date-picker";
@@ -37,7 +39,8 @@ type Draft = {
   title: string;
   statusId: string;
   priority: Priority;
-  assigneeId: string | null;
+  /** Multiple assignees (0–10, in order). */
+  assigneeIds: string[];
   /** undefined = not chosen yet (defaults to the active sprint once sprints load). */
   sprintId: string | null | undefined;
   milestoneId: string | null;
@@ -70,7 +73,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
     title: defaults.title ?? "",
     statusId: defaults.statusId ?? "",
     priority: 0,
-    assigneeId: null,
+    assigneeIds: [],
     sprintId: defaults.sprintId,
     milestoneId: null,
     epicId: null,
@@ -110,7 +113,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const sprint = sprints.find((s) => s.id === sprintId);
   const ms = milestones.find((m) => m.id === d.milestoneId);
   const epic = epics.find((e) => e.id === d.epicId);
-  const assignee = members.find((m) => m.userId === d.assigneeId)?.user ?? (d.assigneeId === me.id ? me : undefined);
+  const assignees = d.assigneeIds.map((id) => members.find((m) => m.userId === id)?.user ?? (id === me.id ? me : undefined)).filter((u): u is NonNullable<typeof u> => Boolean(u));
   const moreCount = [d.sprintId !== undefined && d.sprintId !== (active?.id ?? null), d.milestoneId, d.epicId, d.dueDate, d.labelIds.length, d.estimate, d.description.trim()].filter(Boolean).length;
 
   const close = () => shell.closeCreateTask();
@@ -132,7 +135,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
           title: title.slice(0, 200),
           statusId: status?.id,
           priority: d.priority,
-          assigneeId: d.assigneeId,
+          assigneeIds: d.assigneeIds,
           parentId: defaults.parentId,
           sprintId,
           milestoneId: d.milestoneId,
@@ -304,22 +307,18 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
                   </Menu>
                   <Menu>
                     <MenuTrigger asChild>
-                      <button type="button" aria-label={`Assignee: ${assignee?.name ?? "Unassigned"}`} className={cn(chip, !assignee && ghost, mobile && "h-9")}>
-                        {assignee ? <Avatar name={assignee.name} hue={assignee.hue} size={18} decorative /> : <UnassignedAvatar size={18} />}
-                        {assignee ? assignee.name.split(" ")[0] : "Assignee"}
+                      <button type="button" aria-label={`Assignees: ${assigneeNames(assignees)}`} className={cn(chip, !assignees.length && ghost, mobile && "h-9")}>
+                        {assignees.length ? <AssigneeAvatars users={assignees} size={18} max={3} /> : <UnassignedAvatar size={18} />}
+                        {assignees.length ? `${assignees[0]!.name.split(" ")[0]}${assignees.length > 1 ? ` +${assignees.length - 1}` : ""}` : "Assignee"}
                       </button>
                     </MenuTrigger>
-                    <MenuContent align="start" width={220} aria-label="Assignee" className="max-h-[320px] overflow-y-auto">
-                      <MenuRadioGroup value={d.assigneeId ?? ""} onValueChange={(v) => patch({ assigneeId: v || null })}>
-                        <MenuRadioItem value="" icon={<UnassignedAvatar size={20} />}>
-                          Unassigned
-                        </MenuRadioItem>
-                        {(canAssign ? members.map((m) => m.user) : members.filter((m) => m.userId === me.id).map((m) => m.user)).map((u) => (
-                          <MenuRadioItem key={u.id} value={u.id} icon={<Avatar name={u.name} hue={u.hue} size={20} decorative />} meta={u.id === me.id ? "me" : undefined}>
-                            {u.name}
-                          </MenuRadioItem>
-                        ))}
-                      </MenuRadioGroup>
+                    <MenuContent align="start" width={240} aria-label="Assignees" className="max-h-[320px] overflow-y-auto">
+                      {/* Assigning anyone but yourself needs tracking.task.assign (the server refuses it otherwise). */}
+                      <AssigneeMenuItems
+                        people={canAssign ? members.map((m) => m.user) : members.filter((m) => m.userId === me.id).map((m) => m.user)}
+                        value={d.assigneeIds}
+                        onChange={(ids) => patch({ assigneeIds: ids })}
+                      />
                       {!canAssign && <p className="m-0 px-2 pb-1.5 pt-1 text-[11.5px] text-fg-3">Your role can only assign tasks to you.</p>}
                     </MenuContent>
                   </Menu>

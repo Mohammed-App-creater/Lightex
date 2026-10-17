@@ -648,17 +648,308 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/sales/workspaces/{slug}/health": {
+    "/api/v1/sales/companies/{company_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description A placeholder route proving the module guard: 403 `module_disabled` while sales is off. */
-        get: operations["sales_workspaces_health_retrieve"];
+        /** @description Base for workspace- and project-scoped endpoints. */
+        get: operations["sales_companies_retrieve"];
         put?: never;
         post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_companies_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_companies_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/companies/{company_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Base for workspace- and project-scoped endpoints. */
+        get: operations["sales_companies_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/contacts/{contact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Base for workspace- and project-scoped endpoints. */
+        get: operations["sales_contacts_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_contacts_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_contacts_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/holidays/{holiday_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_holidays_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_holidays_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/lost-reasons/{lost_reason_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_lost_reasons_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_lost_reasons_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/products/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_products_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_products_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/stages/{stage_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        delete: operations["sales_stages_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Base for workspace- and project-scoped endpoints. */
+        patch: operations["sales_stages_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_calendar_retrieve"];
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        put: operations["sales_calendar_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_companies_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_companies_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/companies/check-duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Says whether a live company in the workspace matches, and who owns it, whatever the caller's scope. It
+         *     returns nothing else (no id, no name, no details).
+         */
+        get: operations["sales_companies_check_duplicate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_contacts_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_contacts_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_holidays_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_holidays_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/lost-reasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_lost_reasons_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_lost_reasons_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_products_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_products_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_settings_retrieve"];
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        put: operations["sales_settings_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        get: operations["sales_stages_list"];
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_stages_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/workspaces/{slug}/stages/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Scope = the workspace named by the {slug} in the URL (404 for non-members). */
+        post: operations["sales_stages_reorder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2006,6 +2297,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tracking/tasks/{task_id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description A task's checklist. Writes need task edit rights (edit_any, or edit_own as reporter or an assignee). */
+        post: operations["tracking_tasks_checklist_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tracking/tasks/{task_id}/checklist/{checklist_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Scope = the task's project (resolved from the task id in the URL). */
+        delete: operations["tracking_tasks_checklist_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Scope = the task's project (resolved from the task id in the URL). */
+        patch: operations["tracking_tasks_checklist_partial_update"];
+        trace?: never;
+    };
     "/api/v1/tracking/tasks/{task_id}/dependencies": {
         parameters: {
             query?: never;
@@ -3248,6 +3574,29 @@ export interface components {
         };
         /** @enum {string} */
         ChannelTestResultStatusEnum: "sent";
+        ChecklistItemInRequest: {
+            text: string;
+            /** @description Omitted or null: last. */
+            position?: string | null;
+        };
+        ChecklistItemOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            taskId: string;
+            text: string;
+            done: boolean;
+            /** @description Base-62 fractional index, like Task.position. */
+            position: string;
+            /** Format: date-time */
+            doneAt: string | null;
+            /** Format: uuid */
+            doneById: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdById: string | null;
+        };
         /** @enum {string} */
         ChecksStateEnum: "passing" | "failing" | "running";
         /** @enum {string} */
@@ -3424,8 +3773,7 @@ export interface components {
             /** Format: uuid */
             statusId: string;
             status: components["schemas"]["DependencyStatusOut"];
-            /** Format: uuid */
-            assigneeId: string | null;
+            assigneeIds: string[];
         };
         DevAuthorOut: {
             login: string;
@@ -4010,6 +4358,11 @@ export interface components {
         ObjectiveStatusEnum: "active" | "achieved" | "dropped";
         /** @enum {string} */
         OutcomeEnum: "task" | "epic" | "skipped";
+        PatchedChecklistItemPatchInRequest: {
+            text?: string;
+            done?: boolean;
+            position?: string;
+        };
         PatchedCommentInRequest: {
             body?: unknown;
         };
@@ -4105,6 +4458,57 @@ export interface components {
                 [key: string]: "own" | "team" | "all";
             };
         };
+        PatchedSalesCompanyUpdateInRequest: {
+            name?: string;
+            industry?: string;
+            region?: string;
+            city?: string;
+            address?: string;
+            phone?: string;
+            email?: string;
+            website?: string;
+            status?: components["schemas"]["SalesCompanyStatusEnum"];
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: the caller. Someone else needs edit scope team or all.
+             */
+            ownerId?: string;
+        };
+        PatchedSalesContactUpdateInRequest: {
+            /** Format: uuid */
+            companyId?: string;
+            name?: string;
+            jobTitle?: string;
+            phone?: string;
+            email?: string;
+            isPrimary?: boolean;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: the caller. Someone else needs edit scope team or all.
+             */
+            ownerId?: string;
+        };
+        PatchedSalesHolidayUpdateInRequest: {
+            /** Format: date */
+            date?: string;
+            name?: string;
+        };
+        PatchedSalesLostReasonUpdateInRequest: {
+            name?: string;
+            isActive?: boolean;
+        };
+        PatchedSalesProductUpdateInRequest: {
+            name?: string;
+            code?: string;
+            category?: string;
+            isActive?: boolean;
+        };
+        PatchedSalesStageUpdateInRequest: {
+            name?: string;
+            defaultProbability?: number;
+        };
         PatchedSavedViewUpdateInRequest: {
             name?: string;
             icon?: components["schemas"]["SavedViewIconEnum"];
@@ -4133,8 +4537,8 @@ export interface components {
             statusId?: string;
             type?: components["schemas"]["TaskTypeEnum"];
             priority?: number;
-            /** Format: uuid */
-            assigneeId?: string | null;
+            /** @description Replaces the assignees (project members, up to 10, in order); [] or null unassigns everyone. */
+            assigneeIds?: string[] | null;
             /** Format: uuid */
             sprintId?: string | null;
             /** Format: uuid */
@@ -4459,11 +4863,239 @@ export interface components {
             /** Format: date-time */
             startedAt: string;
         };
-        SalesHealth: {
-            status: string;
-            module: string;
-            workspace: string;
+        SalesCalendar: {
+            /** @description Seven weights, Monday first: 1 = full working day, 0.5 = half day, 0 = not a working day. */
+            readonly weekdayWeights: number[];
+            readonly updatedAt: string | null;
         };
+        /** @enum {string} */
+        SalesCalendarDisplayEnum: "gregorian" | "ethiopian";
+        SalesCalendarInRequest: {
+            /** @description Seven weights between 0 and 1, Monday first. */
+            weekdayWeights: string[];
+        };
+        SalesCompany: {
+            readonly createdAt: string | null;
+            readonly updatedAt: string | null;
+            /** Format: uuid */
+            ownerId: string | null;
+            readonly owner: components["schemas"]["SalesUserBrief"] | null;
+            /** @description The caller's edit scope reaches this record. */
+            readonly canEdit: boolean;
+            /** @description The caller's delete scope reaches this record. */
+            readonly canDelete: boolean;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            industry: string;
+            region: string;
+            city: string;
+            address: string;
+            phone: string;
+            email: string;
+            website: string;
+            status: components["schemas"]["SalesCompanyStatusEnum"];
+            notes: string;
+        };
+        SalesCompanyBrief: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SalesCompanyInRequest: {
+            name: string;
+            industry?: string;
+            region?: string;
+            city?: string;
+            address?: string;
+            phone?: string;
+            email?: string;
+            website?: string;
+            status?: components["schemas"]["SalesCompanyStatusEnum"];
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: the caller. Someone else needs edit scope team or all.
+             */
+            ownerId?: string;
+        };
+        SalesCompanyPage: {
+            data: components["schemas"]["SalesCompany"][];
+            nextCursor: string | null;
+        };
+        /** @enum {string} */
+        SalesCompanyStatusEnum: "prospect" | "active" | "inactive";
+        SalesCompanySummary: {
+            company: components["schemas"]["SalesCompany"];
+            /** @description Contacts of this company the caller can see. */
+            contactCount: number;
+            primaryContact: components["schemas"]["SalesContact"] | null;
+            /** @description 0 until S2. */
+            openOpportunityCount: number;
+            /**
+             * Format: decimal
+             * @description 0.00 until S2.
+             */
+            pipelineValue: string;
+            /**
+             * Format: decimal
+             * @description 0.00 until S2.
+             */
+            wonValue: string;
+            /** @description 0 until S3. */
+            openFollowUpCount: number;
+            /**
+             * Format: date-time
+             * @description null until S3.
+             */
+            lastContactAt: string | null;
+            /** @description Empty until S3 defines its items. */
+            timeline: unknown[];
+        };
+        SalesContact: {
+            readonly createdAt: string | null;
+            readonly updatedAt: string | null;
+            /** Format: uuid */
+            ownerId: string | null;
+            readonly owner: components["schemas"]["SalesUserBrief"] | null;
+            /** @description The caller's edit scope reaches this record. */
+            readonly canEdit: boolean;
+            /** @description The caller's delete scope reaches this record. */
+            readonly canDelete: boolean;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            readonly company: components["schemas"]["SalesCompanyBrief"];
+            name: string;
+            jobTitle: string;
+            phone: string;
+            email: string;
+            isPrimary: boolean;
+            notes: string;
+        };
+        SalesContactInRequest: {
+            /** Format: uuid */
+            companyId: string;
+            name: string;
+            jobTitle?: string;
+            phone?: string;
+            email?: string;
+            isPrimary?: boolean;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: the caller. Someone else needs edit scope team or all.
+             */
+            ownerId?: string;
+        };
+        SalesContactPage: {
+            data: components["schemas"]["SalesContact"][];
+            nextCursor: string | null;
+        };
+        SalesDuplicateCheck: {
+            exists: boolean;
+            /** @description The matching company's owner, even out of scope. */
+            ownerName: string | null;
+        };
+        SalesHoliday: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            name: string;
+        };
+        SalesHolidayInRequest: {
+            /** Format: date */
+            date: string;
+            name: string;
+        };
+        SalesLostReason: {
+            readonly createdAt: string | null;
+            readonly updatedAt: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isActive: boolean;
+        };
+        SalesLostReasonInRequest: {
+            name: string;
+            isActive?: boolean;
+        };
+        SalesProduct: {
+            readonly createdAt: string | null;
+            readonly updatedAt: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            code: string;
+            category: string;
+            isActive: boolean;
+        };
+        SalesProductInRequest: {
+            name: string;
+            code?: string;
+            category?: string;
+            isActive?: boolean;
+        };
+        SalesSettings: {
+            weekStart: components["schemas"]["SalesWeekdayEnum"];
+            fiscalYearStartMonth: number;
+            statusGreenPct: number;
+            statusYellowPct: number;
+            upcomingDays: number;
+            staleDays: number;
+            /** Format: decimal */
+            largeDealThreshold: string;
+            /** Format: time */
+            dailyReportCutoff: string;
+            dailyReportRequired: boolean;
+            quotationValidityDays: number;
+            calendarDisplay: components["schemas"]["SalesCalendarDisplayEnum"];
+            readonly updatedAt: string | null;
+        };
+        /** @description Every field is optional: the fields sent are changed, the others kept. */
+        SalesSettingsInRequest: {
+            weekStart?: components["schemas"]["SalesWeekdayEnum"];
+            fiscalYearStartMonth?: number;
+            statusGreenPct?: number;
+            statusYellowPct?: number;
+            upcomingDays?: number;
+            staleDays?: number;
+            /** Format: decimal */
+            largeDealThreshold?: string;
+            /** Format: time */
+            dailyReportCutoff?: string;
+            dailyReportRequired?: boolean;
+            quotationValidityDays?: number;
+            calendarDisplay?: components["schemas"]["SalesCalendarDisplayEnum"];
+        };
+        SalesStage: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            order: number;
+            category: components["schemas"]["SalesStageCategoryEnum"];
+            defaultProbability: number;
+            isSystem: boolean;
+        };
+        /** @enum {string} */
+        SalesStageCategoryEnum: "open" | "won" | "lost";
+        SalesStageInRequest: {
+            name: string;
+            defaultProbability: number;
+        };
+        SalesStageReorderInRequest: {
+            stageIds: string[];
+        };
+        SalesUserBrief: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            hue: number;
+        };
+        /** @enum {string} */
+        SalesWeekdayEnum: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
         SavedView: {
             icon: components["schemas"]["SavedViewIconEnum"];
             visibility: components["schemas"]["SavedViewVisibilityEnum"];
@@ -4661,8 +5293,8 @@ export interface components {
             priority: number;
             /** Format: uuid */
             statusId: string;
-            /** Format: uuid */
-            assigneeId: string | null;
+            /** @description Assignees in order (0–10). Replaced the single `assigneeId`. */
+            assigneeIds: string[];
             /** Format: uuid */
             reporterId: string;
             estimate: number | null;
@@ -4697,6 +5329,8 @@ export interface components {
             subtaskDoneCount: number;
             commentCount: number;
             attachmentCount: number;
+            checklistCount: number;
+            checklistDoneCount: number;
             /** @description Set values only, keyed by custom field id: select → option id, user → user id, date → ISO date, number → number, text → string. */
             customFields: {
                 [key: string]: unknown;
@@ -4709,6 +5343,8 @@ export interface components {
             dev: components["schemas"]["TaskDevSummaryOut"] | null;
             description: unknown;
             subtasks: components["schemas"]["TaskOut"][];
+            /** @description In position order. */
+            checklist: components["schemas"]["ChecklistItemOut"][];
             project: unknown;
             dependencies: components["schemas"]["TaskDependenciesOut"];
         };
@@ -4777,8 +5413,8 @@ export interface components {
             priority: number;
             /** Format: uuid */
             statusId: string;
-            /** Format: uuid */
-            assigneeId: string | null;
+            /** @description Assignees in order (0–10). Replaced the single `assigneeId`. */
+            assigneeIds: string[];
             /** Format: uuid */
             reporterId: string;
             estimate: number | null;
@@ -4813,6 +5449,8 @@ export interface components {
             subtaskDoneCount: number;
             commentCount: number;
             attachmentCount: number;
+            checklistCount: number;
+            checklistDoneCount: number;
             /** @description Set values only, keyed by custom field id: select → option id, user → user id, date → ISO date, number → number, text → string. */
             customFields: {
                 [key: string]: unknown;
@@ -4842,8 +5480,8 @@ export interface components {
             statusId?: string;
             type?: components["schemas"]["TaskTypeEnum"];
             priority?: number;
-            /** Format: uuid */
-            assigneeId?: string | null;
+            /** @description Replaces the assignees (project members, up to 10, in order); [] or null unassigns everyone. */
+            assigneeIds?: string[] | null;
             /** Format: uuid */
             sprintId?: string | null;
             /** Format: uuid */
@@ -6201,7 +6839,340 @@ export interface operations {
             };
         };
     };
-    sales_workspaces_health_retrieve: {
+    sales_companies_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCompany"];
+                };
+            };
+        };
+    };
+    sales_companies_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_companies_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesCompanyUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCompany"];
+                };
+            };
+        };
+    };
+    sales_companies_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCompanySummary"];
+                };
+            };
+        };
+    };
+    sales_contacts_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesContact"];
+                };
+            };
+        };
+    };
+    sales_contacts_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_contacts_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesContactUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesContact"];
+                };
+            };
+        };
+    };
+    sales_holidays_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_holidays_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesHolidayUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesHoliday"];
+                };
+            };
+        };
+    };
+    sales_lost_reasons_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lost_reason_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_lost_reasons_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lost_reason_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesLostReasonUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesLostReason"];
+                };
+            };
+        };
+    };
+    sales_products_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_products_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesProductUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesProduct"];
+                };
+            };
+        };
+    };
+    sales_stages_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sales_stages_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSalesStageUpdateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesStage"];
+                };
+            };
+        };
+    };
+    sales_calendar_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6217,7 +7188,440 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SalesHealth"];
+                    "application/json": components["schemas"]["SalesCalendar"];
+                };
+            };
+        };
+    };
+    sales_calendar_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCalendarInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCalendar"];
+                };
+            };
+        };
+    };
+    sales_companies_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                "filter[city]"?: string[];
+                "filter[industry]"?: string[];
+                /** @description user id or `me` */
+                "filter[owner]"?: string[];
+                "filter[region]"?: string[];
+                "filter[status]"?: ("active" | "inactive" | "prospect")[];
+                /** @description 1–200, default 50 */
+                limit?: number;
+                /** @description Matches name, phone, email or city */
+                q?: string;
+                /** @description name (default), createdAt, updatedAt or status; prefix - for descending */
+                sort?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCompanyPage"];
+                };
+            };
+        };
+    };
+    sales_companies_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCompanyInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCompany"];
+                };
+            };
+        };
+    };
+    sales_companies_check_duplicate: {
+        parameters: {
+            query?: {
+                /** @description A company to ignore (the one being edited) */
+                excludeId?: string;
+                /** @description Matched after normalization (case, punctuation, PLC/Ltd…) */
+                name?: string;
+                /** @description Matched on the last nine digits */
+                phone?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesDuplicateCheck"];
+                };
+            };
+        };
+    };
+    sales_contacts_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                /** @description company id */
+                "filter[company]"?: string[];
+                /** @description user id or `me` */
+                "filter[owner]"?: string[];
+                "filter[primary]"?: "false" | "true";
+                /** @description 1–200, default 50 */
+                limit?: number;
+                /** @description Matches name, phone, email or company name */
+                q?: string;
+                /** @description name (default), createdAt or updatedAt; prefix - for descending */
+                sort?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesContactPage"];
+                };
+            };
+        };
+    };
+    sales_contacts_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesContactInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesContact"];
+                };
+            };
+        };
+    };
+    sales_holidays_list: {
+        parameters: {
+            query?: {
+                "filter[year]"?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesHoliday"][];
+                };
+            };
+        };
+    };
+    sales_holidays_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesHolidayInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesHoliday"];
+                };
+            };
+        };
+    };
+    sales_lost_reasons_list: {
+        parameters: {
+            query?: {
+                "filter[active]"?: "false" | "true";
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesLostReason"][];
+                };
+            };
+        };
+    };
+    sales_lost_reasons_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesLostReasonInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesLostReason"];
+                };
+            };
+        };
+    };
+    sales_products_list: {
+        parameters: {
+            query?: {
+                "filter[active]"?: "false" | "true";
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesProduct"][];
+                };
+            };
+        };
+    };
+    sales_products_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesProductInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesProduct"];
+                };
+            };
+        };
+    };
+    sales_settings_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesSettings"];
+                };
+            };
+        };
+    };
+    sales_settings_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SalesSettingsInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesSettings"];
+                };
+            };
+        };
+    };
+    sales_stages_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesStage"][];
+                };
+            };
+        };
+    };
+    sales_stages_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesStageInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesStage"];
+                };
+            };
+        };
+    };
+    sales_stages_reorder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesStageReorderInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesStage"][];
                 };
             };
         };
@@ -8774,6 +10178,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActivityOut"][];
+                };
+            };
+        };
+    };
+    tracking_tasks_checklist_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemOut"];
+                };
+            };
+        };
+    };
+    tracking_tasks_checklist_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                checklist_item_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    tracking_tasks_checklist_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                checklist_item_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedChecklistItemPatchInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemOut"];
                 };
             };
         };

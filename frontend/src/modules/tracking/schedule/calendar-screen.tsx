@@ -39,6 +39,7 @@ import { CalendarSkeleton, FilteredEmpty, LiveRegion, RangeProgress, ScheduleErr
 import { ScheduleToolbar } from "./schedule-toolbar";
 import { UnscheduledTray } from "./unscheduled-tray";
 import { keyTitle, usePreviews, useReschedule } from "./use-reschedule";
+import { assigneesOf } from "@/modules/tracking/tasks/task-bits";
 
 /*
  * Board 32 Calendar (§1.3): month grid (Mon-first, "+N more") and week columns. Tasks sit on their
@@ -145,7 +146,7 @@ export function CalendarScreen() {
       task: t,
       due: day,
       status: statusById.get(t.statusId),
-      user: t.assigneeId ? users.get(t.assigneeId) : null,
+      users: assigneesOf(t.assigneeIds, users),
       editable: editable(t),
       onOpen: (el) => openTask(t, el),
       resolveDay,
@@ -174,7 +175,7 @@ export function CalendarScreen() {
           loading={tasksQ.isPending || statusesQ.isPending}
           tasksOn={tasksOn}
           statusOf={(id) => statusById.get(id)}
-          userOf={(id) => (id ? users.get(id) : undefined)}
+          usersOf={(ids) => assigneesOf(ids, users)}
           epicOf={(id) => (id ? epicById.get(id) : undefined)}
           timelineHref={routes.project(ws.slug, project.key, "timeline")}
           canCreate={canCreate}

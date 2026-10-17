@@ -260,7 +260,16 @@ export type CustomFieldValue = string | number;
  */
 export type Task = Refine<S["TaskOut"], { priority: Priority; customFields: Record<ID, CustomFieldValue> }>;
 
-/** Full task as returned by GET /tracking/workspaces/:slug/tasks/:key. */
+/** A task checklist item (docs/tracking/checklist-assignees.md §2); `position` is a fractional index like Task.position. */
+export type ChecklistItem = Wire<S["ChecklistItemOut"]>;
+/** POST body: `position` omitted or null → last. */
+export type ChecklistItemCreate = Wire<S["ChecklistItemInRequest"]>;
+export type ChecklistItemPatch = Wire<S["PatchedChecklistItemPatchInRequest"]>;
+
+/**
+ * Full task as returned by GET /tracking/workspaces/:slug/tasks/:key. `checklist` is in position order.
+ * `assigneeIds` (0–10, ordered) replaced the single `assigneeId` everywhere.
+ */
 export type TaskDetail = Refine<
   S["TaskDetailOut"],
   {
@@ -268,6 +277,7 @@ export type TaskDetail = Refine<
     customFields: Record<ID, CustomFieldValue>;
     description: RichDoc | null;
     subtasks: Task[];
+    checklist: ChecklistItem[];
     project: Pick<Project, "id" | "key" | "name" | "hue" | "my_permissions">;
     dependencies: TaskDependencies;
   }
@@ -495,7 +505,15 @@ export interface Session {
   user: SessionUser;
 }
 
-export type SalesHealth = Wire<S["SalesHealth"]>;
+/**
+ * Client-only: the Stage 3 placeholder's `GET sales/workspaces/{slug}/health`. The backend dropped it in sales S1
+ * (it is no longer in the schema); the mock still answers it until the sales screens replace the placeholder.
+ */
+export interface SalesHealth {
+  status: string;
+  module: string;
+  workspace: string;
+}
 export type DownloadUrl = Wire<S["DownloadUrl"]>;
 
 /* ───────────────────────── Saved views (board 30) ───────────────────────── */

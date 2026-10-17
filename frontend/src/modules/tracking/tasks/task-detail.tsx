@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, Maximize2, Minimize2, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { Avatar } from "@/ui/avatar";
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/choice";
 import { ErrorGlyph, StatusGlyph } from "@/ui/glyphs";
@@ -27,6 +26,7 @@ import { cn } from "@/lib/utils/cn";
 import { useCreateTask, useDeleteTask, useUpdateTask } from "./mutations";
 import { DescriptionEditor, RichView } from "./rich-text";
 import { TaskAttachments } from "./task-attachments";
+import { TaskChecklist } from "./task-checklist";
 import { TaskConversation } from "./task-comments";
 import { AddProperty, CF_FORCE, TaskChips, TaskFields, TaskLabels, TaskPlanning } from "./task-properties";
 import { TaskDependencies } from "@/modules/tracking/dependencies/task-dependencies";
@@ -34,7 +34,7 @@ import { TaskCustomFields } from "@/modules/tracking/fields/task-custom-fields";
 import { TaskTime } from "@/modules/tracking/time/task-time";
 import { DevelopmentSection } from "@/modules/tracking/development/development-section";
 import { triggerSpark } from "./task-origin";
-import { useSparking } from "./task-bits";
+import { AssigneeAvatars, useSparking } from "./task-bits";
 import { liveUpdateToast } from "@/platform/presence/live-toast";
 import { canonicalField, editingLabel, editors, fieldFlags, firstName, peopleAt, typingLabel } from "@/platform/presence/presence-lib";
 import { PresenceStack } from "@/platform/presence/presence-stack";
@@ -197,7 +197,8 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
           statusId: task.statusId,
           priority: task.priority,
           type: task.type,
-          assigneeId: can("tracking.task.assign", perms) ? task.assigneeId : null,
+          // Without tracking.task.assign only yourself can be copied over.
+          assigneeIds: can("tracking.task.assign", perms) ? task.assigneeIds : task.assigneeIds.filter((id) => id === me.id),
           sprintId: openSprintId,
           parentId: task.parentId,
           epicId: task.epicId,
@@ -439,10 +440,11 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
               ) : null}
             </section>
 
-            {/* Board 39 order: Description → Dependencies → Time → Sub-tasks → Attachments → Comments. */}
+            {/* Board 39 order: Description → Dependencies → Time → Sub-tasks → Checklist → Attachments → Comments. */}
             <TaskDependencies task={task} canEdit={canEdit} wide={full} />
             <TaskTime task={task} canEdit={canEdit} deleted={deleted} forceEstimate={forced.has("timeEstimate")} onPatch={patch} />
             <Subtasks task={task} statuses={statuses} canCreate={canAddSub} sprintId={openSprintId} adding={addingSub} onAddingChange={setAddingSub} />
+            <TaskChecklist task={task} canEdit={canEdit} />
             <TaskAttachments task={task} canUpload={can("tracking.attachment.upload", perms)} deleted={deleted} />
             <TaskConversation
               task={task}
@@ -545,7 +547,7 @@ function Subtasks({
       <ul className="m-0 flex list-none flex-col p-0">
         {task.subtasks.map((s) => {
           const canToggle = canEditTask(s, perms, me.id) || can("tracking.task.move", perms);
-          const assignee = members.find((m) => m.userId === s.assigneeId)?.user;
+          const assignees = s.assigneeIds.map((id) => members.find((m) => m.userId === id)?.user).filter((u): u is NonNullable<typeof u> => Boolean(u));
           const d = isDone(s);
           return (
             <li key={s.id} className="-mx-2 flex min-h-[34px] items-center gap-2.5 rounded-sm px-2 hover:bg-hover">
@@ -571,7 +573,7 @@ function Subtasks({
               >
                 {s.title}
               </button>
-              {assignee && <Avatar name={assignee.name} hue={assignee.hue} size={20} />}
+              <AssigneeAvatars users={assignees} size={20} max={2} hideEmpty />
             </li>
           );
         })}

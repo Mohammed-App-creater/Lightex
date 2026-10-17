@@ -8,7 +8,7 @@ const statuses: Status[] = [
   { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 4, taskCount: 0 },
 ];
 const t = (n: number, over: Partial<Task> = {}): Task =>
-  ({ id: `t${n}`, key: `PRJ-${n}`, number: n, title: `Task ${n}`, statusId: "todo", priority: 0, assigneeId: null, labelIds: [], dueDate: null, epicId: null, sprintId: null, milestoneId: null, ...over }) as Task;
+  ({ id: `t${n}`, key: `PRJ-${n}`, number: n, title: `Task ${n}`, statusId: "todo", priority: 0, assigneeIds: [], labelIds: [], dueDate: null, epicId: null, sprintId: null, milestoneId: null, ...over }) as Task;
 const ctx: Ctx = {
   statuses,
   users: new Map([["u1", { id: "u1", name: "Alex Kim", email: "", hue: 1, avatarUrl: null, createdAt: "" }]]),
@@ -34,6 +34,17 @@ describe("list model", () => {
       ["In progress", 1],
       ["Todo", 1],
       ["Done", 0],
+    ]);
+  });
+
+  it("groups by assignee with a multi-assignee task under each person", () => {
+    const users = new Map(ctx.users);
+    users.set("u2", { id: "u2", name: "Blair Fox", email: "", hue: 2, avatarUrl: null, createdAt: "" });
+    const groups = groupTasks([t(1, { assigneeIds: ["u2", "u1"] }), t(2, { assigneeIds: ["u1"] }), t(3)], "assignee", { ...ctx, users });
+    expect(groups.map((g) => [g.name, g.tasks.map((x) => x.number)])).toEqual([
+      ["Alex Kim", [1, 2]],
+      ["Blair Fox", [1]],
+      ["Unassigned", [3]],
     ]);
   });
 

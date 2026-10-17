@@ -1,4 +1,5 @@
 import type {
+  ChecklistItem,
   ActivityEntry,
   AuditEntry,
   Notification,
@@ -41,6 +42,7 @@ import { devEnabledOf, devSummaryOf } from "./dev-derive";
 import { enabledModules, onlyEnabled } from "./modules";
 import { myDataScopes, roleDataScopes } from "./data-scope";
 import { auditTargetFields } from "@/lib/audit";
+import { comparePosition } from "@/lib/utils/fractional-index";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
@@ -197,14 +199,34 @@ function stripSeq({ taskSeq: _taskSeq, ...rest }: ProjectRec) {
   return rest;
 }
 
+/** A task's checklist in position order (docs/tracking/checklist-assignees.md §2). */
+export function checklistOf(db: MockDB, taskId: string): ChecklistItem[] {
+  return (db.checklist ?? []).filter((c) => c.taskId === taskId).sort(comparePosition);
+}
+
+/** `checklistCount` / `checklistDoneCount` for Task responses. */
+export function checklistCounts(db: MockDB, taskId: string) {
+  let count = 0;
+  let done = 0;
+  for (const c of db.checklist ?? []) {
+    if (c.taskId !== taskId) continue;
+    count += 1;
+    if (c.done) done += 1;
+  }
+  return { checklistCount: count, checklistDoneCount: done };
+}
+
 export function toTask(db: MockDB, t: TaskRec): Task {
-  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, startDate, ...rest } = t;
+  const { description: _d, startedAt: _s, customFields, timeEstimateMinutes, startDate, assigneeIds, ...rest } = t;
   const statuses = statusesOf(db, t.projectId);
   const subs = db.tasks.filter((x) => x.parentId === t.id && !x.deletedAt);
   const openBlockers = openBlockersOf(db, t.id);
   return {
     ...rest,
+    // A record cached before multiple assignees has no array yet (db.ts migrates it on load).
+    assigneeIds: [...(assigneeIds ?? [])],
     startDate: startDate ?? null,
+    ...checklistCounts(db, t.id),
     subtaskCount: subs.length,
     subtaskDoneCount: subs.filter((x) => isDoneStatus(x.statusId, statuses)).length,
     commentCount: db.comments.filter((c) => c.targetId === t.id).length,

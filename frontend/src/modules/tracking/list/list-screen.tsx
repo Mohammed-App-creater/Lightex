@@ -39,7 +39,8 @@ import { displayValue } from "@/modules/tracking/fields/field-lib";
 import { useCustomFields } from "@/modules/tracking/fields/queries";
 import { useCreateTask, useDeleteTask, useUpdateTask } from "@/modules/tracking/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/modules/tracking/tasks/task-origin";
-import { useSparking } from "@/modules/tracking/tasks/task-bits";
+import { AssigneeAvatars, ChecklistBadge, assigneeNames, assigneesOf, useSparking } from "@/modules/tracking/tasks/task-bits";
+import { AssigneeMenuItems } from "@/modules/tracking/tasks/assignee-picker";
 import { api } from "@/api/endpoints";
 import { errorMessage } from "@/api/errors";
 import { patchTasks, restore, snapshotTasks } from "@/api/optimistic";
@@ -467,7 +468,7 @@ export function ListScreen() {
         canLabel={can("tracking.task.edit_any", perms)}
         canDelete={can("tracking.task.delete", perms)}
         onClear={() => setSelected(new Set())}
-        onAssign={(u) => bulk.mutate({ ids: selectedIds, patch: { assigneeId: u?.id ?? null } }, { onSuccess: () => toast.success(`Assigned ${plural(n)} to ${u?.name.split(" ")[0] ?? "nobody"}`) })}
+        onAssign={(u) => bulk.mutate({ ids: selectedIds, patch: { assigneeIds: u ? [u.id] : [] } }, { onSuccess: () => toast.success(`Assigned ${plural(n)} to ${u?.name.split(" ")[0] ?? "nobody"}`) })}
         onMove={(s) => {
           if (s.glyph === "done") selectedIds.forEach(triggerSpark);
           bulk.mutate({ ids: selectedIds, patch: { statusId: s.id } }, { onSuccess: () => toast.success(`Moved ${plural(n)} to ${s.name}`) });
@@ -681,7 +682,7 @@ const TaskRow = memo(function TaskRow({
   const [draft, setDraft] = useState(task.title);
   const status = ctx.statuses.find((s) => s.id === task.statusId);
   const done = status?.category === "done";
-  const assignee = task.assigneeId ? ctx.users.get(task.assigneeId) : undefined;
+  const assignees = assigneesOf(task.assigneeIds, ctx.users);
   const sprint = ctx.sprints.find((s) => s.id === task.sprintId);
   const ms = ctx.milestones.find((m) => m.id === task.milestoneId);
   const taskLabels = task.labelIds.map((id) => ctx.labels.get(id)).filter((l): l is Label => Boolean(l));
@@ -737,11 +738,13 @@ const TaskRow = memo(function TaskRow({
           <button type="button" aria-label={`Title: ${task.title}${task.isBlocked ? ", blocked" : ""}`} title={task.title} onClick={() => { setDraft(task.title); setEditingTitle(true); }} className={cellBtn}>
             {task.isBlocked && <BlockedGlyph task={task} />}
             <span className={cn("truncate font-medium", done && status?.glyph === "done" && "text-fg-3 line-through")}>{task.title}</span>
+            <ChecklistBadge done={task.checklistDoneCount} total={task.checklistCount} className="ml-auto flex-none pl-1" />
           </button>
         ) : (
           <span className={cellStatic} title={task.title}>
             {task.isBlocked && <BlockedGlyph task={task} />}
             <span className="truncate font-medium">{task.title}</span>
+            <ChecklistBadge done={task.checklistDoneCount} total={task.checklistCount} className="ml-auto flex-none pl-1" />
           </span>
         );
       case "status":
@@ -776,19 +779,22 @@ const TaskRow = memo(function TaskRow({
         return (
           <CellMenu
             enabled={canAssign}
-            label={`Assignee: ${assignee?.name ?? "Unassigned"}`}
-            display={assignee ? <><Avatar name={assignee.name} hue={assignee.hue} size={20} decorative /><span className="truncate">{assignee.name.split(" ")[0]}</span></> : <span className="text-fg-3">Unassigned</span>}
+            label={`Assignees: ${assigneeNames(assignees)}`}
+            display={
+              assignees.length ? (
+                <>
+                  <AssigneeAvatars users={assignees} size={20} max={3} />
+                  <span className="truncate">
+                    {assignees[0]!.name.split(" ")[0]}
+                    {assignees.length > 1 && <span className="text-fg-3"> +{assignees.length - 1}</span>}
+                  </span>
+                </>
+              ) : (
+                <span className="text-fg-3">Unassigned</span>
+              )
+            }
           >
-            <MenuRadioGroup value={task.assigneeId ?? ""} onValueChange={(v) => onPatch(task, { assigneeId: v || null })}>
-              {[...ctx.users.values()].map((u) => (
-                <MenuRadioItem key={u.id} value={u.id} icon={<Avatar name={u.name} hue={u.hue} size={20} decorative />}>
-                  {u.name}
-                </MenuRadioItem>
-              ))}
-              <MenuRadioItem value="" icon={<UnassignedAvatar size={20} />}>
-                Unassigned
-              </MenuRadioItem>
-            </MenuRadioGroup>
+            <AssigneeMenuItems people={[...ctx.users.values()]} value={task.assigneeIds} onChange={(ids) => onPatch(task, { assigneeIds: ids })} />
           </CellMenu>
         );
       case "sprint":
@@ -1164,7 +1170,7 @@ function MobileList({ groups, groupBy, setGroupBy, ctx, onOpen }: { groups: Grou
                   <ul className="m-0 flex list-none flex-col gap-2 px-3 py-2.5">
                     {g.tasks.map((t) => {
                       const s = ctx.statuses.find((x) => x.id === t.statusId);
-                      const a = t.assigneeId ? ctx.users.get(t.assigneeId) : undefined;
+                      const a = assigneesOf(t.assigneeIds, ctx.users);
                       const tone = dueTone(t.dueDate, s?.category === "done");
                       return (
                         <li key={t.id}>
@@ -1179,7 +1185,7 @@ function MobileList({ groups, groupBy, setGroupBy, ctx, onOpen }: { groups: Grou
                             <span className="flex items-center gap-2">
                               <PriorityIcon level={t.priority} bars />
                               <span className="min-w-0 flex-1 truncate text-[12px] text-fg-3">{ctx.epics.find((e) => e.id === t.epicId)?.name ?? ctx.sprints.find((x) => x.id === t.sprintId)?.name ?? "No sprint"}</span>
-                              {a ? <Avatar name={a.name} hue={a.hue} size={20} decorative /> : <UnassignedAvatar size={20} />}
+                              <AssigneeAvatars users={a} size={20} />
                             </span>
                           </button>
                         </li>

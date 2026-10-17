@@ -56,7 +56,7 @@ describe("useCan / <Can>", () => {
   });
 
   it("applies edit_own only to the user's tasks", () => {
-    const task = { assigneeId: "u1", reporterId: "u2" };
+    const task = { assigneeIds: ["u4", "u1"], reporterId: "u2" };
     expect(canEditTask(task, ["tracking.task.edit_own"], "u1")).toBe(true);
     expect(canEditTask(task, ["tracking.task.edit_own"], "u3")).toBe(false);
     expect(canEditTask(task, ["tracking.task.edit_any"], "u3")).toBe(true);
