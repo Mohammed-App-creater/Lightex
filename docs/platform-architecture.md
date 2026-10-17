@@ -178,6 +178,9 @@ Everything in the current Lightex backend moves under `modules/tracking` with na
 
 ## 10. Sales module (placeholder)
 
+> Superseded: the real module is specified in `docs/sales/spec.md` and documented in `docs/sales/api.md`; the skeleton
+> below (and `sales.health.view`) was replaced in sales S1.
+
 A skeleton only in this restructure: registered module `sales`, permission `sales.health.view`, `GET /api/v1/sales/health` protected by the module guard, one placeholder frontend page, and tests proving the pattern. The real sales specification is a separate document. Known needs that the platform must support: data scope on leads and opportunities, teams, targets and daily reports driven by a working calendar, scheduled jobs (follow-up reminders, daily report generation), generic comments and attachments on customers and opportunities, and a "won" event that other modules can react to.
 
 ## 11. Frontend architecture

@@ -103,7 +103,9 @@ def test_a_module_may_name_the_default_scope(owner, ws):
     )
     register_module(defn)
     try:
-        assert catalogue.role_def("owner").data_scopes == {"scoped.lead.view": "team"}
+        # Sales (S1) also gives Owner scopable codes; only the test module's entry matters here.
+        assert catalogue.role_def("owner").data_scopes["scoped.lead.view"] == "team"
+        assert not any(c.startswith("sales.") for c in catalogue.role_def("member").data_scopes)
         assert catalogue.role_def("member").data_scopes == {"scoped.lead.view": "own"}
         modules.set_module_enabled(owner, ws, "scoped", True)
         assert my_data_scopes(owner, ws) == {"scoped.lead.view": "team"}

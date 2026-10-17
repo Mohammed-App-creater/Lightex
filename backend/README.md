@@ -490,8 +490,8 @@ modules/
     imports/       board 40: CSV / Jira / Trello / Asana imports
     integrations/  board 37: GitHub and GitLab
     timetracking/  board 39: time entries, timers, timesheet
-  sales/           skeleton (Stage 3): the module definition and a health route; how to add a module:
-                   ../docs/platform/adding-a-module.md
+  sales/           sales module (S1: permissions and default roles, reference data, companies, contacts);
+                   API: ../docs/sales/api.md; how to add a module: ../docs/platform/adding-a-module.md
 ```
 
 Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so table names are unchanged. Stage 5 replaced

@@ -908,11 +908,353 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
-  /api/v1/sales/workspaces/{slug}/health:
+  /api/v1/sales/companies/{company_id}:
     get:
-      operationId: sales_workspaces_health_retrieve
-      description: 'A placeholder route proving the module guard: 403 `module_disabled`
-        while sales is off.'
+      operationId: sales_companies_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCompany'
+          description: ''
+    patch:
+      operationId: sales_companies_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesCompanyUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCompany'
+          description: ''
+    delete:
+      operationId: sales_companies_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/companies/{company_id}/summary:
+    get:
+      operationId: sales_companies_summary
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCompanySummary'
+          description: ''
+  /api/v1/sales/contacts/{contact_id}:
+    get:
+      operationId: sales_contacts_retrieve
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: contact_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesContact'
+          description: ''
+    patch:
+      operationId: sales_contacts_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: contact_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesContactUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesContact'
+          description: ''
+    delete:
+      operationId: sales_contacts_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: contact_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/holidays/{holiday_id}:
+    patch:
+      operationId: sales_holidays_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: holiday_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesHolidayUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesHoliday'
+          description: ''
+    delete:
+      operationId: sales_holidays_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: holiday_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/lost-reasons/{lost_reason_id}:
+    patch:
+      operationId: sales_lost_reasons_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lost_reason_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesLostReasonUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLostReason'
+          description: ''
+    delete:
+      operationId: sales_lost_reasons_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: lost_reason_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/products/{product_id}:
+    patch:
+      operationId: sales_products_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesProductUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesProduct'
+          description: ''
+    delete:
+      operationId: sales_products_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/stages/{stage_id}:
+    patch:
+      operationId: sales_stages_partial_update
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: stage_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalesStageUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesStage'
+          description: ''
+    delete:
+      operationId: sales_stages_destroy
+      description: Base for workspace- and project-scoped endpoints.
+      parameters:
+      - in: path
+        name: stage_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/sales/workspaces/{slug}/calendar:
+    get:
+      operationId: sales_calendar_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
       parameters:
       - in: path
         name: slug
@@ -929,7 +1271,566 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SalesHealth'
+                $ref: '#/components/schemas/SalesCalendar'
+          description: ''
+    put:
+      operationId: sales_calendar_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesCalendarInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCalendar'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/companies:
+    get:
+      operationId: sales_companies_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[city]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[industry]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[region]
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: filter[status]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - active
+            - inactive
+            - prospect
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches name, phone, email or city
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: name (default), createdAt, updatedAt or status; prefix - for
+          descending
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCompanyPage'
+          description: ''
+    post:
+      operationId: sales_companies_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesCompanyInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesCompany'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/companies/check-duplicate:
+    get:
+      operationId: sales_companies_check_duplicate
+      description: |-
+        Says whether a live company in the workspace matches, and who owns it, whatever the caller's scope. It
+        returns nothing else (no id, no name, no details).
+      parameters:
+      - in: query
+        name: excludeId
+        schema:
+          type: string
+        description: A company to ignore (the one being edited)
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Matched after normalization (case, punctuation, PLC/Ltd…)
+      - in: query
+        name: phone
+        schema:
+          type: string
+        description: Matched on the last nine digits
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDuplicateCheck'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/contacts:
+    get:
+      operationId: sales_contacts_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: filter[company]
+        schema:
+          type: array
+          items:
+            type: string
+        description: company id
+      - in: query
+        name: filter[owner]
+        schema:
+          type: array
+          items:
+            type: string
+        description: user id or `me`
+      - in: query
+        name: filter[primary]
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 1–200, default 50
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Matches name, phone, email or company name
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: sort
+        schema:
+          type: string
+        description: name (default), createdAt or updatedAt; prefix - for descending
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesContactPage'
+          description: ''
+    post:
+      operationId: sales_contacts_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesContactInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesContact'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/holidays:
+    get:
+      operationId: sales_holidays_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[year]
+        schema:
+          type: integer
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesHoliday'
+          description: ''
+    post:
+      operationId: sales_holidays_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesHolidayInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesHoliday'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/lost-reasons:
+    get:
+      operationId: sales_lost_reasons_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[active]
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesLostReason'
+          description: ''
+    post:
+      operationId: sales_lost_reasons_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesLostReasonInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesLostReason'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/products:
+    get:
+      operationId: sales_products_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: filter[active]
+        schema:
+          type: string
+          enum:
+          - 'false'
+          - 'true'
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesProduct'
+          description: ''
+    post:
+      operationId: sales_products_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesProductInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesProduct'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/settings:
+    get:
+      operationId: sales_settings_retrieve
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesSettings'
+          description: ''
+    put:
+      operationId: sales_settings_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesSettingsInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesSettings'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/stages:
+    get:
+      operationId: sales_stages_list
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesStage'
+          description: ''
+    post:
+      operationId: sales_stages_create
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesStageInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesStage'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/stages/reorder:
+    post:
+      operationId: sales_stages_reorder
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesStageReorderInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesStage'
           description: ''
   /api/v1/search:
     get:
@@ -8633,6 +9534,126 @@ components:
             - team
             - all
             type: string
+    PatchedSalesCompanyUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        industry:
+          type: string
+          maxLength: 80
+        region:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          maxLength: 80
+        address:
+          type: string
+          maxLength: 300
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          type: string
+          maxLength: 200
+        status:
+          $ref: '#/components/schemas/SalesCompanyStatusEnum'
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs edit scope team or
+            all.'
+    PatchedSalesContactUpdateInRequest:
+      type: object
+      properties:
+        companyId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        jobTitle:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        isPrimary:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs edit scope team or
+            all.'
+    PatchedSalesHolidayUpdateInRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+    PatchedSalesLostReasonUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        isActive:
+          type: boolean
+    PatchedSalesProductUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+        category:
+          type: string
+          maxLength: 60
+        isActive:
+          type: boolean
+    PatchedSalesStageUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        defaultProbability:
+          type: integer
+          maximum: 100
+          minimum: 0
     PatchedSavedViewUpdateInRequest:
       type: object
       properties:
@@ -9521,19 +10542,635 @@ components:
       - taskId
       - taskKey
       - taskTitle
-    SalesHealth:
+    SalesCalendar:
       type: object
       properties:
+        weekdayWeights:
+          type: array
+          items:
+            type: number
+            format: double
+          readOnly: true
+          description: 'Seven weights, Monday first: 1 = full working day, 0.5 = half
+            day, 0 = not a working day.'
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - updatedAt
+      - weekdayWeights
+    SalesCalendarDisplayEnum:
+      enum:
+      - gregorian
+      - ethiopian
+      type: string
+    SalesCalendarInRequest:
+      type: object
+      properties:
+        weekdayWeights:
+          type: array
+          items:
+            type: string
+            format: decimal
+            pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          description: Seven weights between 0 and 1, Monday first.
+          maxItems: 7
+          minItems: 7
+      required:
+      - weekdayWeights
+    SalesCompany:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        industry:
+          type: string
+        region:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        website:
+          type: string
         status:
-          type: string
-        module:
-          type: string
-        workspace:
+          $ref: '#/components/schemas/SalesCompanyStatusEnum'
+        notes:
           type: string
       required:
-      - module
+      - address
+      - canDelete
+      - canEdit
+      - city
+      - createdAt
+      - email
+      - id
+      - industry
+      - name
+      - notes
+      - owner
+      - ownerId
+      - phone
+      - region
       - status
-      - workspace
+      - updatedAt
+      - website
+    SalesCompanyBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
+    SalesCompanyInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        industry:
+          type: string
+          maxLength: 80
+        region:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          maxLength: 80
+        address:
+          type: string
+          maxLength: 300
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          type: string
+          maxLength: 200
+        status:
+          $ref: '#/components/schemas/SalesCompanyStatusEnum'
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs edit scope team or
+            all.'
+      required:
+      - name
+    SalesCompanyPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesCompany'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesCompanyStatusEnum:
+      enum:
+      - prospect
+      - active
+      - inactive
+      type: string
+    SalesCompanySummary:
+      type: object
+      properties:
+        company:
+          $ref: '#/components/schemas/SalesCompany'
+        contactCount:
+          type: integer
+          description: Contacts of this company the caller can see.
+        primaryContact:
+          allOf:
+          - $ref: '#/components/schemas/SalesContact'
+          nullable: true
+        openOpportunityCount:
+          type: integer
+          description: 0 until S2.
+        pipelineValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          description: 0.00 until S2.
+        wonValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          description: 0.00 until S2.
+        openFollowUpCount:
+          type: integer
+          description: 0 until S3.
+        lastContactAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: null until S3.
+        timeline:
+          type: array
+          items: {}
+          description: Empty until S3 defines its items.
+      required:
+      - company
+      - contactCount
+      - lastContactAt
+      - openFollowUpCount
+      - openOpportunityCount
+      - pipelineValue
+      - primaryContact
+      - timeline
+      - wonValue
+    SalesContact:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/SalesUserBrief'
+          nullable: true
+          readOnly: true
+        canEdit:
+          type: boolean
+          readOnly: true
+          description: The caller's edit scope reaches this record.
+        canDelete:
+          type: boolean
+          readOnly: true
+          description: The caller's delete scope reaches this record.
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        company:
+          allOf:
+          - $ref: '#/components/schemas/SalesCompanyBrief'
+          readOnly: true
+        name:
+          type: string
+        jobTitle:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        isPrimary:
+          type: boolean
+        notes:
+          type: string
+      required:
+      - canDelete
+      - canEdit
+      - company
+      - companyId
+      - createdAt
+      - email
+      - id
+      - isPrimary
+      - jobTitle
+      - name
+      - notes
+      - owner
+      - ownerId
+      - phone
+      - updatedAt
+    SalesContactInRequest:
+      type: object
+      properties:
+        companyId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        jobTitle:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        isPrimary:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 5000
+        ownerId:
+          type: string
+          format: uuid
+          description: 'Default: the caller. Someone else needs edit scope team or
+            all.'
+      required:
+      - companyId
+      - name
+    SalesContactPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesContact'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SalesDuplicateCheck:
+      type: object
+      properties:
+        exists:
+          type: boolean
+        ownerName:
+          type: string
+          nullable: true
+          description: The matching company's owner, even out of scope.
+      required:
+      - exists
+      - ownerName
+    SalesHoliday:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+      required:
+      - date
+      - id
+      - name
+    SalesHolidayInRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+      required:
+      - date
+      - name
+    SalesLostReason:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        isActive:
+          type: boolean
+      required:
+      - createdAt
+      - id
+      - isActive
+      - name
+      - updatedAt
+    SalesLostReasonInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        isActive:
+          type: boolean
+      required:
+      - name
+    SalesProduct:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+        isActive:
+          type: boolean
+      required:
+      - category
+      - code
+      - createdAt
+      - id
+      - isActive
+      - name
+      - updatedAt
+    SalesProductInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+        category:
+          type: string
+          maxLength: 60
+        isActive:
+          type: boolean
+      required:
+      - name
+    SalesSettings:
+      type: object
+      properties:
+        weekStart:
+          $ref: '#/components/schemas/SalesWeekdayEnum'
+        fiscalYearStartMonth:
+          type: integer
+        statusGreenPct:
+          type: integer
+        statusYellowPct:
+          type: integer
+        upcomingDays:
+          type: integer
+        staleDays:
+          type: integer
+        largeDealThreshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        dailyReportCutoff:
+          type: string
+          format: time
+        dailyReportRequired:
+          type: boolean
+        quotationValidityDays:
+          type: integer
+        calendarDisplay:
+          $ref: '#/components/schemas/SalesCalendarDisplayEnum'
+        updatedAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - calendarDisplay
+      - dailyReportCutoff
+      - dailyReportRequired
+      - fiscalYearStartMonth
+      - largeDealThreshold
+      - quotationValidityDays
+      - staleDays
+      - statusGreenPct
+      - statusYellowPct
+      - upcomingDays
+      - updatedAt
+      - weekStart
+    SalesSettingsInRequest:
+      type: object
+      description: 'Every field is optional: the fields sent are changed, the others
+        kept.'
+      properties:
+        weekStart:
+          $ref: '#/components/schemas/SalesWeekdayEnum'
+        fiscalYearStartMonth:
+          type: integer
+          maximum: 12
+          minimum: 1
+        statusGreenPct:
+          type: integer
+          maximum: 1000
+          minimum: 1
+        statusYellowPct:
+          type: integer
+          maximum: 1000
+          minimum: 0
+        upcomingDays:
+          type: integer
+          maximum: 90
+          minimum: 1
+        staleDays:
+          type: integer
+          maximum: 365
+          minimum: 1
+        largeDealThreshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        dailyReportCutoff:
+          type: string
+          format: time
+        dailyReportRequired:
+          type: boolean
+        quotationValidityDays:
+          type: integer
+          maximum: 365
+          minimum: 1
+        calendarDisplay:
+          $ref: '#/components/schemas/SalesCalendarDisplayEnum'
+    SalesStage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        order:
+          type: integer
+        category:
+          $ref: '#/components/schemas/SalesStageCategoryEnum'
+        defaultProbability:
+          type: integer
+        isSystem:
+          type: boolean
+      required:
+      - category
+      - defaultProbability
+      - id
+      - isSystem
+      - name
+      - order
+    SalesStageCategoryEnum:
+      enum:
+      - open
+      - won
+      - lost
+      type: string
+    SalesStageInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        defaultProbability:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+      - defaultProbability
+      - name
+    SalesStageReorderInRequest:
+      type: object
+      properties:
+        stageIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+      required:
+      - stageIds
+    SalesUserBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hue:
+          type: integer
+      required:
+      - hue
+      - id
+      - name
+    SalesWeekdayEnum:
+      enum:
+      - monday
+      - tuesday
+      - wednesday
+      - thursday
+      - friday
+      - saturday
+      - sunday
+      type: string
     SavedView:
       type: object
       properties:

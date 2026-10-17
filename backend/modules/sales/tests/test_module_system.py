@@ -17,8 +17,10 @@ from core.tests.fake_module.models import Widget
 
 pytestmark = pytest.mark.django_db
 
-SALES = "sales.health.view"
-HEALTH = "/api/v1/sales/workspaces/{}/health"
+#: A non-scopable sales code held by Owner, Admin and Sales Admin (sales S1); the route needs sales.dashboard.view.
+SALES = "sales.settings.manage"
+NAV = "sales.dashboard.view"
+GUARDED = "/api/v1/sales/workspaces/{}/settings"
 
 
 def put(user, slug, key, enabled):
@@ -80,8 +82,10 @@ def test_create_workspace_with_modules(owner):
         ("sales", True, owner.pk),
     }
     ws = rows[0].workspace
-    for key in ("owner", "admin", "member"):
+    for key in ("owner", "admin"):
         assert SALES in access.role_permission_codes(role(ws, key)), key
+    assert not {c for c in access.role_permission_codes(role(ws, "member")) if c.startswith("sales.")}
+    assert ws.roles.filter(system_key="sales_salesperson").exists()
     plain = client.post("/api/v1/workspaces", {"name": "Plain", "slug": "plain"}, format="json").json()
     assert plain["enabledModules"] == ["core", "tracking"]
     assert SALES not in plain["my_permissions"]
@@ -111,7 +115,7 @@ def test_create_workspace_rejects_unknown_or_unmet_modules(owner, fake_module):
 
 def test_enable_and_disable(ws, owner):
     client = client_for(owner)
-    assert client.get(HEALTH.format("platform")).json()["code"] == "module_disabled"
+    assert client.get(GUARDED.format("platform")).json()["code"] == "module_disabled"
     res = put(owner, "platform", "sales", True)
     assert res.status_code == 200, res.json()
     body = res.json()
@@ -119,13 +123,13 @@ def test_enable_and_disable(ws, owner):
     assert body["enabledBy"] == str(owner.pk)
     assert body["enabledAt"]
     assert body["navItems"] == [
-        {"key": "sales", "label": "Sales", "icon": "briefcase", "path": "sales", "permission": SALES}
+        {"key": "sales", "label": "Sales", "icon": "briefcase", "path": "sales", "permission": NAV}
     ]
-    assert client.get(HEALTH.format("platform")).json() == {"status": "ok", "module": "sales", "workspace": "platform"}
+    assert client.get(GUARDED.format("platform")).status_code == 200
     res = put(owner, "platform", "sales", False)
     assert res.status_code == 200
     assert (res.json()["enabled"], res.json()["navItems"], res.json()["enabledBy"]) == (False, [], None)
-    disabled = client.get(HEALTH.format("platform"))
+    disabled = client.get(GUARDED.format("platform"))
     assert disabled.status_code == 403
     assert disabled.json()["code"] == "module_disabled"
     assert disabled.json()["details"] == {"module": "sales"}
@@ -192,7 +196,7 @@ def test_enabling_seeds_default_grants_idempotently(ws, owner):
             "role__system_key", flat=True
         )
     )
-    assert holders == {"owner", "admin", "member"}
+    assert holders == {"owner", "admin", "sales_admin"}
     put(owner, "platform", "sales", False)
     put(owner, "platform", "sales", True)
     assert RolePermission.objects.filter(role__workspace=ws, permission__code=SALES).count() == 3
@@ -231,8 +235,9 @@ def test_role_editor_keeps_hidden_grants_and_refuses_disabled_codes(ws, owner):
     client = client_for(owner)
     put(owner, "platform", "sales", True)
     member_role = role(ws, "member")
-    put(owner, "platform", "sales", False)
     url = f"/api/v1/roles/{member_role.pk}/permissions"
+    assert client.put(url, {"permissions": ["core.workspace.view", SALES]}, format="json").status_code == 200
+    put(owner, "platform", "sales", False)
     res = client.put(url, {"permissions": ["core.workspace.view", "core.audit.view"]}, format="json")
     assert res.status_code == 200, res.json()
     assert res.json()["permissions"] == ["core.workspace.view", "core.audit.view"]
@@ -285,7 +290,7 @@ def test_data_and_role_grants_survive_disable_and_enable(ws, owner, fake_module)
     shown = next(r for r in client.get("/api/v1/workspaces/platform/roles").json() if r["id"] == custom["id"])
     assert shown["permissions"] == ["core.workspace.view", SALES]
     assert Role.objects.filter(pk=custom["id"]).exists()
-    assert client.get(HEALTH.format("platform")).status_code == 200
+    assert client.get(GUARDED.format("platform")).status_code == 200
 
 
 def test_event_handlers_are_skipped_while_disabled(ws, owner, member, fake_module):
@@ -374,13 +379,13 @@ def test_tenant_isolation(ws, owner, sales_on):
     assert lee.get("/api/v1/workspaces/platform/modules").status_code == 404
     assert put(other, "platform", "sales", not sales_on).status_code == 404
     assert put(other, "platform", "nope", True).status_code == 404
-    assert lee.get(HEALTH.format("platform")).status_code == 404
+    assert lee.get(GUARDED.format("platform")).status_code == 404
     assert WorkspaceModule.objects.get(workspace=ws, module_key="tracking").enabled
     assert modules.is_enabled(ws, "sales") is sales_on
     # The outsider's own workspace is unaffected.
-    assert lee.get(HEALTH.format("elsewhere")).json()["code"] == "module_disabled"
+    assert lee.get(GUARDED.format("elsewhere")).json()["code"] == "module_disabled"
     assert put(other, "elsewhere", "sales", True).status_code == 200
-    assert lee.get(HEALTH.format("elsewhere")).status_code == 200
+    assert lee.get(GUARDED.format("elsewhere")).status_code == 200
 
 
 def test_permission_catalogue_lists_every_module(owner):

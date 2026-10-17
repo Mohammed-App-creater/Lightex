@@ -60,7 +60,7 @@ def test_seed_has_teams_with_leads_and_sales_in_one_workspace():
     # The sales grants reached the seeded roles of the workspace that has sales on.
     from core.common.testing import client_for
 
-    res = client_for(User.objects.get(email="alex@team.dev")).get("/api/v1/sales/workspaces/platform/health")
+    res = client_for(User.objects.get(email="alex@team.dev")).get("/api/v1/sales/workspaces/platform/settings")
     assert res.status_code == 200
 
 

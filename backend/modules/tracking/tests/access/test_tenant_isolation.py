@@ -80,6 +80,23 @@ def _routes():
 ROUTES = _routes()
 
 
+def _sales_objects(w) -> dict:
+    """Workspace B's sales records (built through the app registry: tracking never imports the sales module)."""
+    if "sales" not in w.extra:
+        get = apps.get_model
+        owner = w.users["owner"]
+        company = get("sales", "Company").objects.create(workspace=w.ws, owner=owner, name="Abay Trading")
+        w.extra["sales"] = {
+            "stage_id": get("sales", "PipelineStage").objects.create(workspace=w.ws, name="Discovery").pk,
+            "product_id": get("sales", "Product").objects.create(workspace=w.ws, name="Switch").pk,
+            "lost_reason_id": get("sales", "LostReason").objects.create(workspace=w.ws, name="Price").pk,
+            "holiday_id": get("sales", "Holiday").objects.create(workspace=w.ws, date="2026-09-11", name="New year").pk,
+            "company_id": company.pk,
+            "contact_id": get("sales", "Contact").objects.create(company=company, owner=owner, name="Hana").pk,
+        }
+    return w.extra["sales"]
+
+
 def _kwargs(name: str, route: str, w) -> dict:
     """URL kwargs that point at workspace B's objects."""
     items = {"objective": w.objective, "milestone": w.milestone, "epic": w.epic, "sprint": w.sprint}
@@ -121,6 +138,8 @@ def _kwargs(name: str, route: str, w) -> dict:
             out[kw] = {"workspace-module": "sales", "workspace-project-by-key": w.project.key}.get(name, w.task.key)
         elif kw in values:
             out[kw] = values[kw]
+        elif route.startswith("api/v1/sales/") and kw in _sales_objects(w):
+            out[kw] = _sales_objects(w)[kw]
         else:
             raise AssertionError(f"{name}: no tenant-isolation kwargs for {kw!r}; add them or list a skip")
     return out
@@ -141,7 +160,15 @@ def test_a_user_of_another_workspace_gets_404(route, name, method):
 
 def test_the_walk_covers_the_module_and_core_routes():
     names = {p.values[1] for p in ROUTES}
-    expected = {"project-detail", "task-detail", "sales-health", "workspace-audit", "team-detail", "comment-detail"}
+    expected = {
+        "project-detail",
+        "task-detail",
+        "sales-company-detail",
+        "workspace-audit",
+        "team-detail",
+        "comment-detail",
+    }
+    assert {"sales-companies", "sales-contact-detail", "sales-stage-detail", "sales-settings"} <= names
     assert expected <= names
     assert len(ROUTES) > 150
 

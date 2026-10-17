@@ -201,6 +201,11 @@ SPECTACULAR_SETTINGS = {
         "SavedViewVisibilityEnum": ["me", "project"],
         "SavedViewIconEnum": ["filter", "star", "user", "calendar", "bolt", "flag"],
         "SavedViewLayoutEnum": ["board", "list"],
+        # Sales (S1)
+        "SalesCompanyStatusEnum": ["prospect", "active", "inactive"],
+        "SalesStageCategoryEnum": ["open", "won", "lost"],
+        "SalesWeekdayEnum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+        "SalesCalendarDisplayEnum": ["gregorian", "ethiopian"],
     },
     # The root /health is the load balancer's probe; /api/v1/health is the documented one.
     "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],
