@@ -48,7 +48,7 @@ def _store(event: dict[str, Any]) -> int:
         cursor.execute("SELECT pg_advisory_xact_lock(%s)", [LOCK_KEY])
     row = RealtimeEvent.objects.create(
         workspace_id=event["ws"],
-        project_id=event.get("projectId"),
+        scope_id=event.get("projectId"),
         user_id=event.get(TARGET),
         type=event["type"],
         payload={k: v for k, v in event.items() if k not in ("id", TARGET)},

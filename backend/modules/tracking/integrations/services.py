@@ -344,9 +344,8 @@ def _claim(attempt: ConnectAttempt, result: ConnectResult) -> Integration:
         return integration
     if key == "github":
         elsewhere = (
-            Integration.objects.filter(
-                provider="github", base_url=result.base_url, account_external_id=result.account_external_id
-            )
+            Integration.objects.unscoped()  # an installation belongs to one workspace: look across all of them
+            .filter(provider="github", base_url=result.base_url, account_external_id=result.account_external_id)
             .exclude(workspace=attempt.workspace)
             .exclude(status="disconnecting")
             .exists()

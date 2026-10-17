@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.functions import Lower
 
-from core.common.models import BaseModel
+from core.common.models import BaseModel, WorkspaceScopedModel
 
 SCOPE_CHOICES = [("workspace", "Workspace"), ("project", "Project")]
 DATA_SCOPE_CHOICES = [("own", "Own"), ("team", "Team"), ("all", "All")]
@@ -28,7 +28,7 @@ class Permission(BaseModel):
         return self.code
 
 
-class Role(BaseModel):
+class Role(WorkspaceScopedModel):
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="roles")
     name = models.CharField(max_length=40)
     description = models.CharField(max_length=120, blank=True, default="")
@@ -52,7 +52,10 @@ class Role(BaseModel):
         return f"{self.name} ({self.scope})"
 
 
-class RolePermission(BaseModel):
+class RolePermission(WorkspaceScopedModel):
+    workspace_parent = "role"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="role_permissions")
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name="+")
     #: Required when the permission is scopable, null otherwise (enforced by the role services, the catalogue sync and

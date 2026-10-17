@@ -315,7 +315,7 @@ def test_comment_notifications_on_a_disabled_modules_target_are_skipped(ws, owne
     modules.set_module_enabled(owner, ws, "sales", True)
     modules.set_module_enabled(owner, ws, "fake", True)
     client_for(member).post(f"/api/v1/targets/fake.widget/{widget.id}/comments", {"body": doc}, format="json")
-    assert Notification.objects.filter(recipient=owner, type="comment").count() == 1
+    assert Notification.objects.filter(recipient=owner, kind="comment").count() == 1
     modules.set_module_enabled(owner, ws, "fake", False)
     emit(
         "core.comment.created",
@@ -325,7 +325,7 @@ def test_comment_notifications_on_a_disabled_modules_target_are_skipped(ws, owne
         actor=member,
         payload={"userIds": [str(owner.id)], "quote": "Hi again"},
     )
-    assert Notification.objects.filter(recipient=owner, type="comment").count() == 1
+    assert Notification.objects.filter(recipient=owner, kind="comment").count() == 1
 
 
 def test_search_providers_are_skipped_while_disabled(ws, owner, fake_module):

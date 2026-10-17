@@ -17,6 +17,9 @@ paths:
         required: true
       tags:
       - attachments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -34,6 +37,9 @@ paths:
         required: true
       tags:
       - attachments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -53,6 +59,9 @@ paths:
         required: true
       tags:
       - attachments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -71,6 +80,7 @@ paths:
             schema:
               $ref: '#/components/schemas/EmailInRequest'
       security:
+      - bearerAuth: []
       - {}
       responses:
         '204':
@@ -83,6 +93,7 @@ paths:
       tags:
       - auth
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -95,6 +106,7 @@ paths:
       tags:
       - auth
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -110,6 +122,7 @@ paths:
             schema:
               $ref: '#/components/schemas/LoginInRequest'
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -124,6 +137,7 @@ paths:
       tags:
       - auth
       security:
+      - bearerAuth: []
       - {}
       responses:
         '204':
@@ -133,6 +147,9 @@ paths:
       operationId: auth_me_retrieve
       tags:
       - auth
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -149,6 +166,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedProfileInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -166,6 +186,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChangePasswordInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -175,6 +198,7 @@ paths:
       tags:
       - auth
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -194,6 +218,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterInRequest'
       security:
+      - bearerAuth: []
       - {}
       responses:
         '201':
@@ -213,6 +238,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ResetInRequest'
       security:
+      - bearerAuth: []
       - {}
       responses:
         '204':
@@ -234,6 +260,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedCommentInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -252,6 +281,9 @@ paths:
         required: true
       tags:
       - comments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -261,6 +293,7 @@ paths:
       tags:
       - health
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -281,6 +314,7 @@ paths:
       tags:
       - invites
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -306,6 +340,8 @@ paths:
             schema:
               $ref: '#/components/schemas/AcceptInviteInRequest'
       security:
+      - bearerAuth: []
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -320,6 +356,9 @@ paths:
       description: C1.
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -348,6 +387,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChannelTestInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -361,6 +403,9 @@ paths:
       description: C9.
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -376,6 +421,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SmsVerificationInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -396,6 +444,9 @@ paths:
         required: true
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -422,6 +473,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SmsVerifyInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -435,6 +489,9 @@ paths:
       description: C5.
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -449,6 +506,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChannelConnectInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -469,6 +529,9 @@ paths:
         required: true
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -488,6 +551,9 @@ paths:
         required: true
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -503,6 +569,9 @@ paths:
             schema:
               $ref: '#/components/schemas/PushSubscriptionInputRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -529,6 +598,9 @@ paths:
         required: true
       tags:
       - notification-channels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -544,6 +616,9 @@ paths:
             schema:
               $ref: '#/components/schemas/PushRemoveInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -552,6 +627,9 @@ paths:
       operationId: notification_preferences_retrieve
       tags:
       - notifications
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -569,6 +647,9 @@ paths:
             schema:
               $ref: '#/components/schemas/NotificationPreferencesRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -606,6 +687,9 @@ paths:
           type: integer
       tags:
       - notifications
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -630,6 +714,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarkReadRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -647,6 +734,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ReadAllRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -664,6 +754,9 @@ paths:
           type: string
       tags:
       - notifications
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -684,6 +777,9 @@ paths:
           - workspace
       tags:
       - roles
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -700,6 +796,7 @@ paths:
       tags:
       - notification-channels
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -726,6 +823,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedRoleInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -745,6 +845,9 @@ paths:
         required: true
       tags:
       - roles
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -767,6 +870,9 @@ paths:
             schema:
               $ref: '#/components/schemas/RolePermissionsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -787,6 +893,9 @@ paths:
         required: true
       tags:
       - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -816,9 +925,16 @@ paths:
         description: A registered global result type (task, comment, …)
       tags:
       - search
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPage'
+          description: ''
   /api/v1/targets/{target_type}/{target_id}/attachments:
     get:
       operationId: targets_attachments_retrieve
@@ -838,6 +954,9 @@ paths:
         required: true
       tags:
       - attachments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -870,6 +989,9 @@ paths:
             schema:
               $ref: '#/components/schemas/UploadUrlInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -896,6 +1018,9 @@ paths:
         required: true
       tags:
       - comments
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -927,6 +1052,9 @@ paths:
             schema:
               $ref: '#/components/schemas/CommentInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -948,6 +1076,9 @@ paths:
         required: true
       tags:
       - teams
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -973,6 +1104,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedTeamUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -993,6 +1127,9 @@ paths:
         required: true
       tags:
       - teams
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1010,6 +1147,9 @@ paths:
         required: true
       tags:
       - teams
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1038,6 +1178,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TeamMemberInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -1070,6 +1213,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedTeamMemberUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1096,6 +1242,9 @@ paths:
         required: true
       tags:
       - teams
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1117,6 +1266,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedCustomFieldPatchInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1136,6 +1288,9 @@ paths:
         required: true
       tags:
       - custom fields
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1153,6 +1308,9 @@ paths:
         required: true
       tags:
       - dashboards
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1178,6 +1336,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedDashboardPatchRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1198,6 +1359,9 @@ paths:
         required: true
       tags:
       - dashboards
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1221,6 +1385,9 @@ paths:
             schema:
               $ref: '#/components/schemas/DashboardLayoutRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1241,6 +1408,9 @@ paths:
         required: true
       tags:
       - epics
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1265,6 +1435,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedEpicInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1284,6 +1457,9 @@ paths:
         required: true
       tags:
       - epics
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1301,6 +1477,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1321,6 +1500,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1341,6 +1523,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1361,6 +1546,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1387,6 +1575,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ImportMappingInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1425,6 +1616,9 @@ paths:
           type: integer
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1445,6 +1639,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '202':
           content:
@@ -1465,6 +1662,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1484,6 +1684,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1504,6 +1707,9 @@ paths:
           type: string
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1531,6 +1737,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ReconnectInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1557,6 +1766,9 @@ paths:
             schema:
               $ref: '#/components/schemas/RepositoriesInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1577,6 +1789,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '202':
           content:
@@ -1591,6 +1806,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -1602,6 +1818,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -1613,6 +1830,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -1624,6 +1842,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '302':
@@ -1633,6 +1852,9 @@ paths:
       operationId: tracking_me_recents_list
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1656,6 +1878,9 @@ paths:
           type: integer
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1668,6 +1893,9 @@ paths:
       operationId: tracking_me_timer_retrieve
       tags:
       - time
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1687,6 +1915,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TimerStopInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1707,6 +1938,9 @@ paths:
         required: true
       tags:
       - milestones
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1731,6 +1965,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedMilestoneInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1750,6 +1987,9 @@ paths:
         required: true
       tags:
       - milestones
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1766,6 +2006,9 @@ paths:
         required: true
       tags:
       - objectives
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1790,6 +2033,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedObjectiveInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1809,6 +2055,9 @@ paths:
         required: true
       tags:
       - objectives
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1831,6 +2080,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TaskIdsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1857,6 +2109,9 @@ paths:
         required: true
       tags:
       - objectives
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1878,6 +2133,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1903,6 +2161,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedProjectInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1923,6 +2184,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -1940,6 +2204,9 @@ paths:
         required: true
       tags:
       - access requests
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -1962,6 +2229,9 @@ paths:
         required: true
       tags:
       - access requests
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -1989,6 +2259,9 @@ paths:
         required: true
       tags:
       - access requests
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2010,6 +2283,9 @@ paths:
         required: true
       tags:
       - access requests
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -2027,6 +2303,9 @@ paths:
         required: true
       tags:
       - sprints
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2056,9 +2335,16 @@ paths:
         required: true
       tags:
       - activity
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPage'
+          description: ''
   /api/v1/tracking/projects/{project_id}/archive:
     post:
       operationId: tracking_projects_archive_create
@@ -2073,6 +2359,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2094,6 +2383,9 @@ paths:
         required: true
       tags:
       - board
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2120,6 +2412,9 @@ paths:
         required: true
       tags:
       - board
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2141,6 +2436,9 @@ paths:
         required: true
       tags:
       - custom fields
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2169,6 +2467,9 @@ paths:
             schema:
               $ref: '#/components/schemas/CustomFieldInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2196,6 +2497,9 @@ paths:
             schema:
               $ref: '#/components/schemas/IdsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2218,6 +2522,9 @@ paths:
         required: true
       tags:
       - dashboards
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2245,6 +2552,9 @@ paths:
             schema:
               $ref: '#/components/schemas/DashboardCreateRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2265,6 +2575,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2294,6 +2607,9 @@ paths:
               items:
                 $ref: '#/components/schemas/AutomationRuleSchemaRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2317,6 +2633,9 @@ paths:
         required: true
       tags:
       - epics
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2344,6 +2663,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/EpicInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2365,6 +2687,9 @@ paths:
         required: true
       tags:
       - imports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2393,6 +2718,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ImportCreateInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2414,6 +2742,9 @@ paths:
         required: true
       tags:
       - labels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2441,6 +2772,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LabelInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2473,6 +2807,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedLabelInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2499,6 +2836,9 @@ paths:
         required: true
       tags:
       - labels
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -2516,6 +2856,9 @@ paths:
         required: true
       tags:
       - project members
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2544,6 +2887,9 @@ paths:
             schema:
               $ref: '#/components/schemas/MemberInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2576,6 +2922,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedMemberInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2602,6 +2951,9 @@ paths:
         required: true
       tags:
       - project members
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -2619,6 +2971,9 @@ paths:
         required: true
       tags:
       - milestones
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2646,6 +3001,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MilestoneInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2667,6 +3025,9 @@ paths:
         required: true
       tags:
       - objectives
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2694,6 +3055,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ObjectiveInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2704,8 +3068,8 @@ paths:
   /api/v1/tracking/projects/{project_id}/reports/burndown:
     get:
       operationId: tracking_projects_reports_burndown_retrieve
-      description: Scope = the project in the URL; workspace non-members get 404,
-        non-members 403.
+      description: '`sprint` is null (and `points` empty) when the project has no
+        sprint to chart.'
       parameters:
       - in: query
         name: filter[sprint]
@@ -2719,9 +3083,16 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BurndownReport'
+          description: ''
   /api/v1/tracking/projects/{project_id}/reports/cycle-time:
     get:
       operationId: tracking_projects_reports_cycle_time_retrieve
@@ -2755,9 +3126,16 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleTimeReport'
+          description: ''
   /api/v1/tracking/projects/{project_id}/reports/kpis:
     get:
       operationId: tracking_projects_reports_kpis_retrieve
@@ -2772,6 +3150,9 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2781,7 +3162,7 @@ paths:
           description: ''
   /api/v1/tracking/projects/{project_id}/reports/progress:
     get:
-      operationId: tracking_projects_reports_progress_retrieve
+      operationId: tracking_projects_reports_progress_list
       description: Scope = the project in the URL; workspace non-members get 404,
         non-members 403.
       parameters:
@@ -2793,9 +3174,18 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProgressRow'
+          description: ''
   /api/v1/tracking/projects/{project_id}/reports/throughput:
     get:
       operationId: tracking_projects_reports_throughput_retrieve
@@ -2829,9 +3219,16 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThroughputReport'
+          description: ''
   /api/v1/tracking/projects/{project_id}/reports/velocity:
     get:
       operationId: tracking_projects_reports_velocity_retrieve
@@ -2865,9 +3262,16 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VelocityReport'
+          description: ''
   /api/v1/tracking/projects/{project_id}/reports/workload:
     get:
       operationId: tracking_projects_reports_workload_retrieve
@@ -2899,6 +3303,9 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2920,6 +3327,9 @@ paths:
         required: true
       tags:
       - sprints
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2947,6 +3357,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SprintInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -2968,6 +3381,9 @@ paths:
         required: true
       tags:
       - statuses
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -2995,6 +3411,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/StatusInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3027,6 +3446,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedStatusInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3053,6 +3475,9 @@ paths:
         required: true
       tags:
       - statuses
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3076,6 +3501,9 @@ paths:
             schema:
               $ref: '#/components/schemas/IdsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3099,6 +3527,9 @@ paths:
         required: true
       tags:
       - reports
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3219,6 +3650,9 @@ paths:
           descending)'
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3244,6 +3678,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TaskWriteInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3271,6 +3708,9 @@ paths:
             schema:
               $ref: '#/components/schemas/BulkInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3294,6 +3734,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3319,6 +3762,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedRepositoryScopeInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3339,6 +3785,9 @@ paths:
         required: true
       tags:
       - sprints
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3363,6 +3812,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedSprintInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3382,6 +3834,9 @@ paths:
         required: true
       tags:
       - sprints
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3404,6 +3859,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SprintCompleteRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3429,6 +3887,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SprintInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3449,6 +3910,9 @@ paths:
         required: true
       tags:
       - board
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3469,6 +3933,9 @@ paths:
         required: true
       tags:
       - activity
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3492,6 +3959,9 @@ paths:
         required: true
       tags:
       - dependencies
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3518,6 +3988,9 @@ paths:
             schema:
               $ref: '#/components/schemas/DependencyInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3544,6 +4017,9 @@ paths:
         required: true
       tags:
       - dependencies
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3566,6 +4042,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TaskLabelsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3592,6 +4071,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TaskMoveRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3618,6 +4100,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TaskObjectivesInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3638,6 +4123,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3658,6 +4146,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3684,6 +4175,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TaskWriteInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3705,6 +4199,9 @@ paths:
         required: true
       tags:
       - time
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3733,6 +4230,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TimeEntryInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3758,6 +4258,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TimerStartInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3777,6 +4280,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3800,6 +4306,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedTaskWriteInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3818,6 +4327,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3833,6 +4345,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3858,6 +4373,9 @@ paths:
             schema:
               $ref: '#/components/schemas/DevBranchInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -3883,6 +4401,9 @@ paths:
             schema:
               $ref: '#/components/schemas/DevLinkInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -3913,6 +4434,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3930,6 +4454,9 @@ paths:
         required: true
       tags:
       - time
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3946,9 +4473,21 @@ paths:
         required: true
       tags:
       - views
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSavedViewUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedView'
+          description: ''
     delete:
       operationId: tracking_views_destroy
       description: Base for workspace- and project-scoped endpoints.
@@ -3961,6 +4500,9 @@ paths:
         required: true
       tags:
       - views
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -3971,6 +4513,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -3999,6 +4542,7 @@ paths:
       tags:
       - integrations
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -4033,9 +4577,16 @@ paths:
         required: true
       tags:
       - activity
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPage'
+          description: ''
   /api/v1/tracking/workspaces/{slug}/integrations:
     get:
       operationId: tracking_workspaces_integrations_retrieve
@@ -4049,6 +4600,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4075,6 +4629,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ConfirmInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4094,6 +4651,9 @@ paths:
         required: true
       tags:
       - integrations
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4119,6 +4679,9 @@ paths:
             schema:
               $ref: '#/components/schemas/GitLabConnectInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4144,6 +4707,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4173,6 +4739,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4198,6 +4767,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ProjectInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -4222,6 +4794,9 @@ paths:
         required: true
       tags:
       - projects
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4255,6 +4830,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4264,7 +4842,7 @@ paths:
           description: ''
   /api/v1/tracking/workspaces/{slug}/tasks/{key}:
     get:
-      operationId: tracking_workspaces_tasks_retrieve_2
+      operationId: tracking_workspaces_task_by_key_retrieve
       description: Base for workspace- and project-scoped endpoints.
       parameters:
       - in: path
@@ -4279,6 +4857,9 @@ paths:
         required: true
       tags:
       - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4309,6 +4890,9 @@ paths:
         required: true
       tags:
       - time
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4318,7 +4902,7 @@ paths:
           description: ''
   /api/v1/tracking/workspaces/{slug}/views:
     get:
-      operationId: tracking_workspaces_views_retrieve
+      operationId: tracking_workspaces_views_list
       description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
       parameters:
       - in: path
@@ -4328,9 +4912,18 @@ paths:
         required: true
       tags:
       - views
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedView'
+          description: ''
     post:
       operationId: tracking_workspaces_views_create
       description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
@@ -4342,9 +4935,22 @@ paths:
         required: true
       tags:
       - views
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedViewCreateInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedView'
+          description: ''
   /api/v1/tracking/workspaces/{slug}/views/order:
     put:
       operationId: tracking_workspaces_views_order_update
@@ -4357,9 +4963,24 @@ paths:
         required: true
       tags:
       - views
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedViewOrderInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedView'
+          description: ''
   /api/v1/trash/{kind}/{item_id}/restore:
     post:
       operationId: trash_restore_create
@@ -4379,9 +5000,16 @@ paths:
         required: true
       tags:
       - trash
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrashRestored'
+          description: ''
   /api/v1/webhooks/telegram:
     post:
       operationId: webhooks_telegram_create
@@ -4390,6 +5018,7 @@ paths:
       tags:
       - webhooks
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -4403,6 +5032,7 @@ paths:
       tags:
       - webhooks
       security:
+      - bearerAuth: []
       - {}
       responses:
         '200':
@@ -4416,6 +5046,7 @@ paths:
       tags:
       - webhooks
       security:
+      - bearerAuth: []
       - {}
       responses:
         '204':
@@ -4427,6 +5058,9 @@ paths:
       operationId: workspaces_list
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4445,6 +5079,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/WorkspaceCreateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -4464,6 +5101,9 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4487,6 +5127,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedWorkspaceUpdateInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4505,6 +5148,9 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -4520,12 +5166,15 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessRequest'
+                $ref: '#/components/schemas/WorkspaceAccessRequest'
           description: ''
   /api/v1/workspaces/{slug}/access-requests/mine:
     get:
@@ -4539,6 +5188,9 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4557,6 +5209,9 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -4609,9 +5264,16 @@ paths:
         required: true
       tags:
       - audit
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditPage'
+          description: ''
   /api/v1/workspaces/{slug}/invites:
     get:
       operationId: workspaces_invites_list
@@ -4624,6 +5286,9 @@ paths:
         required: true
       tags:
       - invites
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4650,6 +5315,9 @@ paths:
             schema:
               $ref: '#/components/schemas/InviteInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -4677,6 +5345,9 @@ paths:
         required: true
       tags:
       - invites
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -4698,6 +5369,9 @@ paths:
         required: true
       tags:
       - invites
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4729,9 +5403,16 @@ paths:
         required: true
       tags:
       - members
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberPage'
+          description: ''
   /api/v1/workspaces/{slug}/members/{user_id}:
     patch:
       operationId: workspaces_members_partial_update
@@ -4755,6 +5436,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedRoleIdInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4779,6 +5463,9 @@ paths:
         required: true
       tags:
       - members
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -4795,6 +5482,9 @@ paths:
         required: true
       tags:
       - modules
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4827,6 +5517,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ModuleToggleInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4851,6 +5544,9 @@ paths:
         required: true
       tags:
       - presence
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4883,6 +5579,9 @@ paths:
             schema:
               $ref: '#/components/schemas/PresenceUpdateRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4908,6 +5607,9 @@ paths:
         required: true
       tags:
       - presence
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '204':
           description: No response body
@@ -4923,6 +5625,9 @@ paths:
         required: true
       tags:
       - roles
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -4948,6 +5653,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RoleInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -4957,7 +5665,7 @@ paths:
           description: ''
   /api/v1/workspaces/{slug}/search:
     get:
-      operationId: workspaces_search_retrieve
+      operationId: workspaces_search_list
       description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
       parameters:
       - in: query
@@ -4982,9 +5690,18 @@ paths:
         required: true
       tags:
       - search
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+          description: ''
   /api/v1/workspaces/{slug}/slug-availability:
     get:
       operationId: workspaces_slug_availability_retrieve
@@ -5001,6 +5718,9 @@ paths:
         required: true
       tags:
       - workspaces
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -5070,6 +5790,9 @@ paths:
         description: Protocol version the client speaks (default 1)
       tags:
       - realtime
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -5145,6 +5868,9 @@ paths:
         required: true
       tags:
       - teams
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
@@ -5171,6 +5897,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TeamInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '201':
           content:
@@ -5190,9 +5919,16 @@ paths:
         required: true
       tags:
       - trash
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrashList'
+          description: ''
   /api/v1/workspaces/{slug}/trash/purge:
     post:
       operationId: workspaces_trash_purge_create
@@ -5209,11 +5945,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TrashPurgeItemsRequest'
+              $ref: '#/components/schemas/TrashItemsInRequest'
         required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrashPurged'
+          description: ''
   /api/v1/workspaces/{slug}/trash/restore:
     post:
       operationId: workspaces_trash_restore_create
@@ -5230,24 +5973,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TrashItemsRequest'
+              $ref: '#/components/schemas/TrashItemsInRequest'
         required: true
-      responses:
-        '200':
-          description: No response body
-  /health:
-    get:
-      operationId: health_retrieve_2
-      tags:
-      - health
       security:
-      - {}
+      - bearerAuth: []
+      - bearerAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: '#/components/schemas/TrashRestored'
           description: ''
 components:
   schemas:
@@ -5397,6 +6133,19 @@ components:
       - taskKey
       - taskTitle
       - verb
+    ActivityPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityOut'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
     ActorKindEnum:
       enum:
       - user
@@ -5453,6 +6202,107 @@ components:
       - code
       - text
       type: string
+    AuditChange:
+      type: object
+      properties:
+        field:
+          type: string
+        kind:
+          $ref: '#/components/schemas/AuditChangeKindEnum'
+        before:
+          nullable: true
+        after:
+          nullable: true
+      required:
+      - after
+      - before
+      - field
+      - kind
+    AuditChangeKindEnum:
+      enum:
+      - text
+      - status
+      - priority
+      - person
+      - value
+      type: string
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          nullable: true
+          description: A user id, or the integration id
+        action:
+          type: string
+          description: <module>.<entity>.<verb>
+        target:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        actorName:
+          type: string
+          nullable: true
+        actorKind:
+          $ref: '#/components/schemas/ActorKindEnum'
+        entityType:
+          type: string
+        module:
+          type: string
+          nullable: true
+        targetType:
+          type: string
+        targetId:
+          type: string
+          nullable: true
+        entityKey:
+          type: string
+          nullable: true
+        source:
+          type: string
+        requestId:
+          type: string
+          nullable: true
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditChange'
+      required:
+      - action
+      - actorId
+      - actorKind
+      - actorName
+      - changes
+      - createdAt
+      - entityKey
+      - entityType
+      - id
+      - module
+      - requestId
+      - source
+      - target
+      - targetId
+      - targetType
+    AuditPage:
+      type: object
+      properties:
+        total:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+      - total
     AuthKindEnum:
       enum:
       - github_app
@@ -5518,7 +6368,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/VisibilityA25Enum'
+          $ref: '#/components/schemas/RepositoryVisibilityEnum'
         updatedAt:
           type: string
           format: date-time
@@ -5601,6 +6451,56 @@ components:
           type: boolean
       required:
       - ids
+    BurndownPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        remaining:
+          type: number
+          format: double
+          nullable: true
+        ideal:
+          type: number
+          format: double
+      required:
+      - date
+      - ideal
+      - remaining
+    BurndownReport:
+      type: object
+      properties:
+        sprint:
+          allOf:
+          - $ref: '#/components/schemas/BurndownSprint'
+          nullable: true
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/BurndownPoint'
+      required:
+      - points
+      - sprint
+    BurndownSprint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+      required:
+      - endDate
+      - id
+      - name
+      - startDate
     ChangePasswordInRequest:
       type: object
       properties:
@@ -5649,7 +6549,7 @@ components:
       enum:
       - sent
       type: string
-    ChecksEnum:
+    ChecksStateEnum:
       enum:
       - passing
       - failing
@@ -5727,7 +6627,7 @@ components:
           type: string
           minLength: 1
         type:
-          $ref: '#/components/schemas/TypeC32Enum'
+          $ref: '#/components/schemas/CustomFieldTypeEnum'
         required:
           type: boolean
         options:
@@ -5782,7 +6682,7 @@ components:
         name:
           type: string
         type:
-          $ref: '#/components/schemas/TypeC32Enum'
+          $ref: '#/components/schemas/CustomFieldTypeEnum'
         required:
           type: boolean
         position:
@@ -5806,6 +6706,43 @@ components:
       - required
       - taskCount
       - type
+    CustomFieldTypeEnum:
+      enum:
+      - text
+      - number
+      - select
+      - date
+      - user
+      type: string
+    CycleTimeBin:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - label
+    CycleTimeReport:
+      type: object
+      properties:
+        bins:
+          type: array
+          items:
+            $ref: '#/components/schemas/CycleTimeBin'
+        total:
+          type: integer
+        medianDays:
+          type: number
+          format: double
+        insufficient:
+          type: boolean
+      required:
+      - bins
+      - insufficient
+      - medianDays
+      - total
     Dashboard:
       type: object
       properties:
@@ -5820,7 +6757,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/Visibility8e9Enum'
+          $ref: '#/components/schemas/DashboardVisibilityEnum'
         ownerId:
           type: string
           format: uuid
@@ -5856,7 +6793,7 @@ components:
           minLength: 1
           maxLength: 60
         visibility:
-          $ref: '#/components/schemas/Visibility8e9Enum'
+          $ref: '#/components/schemas/DashboardVisibilityEnum'
         template:
           $ref: '#/components/schemas/DashboardCreateTemplateEnum'
       required:
@@ -5909,7 +6846,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/Visibility8e9Enum'
+          $ref: '#/components/schemas/DashboardVisibilityEnum'
         ownerId:
           type: string
           format: uuid
@@ -5926,6 +6863,11 @@ components:
       - updatedAt
       - visibility
       - widgetCount
+    DashboardVisibilityEnum:
+      enum:
+      - shared
+      - personal
+      type: string
     DashboardWidget:
       type: object
       properties:
@@ -5933,7 +6875,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type832Enum'
+          $ref: '#/components/schemas/DashboardWidgetTypeEnum'
         w:
           type: integer
           maximum: 12
@@ -5960,7 +6902,7 @@ components:
           format: uuid
           description: Omit to add a widget
         type:
-          $ref: '#/components/schemas/Type832Enum'
+          $ref: '#/components/schemas/DashboardWidgetTypeEnum'
         w:
           type: integer
           maximum: 12
@@ -5974,6 +6916,15 @@ components:
       - h
       - type
       - w
+    DashboardWidgetTypeEnum:
+      enum:
+      - burndown
+      - my_tasks
+      - objectives
+      - workload
+      - velocity
+      - activity
+      type: string
     DelimiterEnum:
       enum:
       - ','
@@ -6086,7 +7037,7 @@ components:
         name:
           type: string
         state:
-          $ref: '#/components/schemas/StateFe6Enum'
+          $ref: '#/components/schemas/ChecksStateEnum'
         durationSec:
           type: integer
           nullable: true
@@ -6102,7 +7053,7 @@ components:
       type: object
       properties:
         state:
-          $ref: '#/components/schemas/StateFe6Enum'
+          $ref: '#/components/schemas/ChecksStateEnum'
         passed:
           type: integer
         total:
@@ -6446,7 +7397,7 @@ components:
       type: object
       properties:
         source:
-          $ref: '#/components/schemas/SourceBb6Enum'
+          $ref: '#/components/schemas/ImportSourceEnum'
         fileName:
           type: string
           minLength: 1
@@ -6529,11 +7480,11 @@ components:
           type: string
           format: uuid
         source:
-          $ref: '#/components/schemas/SourceBb6Enum'
+          $ref: '#/components/schemas/ImportSourceEnum'
         preset:
           $ref: '#/components/schemas/PresetEnum'
         status:
-          $ref: '#/components/schemas/StatusA51Enum'
+          $ref: '#/components/schemas/ImportStatusEnum'
         cancelRequested:
           type: boolean
         analysis:
@@ -6603,9 +7554,9 @@ components:
           type: string
           format: uuid
         source:
-          $ref: '#/components/schemas/SourceBb6Enum'
+          $ref: '#/components/schemas/ImportSourceEnum'
         status:
-          $ref: '#/components/schemas/StatusA51Enum'
+          $ref: '#/components/schemas/ImportStatusEnum'
         fileName:
           type: string
         imported:
@@ -6726,6 +7677,21 @@ components:
       required:
       - data
       - nextCursor
+    ImportSourceEnum:
+      enum:
+      - csv
+      - jira
+      type: string
+    ImportStatusEnum:
+      enum:
+      - draft
+      - ready
+      - queued
+      - running
+      - completed
+      - failed
+      - canceled
+      type: string
     ImportUploadTicket:
       type: object
       properties:
@@ -7127,7 +8093,7 @@ components:
       properties:
         request:
           allOf:
-          - $ref: '#/components/schemas/AccessRequest'
+          - $ref: '#/components/schemas/WorkspaceAccessRequest'
           nullable: true
       required:
       - request
@@ -7157,7 +8123,12 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/NotificationTypeEnum'
+          type: string
+          description: The display kind chosen by the notifying module (assigned,
+            mention, …)
+        eventType:
+          type: string
+          description: The registered event-type key, e.g. tracking.task.assigned
         actorId:
           type: string
           format: uuid
@@ -7203,6 +8174,7 @@ components:
       required:
       - actorId
       - createdAt
+      - eventType
       - id
       - link
       - payload
@@ -7289,17 +8261,6 @@ components:
       - emailDelivery
       - events
       - quietHours
-    NotificationTypeEnum:
-      enum:
-      - assigned
-      - mention
-      - status
-      - comment
-      - due
-      - sprint
-      - access
-      - import
-      type: string
     NullEnum:
       enum:
       - null
@@ -7322,7 +8283,7 @@ components:
           format: date
           nullable: true
         status:
-          $ref: '#/components/schemas/StatusF79Enum'
+          $ref: '#/components/schemas/ObjectiveStatusEnum'
     ObjectiveOut:
       type: object
       properties:
@@ -7347,7 +8308,7 @@ components:
           format: date
           nullable: true
         status:
-          $ref: '#/components/schemas/StatusF79Enum'
+          $ref: '#/components/schemas/ObjectiveStatusEnum'
         taskIds:
           type: array
           items:
@@ -7370,6 +8331,12 @@ components:
       - status
       - taskIds
       - title
+    ObjectiveStatusEnum:
+      enum:
+      - active
+      - achieved
+      - dropped
+      type: string
     OutcomeEnum:
       enum:
       - task
@@ -7400,7 +8367,7 @@ components:
           minLength: 1
           maxLength: 60
         visibility:
-          $ref: '#/components/schemas/Visibility8e9Enum'
+          $ref: '#/components/schemas/DashboardVisibilityEnum'
         version:
           type: integer
     PatchedEpicInRequest:
@@ -7495,7 +8462,7 @@ components:
           format: date
           nullable: true
         status:
-          $ref: '#/components/schemas/StatusF79Enum'
+          $ref: '#/components/schemas/ObjectiveStatusEnum'
     PatchedProfileInRequest:
       type: object
       properties:
@@ -7559,6 +8526,24 @@ components:
             - team
             - all
             type: string
+    PatchedSavedViewUpdateInRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        icon:
+          $ref: '#/components/schemas/SavedViewIconEnum'
+        visibility:
+          $ref: '#/components/schemas/SavedViewVisibilityEnum'
+        layout:
+          $ref: '#/components/schemas/SavedViewLayoutEnum'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedViewFilterRequest'
+        pinned:
+          type: boolean
     PatchedSprintInRequest:
       type: object
       properties:
@@ -7597,7 +8582,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeDc0Enum'
+          $ref: '#/components/schemas/TaskTypeEnum'
         priority:
           type: integer
           maximum: 4
@@ -7775,6 +8760,41 @@ components:
       - done
       - percent
       - total
+    ProgressRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/ProgressRowKindEnum'
+        name:
+          type: string
+        percent:
+          type: integer
+        expected:
+          type: integer
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        quarter:
+          type: string
+          nullable: true
+      required:
+      - dueDate
+      - expected
+      - id
+      - kind
+      - name
+      - percent
+      - quarter
+    ProgressRowKindEnum:
+      enum:
+      - objective
+      - milestone
+      type: string
     Project:
       type: object
       properties:
@@ -8219,7 +9239,7 @@ components:
         name:
           type: string
         visibility:
-          $ref: '#/components/schemas/VisibilityA25Enum'
+          $ref: '#/components/schemas/RepositoryVisibilityEnum'
         defaultBranch:
           type: string
         url:
@@ -8258,6 +9278,12 @@ components:
       - syncState
       - url
       - visibility
+    RepositoryVisibilityEnum:
+      enum:
+      - public
+      - private
+      - internal
+      type: string
     ResetInRequest:
       type: object
       properties:
@@ -8395,6 +9421,180 @@ components:
       - module
       - status
       - workspace
+    SavedView:
+      type: object
+      properties:
+        icon:
+          $ref: '#/components/schemas/SavedViewIconEnum'
+        visibility:
+          $ref: '#/components/schemas/SavedViewVisibilityEnum'
+        layout:
+          $ref: '#/components/schemas/SavedViewLayoutEnum'
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedViewFilter'
+        pinned:
+          type: boolean
+        position:
+          type: integer
+        count:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - count
+      - createdAt
+      - filters
+      - icon
+      - id
+      - layout
+      - name
+      - ownerId
+      - pinned
+      - position
+      - projectId
+      - visibility
+      - workspaceId
+    SavedViewCreateInRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        icon:
+          $ref: '#/components/schemas/SavedViewIconEnum'
+        visibility:
+          $ref: '#/components/schemas/SavedViewVisibilityEnum'
+        layout:
+          $ref: '#/components/schemas/SavedViewLayoutEnum'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedViewFilterRequest'
+        pinned:
+          type: boolean
+      required:
+      - name
+      - projectId
+    SavedViewFilter:
+      type: object
+      properties:
+        field:
+          type: string
+        op:
+          type: string
+        values:
+          type: array
+          items:
+            type: string
+      required:
+      - field
+      - op
+      - values
+    SavedViewFilterRequest:
+      type: object
+      properties:
+        field:
+          type: string
+          minLength: 1
+        op:
+          type: string
+          minLength: 1
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+      required:
+      - field
+      - op
+      - values
+    SavedViewIconEnum:
+      enum:
+      - filter
+      - star
+      - user
+      - calendar
+      - bolt
+      - flag
+      type: string
+    SavedViewLayoutEnum:
+      enum:
+      - board
+      - list
+      type: string
+    SavedViewOrderInRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - ids
+    SavedViewVisibilityEnum:
+      enum:
+      - me
+      - project
+      type: string
+    SearchPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
+    SearchResult:
+      type: object
+      description: One search hit. Besides these keys each result carries its provider's
+        record under the key named by `type` (`task`, `project`, `comment`, `user`)
+        and a few display hints (projectKey, taskKey, …).
+      properties:
+        type:
+          type: string
+          description: 'A registered result type: task, project, comment, user, …'
+        targetType:
+          type: string
+        targetId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        link:
+          type: string
+          nullable: true
+      required:
+      - link
+      - targetId
+      - targetType
+      - title
+      - type
     SlugAvailability:
       type: object
       properties:
@@ -8532,11 +9732,6 @@ components:
           $ref: '#/components/schemas/SmsConnection'
       required:
       - connection
-    SourceBb6Enum:
-      enum:
-      - csv
-      - jira
-      type: string
     SprintCompleteRequest:
       type: object
       properties:
@@ -8624,12 +9819,6 @@ components:
       - percent
       - points
       - total
-    StateFe6Enum:
-      enum:
-      - passing
-      - failing
-      - running
-      type: string
     Status:
       type: object
       properties:
@@ -8665,27 +9854,11 @@ components:
       - name
       - projectId
       - taskCount
-    StatusA51Enum:
-      enum:
-      - draft
-      - ready
-      - queued
-      - running
-      - completed
-      - failed
-      - canceled
-      type: string
     StatusCategoryEnum:
       enum:
       - todo
       - in_progress
       - done
-      type: string
-    StatusF79Enum:
-      enum:
-      - active
-      - achieved
-      - dropped
       type: string
     StatusInCategoryEnum:
       enum:
@@ -8753,7 +9926,7 @@ components:
         title:
           type: string
         type:
-          $ref: '#/components/schemas/TypeDc0Enum'
+          $ref: '#/components/schemas/TaskTypeEnum'
         priority:
           type: integer
           maximum: 4
@@ -8934,7 +10107,7 @@ components:
         checks:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/ChecksEnum'
+          - $ref: '#/components/schemas/ChecksStateEnum'
           - $ref: '#/components/schemas/NullEnum'
         checksPassed:
           type: integer
@@ -9076,7 +10249,7 @@ components:
         title:
           type: string
         type:
-          $ref: '#/components/schemas/TypeDc0Enum'
+          $ref: '#/components/schemas/TaskTypeEnum'
         priority:
           type: integer
           maximum: 4
@@ -9239,6 +10412,13 @@ components:
       - id
       - key
       - title
+    TaskTypeEnum:
+      enum:
+      - feature
+      - bug
+      - chore
+      - spike
+      type: string
     TaskWriteInRequest:
       type: object
       properties:
@@ -9249,7 +10429,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeDc0Enum'
+          $ref: '#/components/schemas/TaskTypeEnum'
         priority:
           type: integer
           maximum: 4
@@ -9501,6 +10681,29 @@ components:
       - expired
       - canceled
       type: string
+    ThroughputPoint:
+      type: object
+      properties:
+        week:
+          type: string
+          format: date
+        done:
+          type: integer
+      required:
+      - done
+      - week
+    ThroughputReport:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThroughputPoint'
+        insufficient:
+          type: boolean
+      required:
+      - insufficient
+      - points
     TimeEntryInRequest:
       type: object
       properties:
@@ -9746,20 +10949,111 @@ components:
           description: omitted or [] = all
       required:
       - externalId
-    TrashItemsRequest:
+    TrashItem:
+      type: object
+      properties:
+        kind:
+          type: string
+        module:
+          type: string
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        key:
+          type: string
+          nullable: true
+        hue:
+          type: integer
+          nullable: true
+        parentKey:
+          type: string
+          nullable: true
+        taskCount:
+          type: integer
+          nullable: true
+        project:
+          nullable: true
+          description: '{ id, key, name, hue } when the item has one'
+        deletedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserBrief'
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+        purgeAt:
+          type: string
+          format: date-time
+      required:
+      - deletedAt
+      - deletedBy
+      - hue
+      - id
+      - key
+      - kind
+      - module
+      - parentKey
+      - project
+      - purgeAt
+      - taskCount
+      - title
+    TrashItemsInRequest:
       type: object
       properties:
         items:
-          $ref: '#/components/schemas/TrashRefRequest'
+          type: array
+          items:
+            $ref: '#/components/schemas/TrashRefRequest'
       required:
       - items
-    TrashPurgeItemsRequest:
+    TrashList:
       type: object
       properties:
-        items:
-          $ref: '#/components/schemas/TrashRefRequest'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrashItem'
+        scope:
+          $ref: '#/components/schemas/TrashListScopeEnum'
+        kinds:
+          type: array
+          items:
+            type: string
+        retentionDays:
+          type: integer
       required:
-      - items
+      - data
+      - kinds
+      - retentionDays
+      - scope
+    TrashListScopeEnum:
+      enum:
+      - all
+      - own
+      type: string
+    TrashPurged:
+      type: object
+      properties:
+        purged:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrashRef'
+      required:
+      - purged
+    TrashRef:
+      type: object
+      properties:
+        kind:
+          type: string
+          description: 'A registered trash kind: tracking.task, core.comment, …'
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+      - kind
     TrashRefRequest:
       type: object
       properties:
@@ -9773,35 +11067,20 @@ components:
       required:
       - id
       - kind
+    TrashRestored:
+      type: object
+      properties:
+        restored:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrashRef'
+      required:
+      - restored
     TriggerEnum:
       enum:
       - branch_created
       - pr_opened
       - pr_merged
-      type: string
-    Type832Enum:
-      enum:
-      - burndown
-      - my_tasks
-      - objectives
-      - workload
-      - velocity
-      - activity
-      type: string
-    TypeC32Enum:
-      enum:
-      - text
-      - number
-      - select
-      - date
-      - user
-      type: string
-    TypeDc0Enum:
-      enum:
-      - feature
-      - bug
-      - chore
-      - spike
       type: string
     UnreadCount:
       type: object
@@ -9881,6 +11160,20 @@ components:
       - email
       - id
       - name
+    UserBrief:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hue:
+          type: integer
+      required:
+      - hue
+      - id
+      - name
     VapidKey:
       type: object
       properties:
@@ -9888,17 +11181,34 @@ components:
           type: string
       required:
       - publicKey
-    Visibility8e9Enum:
-      enum:
-      - shared
-      - personal
-      type: string
-    VisibilityA25Enum:
-      enum:
-      - public
-      - private
-      - internal
-      type: string
+    VelocityPoint:
+      type: object
+      properties:
+        sprint:
+          type: string
+        committed:
+          type: integer
+        completed:
+          type: integer
+      required:
+      - committed
+      - completed
+      - sprint
+    VelocityReport:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/VelocityPoint'
+        insufficient:
+          type: boolean
+        completedSprints:
+          type: integer
+      required:
+      - completedSprints
+      - insufficient
+      - points
     WebhookReceivedOut:
       type: object
       properties:
@@ -9997,6 +11307,27 @@ components:
       - name
       - notificationPolicy
       - slug
+    WorkspaceAccessRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - createdAt
+      - id
+      - userId
+      - workspaceId
     WorkspaceCreateInRequest:
       type: object
       properties:
@@ -10040,6 +11371,19 @@ components:
       - user
       - userId
       - workspaceId
+    WorkspaceMemberPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceMember'
+        nextCursor:
+          type: string
+          nullable: true
+      required:
+      - data
+      - nextCursor
     WorkspaceMemberStatusEnum:
       enum:
       - active
@@ -10088,3 +11432,8 @@ components:
       - name
       - navItems
       - toggleable
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

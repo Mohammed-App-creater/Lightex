@@ -1,17 +1,18 @@
 from django.conf import settings
 from django.db import models
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 
-class AuditLog(BaseModel):
+class AuditLog(WorkspaceScopedModel):
     """Append-only record of every mutation. Also the source of the project/task activity feeds."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="audit_logs")
-    project = models.ForeignKey(
-        "projects.Project", null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs"
-    )
-    task = models.ForeignKey("tasks.Task", null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs")
+    # Generic hints, no foreign keys (core never links to module tables): `scope_id` is the module access scope the
+    # row belongs to (tracking: the project) and `subject_id` the record its feed groups it under (tracking: the task,
+    # also for a comment on that task).
+    scope_id = models.UUIDField(null=True, blank=True)
+    subject_id = models.UUIDField(null=True, blank=True)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -36,8 +37,8 @@ class AuditLog(BaseModel):
     class Meta:
         indexes = [
             models.Index(fields=["workspace", "-created_at"], name="audit_ws_created"),
-            models.Index(fields=["project", "-created_at"], name="audit_project_created"),
-            models.Index(fields=["task", "-created_at"], name="audit_task_created"),
+            models.Index(fields=["scope_id", "-created_at"], name="audit_scope_created"),
+            models.Index(fields=["subject_id", "-created_at"], name="audit_subject_created"),
             models.Index(fields=["workspace", "actor", "-created_at"], name="audit_ws_actor"),
             models.Index(
                 fields=["workspace", "actor_ref", "-created_at"],

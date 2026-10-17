@@ -194,10 +194,10 @@ def test_audit_and_activity(owner, tasks):
     a, b = tasks[:2]
     client = client_for(owner)
     link = add(client, a, "blocked_by", b).json()["blockedBy"][0]["id"]
-    rows = {r.task_id: r for r in AuditLog.objects.filter(action="tracking.task.dependency_added")}
-    assert rows[a.id].data == {"relation": "blocked_by", "otherKey": b.key, "otherTitle": b.title}
-    assert rows[b.id].data == {"relation": "blocks", "otherKey": a.key, "otherTitle": a.title}
-    assert rows[a.id].target == a.title
+    rows = {r.target_id: r for r in AuditLog.objects.filter(action="tracking.task.dependency_added")}
+    assert rows[str(a.id)].data == {"relation": "blocked_by", "otherKey": b.key, "otherTitle": b.title}
+    assert rows[str(b.id)].data == {"relation": "blocks", "otherKey": a.key, "otherTitle": a.title}
+    assert rows[str(a.id)].target == a.title
     client.delete(f"{deps_url(a)}/{link}")
     assert AuditLog.objects.filter(action="tracking.task.dependency_removed").count() == 2
     feed = client.get(f"/api/v1/tracking/tasks/{a.id}/activity").json()

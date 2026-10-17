@@ -1,12 +1,8 @@
 """Board 40: project.import — catalogue, default roles, my_permissions order, archive, data migration."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 
 from core.access import catalogue
-from core.access.models import Permission, Role, RolePermission
 from core.access.services import project_permissions
 from core.common.testing import client_for
 from modules.tracking.testing import add_project_member, make_project
@@ -23,8 +19,6 @@ EXPECTED = {
     "project_member": True,
     "viewer": False,
 }
-migration = importlib.import_module("core.access.migrations.0004_board40_import_permission")
-namespace = importlib.import_module("core.access.migrations.0007_namespace_permission_codes")
 
 
 def test_catalogue_entry_and_placement(owner):
@@ -78,19 +72,3 @@ def test_archived_projects_drop_it(ws, owner):
     project.refresh_from_db()
     owner.__dict__.pop("_lx_access_cache", None)
     assert CODE not in project_permissions(owner, project)
-
-
-def test_data_migration_backfills_system_roles_only_and_is_idempotent(ws):
-    custom = Role.objects.create(workspace=ws, name="Release captain", scope="project")
-    RolePermission.objects.create(role=custom, permission=Permission.objects.get(code="tracking.project.view"))
-    Permission.objects.filter(code=CODE).delete()  # a board-39 database
-    migration.add_import_permission(django_apps, None)
-    migration.add_import_permission(django_apps, None)
-    namespace.namespace_permission_codes(django_apps, None)  # Stage 1 renames the old codes it created
-    perm = Permission.objects.get(code=CODE)
-    assert (perm.scope, perm.group, perm.label) == ("project", "Tasks", "Import tasks")
-    assert perm.description == catalogue.BY_CODE[CODE].description
-    for role in ws.roles.filter(is_system=True):
-        assert role.permissions.filter(code=CODE).exists() == EXPECTED[role.system_key], role.system_key
-    assert set(custom.permissions.values_list("code", flat=True)) == {"tracking.project.view"}
-    assert RolePermission.objects.filter(permission__code=CODE).count() == 3

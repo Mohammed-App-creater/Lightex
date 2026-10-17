@@ -4,13 +4,15 @@ Loads core/common/fixtures/demo_seed.json, which is exported from frontend/src/l
 scripts/frontend-seed/). IDs become UUIDs and every date is shifted so the data looks current.
 Status history is synthesised from each task's started/completed timestamps so reports have data.
 
-    python manage.py seed_demo            # refuses if the demo workspace already exists
-    python manage.py seed_demo --flush    # deletes the demo workspaces and users first
+    python manage.py seed_demo            # idempotent: does nothing when the demo workspaces already exist
+    python manage.py seed_demo --flush    # deletes the demo workspaces and users first, then recreates them
 
-Core creates users, workspaces, roles, members and invitations; every registered seeder (core/common/seeding.py)
-then loads its module's part of the fixture (tracking: modules/tracking/hooks/seed.py).
+Core creates users, workspaces (tracking on everywhere, sales on in `platform`), roles, members, three teams with
+leads and invitations; every registered seeder (core/common/seeding.py) then loads its module's part of the fixture
+(tracking: modules/tracking/hooks/seed.py).
 
-Every demo account uses DEMO_PASSWORD. The command refuses to run when DEBUG is off.
+Every demo account uses DEMO_PASSWORD; `DEMO_ACCOUNTS` lists one account per workspace and project role. The command
+refuses to run when DEBUG is off.
 """
 
 from __future__ import annotations
@@ -31,11 +33,28 @@ from core.accounts.models import User
 from core.common.seeding import SeedContext, seeders
 from core.common.tokens import new_token
 from core.modules.services import enable_initial_modules
+from core.teams.models import Team, TeamMember
 from core.workspaces.models import Invitation, Workspace, WorkspaceMember
 
 DEMO_PASSWORD = "Lightex-demo-2026"
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "demo_seed.json"
 ANCHOR = dt.date(2026, 10, 7)
+#: Workspaces where the sales module is turned on besides tracking (always on).
+SALES_WORKSPACES = ("platform",)
+#: (email, workspace role in `platform`, project role on PRJ): one account per default role.
+DEMO_ACCOUNTS = (
+    ("alex@team.dev", "Owner", "Project Admin"),
+    ("jordan@team.dev", "Admin", "Manager"),
+    ("sam@team.dev", "Member", "Member"),
+    ("taylor@team.dev", "Member", "Viewer"),
+    ("casey@team.dev", "Admin", "not a member"),
+)
+#: Teams in `platform`: (name, description, lead, other members). Sam is in two teams.
+DEMO_TEAMS = (
+    ("Backend", "API, data and infrastructure", "alex@team.dev", ("sam@team.dev", "riley@team.dev")),
+    ("Frontend", "Web and mobile clients", "jordan@team.dev", ("sam@team.dev", "morgan@team.dev")),
+    ("Quality", "Test plans and release checks", "casey@team.dev", ("taylor@team.dev",)),
+)
 
 
 class Command(BaseCommand, SeedContext):
@@ -59,7 +78,8 @@ class Command(BaseCommand, SeedContext):
                     purge_workspace(ws)
                 User.objects.filter(email__in=emails).delete()
             elif Workspace.all_objects.filter(slug__in=slugs).exists():
-                raise CommandError("Demo data already exists. Run with --flush to recreate it.")
+                self.stdout.write("Demo data already exists; nothing to do (run with --flush to recreate it).")
+                return
             self.load(data)
         self.report(data)
 
@@ -80,7 +100,7 @@ class Command(BaseCommand, SeedContext):
                 slug=w["slug"], name=w["name"], hue=w["hue"], created_at=self.ts(w["createdAt"])
             )
             self.workspaces[w["id"]] = ws
-            enable_initial_modules(None, ws, [])
+            enable_initial_modules(None, ws, ["sales"] if ws.slug in SALES_WORKSPACES else [])
             for key, role in seed_default_roles(ws).items():
                 self.roles[f"{w['id']}-role-{key}"] = role
         for r in data["roles"]:
@@ -105,6 +125,7 @@ class Command(BaseCommand, SeedContext):
                 joined_at=self.moment(m["joinedAt"]),
                 last_active_at=self.ts(m["lastActiveAt"]),
             )
+        self.load_teams()
         for seeder in seeders():  # modules (tracking) load their part of the fixture
             seeder.bound(self).load(data)
         self.invite_links = []
@@ -120,15 +141,25 @@ class Command(BaseCommand, SeedContext):
             )
             self.invite_links.append((inv["email"], f"{settings.FRONTEND_URL}/invite/{raw}"))
 
+    def load_teams(self) -> None:
+        ws = Workspace.objects.get(slug="platform")
+        by_email = {u.email: u for u in self.users.values()}
+        for name, description, lead, members in DEMO_TEAMS:
+            team = Team.objects.create(workspace=ws, name=name, description=description)
+            TeamMember.objects.bulk_create(
+                [TeamMember(team=team, user=by_email[lead], is_lead=True)]
+                + [TeamMember(team=team, user=by_email[m]) for m in members]
+            )
+
     def report(self, data: dict[str, Any]) -> None:
         out = self.stdout
         out.write(self.style.SUCCESS("Demo data created."))
-        counts = {"workspaces": len(data["workspaces"])}
+        counts = {"workspaces": len(data["workspaces"]), "teams": len(DEMO_TEAMS)}
         for seeder in seeders():
             counts.update(seeder.bound(self).counts(data))
         out.write("  " + ", ".join(f"{v} {k}" for k, v in counts.items()))
         out.write(f"  Password for every account: {DEMO_PASSWORD}")
-        for email in ("alex@team.dev", "jordan@team.dev", "sam@team.dev", "taylor@team.dev", "casey@team.dev"):
-            out.write(f"    {email}")
+        for email, ws_role, project_role in DEMO_ACCOUNTS:
+            out.write(f"    {email:<18} {ws_role:<7} (Platform team)  {project_role} (PRJ)")
         for email, link in getattr(self, "invite_links", []):
             out.write(f"  Pending invite for {email}: {link}")

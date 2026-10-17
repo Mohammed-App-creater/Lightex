@@ -3,13 +3,16 @@
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
+from core.common.schema import shape
+
 STATUSES = ["draft", "ready", "queued", "running", "completed", "failed", "canceled"]
 
 
+ImportFailure = shape("ImportFailure", {"code": serializers.CharField(), "message": serializers.CharField()})
+
+
 def _error_out():
-    return inline_serializer(
-        "ImportFailure", {"code": serializers.CharField(), "message": serializers.CharField()}, allow_null=True
-    )
+    return ImportFailure(allow_null=True)
 
 
 ImportFileOut = inline_serializer(

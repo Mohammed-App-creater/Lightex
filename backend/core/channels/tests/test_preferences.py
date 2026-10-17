@@ -1,21 +1,15 @@
 """Preferences P1 and the workspace SMS policy W1 (docs/v2/38-telegram-sms-push.md §3.8, §4.2, §5.13)."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 
 from core.audit.models import AuditLog
 from core.common.testing import add_member, client_for
-from core.notifications.models import NotificationPreference, default_events
+from core.notifications.models import NotificationPreference
 
 from .conftest import AUTH, FCM, P256DH
 
 pytestmark = pytest.mark.django_db
 URL = "/api/v1/notification-preferences"
-migration = importlib.import_module("core.notifications.migrations.0004_board38_channel_preferences")
-namespace = importlib.import_module("core.notifications.migrations.0005_namespace_event_types")
-generic = importlib.import_module("core.notifications.migrations.0006_generic_targets")
 QUIET = {"enabled": True, "from": "22:00", "to": "08:00", "timezone": "Europe/Berlin",
          "days": [True] * 5 + [False] * 2, "urgentBypass": False}  # fmt: skip
 
@@ -47,26 +41,6 @@ def test_defaults_and_v1_shaped_put_keeps_new_keys(sam_client):
         and saved["events"]["tracking.task.due_soon"]["in_app"] is False
     )
     assert sam_client.put(URL, {**v1, "quietHours": QUIET}, format="json").json()["quietHours"] == QUIET
-
-
-def test_data_migration_merges_channel_keys(sam):
-    old = {"assigned": {"in_app": False, "email": True}, "comment": {"in_app": True, "email": True, "push": False}}
-    NotificationPreference.objects.create(user=sam, events=old)
-    migration.add_channel_keys(django_apps, None)
-    namespace._rename_keys(django_apps, namespace.PREFERENCE_KEYS)  # platform Stage 1 renames the keys
-    namespace._rename_keys(django_apps, namespace.PREFERENCE_KEYS)  # idempotent
-    generic.forwards(django_apps, None)  # Stage 2: comment keys move to the core namespace
-    generic.forwards(django_apps, None)
-    events = NotificationPreference.objects.get(user=sam).events
-    assert events["tracking.task.assigned"] == {
-        "in_app": False,
-        "email": True,
-        "telegram": True,
-        "sms": False,
-        "push": True,
-    }
-    assert events["core.comment.created"]["push"] is False and events["core.comment.created"]["email"] is True
-    assert set(events) == set(default_events())
 
 
 @pytest.mark.parametrize(

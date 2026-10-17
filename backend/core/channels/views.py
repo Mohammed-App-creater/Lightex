@@ -188,6 +188,9 @@ TestOut = inline_serializer(
 class ChannelsView(APIView):
     """C1."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, responses={200: ChannelsOut})
@@ -197,6 +200,9 @@ class ChannelsView(APIView):
 
 class TelegramLinkView(APIView):
     """C2."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -210,6 +216,9 @@ class TelegramLinkView(APIView):
 
 class TelegramLinkDetailView(APIView):
     """C3, C4."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -226,6 +235,9 @@ class TelegramLinkDetailView(APIView):
 class TelegramDisconnectView(APIView):
     """C5."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, responses={204: None})
@@ -236,6 +248,9 @@ class TelegramDisconnectView(APIView):
 
 class SmsVerificationsView(APIView):
     """C6."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -250,6 +265,9 @@ class SmsVerificationsView(APIView):
 class SmsResendView(APIView):
     """C7."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, request=None, responses={200: SmsVerificationOut})
@@ -259,6 +277,9 @@ class SmsResendView(APIView):
 
 class SmsVerifyView(APIView):
     """C8."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -274,6 +295,9 @@ class SmsVerifyView(APIView):
 class SmsDisconnectView(APIView):
     """C9."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, responses={204: None})
@@ -284,6 +308,9 @@ class SmsDisconnectView(APIView):
 
 class VapidKeyView(APIView):
     """C10 (public)."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     authentication_classes: list = []
     permission_classes = [AllowAny]
@@ -300,6 +327,9 @@ class VapidKeyView(APIView):
 class PushSubscriptionsView(APIView):
     """C11."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, request=PushSubscriptionIn, responses={200: PushDeviceOut, 201: PushDeviceOut})
@@ -310,6 +340,9 @@ class PushSubscriptionsView(APIView):
 
 class PushRemoveView(APIView):
     """C12."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -326,6 +359,9 @@ class PushRemoveView(APIView):
 class PushDeviceView(APIView):
     """C13."""
 
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=TAGS, responses={204: None})
@@ -336,6 +372,9 @@ class PushDeviceView(APIView):
 
 class ChannelTestView(APIView):
     """C14."""
+
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 
@@ -356,6 +395,9 @@ class ChannelTestView(APIView):
 
 
 class _WebhookView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     authentication_classes: list = []
     permission_classes = [AllowAny]
     throttle_classes = [WebhookThrottle]

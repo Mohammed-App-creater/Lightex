@@ -36,6 +36,9 @@ def session_response(user, *, status_code: int = 200, extra: dict | None = None)
 
 
 class AnonymousView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     authentication_classes: list = []
     permission_classes = [AllowAny]
 
@@ -164,6 +167,9 @@ class GoogleCallbackView(AnonymousView):
 
 
 class MeView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["auth"], responses={200: MeSerializer})
@@ -178,6 +184,9 @@ class MeView(APIView):
 
 @extend_schema(tags=["auth"], request=ChangePasswordIn, responses={204: None})
 class ChangePasswordView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
     throttle_classes = [AuthThrottle]
 

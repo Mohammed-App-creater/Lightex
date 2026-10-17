@@ -9,6 +9,7 @@ from core.accounts.authentication import BearerJWTAuthentication
 from core.accounts.views import session_response
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_values
+from core.common.schema import page_of
 from core.common.throttles import InvitationThrottle, InviteTokenThrottle
 from core.modules.services import prime as prime_modules
 
@@ -40,6 +41,9 @@ def ws_data(request, ws) -> dict:
 
 
 class WorkspaceListView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["workspaces"], responses={200: WorkspaceSerializer(many=True)})
@@ -92,12 +96,16 @@ class SlugAvailabilityView(WorkspaceScopedView):
         return Response({"slug": q, "available": services.slug_available(q, exclude=self.scope)})
 
 
+WorkspaceMemberPage = page_of("WorkspaceMemberPage", WorkspaceMemberSerializer)
+
+
 class MemberListView(WorkspaceScopedView):
     required = {"GET": "core.workspace.view"}
 
     @extend_schema(
         tags=["members"],
         parameters=[OpenApiParameter("q", str), OpenApiParameter("cursor", str), OpenApiParameter("limit", int)],
+        responses=WorkspaceMemberPage,
     )
     def get(self, request, slug):
         qs = selectors.members(
@@ -164,6 +172,9 @@ class InviteResendView(WorkspaceScopedView):
 
 
 class PublicInviteView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     authentication_classes: list = []
     permission_classes = [AllowAny]
     throttle_classes = [InviteTokenThrottle]
@@ -174,6 +185,9 @@ class PublicInviteView(APIView):
 
 
 class AcceptInviteView(APIView):
+    #: Not about one workspace: unscoped (core/common/scoping.py); reads are filtered by the user.
+    cross_workspace = True
+
     # Optional auth: a signed-in invitee joins without re-entering their password.
     authentication_classes = [BearerJWTAuthentication]
     permission_classes = [AllowAny]

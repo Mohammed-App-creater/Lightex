@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from core.access.services import my_data_scopes, my_permissions
@@ -133,6 +134,7 @@ class AcceptInviteIn(serializers.Serializer):
     password = serializers.CharField(required=False, allow_blank=True, trim_whitespace=False)
 
 
+@extend_schema_serializer(component_name="WorkspaceAccessRequest")
 class AccessRequestSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     workspaceId = serializers.UUIDField(source="workspace_id")

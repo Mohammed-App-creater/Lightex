@@ -151,8 +151,9 @@ def _add_notifications(w: World) -> None:
     from core.notifications.models import Notification
 
     w.extra["notification"] = Notification.objects.create(
-        recipient=w.users["owner"], workspace=w.ws, project=w.project, task=w.task, type="assigned"
-    )
+        recipient=w.users["owner"], workspace=w.ws, scope_id=w.project.pk, subject_id=w.task.pk,
+        type="tracking.task.assigned", kind="assigned",
+    )  # fmt: skip
 
 
 def _add_views(w: World) -> None:

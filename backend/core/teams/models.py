@@ -5,13 +5,13 @@ from django.conf import settings
 from django.db import models
 from django.db.models.functions import Lower
 
-from core.common.models import BaseModel, SoftDeleteModel
+from core.common.models import WorkspaceScopedModel, WorkspaceScopedSoftDeleteModel
 
 NAME_MAX = 60
 DESCRIPTION_MAX = 280
 
 
-class Team(SoftDeleteModel):
+class Team(WorkspaceScopedSoftDeleteModel):
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="teams")
     name = models.CharField(max_length=NAME_MAX)
     description = models.CharField(max_length=DESCRIPTION_MAX, blank=True, default="")
@@ -30,7 +30,9 @@ class Team(SoftDeleteModel):
         return self.name
 
 
-class TeamMember(BaseModel):
+class TeamMember(WorkspaceScopedModel):
+    workspace_parent = "team"
+
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="team_memberships")

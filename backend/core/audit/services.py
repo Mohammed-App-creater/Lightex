@@ -66,6 +66,8 @@ def record(
     source: str = "web",
     request_id: str | None = None,
 ) -> AuditLog:
+    """`project` and `task` (objects or ids) fill the generic `scope_id` / `subject_id` hints; a `task` object with a
+    `version` is also handed to the realtime mapper."""
     row = AuditLog.objects.create(
         **_row(
             workspace=workspace,
@@ -122,8 +124,8 @@ def _row(
     title = getattr(task, "title", None) or task_title
     return {
         "workspace_id": getattr(workspace, "pk", workspace),
-        "project_id": getattr(project, "pk", project),
-        "task_id": getattr(task, "pk", task),
+        "scope_id": getattr(project, "pk", project),
+        "subject_id": getattr(task, "pk", task),
         "actor_id": None if system else getattr(actor, "pk", None),
         "actor_name": (getattr(actor, "name", "") or "")[:80],
         "actor_kind": kind,

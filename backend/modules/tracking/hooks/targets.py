@@ -137,6 +137,7 @@ class TaskTarget(TargetResolver):
             "link": task_url(task),
             "key": task.key,
             "projectId": str(task.project_id),
+            "projectName": task.project.name,
             "taskId": str(task.pk),
         }
 
@@ -236,6 +237,7 @@ class ProjectTarget(TargetResolver):
             "link": f"{settings.FRONTEND_URL}/{project.workspace.slug}/projects/{project.key}/board",
             "key": project.key,
             "projectId": str(project.pk),
+            "projectName": project.name,
         }
 
     def mentionable(self, target_id: Any, user_ids: list[str]) -> set[str]:
@@ -287,6 +289,7 @@ class SprintTarget(TargetResolver):
             "title": sprint.name,
             "link": f"{settings.FRONTEND_URL}/{project.workspace.slug}/projects/{project.key}/board",
             "projectId": str(project.pk),
+            "projectName": project.name,
         }
 
     def can_notify(self, user_ids: set[str], target_id: Any) -> set[str]:

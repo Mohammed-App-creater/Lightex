@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 
-class DomainEvent(BaseModel):
+class DomainEvent(WorkspaceScopedModel):
     """Outbox row written by services inside their transaction and dispatched to registered handlers on commit.
 
     `target_type` / `target_id` name the record the event is about (core/common/targets.py); module-specific context

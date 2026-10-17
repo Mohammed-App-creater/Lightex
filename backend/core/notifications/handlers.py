@@ -88,9 +88,11 @@ def deliver(
             "target_id": target_id,
             "title": str(info.get("title") or "")[:300],
             "link": str(info.get("link") or "")[:500],
-            "project_id": project_id,
-            "task_id": info.get("taskId"),
-            "type": kind,
+            "scope_id": project_id,
+            "subject_id": info.get("taskId"),
+            "refs": _refs(info, target_id),
+            "type": (pref or event.type)[:64],
+            "kind": kind,
             "actor_id": event.actor_id,
             "payload": payload or {},
             "in_app": in_app,
@@ -122,6 +124,18 @@ def deliver(
             urgent=urgent,
         )
     return notification
+
+
+def _refs(info: dict[str, Any], target_id: Any) -> dict[str, Any]:
+    """Display hints kept on the row (no foreign keys to module tables): the scope's and the subject's names."""
+    subject = info.get("taskId")
+    is_subject = subject is not None and str(subject) == str(target_id)
+    refs = {
+        "projectName": info.get("projectName"),
+        "taskKey": info.get("taskKey") or (info.get("key") if is_subject else None),
+        "taskTitle": info.get("taskTitle") or (info.get("title") if is_subject else None),
+    }
+    return {k: str(v)[:300] for k, v in refs.items() if v}
 
 
 def target_context(event: DomainEvent) -> dict[str, Any]:

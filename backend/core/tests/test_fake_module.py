@@ -97,12 +97,12 @@ def test_comment_notifications_for_subscribers_and_mentions(widget, people, owne
     sam = client_for(people["sam"])
     sam.post(url(widget, "comments"), {"body": doc("Ping ", people["kim"])}, format="json")
     mention = Notification.objects.get(recipient=people["kim"])
-    assert (mention.type, mention.target_type, mention.target_id) == ("mention", "fake.widget", widget.id)
+    assert (mention.kind, mention.target_type, mention.target_id) == ("mention", "fake.widget", widget.id)
     assert mention.title == "Quarterly sprocket"
     assert mention.link.endswith(f"/widgets/{widget.id}")
-    assert mention.project_id is None
+    assert mention.scope_id is None
     subscriber = Notification.objects.get(recipient=owner)  # the widget's owner is its subscriber
-    assert subscriber.type == "comment"
+    assert (subscriber.kind, subscriber.type) == ("comment", "core.comment.created")  # display kind, event type
     assert not Notification.objects.filter(recipient=people["sam"]).exists()  # never the actor
     inbox = client_for(people["kim"]).get("/api/v1/notifications").json()
     assert inbox["counts"]["mentions"] == 1
@@ -169,7 +169,7 @@ def test_comment_realtime_hints_carry_the_target(widget, people):
     data = event.payload["data"]
     assert (data["targetType"], data["targetId"]) == ("fake.widget", str(widget.id))
     assert data["commentId"] == str(Comment.objects.get().pk)
-    assert event.project_id is None  # no project scope: a workspace-wide hint
+    assert event.scope_id is None  # no project scope: a workspace-wide hint
 
 
 def test_check_orphan_targets_reports_references_to_missing_records(widget, people):
@@ -183,3 +183,40 @@ def test_check_orphan_targets_reports_references_to_missing_records(widget, peop
     assert find_orphans()["comments"] == [("fake.widget", str(widget.id))]
     with pytest.raises(CommandError):
         call_command("check_orphan_targets")
+
+
+def test_purge_keeps_comments_and_attachments_of_a_disabled_module(ws, owner, widget):
+    """Stage 5 (contract §1.6): disabling a module never deletes its data, so the trash purge skips generic rows whose
+    target belongs to a module that is off in their workspace, and purges them once it is back on."""
+    import datetime as dt
+
+    from django.utils import timezone
+
+    from core.access.services import sync_permission_catalogue
+    from core.audit.trash import purge_expired
+    from core.modules import services as modules
+    from core.tests.fake_module import module as fake
+
+    fake.register()  # toggleable, off until enabled
+    sync_permission_catalogue()
+    try:
+        old = timezone.now() - dt.timedelta(days=40)
+        comment = Comment.objects.create(
+            workspace=ws, target_type="fake.widget", target_id=widget.pk, author=owner, body=doc("old"),
+            body_text="old", deleted_at=old,
+        )  # fmt: skip
+        attachment = Attachment.objects.create(
+            workspace=ws, target_type="fake.widget", target_id=widget.pk, uploader=owner, file_name="a.png", size=1,
+            mime_type="image/png", kind="image", storage_key=f"ws/{ws.pk}/fake/{widget.pk}/old", status="ready",
+            deleted_at=old,
+        )  # fmt: skip
+        assert not modules.is_enabled(ws, "fake")
+        purge_expired()
+        assert Comment.all_objects.filter(pk=comment.pk).exists()
+        assert Attachment.all_objects.filter(pk=attachment.pk).exists()
+        modules.set_module_enabled(owner, ws, "fake", True)
+        purge_expired()
+        assert not Comment.all_objects.filter(pk=comment.pk).exists()
+        assert not Attachment.all_objects.filter(pk=attachment.pk).exists()
+    finally:
+        fake.unregister()

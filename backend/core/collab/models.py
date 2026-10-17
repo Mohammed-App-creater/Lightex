@@ -3,10 +3,10 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
-from core.common.models import BaseModel, SoftDeleteModel
+from core.common.models import WorkspaceScopedModel, WorkspaceScopedSoftDeleteModel
 
 
-class Comment(SoftDeleteModel):
+class Comment(WorkspaceScopedSoftDeleteModel):
     """A comment on any registered target (core/common/targets.py)."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
@@ -22,7 +22,7 @@ class Comment(SoftDeleteModel):
     )
     search_vector = SearchVectorField(null=True, editable=False)
 
-    class Meta(SoftDeleteModel.Meta):
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
         ordering = ["created_at"]
         indexes = [
             models.Index(fields=["target_type", "target_id", "created_at"], name="comment_target_created"),
@@ -30,7 +30,10 @@ class Comment(SoftDeleteModel):
         ]
 
 
-class CommentMention(BaseModel):
+class CommentMention(WorkspaceScopedModel):
+    workspace_parent = "comment"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="+")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
 
@@ -38,7 +41,7 @@ class CommentMention(BaseModel):
         constraints = [models.UniqueConstraint(fields=["comment", "user"], name="comment_mention_unique")]
 
 
-class Attachment(SoftDeleteModel):
+class Attachment(WorkspaceScopedSoftDeleteModel):
     STATUS_CHOICES = [("pending", "Pending upload"), ("ready", "Ready")]
     KIND_CHOICES = [("image", "Image"), ("code", "Code"), ("text", "Text")]
 
@@ -57,6 +60,6 @@ class Attachment(SoftDeleteModel):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
 
-    class Meta(SoftDeleteModel.Meta):
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
         ordering = ["created_at"]
         indexes = [models.Index(fields=["target_type", "target_id", "status"], name="attachment_target_status")]

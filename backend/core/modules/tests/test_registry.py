@@ -1,10 +1,7 @@
 """Platform Stage 3 (docs/platform/stage3-contract.md §1, §2): the registry, the catalogue assembled from the module
 definitions, `sync_permissions`, the per-request cache, the guard's URL wrapper and the tracking data migration."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.urls import path
@@ -13,7 +10,7 @@ from rest_framework.views import APIView
 from core.access import catalogue
 from core.access.models import Permission
 from core.access.services import sync_permission_catalogue
-from core.common.testing import UserFactory, make_workspace
+from core.common.testing import make_workspace
 from core.events.registry import event_type
 from core.modules import services
 from core.modules.models import WorkspaceModule
@@ -150,13 +147,3 @@ def test_module_urls_refuses_unscoped_views_of_a_toggleable_module():
     wrapped = module_urls("tracking", [path("x", APIView.as_view(), name="x")])
     assert wrapped[0].callback.cls is APIView
     assert wrapped[0].callback.lx_module == "tracking"
-
-
-def test_data_migration_enables_tracking_for_existing_workspaces(db):
-    ws = make_workspace(UserFactory(), slug="legacy")
-    WorkspaceModule.objects.filter(workspace=ws).delete()
-    migration = importlib.import_module("core.modules.migrations.0002_enable_tracking")
-    migration.enable_tracking(django_apps, None)
-    migration.enable_tracking(django_apps, None)  # idempotent
-    row = WorkspaceModule.objects.get(workspace=ws)
-    assert (row.module_key, row.enabled, row.enabled_by) == ("tracking", True, None)

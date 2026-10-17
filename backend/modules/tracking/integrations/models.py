@@ -10,7 +10,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
-from core.common.models import BaseModel
+from core.common.models import BaseModel, WorkspaceScopedModel
 
 from . import crypto
 
@@ -30,7 +30,7 @@ class EncryptedFieldsMixin:
         setattr(self, field, crypto.encrypt(value or "", crypto.aad_for(self, field)))
 
 
-class Integration(EncryptedFieldsMixin, BaseModel):
+class Integration(EncryptedFieldsMixin, WorkspaceScopedModel):
     AUTH_KINDS = [("github_app", "GitHub App"), ("gitlab_oauth", "GitLab OAuth"), ("gitlab_token", "GitLab token")]
     STATUSES = [("pending", "Pending"), ("active", "Active"), ("error", "Error"), ("disconnecting", "Disconnecting")]
 
@@ -86,7 +86,7 @@ class Integration(EncryptedFieldsMixin, BaseModel):
         self.set_secret("credentials", json.dumps(value) if value else "")
 
 
-class Repository(BaseModel):
+class Repository(WorkspaceScopedModel):
     SYNC_STATES = [("idle", "Idle"), ("queued", "Queued"), ("syncing", "Syncing"), ("failed", "Failed")]
 
     integration = models.ForeignKey(Integration, on_delete=models.CASCADE, related_name="repositories")
@@ -117,7 +117,10 @@ class Repository(BaseModel):
         return self.full_path
 
 
-class RepositoryProject(BaseModel):
+class RepositoryProject(WorkspaceScopedModel):
+    workspace_parent = "repository"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")
 
@@ -125,7 +128,7 @@ class RepositoryProject(BaseModel):
         constraints = [models.UniqueConstraint(fields=["repository", "project"], name="repo_project_unique")]
 
 
-class ConnectAttempt(EncryptedFieldsMixin, BaseModel):
+class ConnectAttempt(EncryptedFieldsMixin, WorkspaceScopedModel):
     MODES = [("connect", "Connect"), ("reconnect", "Reconnect")]
     STATUSES = [
         ("started", "Started"),
@@ -152,6 +155,9 @@ class ConnectAttempt(EncryptedFieldsMixin, BaseModel):
 
 
 class WebhookDelivery(BaseModel):
+    """The inbound webhook queue. Global, not workspace-scoped: a delivery is stored before its integration (and so
+    its workspace) is known, and some never match one."""
+
     STATUSES = [
         ("received", "Received"),
         ("processing", "Processing"),
@@ -184,7 +190,10 @@ class WebhookDelivery(BaseModel):
         ]
 
 
-class SyncRun(BaseModel):
+class SyncRun(WorkspaceScopedModel):
+    workspace_parent = "integration"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     KINDS = [("backfill", "Backfill"), ("sync", "Sync"), ("catchup", "Catch-up")]
     STATUSES = [
         ("queued", "Queued"),
@@ -222,7 +231,10 @@ class SyncRun(BaseModel):
         indexes = [models.Index(fields=["status", "run_after"], name="sync_queue")]
 
 
-class AutomationRule(BaseModel):
+class AutomationRule(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     TRIGGERS = [("branch_created", "Branch created"), ("pr_opened", "PR opened"), ("pr_merged", "PR merged")]
 
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="dev_rules")

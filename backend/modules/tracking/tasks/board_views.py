@@ -64,7 +64,7 @@ class BoardView(ProjectScopedView):
 
                 raise not_found("Sprint not found.")
             sprint_id = sprint.pk
-        record_recent(request.user, "project", self.scope.pk)
+        record_recent(request.user, "project", self.scope.pk, self.scope.workspace_id)
         return Response(board_payload(self.scope, sprint_id))
 
 

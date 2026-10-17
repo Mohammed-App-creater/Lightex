@@ -174,7 +174,7 @@ def test_status_change_sets_and_clears_completed_at(owner, project, st):
     assert task.started_at is not None
     history = list(TaskStatusHistory.objects.filter(task=task).order_by("at").values_list("to_category", flat=True))
     assert history == ["todo", "in_progress", "done", "todo", "done"]
-    assert AuditLog.objects.filter(action="tracking.task.status_changed", task=task).count() == 4
+    assert AuditLog.objects.filter(action="tracking.task.status_changed", subject_id=task.pk).count() == 4
 
 
 def test_edit_own_vs_edit_any(owner, project, st):

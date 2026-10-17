@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from core.common.models import BaseModel, SoftDeleteModel
+from core.common.models import SoftDeleteModel, WorkspaceScopedModel
 from core.common.utils import random_hue
 
 
@@ -21,7 +21,7 @@ class Workspace(SoftDeleteModel):
         return self.slug
 
 
-class WorkspaceMember(BaseModel):
+class WorkspaceMember(WorkspaceScopedModel):
     STATUS_CHOICES = [("active", "Active"), ("deactivated", "Deactivated")]
 
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="members")
@@ -36,7 +36,7 @@ class WorkspaceMember(BaseModel):
         indexes = [models.Index(fields=["user", "status"], name="wsmember_user_status")]
 
 
-class Invitation(BaseModel):
+class Invitation(WorkspaceScopedModel):
     STATUS_CHOICES = [("pending", "Pending"), ("accepted", "Accepted"), ("revoked", "Revoked")]
 
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="invitations")
@@ -68,7 +68,7 @@ class Invitation(BaseModel):
         return self.status
 
 
-class WorkspaceAccessRequest(BaseModel):
+class WorkspaceAccessRequest(WorkspaceScopedModel):
     """Board 24: a member asks the workspace admins to be added to a project."""
 
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="access_requests")

@@ -3,7 +3,7 @@ import datetime
 from django.conf import settings
 from django.db import models
 
-from core.common.models import BaseModel
+from core.common.models import BaseModel, WorkspaceScopedModel
 
 DELIVERY = [("instant", "Instant"), ("hourly", "Hourly digest"), ("daily", "Daily digest")]
 CHANNELS = ["in_app", "email", "telegram", "sms", "push"]
@@ -16,9 +16,7 @@ def default_events() -> dict:
     return {t.key: {c: bool(t.default_channels.get(c, False)) for c in CHANNELS} for t in preference_types()}
 
 
-class Notification(BaseModel):
-    TYPES = [(t, t) for t in ("assigned", "mention", "status", "comment", "due", "sprint", "access", "import")]
-
+class Notification(WorkspaceScopedModel):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     # The record the notification is about (core/common/targets.py); title and link come from its describe().
@@ -26,10 +24,16 @@ class Notification(BaseModel):
     target_id = models.UUIDField(null=True, blank=True)
     title = models.CharField(max_length=300, blank=True, default="")
     link = models.CharField(max_length=500, blank=True, default="")
-    # Scope hints copied from the target's describe() (projectId / taskId): inbox visibility and cascades.
-    project = models.ForeignKey("projects.Project", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-    task = models.ForeignKey("tasks.Task", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-    type = models.CharField(max_length=16)
+    # Generic hints copied from the target's describe(), no foreign keys (core never links to module tables):
+    # `scope_id` is the module access scope (tracking: the project; inbox visibility needs a membership there),
+    # `subject_id` the record it is about (tracking: the task) and `refs` display names (projectName, taskKey, …).
+    scope_id = models.UUIDField(null=True, blank=True, db_index=True)
+    subject_id = models.UUIDField(null=True, blank=True, db_index=True)
+    refs = models.JSONField(default=dict, blank=True)
+    #: The registered event-type key (core/events/registry.py), for example `tracking.task.assigned`.
+    type = models.CharField(max_length=64)
+    #: The short display kind the inbox groups by (assigned, mention, …), chosen by the module that notifies.
+    kind = models.CharField(max_length=16)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )

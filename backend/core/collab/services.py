@@ -13,6 +13,7 @@ from typing import Any
 from django.conf import settings
 from django.contrib.postgres.search import SearchVector
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from core.audit.services import change, record
@@ -412,11 +413,17 @@ def delete_attachment(actor: Any, attachment: Attachment) -> None:
 
 
 def delete_target_records(target_type: str, target_ids: list[Any]) -> None:
-    """Hard-deletes the comments and attachments of purged targets; stored objects go after commit."""
-    attachments = Attachment.all_objects.filter(target_type=target_type, target_id__in=target_ids)
+    """Hard-deletes the comments, attachments and notifications of purged targets (there are no foreign keys to
+    cascade); stored objects go after commit. Purges run unscoped: the targets were already resolved."""
+    from core.notifications.models import Notification
+
+    attachments = Attachment.all_objects.unscoped().filter(target_type=target_type, target_id__in=target_ids)
     delete_files(attachments)
     attachments.delete()
-    Comment.all_objects.filter(target_type=target_type, target_id__in=target_ids).delete()
+    Comment.all_objects.unscoped().filter(target_type=target_type, target_id__in=target_ids).delete()
+    Notification.objects.unscoped().filter(
+        Q(target_type=target_type, target_id__in=target_ids) | Q(subject_id__in=target_ids)
+    ).delete()
 
 
 def delete_files(attachments: Any) -> None:

@@ -3,14 +3,17 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.utils import timezone
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 from core.common.utils import random_hue
 
 # Progress (done / total / percent) for every planning entity is computed from tasks in
 # planning.selectors and is never stored on these rows.
 
 
-class Objective(BaseModel):
+class Objective(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     STATUS_CHOICES = [("active", "Active"), ("achieved", "Achieved"), ("dropped", "Dropped")]
 
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="objectives")
@@ -27,7 +30,10 @@ class Objective(BaseModel):
         ordering = ["created_at"]
 
 
-class Milestone(BaseModel):
+class Milestone(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="milestones")
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True, default="")
@@ -47,7 +53,10 @@ class Milestone(BaseModel):
         ]
 
 
-class Epic(BaseModel):
+class Epic(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="epics")
     name = models.CharField(max_length=80)
     description = models.TextField(blank=True, default="")
@@ -73,7 +82,10 @@ class Epic(BaseModel):
         ]
 
 
-class Sprint(BaseModel):
+class Sprint(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     STATE_CHOICES = [("planned", "Planned"), ("active", "Active"), ("completed", "Completed")]
 
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="sprints")
@@ -102,9 +114,12 @@ class Sprint(BaseModel):
         ]
 
 
-class SprintScopeChange(BaseModel):
+class SprintScopeChange(WorkspaceScopedModel):
     """A task added to or removed from a sprint after it started (scope-change tracking)."""
 
+    workspace_parent = "sprint"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     KIND_CHOICES = [("added", "Added"), ("removed", "Removed")]
 
     sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, related_name="scope_changes")

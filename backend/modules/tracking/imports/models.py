@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import models
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 SOURCES = [("csv", "CSV"), ("jira", "Jira")]
 PRESETS = [("generic", "Generic"), ("jira", "Jira"), ("linear", "Linear"), ("asana", "Asana")]
@@ -21,7 +21,7 @@ TERMINAL = ("completed", "failed", "canceled")
 MAX_ROWS = 5000
 
 
-class ImportJob(BaseModel):
+class ImportJob(WorkspaceScopedModel):
     """One import. Status machine (§2.3): draft → ready → queued → running → completed | canceled | failed."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
@@ -93,9 +93,12 @@ class ImportJob(BaseModel):
         return bool(self.phase)
 
 
-class ImportRow(BaseModel):
+class ImportRow(WorkspaceScopedModel):
     """One processed data row of a started job: makes batches idempotent and feeds the report and I5."""
 
+    workspace_parent = "job"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     OUTCOMES = [("task", "Task"), ("epic", "Epic"), ("skipped", "Skipped")]
 
     job = models.ForeignKey(ImportJob, on_delete=models.CASCADE, related_name="rows")

@@ -162,7 +162,7 @@ def people_at(kind: str, location_id: Any, now: dt.datetime | None = None) -> li
 def roster(project: Any, now: dt.datetime | None = None) -> dict[str, Any]:
     """`PresenceRoster` of a whole project: only non-empty locations, the earliest arrival first."""
     now = now or timezone.now()
-    rows = list(_live(now).filter(project=project).order_by("since"))
+    rows = list(_live(now).filter(scope_id=getattr(project, "pk", project)).order_by("since"))
     locations: OrderedDict[tuple[str, str], list[PresenceSession]] = OrderedDict()
     for row in rows:
         locations.setdefault((row.location_kind, str(row.location_id)), []).append(row)
@@ -216,10 +216,10 @@ def heartbeat(
         or typing_now != clean["typing"]
         or prev.expires_at <= now
     )
-    old = (prev.workspace_id, prev.project_id, prev.location_kind, prev.location_id, prev.private) if prev else None
+    old = (prev.workspace_id, prev.scope_id, prev.location_kind, prev.location_id, prev.private) if prev else None
     values = {
         "workspace": workspace,
-        "project": project,
+        "scope_id": project.pk,
         "location_kind": clean["kind"],
         "location_id": location_id,
         "private": private,
@@ -259,7 +259,7 @@ def leave(user: Any, session_id: Any) -> None:
         return
     session.delete()
     if not session.private:
-        broadcast(session.workspace_id, session.project_id, session.location_kind, session.location_id, actor=user)
+        broadcast(session.workspace_id, session.scope_id, session.location_kind, session.location_id, actor=user)
 
 
 def sweep_presence() -> int:
@@ -268,7 +268,7 @@ def sweep_presence() -> int:
         with connection.cursor() as cursor:
             cursor.execute(
                 "DELETE FROM realtime_presencesession WHERE expires_at < %s "
-                "RETURNING workspace_id, project_id, location_kind, location_id, private",
+                "RETURNING workspace_id, scope_id, location_kind, location_id, private",
                 [timezone.now()],
             )
             rows = cursor.fetchall()

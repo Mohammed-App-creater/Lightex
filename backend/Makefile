@@ -37,7 +37,7 @@ imports:
 	$(PY) -c "from importlinter.cli import lint_imports_command; lint_imports_command()"
 
 schema:
-	$(MANAGE) spectacular --file ../docs/openapi.yaml --validate
+	$(MANAGE) spectacular --file ../docs/openapi.yaml --validate --fail-on-warn
 
 check:
 	PY=$(PY) sh scripts/check.sh

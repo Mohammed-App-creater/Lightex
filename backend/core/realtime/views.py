@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.access.permissions import MEMBER
+from core.common import scoping
 from core.common.exceptions import ApiError, invalid, not_found
 from core.common.params import body, filter_value
 from core.common.throttles import PresenceThrottle, StreamThrottle
@@ -157,6 +158,8 @@ class StreamView(APIView):
 
     permission_classes = [IsAuthenticated]
     throttle_classes = [StreamThrottle]
+    #: Resolves its workspace itself (`workspace_for`, 404 for non-members); the body then runs scoped to it.
+    cross_workspace = True
     renderer_classes = [renderers.JSONRenderer, EventStreamRenderer]
 
     def handle_exception(self, exc):
@@ -216,7 +219,8 @@ class StreamView(APIView):
             last_event_id=request.headers.get("Last-Event-ID"),
             slot=slot,
         )
-        response = StreamingHttpResponse(stream_events(ctx), content_type="text/event-stream; charset=utf-8")
+        body = scoping.iterate_in_workspace(stream_events(ctx), workspace)
+        response = StreamingHttpResponse(body, content_type="text/event-stream; charset=utf-8")
         response["Cache-Control"] = "no-cache, no-transform"
         response["X-Accel-Buffering"] = "no"
         response._resource_closers.append(slot.release)

@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Deferrable
 from django.db.models.functions import Lower
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 VISIBILITY = [("shared", "Shared"), ("personal", "Personal")]
 WIDGET_TYPES = [
@@ -22,7 +22,10 @@ WIDGET_TYPES = [
 ]
 
 
-class Dashboard(BaseModel):
+class Dashboard(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="dashboards")
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dashboards")
     name = models.CharField(max_length=60)
@@ -39,7 +42,10 @@ class Dashboard(BaseModel):
         ]
 
 
-class DashboardWidget(BaseModel):
+class DashboardWidget(WorkspaceScopedModel):
+    workspace_parent = "dashboard"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name="widgets")
     type = models.CharField(max_length=16, choices=WIDGET_TYPES)
     position = models.PositiveSmallIntegerField()

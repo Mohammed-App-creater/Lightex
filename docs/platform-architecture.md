@@ -1,6 +1,6 @@
 # Lightex Platform Architecture (Core + Modules)
 
-Status: approved direction, ready for staged implementation.
+Status: implemented. Stages 1–5 (section 13) are done on branch `platform` (2026-10-17).
 Audience: Claude Code and the developer. This document is the source of truth for the restructure. If existing code conflicts with this document, this document wins, and the existing code is changed.
 
 ## 0. Decisions recorded at kickoff (2026-10-17)

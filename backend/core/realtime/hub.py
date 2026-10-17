@@ -27,6 +27,8 @@ from typing import Any
 
 from django.conf import settings
 
+from core.common import scoping
+
 from .protocol import TARGET, control, matches
 
 logger = logging.getLogger("lightex.realtime")
@@ -231,6 +233,8 @@ class Listener(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self) -> None:
+        # A new thread starts with an empty context: this one reads rows of every workspace.
+        scoping.enter_unscoped()
         backoff = settings.REALTIME_LISTENER_BACKOFF_SECONDS
         connected_before = False
         next_sweep = time.monotonic() + settings.REALTIME_SWEEP_SECONDS

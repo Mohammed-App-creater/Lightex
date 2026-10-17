@@ -1,12 +1,8 @@
 """Board 39: field.manage, time.log, time.delete_any — catalogue, default roles, archive, data migration."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 
 from core.access import catalogue
-from core.access.models import Permission, Role, RolePermission
 from core.access.services import project_permissions
 from core.common.testing import client_for
 from modules.tracking.testing import add_project_member, make_project
@@ -23,8 +19,6 @@ EXPECTED = {
     "project_member": {"tracking.time.log"},
     "viewer": set(),
 }
-migration = importlib.import_module("core.access.migrations.0003_board39_permissions")
-namespace = importlib.import_module("core.access.migrations.0007_namespace_permission_codes")
 
 
 def test_catalogue_endpoint_lists_the_new_codes_in_order(owner):
@@ -107,24 +101,3 @@ def test_archived_projects_drop_the_new_codes(ws, owner):
     project.refresh_from_db()
     owner.__dict__.pop("_lx_access_cache", None)
     assert not set(NEW) & project_permissions(owner, project)
-
-
-def test_data_migration_backfills_system_roles_only_and_is_idempotent(ws):
-    custom = Role.objects.create(workspace=ws, name="Release captain", scope="project")
-    RolePermission.objects.create(role=custom, permission=Permission.objects.get(code="tracking.project.view"))
-    # Simulate a v1 database: none of the new codes exist anywhere.
-    Permission.objects.filter(code__in=NEW).delete()
-    migration.add_board39_permissions(django_apps, None)
-    migration.add_board39_permissions(django_apps, None)  # idempotent
-    namespace.namespace_permission_codes(django_apps, None)  # Stage 1 renames the old codes it created
-    for code in NEW:
-        perm = Permission.objects.get(code=code)
-        assert perm.scope == "project"
-        assert perm.label == catalogue.BY_CODE[code].label
-        assert perm.group == catalogue.BY_CODE[code].group
-        assert perm.description == catalogue.BY_CODE[code].description
-    for role in ws.roles.filter(is_system=True):
-        held = set(role.permissions.values_list("code", flat=True)) & set(NEW)
-        assert held == EXPECTED[role.system_key], role.system_key
-    assert set(custom.permissions.values_list("code", flat=True)) == {"tracking.project.view"}
-    assert RolePermission.objects.filter(permission__code__in=NEW).count() == 3 + 3 + 1

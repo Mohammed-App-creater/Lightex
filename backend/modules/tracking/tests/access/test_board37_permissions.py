@@ -1,13 +1,9 @@
 """Board 37: integration.manage / development.link — catalogue, default roles, my_permissions order, data migration
 (docs/v2/37-integrations-github-gitlab.md §4)."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 
 from core.access import catalogue
-from core.access.models import Permission, Role, RolePermission
 from core.common.testing import client_for
 from modules.tracking.testing import add_project_member, make_project
 
@@ -23,8 +19,6 @@ EXPECTED = {
     "viewer": set(),
 }
 NEW = {"tracking.integration.manage", "tracking.development.link"}
-migration = importlib.import_module("core.access.migrations.0006_board37_integration_permissions")
-namespace = importlib.import_module("core.access.migrations.0007_namespace_permission_codes")
 
 
 def test_catalogue_and_orders(owner):
@@ -79,17 +73,3 @@ def test_sams_my_permissions_example(ws, owner):
         "tracking.dashboard.create",
         "tracking.report.view",
     ]
-
-
-def test_data_migration_backfills_system_roles_only_and_is_idempotent(ws):
-    custom = Role.objects.create(workspace=ws, name="Release captain", scope="project")
-    RolePermission.objects.filter(permission__code__in=NEW).delete()
-    Permission.objects.filter(code="tracking.development.link").delete()
-    migration.add_integration_permissions(django_apps, None)
-    migration.add_integration_permissions(django_apps, None)
-    namespace.namespace_permission_codes(django_apps, None)  # Stage 1 renames the old codes it created
-    for role in ws.roles.filter(is_system=True):
-        held = set(role.permissions.values_list("code", flat=True)) & NEW
-        assert held == EXPECTED[role.system_key], role.system_key
-    assert not custom.permissions.exists()
-    assert RolePermission.objects.filter(permission__code="tracking.development.link").count() == 3

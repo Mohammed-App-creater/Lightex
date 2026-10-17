@@ -42,17 +42,22 @@ python manage.py runserver 0.0.0.0:8000
 ### Demo accounts
 
 `seed_demo` loads the same data as the web client's mock mode (2 workspaces, 4 projects, 55 tasks,
-7 sprints, objectives, milestones, epics). Every account's password is **`Lightex-demo-2026`**.
+7 sprints, objectives, milestones, epics), plus three teams with leads in Platform team. Tracking is on in both
+workspaces and sales is on in Platform team. Every account's password is **`Lightex-demo-2026`**
+(`DEMO_PASSWORD`); there is one account per default workspace role and per default project role (`DEMO_ACCOUNTS` in
+`core/common/management/commands/seed_demo.py`):
 
-| Account | Workspace role (Platform team) | Role on Platform Rebuild (PRJ) |
-|---|---|---|
-| `alex@team.dev` | Owner | Project Admin |
-| `jordan@team.dev` | Admin | Manager |
-| `sam@team.dev` | Member | Member |
-| `taylor@team.dev` | Member | Viewer |
-| `casey@team.dev` | Admin | not a member (gets the 403 + request-access screen) |
+| Account | Workspace role (Platform team) | Role on Platform Rebuild (PRJ) | Teams |
+|---|---|---|---|
+| `alex@team.dev` | Owner | Project Admin | Backend (lead) |
+| `jordan@team.dev` | Admin | Manager | Frontend (lead) |
+| `sam@team.dev` | Member | Member | Backend, Frontend |
+| `taylor@team.dev` | Member | Viewer | Quality |
+| `casey@team.dev` | Admin | not a member (gets the 403 + request-access screen) | Quality (lead) |
 
-The command refuses to run when `DEBUG` is off. `--flush` deletes and recreates the demo data.
+Riley and Morgan (`riley@team.dev`, `morgan@team.dev`, Members) and Drew (`drew@guild.dev`, Owner of Design guild) use
+the same password. The command refuses to run when `DEBUG` is off. It is idempotent: when the demo workspaces exist
+it does nothing; `--flush` deletes and recreates the demo data.
 
 ## Environment variables
 
@@ -166,11 +171,15 @@ Tests need PostgreSQL (full-text search, partial unique indexes and row locks ar
 
 Highlights of the suite:
 
-- **Permission matrix** (`core/access/tests/test_permission_matrix.py`): for every route and method, the roles
-  that must pass and the roles that must be refused. The table is checked against the URL configuration, so a
+- **Permission matrix** (`modules/tracking/tests/access/test_permission_matrix.py`): for every route and method, the
+  roles that must pass and the roles that must be refused. The table is checked against the URL configuration, so a
   new endpoint without an entry fails the suite.
-- **IDOR** (`core/access/tests/test_idor.py`): every route called by a user from another workspace (always 404)
-  and every project route called by workspace members who aren't on the project (403/404).
+- **IDOR** (`modules/tracking/tests/access/test_idor.py`): every route called by a user from another workspace
+  (always 404) and every project route called by workspace members who aren't on the project (403/404).
+- **Tenant isolation** (`modules/tracking/tests/access/test_tenant_isolation.py`): walks the URL resolver for every
+  `tracking/` and `sales/` route and every core workspace-scoped route, and calls each method as a user of another
+  workspace (always 404); skipped routes are listed with their reason. It also checks that every module and platform
+  table has a non-null `workspace` and the scoped manager (with the listed exceptions).
 - **Concurrency** (`modules/tracking/tasks/tests/test_concurrency.py`): real threads; parallel creates get unique keys,
   simultaneous edits at the same version yield exactly one success.
 
@@ -358,6 +367,32 @@ outbox, notifications, search and trash skip it. `core.modules.services.enabled_
 Switching a module publishes the workspace-wide realtime event `core.module.changed` (`{module, enabled}`), and the
 expired-trash purge leaves a disabled module's kinds alone (`TrashKind.purge_expired(..., skip_workspaces=...)`).
 
+## Workspace scoping
+
+Every module and platform table has a non-null `workspace` foreign key, even when a parent implies it (a child row
+without one takes its parent's on save and `bulk_create`: `workspace_parent = "project"`). Models subclass
+`core.common.models.WorkspaceScopedModel` (or `WorkspaceScopedSoftDeleteModel`), whose default manager answers only
+when it knows the workspace (`core/common/scoping.py`):
+
+- `Model.objects.for_workspace(ws)` names it;
+- inside a request, `WorkspaceScopeMiddleware` starts strict and `ScopedView` scopes the rest of the request to the
+  workspace of the scope it resolved (the generic comment and attachment views do the same with their target), so
+  `Model.objects.filter(...)` is filtered to it: another workspace's id simply isn't found;
+- `Model.objects.unscoped()` is the explicit escape hatch: scope resolution itself, views that span the user's
+  workspaces (`cross_workspace = True`: auth, inbox, global search, my tasks/recents/timer, channels, webhooks),
+  management commands (`manage.py` runs them unscoped), Celery tasks (a prerun signal), the background threads, the
+  post-migrate permission sync, and tests (`WORKSPACE_SCOPE_DEFAULT = "unscoped"` in the test settings).
+
+Anything else raises `UnscopedQueryError`. Writes (`create`, `bulk_create`) name or derive their workspace and skip
+the check. Global tables (users, the permission catalogue, auth tokens, channel connections, notification preferences,
+the webhook inbox) have no workspace; `ChannelDelivery` (nullable workspace), `RealtimeEvent` (a stream log read
+outside requests) and `RunningTimer` (one per user across workspaces) have a workspace but a plain manager.
+
+Core tables never reference module tables: audit rows, notifications, realtime events and presence sessions carry
+generic `scope_id` / `subject_id` hints (tracking: the project and the task) instead of foreign keys, and a purge
+deletes the generic rows of the purged targets (`core.collab.services.delete_target_records`). Notifications store
+the registered event-type key in `type` and the display kind (`assigned`, `mention`, …) in `kind`.
+
 ## Teams and data scope
 
 Teams (`core/teams`) are flat groups of workspace members (`Team`, `TeamMember` with `is_lead`); a user may be in
@@ -394,13 +429,17 @@ def leads_for(user, workspace):
 workspace; no grant, a non-member or a disabled module gives `none()`. It always filters by workspace. A non-scopable
 code or a model without an owner field raises. Single-record checks still use `can()`.
 
+Role writes can't hand out a wider data scope than the actor's own for that code: setting or changing a scope beyond
+it answers 403 `data_scope_exceeds_own` (`details: {code, dataScope, yours}`). Owners are exempt.
+
 ## Layout
 
 ```
 config/            settings (base, dev, test, prod), URLs, Celery app
 core/              the platform core (docs/platform-architecture.md); never imports modules/
-  common/          base models (UUID, timestamps, soft delete), errors, pagination, rich-text sanitising,
-                   fractional index, throttles, health, the target registry, seed_demo (+ seeder registry)
+  common/          base models (UUID, timestamps, soft delete, WorkspaceScopedModel), workspace scoping, errors,
+                   pagination, rich-text sanitising, fractional index, throttles, health, the target registry,
+                   seed_demo (+ seeder registry)
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
   access/          permission catalogue (assembled from the modules), roles, can(), visible_to(), DRF permission class
   teams/           teams and team members (data scope `team`)
@@ -425,10 +464,14 @@ modules/
     imports/       board 40: CSV / Jira / Trello / Asana imports
     integrations/  board 37: GitHub and GitLab
     timetracking/  board 39: time entries, timers, timesheet
-  sales/           empty skeleton (Stage 3)
+  sales/           skeleton (Stage 3): the module definition and a health route; how to add a module:
+                   ../docs/platform/adding-a-module.md
 ```
 
-Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so migrations and table names are unchanged.
+Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so table names are unchanged. Stage 5 replaced
+the migration history with one fresh `0001_initial` per app (`access` and `planning` also have a `0002_initial`, where
+Django splits a real foreign-key cycle). There are no data migrations: the permission catalogue is synced after every
+`migrate`, and default roles are seeded when a workspace is created or a module is enabled.
 `lint-imports` (import-linter, configured in `pyproject.toml`) enforces that `core` never imports `modules` and that
 modules never import each other; there are no exceptions for production code (see "Platform services").
 

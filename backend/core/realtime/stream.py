@@ -82,7 +82,7 @@ def replay(ctx: StreamContext) -> tuple[list[dict[str, Any]], str | None]:
     rows = list(
         RealtimeEvent.objects.filter(workspace_id=ctx.workspace_id, id__gt=cursor)
         .exclude(type__in=list(VOLATILE_TYPES))
-        .filter(Q(user_id=ctx.user_id) | Q(user__isnull=True, project_id__in=list(ctx.project_ids)))
+        .filter(Q(user_id=ctx.user_id) | Q(user__isnull=True, scope_id__in=list(ctx.project_ids)))
         .order_by("id")[: limit + 1]
     )
     if len(rows) > limit:

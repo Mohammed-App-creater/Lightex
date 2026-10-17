@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from core.access.permissions import MEMBER, ScopedView
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_values
+from core.common.schema import page_of as page_shape
 from core.workspaces.views import WorkspaceScopedView
 from modules.tracking.projects.models import ProjectMember
 from modules.tracking.projects.services import record_recent
@@ -126,7 +127,7 @@ class TaskDetailView(ScopedView):
 
     @extend_schema(tags=["tasks"], responses={200: TaskDetailOut})
     def get(self, request, task_ref):
-        record_recent(request.user, "task", self.task.pk)
+        record_recent(request.user, "task", self.task.pk, self.task.workspace_id)
         return Response(detail(self.task, request.user))
 
     @extend_schema(tags=["tasks"], request=TaskWriteIn, responses={200: TaskOut})
@@ -150,9 +151,11 @@ class WorkspaceTaskByKeyView(ScopedView):
         self.task = selectors.task_by_key(self.request.user, self.kwargs["key"], workspace=ws)
         return self.task.project
 
-    @extend_schema(tags=["tasks"], responses={200: TaskDetailOut})
+    @extend_schema(
+        tags=["tasks"], operation_id="tracking_workspaces_task_by_key_retrieve", responses={200: TaskDetailOut}
+    )
     def get(self, request, slug, key):
-        record_recent(request.user, "task", self.task.pk)
+        record_recent(request.user, "task", self.task.pk, self.task.workspace_id)
         return Response(detail(self.task, request.user))
 
 
@@ -255,10 +258,17 @@ class TaskActivityView(TaskScopedView):
         return Response([audit_selectors.activity_data(r) for r in audit_selectors.task_activity(self.task)[:200]])
 
 
+ActivityPage = page_shape("ActivityPage", ActivityOut)
+
+
 class ProjectActivityView(ProjectScopedView):
     required = {"GET": "tracking.project.view"}
 
-    @extend_schema(tags=["activity"], parameters=[OpenApiParameter("cursor", str), OpenApiParameter("limit", int)])
+    @extend_schema(
+        tags=["activity"],
+        parameters=[OpenApiParameter("cursor", str), OpenApiParameter("limit", int)],
+        responses=ActivityPage,
+    )
     def get(self, request, project_id):
         return Response(
             paginate_queryset(
@@ -275,7 +285,11 @@ class ProjectActivityView(ProjectScopedView):
 class WorkspaceActivityView(WorkspaceScopedView):
     required = {"GET": "core.workspace.view"}
 
-    @extend_schema(tags=["activity"], parameters=[OpenApiParameter("cursor", str), OpenApiParameter("limit", int)])
+    @extend_schema(
+        tags=["activity"],
+        parameters=[OpenApiParameter("cursor", str), OpenApiParameter("limit", int)],
+        responses=ActivityPage,
+    )
     def get(self, request, slug):
         mine = ProjectMember.objects.filter(
             user=request.user, project__workspace=self.scope, project__deleted_at__isnull=True
@@ -326,6 +340,9 @@ class WorkspaceTasksView(WorkspaceScopedView):
 
 
 class MyTasksView(APIView):
+    #: Spans the user's workspaces: unscoped (core/common/scoping.py); filtered by the user's memberships.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -339,6 +356,9 @@ class MyTasksView(APIView):
 
 
 class RecentsView(APIView):
+    #: Spans the user's workspaces: unscoped (core/common/scoping.py); filtered by the user's memberships.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(

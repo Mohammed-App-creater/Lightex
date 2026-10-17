@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-from core.common.models import SoftDeleteModel
+from core.common.models import WorkspaceScopedSoftDeleteModel
 
 
-class Widget(SoftDeleteModel):
+class Widget(WorkspaceScopedSoftDeleteModel):
     #: The owner field `core.access.visible_to()` applies data scope to.
     data_scope_owner_field = "owner"
 

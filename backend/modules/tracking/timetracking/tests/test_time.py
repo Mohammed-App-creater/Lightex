@@ -60,7 +60,7 @@ def test_log_list_and_logged_minutes(owner, project, task):
     assert Task.objects.get(pk=task.pk).version == 1  # no version bump
     row = AuditLog.objects.filter(action="tracking.task.time_logged").earliest("created_at")
     assert row.data == {"minutes": 90, "date": TODAY, "source": "manual"}
-    assert row.task_id == task.id
+    assert row.subject_id == task.id
     assert row.target == task.title
 
 

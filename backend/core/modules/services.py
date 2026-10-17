@@ -66,7 +66,7 @@ def _enabled_rows(workspace: Any) -> frozenset[str]:
     if cache is not None and wid in cache:
         return cache[wid]
     keys = frozenset(
-        WorkspaceModule.objects.filter(workspace_id=wid, enabled=True).values_list("module_key", flat=True)
+        WorkspaceModule.objects.for_workspace(wid).filter(enabled=True).values_list("module_key", flat=True)
     )
     if cache is not None:
         cache[wid] = keys
@@ -84,7 +84,11 @@ def prime(workspaces: Iterable[Any]) -> None:
     if not ids:
         return
     found: dict[str, set[str]] = {i: set() for i in ids}
-    rows = WorkspaceModule.objects.filter(workspace_id__in=ids, enabled=True).values_list("workspace_id", "module_key")
+    rows = (
+        WorkspaceModule.objects.unscoped()  # explicit ids: the workspaces listed for the user
+        .filter(workspace_id__in=ids, enabled=True)
+        .values_list("workspace_id", "module_key")
+    )
     for wid, key in rows:
         found[str(wid)].add(key)
     cache.update({wid: frozenset(keys) for wid, keys in found.items()})

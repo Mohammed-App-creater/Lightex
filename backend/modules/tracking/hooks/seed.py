@@ -62,6 +62,17 @@ ACTIVITY_ACTIONS = {
     "attached": "core.attachment.created",
     "member_added": "tracking.project_member.added",
 }
+# The mock's notification kinds → the registered event types (Notification.type).
+NOTIFICATION_EVENT_TYPES = {
+    "assigned": "tracking.task.assigned",
+    "mention": "core.comment.mentioned",
+    "status": "tracking.task.status_changed",
+    "comment": "core.comment.created",
+    "due": "tracking.task.due_soon",
+    "sprint": "tracking.sprint.started",
+    "access": "tracking.project.access_requested",
+    "import": "tracking.import.finished",
+}
 
 
 class TrackingSeeder(Seeder):
@@ -292,9 +303,19 @@ class TrackingSeeder(Seeder):
                 target_type="tracking.task" if about else "tracking.project",
                 target_id=about.pk if about else project.pk,
                 title=about.title if about else project.name,
-                project=project,
-                task=about,
-                type=n["type"],
+                scope_id=project.pk,
+                subject_id=about.pk if about else None,
+                refs={
+                    k: v
+                    for k, v in {
+                        "projectName": project.name,
+                        "taskKey": about.key if about else None,
+                        "taskTitle": about.title if about else None,
+                    }.items()
+                    if v
+                },
+                type=NOTIFICATION_EVENT_TYPES.get(n["type"], f"tracking.{n['type']}"),
+                kind=n["type"],
                 actor=self.users.get(n["actorId"]),
                 payload=n["payload"],
                 created_at=self.moment(n["createdAt"]),
@@ -307,8 +328,8 @@ class TrackingSeeder(Seeder):
             action = ACTIVITY_ACTIONS.get(a["verb"], "tracking.task.updated")
             AuditLog.objects.create(
                 workspace=project.workspace,
-                project=project,
-                task=subject,
+                scope_id=project.pk,
+                subject_id=subject.pk if subject else None,
                 actor=actor,
                 actor_name=actor.name if actor else "",
                 action=action,

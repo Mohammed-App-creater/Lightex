@@ -69,6 +69,9 @@ class TaskTimerView(TaskScopedView):
 
 
 class MyTimerView(APIView):
+    #: The timer is per user across workspaces: unscoped (core/common/scoping.py).
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["time"], responses={200: TimerStateOut})
@@ -78,6 +81,9 @@ class MyTimerView(APIView):
 
 class MyTimerStopView(APIView):
     """Needs `time.log` on the timer's project (checked by the service, which also discards stale timers)."""
+
+    #: The timer is per user across workspaces: unscoped (core/common/scoping.py).
+    cross_workspace = True
 
     permission_classes = [IsAuthenticated]
 

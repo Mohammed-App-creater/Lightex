@@ -4,6 +4,9 @@ from django.test import override_settings
 
 from core.accounts.models import User
 from core.common.management.commands.seed_demo import DEMO_PASSWORD
+from core.modules.models import WorkspaceModule
+from core.modules.services import enabled_modules
+from core.teams.models import Team, TeamMember
 from core.workspaces.models import Workspace
 from modules.tracking.planning.models import Sprint
 from modules.tracking.projects.models import Project
@@ -32,28 +35,51 @@ def test_seed_matches_the_mock_data(capsys):
     for task in Task.objects.all()[:20]:
         last = TaskStatusHistory.objects.filter(task=task).order_by("at", "created_at").last()
         assert last.to_status_id == task.status_id
-    with pytest.raises(CommandError):
-        call_command("seed_demo")  # already there
+    counts = (User.objects.count(), Task.objects.count(), Team.objects.count(), WorkspaceModule.objects.count())
+    call_command("seed_demo")  # idempotent: already there, nothing to do
+    assert "nothing to do" in capsys.readouterr().out
+    assert (User.objects.count(), Task.objects.count(), Team.objects.count(), WorkspaceModule.objects.count()) == counts
     call_command("seed_demo", "--flush")
     assert Workspace.objects.count() == 2
+    assert Team.objects.count() == 3
+
+
+@override_settings(DEBUG=True)
+def test_seed_has_teams_with_leads_and_sales_in_one_workspace():
+    call_command("seed_demo")
+    platform = Workspace.objects.get(slug="platform")
+    teams = {t.name: t for t in Team.objects.filter(workspace=platform)}
+    assert sorted(teams) == ["Backend", "Frontend", "Quality"]
+    for team in teams.values():
+        assert team.memberships.filter(is_lead=True).count() == 1
+        assert team.memberships.count() >= 2
+    sam = User.objects.get(email="sam@team.dev")
+    assert TeamMember.objects.filter(user=sam).count() == 2  # in two teams (data scope `team`)
+    assert enabled_modules(platform) == ["core", "tracking", "sales"]
+    assert enabled_modules(Workspace.objects.get(slug="design-guild")) == ["core", "tracking"]
+    # The sales grants reached the seeded roles of the workspace that has sales on.
+    from core.common.testing import client_for
+
+    res = client_for(User.objects.get(email="alex@team.dev")).get("/api/v1/sales/workspaces/platform/health")
+    assert res.status_code == 200
 
 
 @override_settings(DEBUG=True)
 def test_seeded_roles_cover_every_default_role():
     call_command("seed_demo")
+    from core.common.management.commands.seed_demo import DEMO_ACCOUNTS
     from core.common.testing import client_for
 
-    expected = {
-        "alex@team.dev": ("Owner", "Project Admin"),
-        "jordan@team.dev": ("Admin", "Manager"),
-        "sam@team.dev": ("Member", "Member"),
-        "taylor@team.dev": ("Member", "Viewer"),
-    }
-    for email, (ws_role, project_role) in expected.items():
+    for email, ws_role, project_role in DEMO_ACCOUNTS:
         user = User.objects.get(email=email)
+        assert user.check_password(DEMO_PASSWORD)
         member = user.workspace_memberships.get(workspace__slug="platform")
         assert member.role.name == ws_role
-        assert user.project_memberships.get(project__key="PRJ").role.name == project_role
+        if project_role != "not a member":
+            assert user.project_memberships.get(project__key="PRJ").role.name == project_role
+    # One account per default role: every workspace role and every project role is covered.
+    assert {a[1] for a in DEMO_ACCOUNTS} == {"Owner", "Admin", "Member"}
+    assert {a[2] for a in DEMO_ACCOUNTS} >= {"Project Admin", "Manager", "Member", "Viewer"}
     casey = User.objects.get(email="casey@team.dev")
     res = client_for(casey).get("/api/v1/tracking/workspaces/platform/projects/PRJ")
     assert res.status_code == 403

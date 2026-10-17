@@ -21,7 +21,8 @@ class TargetResolver:
     """The resolver protocol. Required: `exists`, `can_view`, `can_comment`, `can_attach`, `describe`, `workspace_of`.
 
     `describe(id)` returns at least `{"title": str, "link": str}`. Optional hint keys that core copies onto its own
-    rows when present: `key` (a human key such as `PRJ-42`), `projectId` and `taskId`.
+    rows when present: `key` (a human key such as `PRJ-42`), `projectId` (the access scope), `projectName`, `taskId`
+    (the subject), `taskKey` and `taskTitle`.
     """
 
     #: Shown when a target is missing or invisible.

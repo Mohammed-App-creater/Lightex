@@ -8,7 +8,7 @@
 from django.conf import settings
 from django.db import models
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 STATES = [("viewing", "Viewing"), ("editing", "Editing")]
 
@@ -16,7 +16,8 @@ STATES = [("viewing", "Viewing"), ("editing", "Editing")]
 class RealtimeEvent(models.Model):
     id = models.BigAutoField(primary_key=True)
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+", db_index=False)
-    project = models.ForeignKey("projects.Project", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    #: The module access scope the event is for (tracking: the project; envelope `projectId`). No foreign key.
+    scope_id = models.UUIDField(null=True, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="+"
     )
@@ -32,11 +33,12 @@ class RealtimeEvent(models.Model):
         ]
 
 
-class PresenceSession(BaseModel):
+class PresenceSession(WorkspaceScopedModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
     session_id = models.UUIDField()
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")
+    #: The module access scope whose roster the session is part of (tracking: the project). No foreign key.
+    scope_id = models.UUIDField()
     location_kind = models.CharField(max_length=10)  # a registered presence location kind
     location_id = models.UUIDField()
     #: A personal dashboard: stored, never broadcast or listed.
@@ -50,7 +52,7 @@ class PresenceSession(BaseModel):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "session_id"], name="presence_user_session_unique")]
         indexes = [
-            models.Index(fields=["project", "expires_at"], name="presence_project_expiry"),
+            models.Index(fields=["scope_id", "expires_at"], name="presence_scope_expiry"),
             models.Index(fields=["location_kind", "location_id"], name="presence_location"),
             models.Index(fields=["expires_at"], name="presence_expiry"),
         ]

@@ -25,6 +25,8 @@ from django.db import connection, transaction
 from django.db.models import F, Min, Q
 from django.utils import timezone
 
+from core.common.scoping import run_unscoped
+
 from . import render
 from .models import ChannelDelivery, PushSubscription, SmsConnection, TelegramConnection
 from .providers import PushTarget, SendResult, available, get_push, get_sms, get_telegram
@@ -79,7 +81,7 @@ def submit(ids: list[Any]) -> None:
             send_delivery_task.delay(str(delivery_id))
         else:  # pragma: no cover - thread mode only
             sweeper.start()
-            _executor().submit(_run_in_thread, delivery_id)
+            _executor().submit(run_unscoped, _run_in_thread, delivery_id)
 
 
 def schedule(at: dt.datetime, delivery_id: Any = None) -> None:
@@ -412,7 +414,9 @@ class Sweeper:
                 return
             self.stopping = False
             self.next_due = timezone.now()  # one sweep at process start picks up orphaned rows
-            self.thread = threading.Thread(target=self._loop, name="lightex-channels-sweeper", daemon=True)
+            self.thread = threading.Thread(
+                target=run_unscoped, args=(self._loop,), name="lightex-channels-sweeper", daemon=True
+            )
             self.thread.start()
 
     def stop(self) -> None:
@@ -450,7 +454,7 @@ class Sweeper:
                 if ready:
                     if mode() == "thread":  # pragma: no cover - thread mode only
                         for delivery_id in ready:
-                            _executor().submit(_run_in_thread, delivery_id)
+                            _executor().submit(run_unscoped, _run_in_thread, delivery_id)
                     else:
                         for delivery_id in ready:
                             send_delivery(delivery_id)

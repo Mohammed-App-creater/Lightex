@@ -92,7 +92,7 @@ def test_the_sample_imports_44_tasks(world):
     hits = client.get(f"/api/v1/tracking/projects/{world.project.id}/tasks", {"q": "cheatsheet"}).json()["data"]
     assert sorted(t["key"] for t in hits) == ["PRJ-68", "PRJ-96"]  # row 10 and its follow-up (row 40)
     # Nothing per task: no assignment notifications, no emails.
-    assert not Notification.objects.exclude(type="import").exists()
+    assert not Notification.objects.exclude(kind="import").exists()
     assert mail.outbox == []
 
 
@@ -135,10 +135,10 @@ def test_audit_activity_and_notification(world):
     audit = client.get("/api/v1/workspaces/platform/audit", {"filter[action]": "created", "limit": 100}).json()
     assert any(r["action"] == "tracking.task.imported" and r["source"] == "import" for r in audit["data"])
     # The notification: one system row to the creator.
-    notes = list(Notification.objects.filter(type="import"))
+    notes = list(Notification.objects.filter(kind="import"))
     assert len(notes) == 1
     note = notes[0]
-    assert note.recipient == world.alex and note.actor_id is None and note.task_id is None
+    assert note.recipient == world.alex and note.actor_id is None and note.subject_id is None
     assert note.payload == {
         "importId": job["id"], "projectKey": "PRJ", "imported": 44, "skipped": 4, "importStatus": "completed"
     }  # fmt: skip
@@ -399,7 +399,7 @@ def test_crash_after_a_committed_batch_then_retry_resumes_without_duplicates(wor
     }
     assert body["progress"]["processed"] == 10 and body["result"]["imported"] == 9
     assert Task.objects.filter(project=world.project, number__gt=60).count() == 9
-    assert Notification.objects.get(type="import").payload["importStatus"] == "failed"
+    assert Notification.objects.get(kind="import").payload["importStatus"] == "failed"
     # Retry: resumes at the cursor with the same numbers; nothing is inserted twice.
     body = start(client, job).json()
     assert body["status"] == "completed" and body["error"] is None
@@ -545,7 +545,7 @@ def test_cancel_a_queued_job(world, monkeypatch):
     body = world.client().post(f"/api/v1/tracking/imports/{rec.pk}/cancel").json()
     assert body["status"] == "canceled" and body["result"]["imported"] == 0
     assert runner.take_lease(rec.pk) is None  # the runner exits on its lease check
-    assert not Notification.objects.filter(type="import").exists()
+    assert not Notification.objects.filter(kind="import").exists()
 
 
 def test_cancel_while_running_keeps_imported_tasks_and_links(world, settings, monkeypatch):
@@ -568,7 +568,7 @@ def test_cancel_while_running_keeps_imported_tasks_and_links(world, settings, mo
     assert body["progress"]["processed"] == 3
     assert sorted(Task.objects.filter(project=world.project).values_list("title", flat=True)) == ["A", "B", "C"]
     assert set(TaskDependency.objects.values_list("blocker__title", "blocked__title")) == {("A", "B"), ("B", "C")}
-    assert Notification.objects.get(type="import").payload["importStatus"] == "canceled"
+    assert Notification.objects.get(kind="import").payload["importStatus"] == "canceled"
     assert AuditLog.objects.get(action="tracking.project.import_completed").data["status"] == "canceled"
     res = client.post(f"/api/v1/tracking/imports/{job['id']}/start")
     assert res.status_code == 409 and res.json()["message"] == "This import has finished."

@@ -46,6 +46,9 @@ def _redirect(url: str) -> HttpResponseRedirect:
 
 
 class AnonymousView(APIView):
+    #: Anonymous or provider-facing: unscoped (core/common/scoping.py); the record is found by token or signature.
+    cross_workspace = True
+
     authentication_classes: list = []
     permission_classes = [AllowAny]
 

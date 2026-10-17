@@ -24,6 +24,7 @@ from core.collab.services import clean_file_name, extension
 from core.collab.storage import expires_at, get_storage
 from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.common.middleware import current_request_id
+from core.common.scoping import run_unscoped
 from core.common.utils import iso
 from modules.tracking.planning.models import Epic, Sprint
 from modules.tracking.projects.models import CustomField, Label, Project, ProjectMember
@@ -555,7 +556,7 @@ def dispatch(job_id: Any) -> None:
 
         run_import.delay(str(job_id))
     else:
-        threading.Thread(target=runner.run_import_safely, args=(str(job_id),), daemon=True).start()
+        threading.Thread(target=run_unscoped, args=(runner.run_import_safely, str(job_id)), daemon=True).start()
 
 
 def is_stale(job: ImportJob, now: dt.datetime | None = None) -> bool:

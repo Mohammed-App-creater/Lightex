@@ -21,6 +21,7 @@ from django.utils import timezone
 
 from core.audit.models import AuditLog
 from core.audit.services import record
+from core.common.scoping import run_unscoped
 
 from . import matching, processor
 from .models import Integration, Repository, SyncRun, WebhookDelivery
@@ -72,7 +73,9 @@ def _wake_thread() -> None:
     global _thread
     with _lock:
         if _thread is None or not _thread.is_alive():
-            _thread = threading.Thread(target=_loop, name="lightex-integrations-drain", daemon=True)
+            _thread = threading.Thread(
+                target=run_unscoped, args=(_loop,), name="lightex-integrations-drain", daemon=True
+            )
             _thread.start()
     _wake.set()
 

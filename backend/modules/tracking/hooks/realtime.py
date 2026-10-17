@@ -87,10 +87,10 @@ def _task_fields(row: Any) -> list[str]:
     labels = [c.get("field") for c in row.changes or [] if isinstance(c, dict)]
     fields = [TASK_FIELDS[label] for label in labels if label in TASK_FIELDS]
     unknown = [label for label in labels if label and label not in TASK_FIELDS]
-    if unknown and row.project_id:
+    if unknown and row.scope_id:
         from modules.tracking.projects.models import CustomField
 
-        ids = dict(CustomField.objects.filter(project_id=row.project_id, name__in=unknown).values_list("name", "pk"))
+        ids = dict(CustomField.objects.filter(project_id=row.scope_id, name__in=unknown).values_list("name", "pk"))
         fields += [f"customFields.{ids[label]}" for label in unknown if label in ids]
     return list(dict.fromkeys(fields))
 
@@ -101,30 +101,30 @@ def publish_for_audit(row: Any, task: Any = None) -> bool:
     action, entity = row.action, row.target_type.partition(".")[2]
     if row.module != "tracking":
         return False
-    common = {"workspace": row.workspace_id, "project": row.project_id, "actor": row.actor_id}
+    common = {"workspace": row.workspace_id, "project": row.scope_id, "actor": row.actor_id}
     if (
         entity == "task"
-        and row.task_id
+        and row.subject_id
         and (action in TASK_OPS or action in TASK_ACTION_FIELDS or action == "tracking.task.updated")
     ):
         op = TASK_OPS.get(action, "updated")
         version = None if op == "deleted" or action in UNVERSIONED else getattr(task, "version", None)
-        data = {"taskId": str(row.task_id), "key": row.task_key or row.entity_key, "op": op, "version": version}
+        data = {"taskId": str(row.subject_id), "key": row.task_key or row.entity_key, "op": op, "version": version}
         publish(
             "tracking.task.changed", **common, data={**data, "fields": [] if op != "updated" else _task_fields(row)}
         )
-    elif entity in AREAS and row.project_id and not action.endswith(".purged"):
+    elif entity in AREAS and row.scope_id and not action.endswith(".purged"):
         publish("tracking.project.changed", **common, data={"areas": [AREAS[entity]]})
-    elif action in SETTINGS_ACTIONS and row.project_id:
+    elif action in SETTINGS_ACTIONS and row.scope_id:
         publish("tracking.project.changed", **common, data={"areas": ["settings"]})
-    elif action in CUSTOM_FIELD_ACTIONS and row.project_id:
+    elif action in CUSTOM_FIELD_ACTIONS and row.scope_id:
         publish("tracking.project.changed", **common, data={"areas": ["custom_fields"]})
-    elif action == "tracking.project.import_completed" and row.project_id:
+    elif action == "tracking.project.import_completed" and row.scope_id:
         publish("tracking.tasks.bulk_changed", **common, data={"taskIds": None, "op": "created"})
-    elif action == "tracking.project.created" and row.project_id and row.actor_id:
-        publish_access(row.workspace_id, row.actor_id, row.project_id, actor=row.actor_id)
+    elif action == "tracking.project.created" and row.scope_id and row.actor_id:
+        publish_access(row.workspace_id, row.actor_id, row.scope_id, actor=row.actor_id)
     elif action in MEMBERSHIP_ACTIONS and row.target_id:
-        publish_access(row.workspace_id, row.target_id, row.project_id, actor=row.actor_id)
+        publish_access(row.workspace_id, row.target_id, row.scope_id, actor=row.actor_id)
     else:
         return False
     return True

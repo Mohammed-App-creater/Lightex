@@ -43,12 +43,12 @@ TASK_ONLY = ("tracking.task.imported",)
 
 def activity(project_ids: Any) -> QuerySet[AuditLog]:
     actions = [a for a in ACTIVITY_VERBS if a not in TASK_ONLY]
-    return AuditLog.objects.filter(project_id__in=project_ids, action__in=actions).exclude(_DEV_AUDIT_ONLY)
+    return AuditLog.objects.filter(scope_id__in=project_ids, action__in=actions).exclude(_DEV_AUDIT_ONLY)
 
 
 def task_activity(task: Any) -> QuerySet[AuditLog]:
     return (
-        AuditLog.objects.filter(task=task, action__in=list(ACTIVITY_VERBS))
+        AuditLog.objects.filter(subject_id=getattr(task, "pk", task), action__in=list(ACTIVITY_VERBS))
         .exclude(_DEV_AUDIT_ONLY)
         .order_by("-created_at", "-id")
     )
@@ -60,8 +60,8 @@ def activity_data(row: AuditLog) -> dict[str, Any]:
         "id": str(row.pk),
         "actorId": str(row.actor_id) if row.actor_id else None,
         "verb": ACTIVITY_VERBS.get(row.action, "updated"),
-        "projectId": str(row.project_id) if row.project_id else None,
-        "taskId": str(row.task_id) if row.task_id else None,
+        "projectId": str(row.scope_id) if row.scope_id else None,
+        "taskId": str(row.subject_id) if row.subject_id else None,
         "taskKey": row.task_key,
         "taskTitle": row.task_title,
         "data": data,

@@ -21,7 +21,7 @@ from core.realtime.services import publish_inbox
 from .handlers import preferences_for
 from .models import CHANNELS, Notification
 
-TABS = {"all": Q(), "mentions": Q(type="mention"), "assigned": Q(type="assigned")}
+TABS = {"all": Q(), "mentions": Q(kind="mention"), "assigned": Q(kind="assigned")}
 
 
 def inbox(user, workspace_id=None):
@@ -30,14 +30,14 @@ def inbox(user, workspace_id=None):
     from core.workspaces.models import WorkspaceMember
 
     workspaces = WorkspaceMember.objects.filter(user=user, status="active").values("workspace_id")
-    visible = Q(project_id__isnull=True, workspace_id__in=workspaces)
+    visible = Q(scope_id__isnull=True, workspace_id__in=workspaces)
     provider = scopes.provider(PROJECT)
     if provider is not None:
-        visible |= Q(project_id__in=provider.member_scope_ids(user))
+        visible |= Q(scope_id__in=provider.member_scope_ids(user))
     qs = Notification.objects.filter(recipient=user, in_app=True).filter(visible)
     if workspace_id:
         qs = qs.filter(workspace_id=workspace_id) if _uuid(workspace_id) else qs.none()
-    return qs.select_related("project", "task")
+    return qs
 
 
 def _uuid(value) -> bool:
@@ -53,13 +53,14 @@ def _uuid(value) -> bool:
 def notification_data(n: Notification) -> dict:
     return {
         "id": str(n.pk),
-        "type": n.type,
+        "type": n.kind,
+        "eventType": n.type,
         "actorId": str(n.actor_id) if n.actor_id else None,
-        "projectId": str(n.project_id) if n.project_id else None,
-        "projectName": n.project.name if n.project is not None else None,
-        "taskId": str(n.task_id) if n.task_id else None,
-        "taskKey": n.task.key if n.task is not None else None,
-        "taskTitle": n.task.title if n.task is not None else None,
+        "projectId": str(n.scope_id) if n.scope_id else None,
+        "projectName": (n.refs or {}).get("projectName"),
+        "taskId": str(n.subject_id) if n.subject_id else None,
+        "taskKey": (n.refs or {}).get("taskKey"),
+        "taskTitle": (n.refs or {}).get("taskTitle"),
         "payload": n.payload,
         "createdAt": iso(n.created_at),
         "readAt": iso(n.read_at),
@@ -74,9 +75,10 @@ NotificationOut = inline_serializer(
     "Notification",
     {
         "id": serializers.UUIDField(),
-        "type": serializers.ChoiceField(
-            choices=["assigned", "mention", "status", "comment", "due", "sprint", "access", "import"]
+        "type": serializers.CharField(
+            help_text="The display kind chosen by the notifying module (assigned, mention, …)"
         ),
+        "eventType": serializers.CharField(help_text="The registered event-type key, e.g. tracking.task.assigned"),
         "actorId": serializers.UUIDField(allow_null=True),
         "projectId": serializers.UUIDField(allow_null=True),
         "projectName": serializers.CharField(allow_null=True),
@@ -170,6 +172,9 @@ def _quiet_fields(value) -> dict:
 
 
 class NotificationListView(APIView):
+    #: The inbox spans the user's workspaces: unscoped (core/common/scoping.py); `inbox()` filters by membership.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -208,14 +213,17 @@ class NotificationListView(APIView):
         )
         counts = base.aggregate(
             all=Count("id"),
-            mentions=Count("id", filter=Q(type="mention")),
-            assigned=Count("id", filter=Q(type="assigned")),
+            mentions=Count("id", filter=Q(kind="mention")),
+            assigned=Count("id", filter=Q(kind="assigned")),
             unread=Count("id", filter=Q(read_at__isnull=True)),
         )
         return Response({**page, "counts": counts})
 
 
 class UnreadCountView(APIView):
+    #: The inbox spans the user's workspaces: unscoped (core/common/scoping.py); `inbox()` filters by membership.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -229,6 +237,9 @@ class UnreadCountView(APIView):
 
 
 class MarkReadView(APIView):
+    #: The inbox spans the user's workspaces: unscoped (core/common/scoping.py); `inbox()` filters by membership.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -247,6 +258,9 @@ class MarkReadView(APIView):
 
 
 class ReadAllView(APIView):
+    #: The inbox spans the user's workspaces: unscoped (core/common/scoping.py); `inbox()` filters by membership.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -279,6 +293,9 @@ class ReadAllView(APIView):
 
 
 class PreferencesView(APIView):
+    #: The inbox spans the user's workspaces: unscoped (core/common/scoping.py); `inbox()` filters by membership.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["notifications"], responses={200: PrefsSchema})

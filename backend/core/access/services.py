@@ -256,9 +256,14 @@ def _comply_data_scopes() -> None:
     default scope (the module's default grant for a system role, else `own`) where a scopable code has none."""
     from .models import RolePermission
 
-    RolePermission.objects.filter(permission__scopable=False, data_scope__isnull=False).update(data_scope=None)
-    missing = RolePermission.objects.filter(permission__scopable=True, data_scope__isnull=True).select_related(
-        "role", "permission"
+    # Every workspace's roles: the catalogue is global.
+    RolePermission.objects.unscoped().filter(permission__scopable=False, data_scope__isnull=False).update(
+        data_scope=None
+    )
+    missing = (
+        RolePermission.objects.unscoped()
+        .filter(permission__scopable=True, data_scope__isnull=True)
+        .select_related("role", "permission")
     )
     for rp in missing:
         rdef = catalogue.role_def(rp.role.system_key) if rp.role.is_system else None

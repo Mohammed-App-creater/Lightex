@@ -13,11 +13,12 @@ from typing import Any
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from core.accounts.serializers import user_brief
 from core.common.exceptions import forbidden, invalid, not_found
-from core.common.targets import get_resolver, parse_id, target_types
+from core.common.targets import get_resolver, module_of, parse_id, target_types
 from core.common.utils import iso
 
 NONE, OWN, ALL = "none", "own", "all"
@@ -96,8 +97,24 @@ def disabled_workspaces(kind: TrashKind) -> Any:
     module = _module(kind)
     if always_on(module):
         return ()
-    on = WorkspaceModule.objects.filter(module_key=module, enabled=True).values("workspace_id")
+    on = WorkspaceModule.objects.unscoped().filter(module_key=module, enabled=True).values("workspace_id")
     return Workspace.all_objects.exclude(pk__in=on).values("pk")
+
+
+def disabled_targets() -> Q:
+    """Generic rows (comments, attachments) whose target belongs to a module that is off in the row's workspace.
+    Purges leave them alone: disabling a module never deletes its data (platform architecture §2.5)."""
+    from core.modules.models import WorkspaceModule
+    from core.modules.services import always_on
+
+    q = Q(pk__in=[])
+    for key in target_types():
+        module = module_of(key)
+        if always_on(module):
+            continue
+        on = WorkspaceModule.objects.unscoped().filter(module_key=module, enabled=True).values("workspace_id")
+        q |= Q(target_type=key) & ~Q(workspace_id__in=on)
+    return q
 
 
 def kind_for(key: Any) -> TrashKind | None:
@@ -240,17 +257,22 @@ def purge_expired(now: dt.datetime | None = None) -> dict[str, int]:
     with transaction.atomic():
         for k in kinds():
             counts.update(k.purge_expired(cutoff, now, skip_workspaces=disabled_workspaces(k)))
-        old_files = Attachment.all_objects.filter(deleted_at__lt=cutoff)
+        frozen = disabled_targets()
+        old_files = Attachment.all_objects.unscoped().filter(deleted_at__lt=cutoff).exclude(frozen)
         delete_files(old_files)
         counts["attachments"] = old_files.delete()[0]
-        stale_uploads = Attachment.all_objects.filter(status="pending", created_at__lt=now - dt.timedelta(days=1))
+        stale_uploads = (
+            Attachment.all_objects.unscoped()
+            .filter(status="pending", created_at__lt=now - dt.timedelta(days=1))
+            .exclude(frozen)
+        )
         delete_files(stale_uploads)
         counts["uploads"] = stale_uploads.delete()[0]
         counts["workspaces"] = 0
         for ws in Workspace.all_objects.filter(deleted_at__lt=cutoff):
             purge_workspace(ws)
             counts["workspaces"] += 1
-        counts["events"] = DomainEvent.objects.filter(processed_at__lt=cutoff).delete()[0]
+        counts["events"] = DomainEvent.objects.unscoped().filter(processed_at__lt=cutoff).delete()[0]
         from core.channels.services import purge_channels
 
         counts.update(purge_channels(now))
@@ -334,7 +356,12 @@ class CommentTrash(TrashKind):
     def purge_expired(self, cutoff: dt.datetime, now: dt.datetime, *, skip_workspaces: Any = ()) -> dict[str, int]:
         from core.collab.models import Comment
 
-        rows = Comment.all_objects.filter(deleted_at__lt=cutoff).exclude(workspace_id__in=skip_workspaces)
+        rows = (
+            Comment.all_objects.unscoped()
+            .filter(deleted_at__lt=cutoff)
+            .exclude(workspace_id__in=skip_workspaces)
+            .exclude(disabled_targets())
+        )
         return {"comments": rows.delete()[0]}
 
 

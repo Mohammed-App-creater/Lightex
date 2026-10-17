@@ -57,7 +57,7 @@ def test_create_select_field_payload_and_audit(api_owner, project, owner):
         ("Preview", "var(--low)", 2),
     ]
     row = AuditLog.objects.get(action="tracking.project.custom_field_created")
-    assert row.project_id == project.id
+    assert row.scope_id == project.id
     assert row.target == "Environment"
     assert [(c["field"], c["after"]) for c in row.changes] == [("Type", "select"), ("Required", True)]
 

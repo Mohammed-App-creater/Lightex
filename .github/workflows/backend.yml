@@ -49,5 +49,5 @@ jobs:
           coverage report --include="core/access/*" --fail-under=95
       - name: OpenAPI schema is current
         run: |
-          python manage.py spectacular --file /tmp/openapi.yaml --validate --settings=config.settings.test
+          python manage.py spectacular --file /tmp/openapi.yaml --validate --fail-on-warn --settings=config.settings.test
           diff -u ../docs/openapi.yaml /tmp/openapi.yaml

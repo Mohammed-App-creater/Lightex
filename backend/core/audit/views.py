@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.db.models import Q
-from drf_spectacular.utils import OpenApiParameter, extend_schema, inline_serializer
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers
 from rest_framework.response import Response
 
@@ -9,6 +9,7 @@ from core.access.permissions import MEMBER, ScopedView
 from core.common.exceptions import invalid
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_value, filter_values
+from core.common.schema import page_of, shape
 from core.common.targets import parse_id
 from core.common.utils import iso
 from core.workspaces.views import WorkspaceScopedView
@@ -34,6 +35,38 @@ ACTION_KINDS = {
     "created": _CREATED,
     "updated": ~(_STATUS | _ASSIGNED | _ROLE | _INVITED | _DELETED | _COMMENTED | _CREATED),
 }
+
+
+AuditChange = shape(
+    "AuditChange",
+    {
+        "field": serializers.CharField(),
+        "kind": serializers.ChoiceField(choices=["text", "status", "priority", "person", "value"]),
+        "before": serializers.JSONField(allow_null=True),
+        "after": serializers.JSONField(allow_null=True),
+    },
+)
+AuditEntry = shape(
+    "AuditEntry",
+    {
+        "id": serializers.UUIDField(),
+        "actorId": serializers.CharField(allow_null=True, help_text="A user id, or the integration id"),
+        "action": serializers.CharField(help_text="<module>.<entity>.<verb>"),
+        "target": serializers.CharField(),
+        "createdAt": serializers.DateTimeField(),
+        "actorName": serializers.CharField(allow_null=True),
+        "actorKind": serializers.ChoiceField(choices=["user", "integration"]),
+        "entityType": serializers.CharField(),
+        "module": serializers.CharField(allow_null=True),
+        "targetType": serializers.CharField(),
+        "targetId": serializers.CharField(allow_null=True),
+        "entityKey": serializers.CharField(allow_null=True),
+        "source": serializers.CharField(),
+        "requestId": serializers.CharField(allow_null=True),
+        "changes": AuditChange(many=True),
+    },
+)
+AuditPage = page_of("AuditPage", AuditEntry, total=serializers.IntegerField())
 
 
 def _id(value) -> str | None:
@@ -73,6 +106,7 @@ class AuditListView(WorkspaceScopedView):
             OpenApiParameter("cursor", str),
             OpenApiParameter("limit", int),
         ],
+        responses=AuditPage,
     )
     def get(self, request, slug):
         qs = AuditLog.objects.filter(workspace=self.scope)
@@ -113,19 +147,51 @@ class AuditListView(WorkspaceScopedView):
         return Response({**page, "total": total})
 
 
-TrashRef = inline_serializer(
+TrashRef = shape(
     "TrashRef",
     {
         "kind": serializers.CharField(help_text="A registered trash kind: tracking.task, core.comment, …"),
         "id": serializers.UUIDField(),
     },
 )
+UserBrief = shape(
+    "UserBrief", {"id": serializers.UUIDField(), "name": serializers.CharField(), "hue": serializers.IntegerField()}
+)
+TrashItem = shape(
+    "TrashItem",
+    {
+        "kind": serializers.CharField(),
+        "module": serializers.CharField(),
+        "id": serializers.UUIDField(),
+        "title": serializers.CharField(),
+        "key": serializers.CharField(allow_null=True),
+        "hue": serializers.IntegerField(allow_null=True),
+        "parentKey": serializers.CharField(allow_null=True),
+        "taskCount": serializers.IntegerField(allow_null=True),
+        "project": serializers.JSONField(allow_null=True, help_text="{ id, key, name, hue } when the item has one"),
+        "deletedBy": UserBrief(allow_null=True),
+        "deletedAt": serializers.DateTimeField(),
+        "purgeAt": serializers.DateTimeField(),
+    },
+)
+TrashList = shape(
+    "TrashList",
+    {
+        "data": TrashItem(many=True),
+        "scope": serializers.ChoiceField(choices=["all", "own"]),
+        "kinds": serializers.ListField(child=serializers.CharField()),
+        "retentionDays": serializers.IntegerField(),
+    },
+)
+TrashItemsIn = shape("TrashItemsIn", {"items": TrashRef(many=True)})
+TrashRestored = shape("TrashRestored", {"restored": TrashRef(many=True)})
+TrashPurged = shape("TrashPurged", {"purged": TrashRef(many=True)})
 
 
 class TrashListView(WorkspaceScopedView):
     required = {"GET": "core.workspace.view"}
 
-    @extend_schema(tags=["trash"])
+    @extend_schema(tags=["trash"], responses=TrashList)
     def get(self, request, slug):
         return Response(trash.list_items(request.user, self.scope))
 
@@ -133,7 +199,7 @@ class TrashListView(WorkspaceScopedView):
 class TrashRestoreView(WorkspaceScopedView):
     required = {"POST": "core.workspace.view"}
 
-    @extend_schema(tags=["trash"], request=inline_serializer("TrashItems", {"items": TrashRef}))
+    @extend_schema(tags=["trash"], request=TrashItemsIn, responses=TrashRestored)
     def post(self, request, slug):
         return Response({"restored": trash.restore(request.user, self.scope, body(request).get("items"))})
 
@@ -141,7 +207,7 @@ class TrashRestoreView(WorkspaceScopedView):
 class TrashPurgeView(WorkspaceScopedView):
     required = {"POST": "core.workspace.view"}
 
-    @extend_schema(tags=["trash"], request=inline_serializer("TrashPurgeItems", {"items": TrashRef}))
+    @extend_schema(tags=["trash"], request=TrashItemsIn, responses=TrashPurged)
     def post(self, request, slug):
         return Response({"purged": trash.purge(request.user, self.scope, body(request).get("items"))})
 
@@ -164,6 +230,6 @@ class TrashItemRestoreView(ScopedView):
             raise not_found("That item isn’t in the Trash any more.")
         return workspace_for(self.request.user, slug)
 
-    @extend_schema(tags=["trash"], request=None)
+    @extend_schema(tags=["trash"], request=None, responses=TrashRestored)
     def post(self, request, kind, item_id):
         return Response({"restored": trash.restore(request.user, self.scope, [{"kind": kind, "id": str(item_id)}])})

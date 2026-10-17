@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.utils import timezone
 
-from core.common.models import BaseModel, SoftDeleteModel
+from core.common.models import WorkspaceScopedModel, WorkspaceScopedSoftDeleteModel
 from core.common.utils import random_hue
 
 TEMPLATE_CHOICES = [("simple", "Simple"), ("scrum", "Scrum"), ("kanban", "Kanban"), ("bugs", "Bug tracking")]
@@ -11,7 +11,7 @@ CATEGORY_CHOICES = [("todo", "To do"), ("in_progress", "In progress"), ("done", 
 GLYPH_CHOICES = [(g, g) for g in ("backlog", "todo", "progress", "review", "done", "canceled")]
 
 
-class Project(SoftDeleteModel):
+class Project(WorkspaceScopedSoftDeleteModel):
     STATUS_CHOICES = [("active", "Active"), ("archived", "Archived")]
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="projects")
@@ -30,7 +30,7 @@ class Project(SoftDeleteModel):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
 
-    class Meta(SoftDeleteModel.Meta):
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
         constraints = [
             models.UniqueConstraint(
                 fields=["workspace", "key"], condition=models.Q(deleted_at__isnull=True), name="project_key_unique_live"
@@ -43,7 +43,7 @@ class Project(SoftDeleteModel):
         return self.key
 
 
-class ProjectKeyAlias(BaseModel):
+class ProjectKeyAlias(WorkspaceScopedModel):
     """Every key a project has used. Task keys are immutable, so a retired prefix stays reserved."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
@@ -54,7 +54,10 @@ class ProjectKeyAlias(BaseModel):
         constraints = [models.UniqueConstraint(fields=["workspace", "key"], name="project_key_alias_unique")]
 
 
-class ProjectMember(BaseModel):
+class ProjectMember(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="members")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="project_memberships")
     role = models.ForeignKey("access.Role", on_delete=models.PROTECT, related_name="project_members")
@@ -65,7 +68,10 @@ class ProjectMember(BaseModel):
         indexes = [models.Index(fields=["user", "project"], name="pmember_user_project")]
 
 
-class Status(BaseModel):
+class Status(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="statuses")
     name = models.CharField(max_length=30)
     category = models.CharField(max_length=16, choices=CATEGORY_CHOICES)
@@ -78,7 +84,10 @@ class Status(BaseModel):
         indexes = [models.Index(fields=["project", "position"], name="status_project_position")]
 
 
-class Label(BaseModel):
+class Label(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="labels")
     name = models.CharField(max_length=24)
     color = models.CharField(max_length=40, default="var(--text-3)")
@@ -88,7 +97,10 @@ class Label(BaseModel):
         constraints = [models.UniqueConstraint("project", Lower("name"), name="label_name_unique_per_project")]
 
 
-class AccessRequest(BaseModel):
+class AccessRequest(WorkspaceScopedModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("approved", "Approved"),
@@ -113,9 +125,10 @@ class AccessRequest(BaseModel):
         ]
 
 
-class Recent(BaseModel):
+class Recent(WorkspaceScopedModel):
     """Palette "Recent": the last tasks and projects a user opened."""
 
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     KIND_CHOICES = [("task", "Task"), ("project", "Project")]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
@@ -128,7 +141,7 @@ class Recent(BaseModel):
         indexes = [models.Index(fields=["user", "-at"], name="recent_user_at")]
 
 
-class SavedView(BaseModel):
+class SavedView(WorkspaceScopedModel):
     """Board 30: a saved filter for one project, private ("me") or shared with the project."""
 
     ICONS = [(i, i) for i in ("filter", "star", "user", "calendar", "bolt", "flag")]
@@ -143,9 +156,12 @@ class SavedView(BaseModel):
     filters = models.JSONField(default=list)
 
 
-class ViewPin(BaseModel):
+class ViewPin(WorkspaceScopedModel):
     """A view pinned to one user's sidebar, in that user's order."""
 
+    workspace_parent = "view"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
     view = models.ForeignKey(SavedView, on_delete=models.CASCADE, related_name="pins")
     position = models.PositiveIntegerField(default=0)
@@ -169,9 +185,12 @@ FIELD_COLORS = (
 )
 
 
-class CustomField(BaseModel):
+class CustomField(WorkspaceScopedModel):
     """A per-project task property. The type is fixed at creation; delete is a hard delete (values cascade)."""
 
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="custom_fields")
     name = models.CharField(max_length=40)
     type = models.CharField(max_length=8, choices=FIELD_TYPES)
@@ -186,9 +205,12 @@ class CustomField(BaseModel):
         indexes = [models.Index(fields=["project", "position"], name="custom_field_order")]
 
 
-class CustomFieldOption(BaseModel):
+class CustomFieldOption(WorkspaceScopedModel):
     """One choice of a select field."""
 
+    workspace_parent = "field"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     field = models.ForeignKey(CustomField, on_delete=models.CASCADE, related_name="options")
     name = models.CharField(max_length=32)
     color = models.CharField(max_length=24)

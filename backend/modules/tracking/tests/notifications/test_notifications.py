@@ -46,9 +46,11 @@ def test_assignment_notifies_assignee_in_app_and_by_email(owner, project, sam):
     assert n["actorId"] == str(owner.id)
     assert n["targetType"] == "tracking.task" and n["targetId"] == str(task.id)
     assert n["title"] == task.title and n["link"].endswith(f"/tasks/{task.key}")
+    assert n["eventType"] == "tracking.task.assigned"
     assert set(n) == {
         "id",
         "type",
+        "eventType",
         "actorId",
         "projectId",
         "projectName",

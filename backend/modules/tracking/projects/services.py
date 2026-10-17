@@ -647,8 +647,13 @@ def delete_label(actor: Any, project: Project, label_id: Any) -> None:
 # ───────────────────────── recents ─────────────────────────
 
 
-def record_recent(user: Any, kind: str, object_id: Any) -> None:
-    Recent.objects.update_or_create(user=user, object_id=object_id, defaults={"kind": kind, "at": timezone.now()})
-    stale = Recent.objects.filter(user=user).order_by("-at").values_list("pk", flat=True)[30:]
+def record_recent(user: Any, kind: str, object_id: Any, workspace: Any) -> None:
+    """The palette's recents are per user across workspaces (30 kept), hence the unscoped reads."""
+    Recent.objects.for_workspace(workspace).update_or_create(
+        user=user,
+        object_id=object_id,
+        defaults={"kind": kind, "at": timezone.now(), "workspace_id": getattr(workspace, "pk", workspace)},
+    )
+    stale = Recent.objects.unscoped().filter(user=user).order_by("-at").values_list("pk", flat=True)[30:]
     if stale:
-        Recent.objects.filter(pk__in=list(stale)).delete()
+        Recent.objects.unscoped().filter(pk__in=list(stale)).delete()

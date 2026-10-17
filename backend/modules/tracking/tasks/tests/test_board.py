@@ -108,7 +108,7 @@ def test_move_between_columns_updates_one_row(owner, project, st):
     assert len(updates) == 1
     assert Task.objects.get(pk=b.pk).version == 1  # neighbours untouched
     assert TaskStatusHistory.objects.filter(task=a, to_status=st["progress"]).exists()
-    assert AuditLog.objects.filter(action="tracking.task.status_changed", task=a).exists()
+    assert AuditLog.objects.filter(action="tracking.task.status_changed", subject_id=a.pk).exists()
 
 
 def test_move_reorders_within_column(owner, project):

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from core.access.permissions import MEMBER, ScopedView
 from core.common.params import body, filter_value
+from core.common.schema import shape
 from core.workspaces.views import WorkspaceScopedView
 
 from . import custom_fields, saved_views, selectors, services
@@ -84,7 +85,7 @@ class ProjectByKeyView(ScopedView):
 
     @extend_schema(tags=["projects"], responses={200: ProjectSerializer})
     def get(self, request, slug, key):
-        services.record_recent(request.user, "project", self.scope.pk)
+        services.record_recent(request.user, "project", self.scope.pk, self.scope.workspace_id)
         return Response(project_data(request, self.scope))
 
 
@@ -248,14 +249,69 @@ class LabelDetailView(ProjectScopedView):
 # ───────────────────────── saved views (board 30) ─────────────────────────
 
 
+FilterRule = shape(
+    "SavedViewFilter",
+    {
+        "field": serializers.CharField(),
+        "op": serializers.CharField(),
+        "values": serializers.ListField(child=serializers.CharField()),
+    },
+)
+_ICON = serializers.ChoiceField(choices=list(saved_views.ICONS))
+_VISIBILITY = serializers.ChoiceField(choices=["me", "project"])
+_LAYOUT = serializers.ChoiceField(choices=["board", "list"])
+SavedViewOut = shape(
+    "SavedView",
+    {
+        "id": serializers.UUIDField(),
+        "workspaceId": serializers.UUIDField(),
+        "projectId": serializers.UUIDField(),
+        "ownerId": serializers.UUIDField(),
+        "name": serializers.CharField(),
+        "icon": _ICON,
+        "visibility": _VISIBILITY,
+        "layout": _LAYOUT,
+        "filters": FilterRule(many=True),
+        "pinned": serializers.BooleanField(),
+        "position": serializers.IntegerField(),
+        "count": serializers.IntegerField(),
+        "createdAt": serializers.DateTimeField(),
+    },
+)
+SavedViewIn = shape(
+    "SavedViewCreateIn",
+    {
+        "projectId": serializers.UUIDField(),
+        "name": serializers.CharField(),
+        "icon": serializers.ChoiceField(choices=list(saved_views.ICONS), required=False),
+        "visibility": serializers.ChoiceField(choices=["me", "project"], required=False),
+        "layout": serializers.ChoiceField(choices=["board", "list"], required=False),
+        "filters": FilterRule(many=True, required=False),
+        "pinned": serializers.BooleanField(required=False),
+    },
+)
+SavedViewPatchIn = shape(
+    "SavedViewUpdateIn",
+    {
+        "name": serializers.CharField(required=False),
+        "icon": serializers.ChoiceField(choices=list(saved_views.ICONS), required=False),
+        "visibility": serializers.ChoiceField(choices=["me", "project"], required=False),
+        "layout": serializers.ChoiceField(choices=["board", "list"], required=False),
+        "filters": FilterRule(many=True, required=False),
+        "pinned": serializers.BooleanField(required=False),
+    },
+)
+SavedViewOrderIn = shape("SavedViewOrderIn", {"ids": serializers.ListField(child=serializers.UUIDField())})
+
+
 class SavedViewsView(WorkspaceScopedView):
     required = {"GET": "core.workspace.view", "POST": "core.workspace.view"}
 
-    @extend_schema(tags=["views"])
+    @extend_schema(tags=["views"], responses=SavedViewOut(many=True))
     def get(self, request, slug):
         return Response(saved_views.list_for(request.user, self.scope))
 
-    @extend_schema(tags=["views"])
+    @extend_schema(tags=["views"], request=SavedViewIn, responses={201: SavedViewOut})
     def post(self, request, slug):
         view = saved_views.create_view(request.user, self.scope, body(request))
         return Response(saved_views.view_data(view, request.user), status=status.HTTP_201_CREATED)
@@ -264,7 +320,7 @@ class SavedViewsView(WorkspaceScopedView):
 class SavedViewsOrderView(WorkspaceScopedView):
     required = {"PUT": "core.workspace.view"}
 
-    @extend_schema(tags=["views"])
+    @extend_schema(tags=["views"], request=SavedViewOrderIn, responses=SavedViewOut(many=True))
     def put(self, request, slug):
         saved_views.reorder_pins(request.user, body(request).get("ids"))
         return Response(saved_views.list_for(request.user, self.scope))
@@ -277,12 +333,12 @@ class SavedViewDetailView(ScopedView):
         self.view_obj = saved_views.view_for(self.request.user, self.kwargs["view_id"])
         return self.view_obj.project
 
-    @extend_schema(tags=["views"])
+    @extend_schema(tags=["views"], request=SavedViewPatchIn, responses=SavedViewOut)
     def patch(self, request, view_id):
         view = saved_views.update_view(request.user, self.view_obj, body(request))
         return Response(saved_views.view_data(view, request.user))
 
-    @extend_schema(tags=["views"])
+    @extend_schema(tags=["views"], responses={204: None})
     def delete(self, request, view_id):
         saved_views.delete_view(request.user, self.view_obj)
         return Response(status=status.HTTP_204_NO_CONTENT)

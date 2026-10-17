@@ -23,6 +23,11 @@ differ, the frontend shape is used and the difference is listed in §7 and in th
 > under `/api/v1/tracking/`, and permission codes, event types and audit actions are namespaced (`core.*` /
 > `tracking.*`). See `docs/platform/stage1-contract.md`, `docs/platform-architecture.md` §4 and the backend README's
 > "Layout". The tree below is the original v1 plan.
+>
+> **Platform Stage 5:** read `apps/<name>/` below as `core/<name>/` (common, accounts, access, workspaces, audit,
+> search, notifications; `collaboration` → `core/collab`) or `modules/tracking/<name>/` (projects, planning, tasks,
+> reports). Every module and platform table now has a `workspace` column and a workspace-scoped manager, and each app
+> has one fresh `0001_initial` migration (`docs/platform-architecture.md` §8, the backend README).
 
 ```
 backend/

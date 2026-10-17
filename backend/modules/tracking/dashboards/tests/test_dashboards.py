@@ -95,7 +95,7 @@ def test_create_sprint_health(w):
     assert body["projectId"] == str(w.project.pk) and body["createdAt"] and body["updatedAt"]
     assert _widgets(body) == [(t, ww, h, c) for t, ww, h, c in SPRINT_HEALTH]
     row = AuditLog.objects.get(action="tracking.dashboard.created")
-    assert (row.target, row.data, row.project_id) == (
+    assert (row.target, row.data, row.scope_id) == (
         "Sprint 14 health",
         {"visibility": "shared", "template": "sprint_health"},
         w.project.pk,
@@ -538,4 +538,4 @@ def test_dashboard_changed_events(w):
         ("tracking.dashboard.changed", sam, {"dashboardId": did, "op": "updated", "version": 3}),
         ("tracking.dashboard.changed", sam, {"dashboardId": did, "op": "deleted", "version": None}),
     ]
-    assert all(r.project_id == w.project.pk for r in RealtimeEvent.objects.all())
+    assert all(r.scope_id == w.project.pk for r in RealtimeEvent.objects.all())

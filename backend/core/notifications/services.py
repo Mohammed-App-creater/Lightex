@@ -15,11 +15,11 @@ def still_visible(notification: Any, user: Any) -> bool:
 
     if not Workspace.objects.filter(pk=notification.workspace_id).exists():
         return False
-    if notification.project_id:
+    if notification.scope_id:
         provider = scopes.provider(PROJECT)
-        if provider is None or provider.workspace_of(notification.project_id) is None:
+        if provider is None or provider.workspace_of(notification.scope_id) is None:
             return False
-        if not provider.is_member(user, notification.project_id):
+        if not provider.is_member(user, notification.scope_id):
             return False
     if notification.target_type and notification.target_id:
         resolver = get_resolver(notification.target_type)

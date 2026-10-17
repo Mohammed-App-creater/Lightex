@@ -1,3 +1,5 @@
+import contextvars
+
 from django.conf import settings
 from django.core import signing
 from django.http import FileResponse, HttpResponse, JsonResponse
@@ -9,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.common import scoping
 from core.common.params import body
 from core.common.throttles import UploadThrottle
 from core.common.utils import iso
@@ -88,14 +91,25 @@ UploadTicketOut = inline_serializer(
 )
 
 
-class TargetView(APIView):
-    """Base for `targets/{targetType}/{targetId}/…`: the target must exist and be visible (its resolver decides)."""
+class _RecordScopedView(APIView):
+    # Resolves its record unscoped (the resolver's visibility check decides the tenant), then scopes the rest of the
+    # request to the record's workspace (core/common/scoping.py). A comment, not a docstring: it isn't API docs.
 
     permission_classes = [IsAuthenticated]
 
+    def dispatch(self, request, *args, **kwargs):
+        return contextvars.copy_context().run(super().dispatch, request, *args, **kwargs)
+
+
+class TargetView(_RecordScopedView):
+    """Base for `targets/{targetType}/{targetId}/…`: the target must exist and be visible (its resolver decides)."""
+
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        self.resolver, self.target_id = services.target(request.user, kwargs["target_type"], kwargs["target_id"])
+        with scoping.unscoped():
+            self.resolver, self.target_id = services.target(request.user, kwargs["target_type"], kwargs["target_id"])
+            workspace = self.resolver.workspace_of(self.target_id)
+        scoping.enter_workspace(workspace)
 
 
 class TargetCommentsView(TargetView):
@@ -109,17 +123,21 @@ class TargetCommentsView(TargetView):
         return Response(comment_data(comment), status=status.HTTP_201_CREATED)
 
 
-class CommentDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+class CommentDetailView(_RecordScopedView):
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        with scoping.unscoped():
+            self.comment = services.get_comment(request.user, kwargs["comment_id"])
+        scoping.enter_workspace(self.comment.workspace_id)
 
     @extend_schema(tags=["comments"], request=CommentIn, responses={200: CommentOut})
     def patch(self, request, comment_id):
-        comment = services.get_comment(request.user, comment_id)
+        comment = self.comment
         return Response(comment_data(services.update_comment(request.user, comment, body(request).get("body"))))
 
     @extend_schema(tags=["comments"], responses={204: None})
     def delete(self, request, comment_id):
-        services.delete_comment(request.user, services.get_comment(request.user, comment_id))
+        services.delete_comment(request.user, self.comment)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -157,12 +175,12 @@ class UploadUrlView(TargetView):
         )
 
 
-class AttachmentView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class AttachmentView(_RecordScopedView):
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        self.attachment = services.get_attachment(request.user, kwargs["attachment_id"])
+        with scoping.unscoped():
+            self.attachment = services.get_attachment(request.user, kwargs["attachment_id"])
+        scoping.enter_workspace(self.attachment.workspace_id)
 
 
 class AttachmentConfirmView(AttachmentView):

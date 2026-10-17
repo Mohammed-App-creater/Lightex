@@ -14,6 +14,9 @@ from .serializers import PermissionInfoSerializer, ReassignIn, RoleIn, RolePermi
 
 
 class PermissionCatalogueView(APIView):
+    #: Reads the global catalogue only.
+    cross_workspace = True
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(

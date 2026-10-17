@@ -5,11 +5,13 @@ below enforces it through `can()`; nothing else in a view decides access.
 
 from __future__ import annotations
 
+import contextvars
 from typing import Any, ClassVar
 
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.views import APIView
 
+from core.common import scoping
 from core.common.exceptions import forbidden
 from core.modules.services import ensure_enabled
 from core.modules.urls_guard import module_of_request
@@ -49,8 +51,16 @@ class ScopedView(APIView):
     def get_scope(self) -> Any:  # pragma: no cover - every subclass implements it
         raise NotImplementedError
 
+    def dispatch(self, request, *args, **kwargs):
+        # The workspace set below stays inside this request, even without WorkspaceScopeMiddleware.
+        return contextvars.copy_context().run(super().dispatch, request, *args, **kwargs)
+
     @property
     def scope(self) -> Any:
+        """Resolved once, unscoped (this is the membership check that decides the tenant); the rest of the request is
+        then scoped to the scope's workspace (core/common/scoping.py)."""
         if not hasattr(self, "_scope"):
-            self._scope = self.get_scope()
+            with scoping.unscoped():
+                self._scope = self.get_scope()
+            scoping.enter_workspace(scoping.workspace_id_of(self._scope))
         return self._scope

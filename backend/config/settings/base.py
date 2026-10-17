@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "core.common.middleware.RequestIdMiddleware",
+    "core.common.scoping.WorkspaceScopeMiddleware",
     "core.modules.services.EnabledModulesMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -66,6 +67,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Workspace scoping (core/common/scoping.py): outside a request, scoped managers raise unless a workspace is given or
+# the code runs inside `unscoped()`. Requests always start strict (WorkspaceScopeMiddleware).
+WORKSPACE_SCOPE_DEFAULT = "strict"
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -179,7 +184,25 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api/v1",
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
-    "DISABLE_ERRORS_AND_WARNINGS": True,
+    "DISABLE_ERRORS_AND_WARNINGS": False,
+    "SECURITY": [{"bearerAuth": []}],
+    # Stable names for choice sets that share a field name (the frontend generates its types from these).
+    "ENUM_NAME_OVERRIDES": {
+        "ChecksStateEnum": ["passing", "failing", "running"],
+        "ImportSourceEnum": ["csv", "jira"],
+        "ImportStatusEnum": ["draft", "ready", "queued", "running", "completed", "failed", "canceled"],
+        "ObjectiveStatusEnum": ["active", "achieved", "dropped"],
+        "DashboardWidgetTypeEnum": ["burndown", "my_tasks", "objectives", "workload", "velocity", "activity"],
+        "CustomFieldTypeEnum": ["text", "number", "select", "date", "user"],
+        "TaskTypeEnum": ["feature", "bug", "chore", "spike"],
+        "DashboardVisibilityEnum": ["shared", "personal"],
+        "RepositoryVisibilityEnum": ["public", "private", "internal"],
+        "SavedViewVisibilityEnum": ["me", "project"],
+        "SavedViewIconEnum": ["filter", "star", "user", "calendar", "bolt", "flag"],
+        "SavedViewLayoutEnum": ["board", "list"],
+    },
+    # The root /health is the load balancer's probe; /api/v1/health is the documented one.
+    "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],
 }
 
 # ───────────────────────── CORS / CSRF ─────────────────────────

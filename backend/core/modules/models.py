@@ -2,10 +2,10 @@ from django.conf import settings as django_settings
 from django.db import models
 from django.utils import timezone
 
-from core.common.models import BaseModel
+from core.common.models import WorkspaceScopedModel
 
 
-class WorkspaceModule(BaseModel):
+class WorkspaceModule(WorkspaceScopedModel):
     """Whether a module is on for a workspace. `core` has no row (always on)."""
 
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="modules")

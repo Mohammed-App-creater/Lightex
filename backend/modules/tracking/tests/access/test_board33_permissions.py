@@ -1,13 +1,9 @@
 """Board 33: dashboard.create / dashboard.manage — catalogue, default roles, my_permissions order, archive, data
 migration (docs/v2/33-dashboards-presence.md §4)."""
 
-import importlib
-
 import pytest
-from django.apps import apps as django_apps
 
 from core.access import catalogue
-from core.access.models import Permission, Role, RolePermission
 from core.access.services import project_permissions
 from core.common.testing import client_for
 from modules.tracking.testing import add_project_member, make_project
@@ -24,8 +20,6 @@ EXPECTED = {
     "project_member": {"tracking.dashboard.create"},
     "viewer": set(),
 }
-migration = importlib.import_module("core.access.migrations.0005_board33_dashboard_permissions")
-namespace = importlib.import_module("core.access.migrations.0007_namespace_permission_codes")
 
 
 def test_catalogue_entries_and_placement(owner):
@@ -120,26 +114,3 @@ def test_archived_projects_drop_both(ws, owner):
     client_for(owner).post(f"/api/v1/tracking/projects/{project.id}/archive")
     owner.__dict__.pop("_lx_access_cache", None)
     assert not set(NEW) & project_permissions(owner, project)
-
-
-def test_data_migration_backfills_system_roles_only_and_is_idempotent(ws):
-    custom = Role.objects.create(workspace=ws, name="Release captain", scope="project")
-    RolePermission.objects.create(role=custom, permission=Permission.objects.get(code="tracking.project.view"))
-    Permission.objects.filter(code__in=NEW).delete()  # a board-40 database
-    migration.add_dashboard_permissions(django_apps, None)
-    migration.add_dashboard_permissions(django_apps, None)
-    namespace.namespace_permission_codes(django_apps, None)  # Stage 1 renames the old codes it created
-    for code in NEW:
-        perm = Permission.objects.get(code=code)
-        assert (perm.scope, perm.group, perm.label, perm.description) == (
-            "project",
-            catalogue.BY_CODE[code].group,
-            catalogue.BY_CODE[code].label,
-            catalogue.BY_CODE[code].description,
-        )
-    for role in ws.roles.filter(is_system=True):
-        held = set(role.permissions.values_list("code", flat=True)) & set(NEW)
-        assert held == EXPECTED[role.system_key], role.system_key
-    assert set(custom.permissions.values_list("code", flat=True)) == {"tracking.project.view"}
-    assert RolePermission.objects.filter(permission__code="tracking.dashboard.create").count() == 3
-    assert RolePermission.objects.filter(permission__code="tracking.dashboard.manage").count() == 2

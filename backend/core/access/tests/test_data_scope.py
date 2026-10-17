@@ -341,3 +341,58 @@ def test_a_scope_change_tells_role_holders(world):
     client_for(world["owner"]).patch(f"/api/v1/roles/{member.id}", {"dataScopes": {VIEW: "all"}}, format="json")
     targets = set(RealtimeEvent.objects.filter(type="core.access.changed").values_list("user_id", flat=True))
     assert {world[k].pk for k in ("m1", "m2", "m3", "m4")} <= targets
+
+
+# ───────────────────────── Stage 5: no wider scope than your own ─────────────────────────
+
+
+def _role_manager(world, scope):
+    """A workspace member whose custom role manages roles and holds VIEW with `scope`."""
+    from core.workspaces.models import WorkspaceMember
+
+    custom = Role.objects.create(workspace=world["ws"], name=f"Role manager {scope}", scope="workspace")
+    for code in ("core.workspace.view", "core.roles.manage", VIEW):
+        RolePermission.objects.create(
+            role=custom, permission=Permission.objects.get(code=code), data_scope=scope if code == VIEW else None
+        )
+    user = add_member(world["ws"], UserFactory(name=f"RM {scope}"))
+    WorkspaceMember.objects.filter(workspace=world["ws"], user=user).update(role=custom)
+    return user
+
+
+def test_a_wider_data_scope_than_your_own_is_refused(world):
+    actor = client_for(_role_manager(world, "team"))
+    member = _member_role(world)
+    url = f"/api/v1/roles/{member.id}"
+    res = actor.patch(url, {"dataScopes": {VIEW: "all"}}, format="json")
+    assert (res.status_code, res.json()["code"]) == (403, "data_scope_exceeds_own")
+    assert res.json()["details"] == {"code": VIEW, "dataScope": "all", "yours": "team"}
+    assert RolePermission.objects.get(role=member, permission__code=VIEW).data_scope == "own"
+    res = actor.patch(url, {"dataScopes": {VIEW: "team"}}, format="json")  # up to your own is fine
+    assert res.status_code == 200 and res.json()["dataScopes"] == {VIEW: "team"}
+    res = actor.patch(url, {"dataScopes": {VIEW: "own"}}, format="json")  # narrowing is fine
+    assert res.status_code == 200
+    res = actor.post(
+        "/api/v1/workspaces/platform/roles",
+        {
+            "name": "Wide",
+            "scope": "workspace",
+            "permissions": ["core.workspace.view", VIEW],
+            "dataScopes": {VIEW: "all"},
+        },
+        format="json",
+    )
+    assert (res.status_code, res.json()["code"]) == (403, "data_scope_exceeds_own")
+    # Unchanged scopes don't count: editing other permissions keeps a role's existing wider scope.
+    RolePermission.objects.filter(role=member, permission__code=VIEW).update(data_scope="all")
+    perms = sorted(member.permissions.values_list("code", flat=True))
+    assert actor.patch(url, {"permissions": perms}, format="json").status_code == 200
+
+
+def test_owners_are_exempt_from_the_scope_ceiling(world):
+    member = _member_role(world)
+    owner_role = role(world["ws"], "owner")
+    RolePermission.objects.filter(role=owner_role, permission__code=VIEW).update(data_scope="own")
+    world["owner"].__dict__.pop("_lx_access_cache", None)
+    res = client_for(world["owner"]).patch(f"/api/v1/roles/{member.id}", {"dataScopes": {VIEW: "all"}}, format="json")
+    assert res.status_code == 200 and res.json()["dataScopes"] == {VIEW: "all"}

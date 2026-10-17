@@ -127,7 +127,7 @@ def test_d4_create_branch(ws, owner, project, github, web, task):
     assert ("github", "create_branch", web.external_id, "feature/no-key-here", "main") in FAKE.calls
     task.refresh_from_db()
     assert task.status_id == rule.status_id  # branch_created automation, as the integration
-    assert AuditLog.objects.get(action="tracking.task.status_changed", task=task).actor_kind == "integration"
+    assert AuditLog.objects.get(action="tracking.task.status_changed", subject_id=task.pk).actor_kind == "integration"
     assert AuditLog.objects.get(action="tracking.task.dev_branch_created").actor_id == owner.id
     dup = client.post(url, {"repositoryId": str(web.id), "name": "prj-42-fix-reflow"}, format="json")
     assert dup.status_code == 409 and dup.json()["message"] == "That branch already exists in platform-team/web."

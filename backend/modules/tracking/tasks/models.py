@@ -4,12 +4,15 @@ from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 from django.utils import timezone
 
-from core.common.models import BaseModel, SoftDeleteModel
+from core.common.models import WorkspaceScopedModel, WorkspaceScopedSoftDeleteModel
 
 TYPE_CHOICES = [("feature", "Feature"), ("bug", "Bug"), ("chore", "Chore"), ("spike", "Spike")]
 
 
-class Task(SoftDeleteModel):
+class Task(WorkspaceScopedSoftDeleteModel):
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="tasks")
     number = models.PositiveIntegerField()
     # Project key + number at creation time. Immutable, even if the project key changes later.
@@ -51,7 +54,7 @@ class Task(SoftDeleteModel):
     # Board 39: planned effort in minutes (separate from `estimate`, which is story points).
     time_estimate_minutes = models.PositiveIntegerField(null=True, blank=True)
 
-    class Meta(SoftDeleteModel.Meta):
+    class Meta(WorkspaceScopedSoftDeleteModel.Meta):
         constraints = [
             models.UniqueConstraint(fields=["project", "number"], name="task_number_unique_per_project"),
             models.CheckConstraint(condition=models.Q(priority__lte=4), name="task_priority_range"),
@@ -83,7 +86,10 @@ class Task(SoftDeleteModel):
         return self.key
 
 
-class TaskObjective(BaseModel):
+class TaskObjective(WorkspaceScopedModel):
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="+")
     objective = models.ForeignKey("planning.Objective", on_delete=models.CASCADE, related_name="+")
 
@@ -91,7 +97,10 @@ class TaskObjective(BaseModel):
         constraints = [models.UniqueConstraint(fields=["task", "objective"], name="task_objective_unique")]
 
 
-class TaskLabel(BaseModel):
+class TaskLabel(WorkspaceScopedModel):
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="+")
     label = models.ForeignKey("projects.Label", on_delete=models.CASCADE, related_name="+")
 
@@ -99,9 +108,12 @@ class TaskLabel(BaseModel):
         constraints = [models.UniqueConstraint(fields=["task", "label"], name="task_label_unique")]
 
 
-class TaskStatusHistory(BaseModel):
+class TaskStatusHistory(WorkspaceScopedModel):
     """Every status change. Feeds burndown, cycle time and throughput."""
 
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="status_history")
     from_status = models.ForeignKey(
         "projects.Status", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
@@ -121,7 +133,7 @@ class TaskStatusHistory(BaseModel):
         ]
 
 
-class ExternalLink(BaseModel):
+class ExternalLink(WorkspaceScopedModel):
     """Branches, commits and PRs/MRs linked to tasks (v2 board 37, docs/v2/37-integrations-github-gitlab.md §3.3).
 
     One row per (task, object): a PR naming three keys has three rows with the same `external_id`. Repository fields
@@ -193,9 +205,12 @@ def _exactly_one(columns: tuple[str, ...]) -> models.Q:
     return q
 
 
-class TaskFieldValue(BaseModel):
+class TaskFieldValue(WorkspaceScopedModel):
     """A task's value for one custom field. Exactly one value column is set; no row means empty."""
 
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="field_values")
     field = models.ForeignKey("projects.CustomField", on_delete=models.CASCADE, related_name="values")
     text = models.CharField(max_length=120, null=True, blank=True)
@@ -225,9 +240,12 @@ class TaskFieldValue(BaseModel):
         ]
 
 
-class TaskDependency(BaseModel):
+class TaskDependency(WorkspaceScopedModel):
     """`blocker` blocks `blocked` ("blocked is blocked by blocker"). Both tasks are in `project`."""
 
+    workspace_parent = "project"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     blocker = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="blocks_links")
     blocked = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="blocked_by_links")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")

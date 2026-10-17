@@ -28,6 +28,9 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "lightex-test"}}
 CELERY_TASK_ALWAYS_EAGER = True
+# Tests are the escape hatch for workspace scoping (core/common/scoping.py): fixtures and assertions read every
+# workspace; requests made through the test client still run strict, exactly as in production.
+WORKSPACE_SCOPE_DEFAULT = "unscoped"
 CELERY_BROKER_URL = "memory://"
 STORAGE_BACKEND = "fake"
 # Board 40: the import runner runs synchronously (deterministic tests), with no retry delay.

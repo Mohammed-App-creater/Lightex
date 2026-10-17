@@ -15,7 +15,9 @@ from core.modules.services import code_enabled, visible_codes
 from . import catalogue
 from .catalogue import DATA_SCOPES, OWNER_PERMISSION, WORKSPACE
 from .models import Permission, Role, RolePermission
-from .services import invalidate, workspace_permissions
+from .services import invalidate, my_data_scopes, workspace_permissions
+
+_SCOPE_RANK = {scope: i for i, scope in enumerate(DATA_SCOPES)}  # own < team < all
 
 
 def roles_for(workspace: Any, scope: str | None = None):
@@ -62,6 +64,26 @@ def _ensure_no_escalation(actor: Any, role_scope: str, workspace: Any, codes: se
     missing = codes - workspace_permissions(actor, workspace)
     if missing:
         raise forbidden("You can’t grant permissions you don’t have.", {"permission": sorted(missing)[0]})
+
+
+def _ensure_no_scope_widening(
+    actor: Any, workspace: Any, scopes: dict[str, str], stored: dict[str, str] | None = None
+) -> None:
+    """Stage 5: a data scope set or changed by this write can't be wider than the actor's own scope for that code.
+    Owners (holders of the owner permission) are exempt."""
+    changed = {c: v for c, v in scopes.items() if v != (stored or {}).get(c)}
+    if not changed or OWNER_PERMISSION in workspace_permissions(actor, workspace):
+        return
+    mine = my_data_scopes(actor, workspace)
+    for code in catalogue.ordered(changed):
+        own = mine.get(code)
+        if own is None or _SCOPE_RANK[changed[code]] > _SCOPE_RANK[own]:
+            raise ApiError(
+                403,
+                "data_scope_exceeds_own",
+                "You can’t grant a wider data scope than your own.",
+                {"code": code, "dataScope": changed[code], "yours": own},
+            )
 
 
 def _clean_data_scopes(granted: list[str], raw: Any, stored: dict[str, str] | None = None) -> dict[str, str]:
@@ -164,6 +186,7 @@ def create_role(actor: Any, workspace: Any, data: dict[str, Any]) -> Role:
     codes = _clean_permissions(scope, data.get("permissions", []), workspace)
     scopes = _clean_data_scopes(codes, data.get("dataScopes"))
     _ensure_no_escalation(actor, scope, workspace, set(codes))
+    _ensure_no_scope_widening(actor, workspace, scopes)
     role = Role.objects.create(
         workspace=workspace, name=name, description=str(data.get("description") or "")[:120], scope=scope
     )
@@ -228,6 +251,7 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
             raise conflict("last_owner", "A workspace needs at least one owner.")
         final = [*codes, *sorted(hidden)]
         scopes = _clean_data_scopes(final, data.get("dataScopes"), stored_scopes)
+        _ensure_no_scope_widening(actor, role.workspace, scopes, stored_scopes)
         if new != current or scopes != stored_scopes:
             _set_permissions(role, final, scopes)
         if new != current:

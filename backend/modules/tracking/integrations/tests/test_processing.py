@@ -178,7 +178,7 @@ def test_pr_merged_automation_moves_to_done_as_the_integration(ws, owner, projec
     assert tasks[0].status_id == done.pk and tasks[0].version == version + 1 and tasks[0].completed_at
     history = TaskStatusHistory.objects.filter(task=tasks[0]).order_by("-at").first()
     assert history.changed_by_id is None
-    row = AuditLog.objects.get(action="tracking.task.status_changed", task=tasks[0])
+    row = AuditLog.objects.get(action="tracking.task.status_changed", subject_id=tasks[0].pk)
     assert (row.actor_kind, row.actor_ref, row.actor_name, row.source) == (
         "integration",
         str(github.id),
@@ -186,12 +186,12 @@ def test_pr_merged_automation_moves_to_done_as_the_integration(ws, owner, projec
         "webhook",
     )
     assert row.data["rule"] == "pr_merged" and row.data["ref"] == "#2"
-    note = Notification.objects.get(recipient=sam, type="status")
+    note = Notification.objects.get(recipient=sam, kind="status")
     assert note.payload["via"] == "github" and note.actor_id is None
     # Already done: nothing happens; suppressed links never trigger.
     processor.upsert_pr(ctx, web, pr(number=3, state="open", updated=t))
     processor.upsert_pr(ctx, web, pr(number=3, state="merged", updated=t + dt.timedelta(seconds=3)))
-    assert AuditLog.objects.filter(action="tracking.task.status_changed", task=tasks[0]).count() == 1
+    assert AuditLog.objects.filter(action="tracking.task.status_changed", subject_id=tasks[0].pk).count() == 1
 
 
 def test_pr_opened_only_from_todo_and_rule_off(project, github, web, tasks, owner):
@@ -212,7 +212,7 @@ def test_pr_opened_only_from_todo_and_rule_off(project, github, web, tasks, owne
     assert tasks[1].status_id == rule.status_id  # PRJ-2 was todo
     processor.upsert_pr(ctx_for(github), web, pr(number=6, title="PRJ-2 y"))
     assert (
-        AuditLog.objects.filter(action="tracking.task.status_changed", task=tasks[1]).count() == 1
+        AuditLog.objects.filter(action="tracking.task.status_changed", subject_id=tasks[1].pk).count() == 1
     )  # not from in_progress
 
 
