@@ -1,26 +1,31 @@
-"""Every /api/v1 route, one include per app."""
+"""Every /api/v1 route, one include per app. Core routes sit at the root; tracking routes under `tracking/`."""
 
 from django.urls import include, path
 
-from apps.common.views import health
+from core.common.views import health
+
+tracking_urlpatterns = [
+    path("", include("modules.tracking.projects.urls")),
+    path("", include("modules.tracking.imports.urls")),
+    path("", include("modules.tracking.timetracking.urls")),  # tasks/<uuid>/… routes before tasks/<task_ref>
+    path("", include("core.collab.task_urls")),  # task-scoped comments and attachments (Stage 2 makes them generic)
+    path("", include("modules.tracking.tasks.urls")),
+    path("", include("modules.tracking.planning.urls")),
+    path("", include("modules.tracking.reports.urls")),
+    path("", include("modules.tracking.dashboards.urls")),
+    path("", include("modules.tracking.integrations.urls")),
+]
 
 urlpatterns = [
     path("health", health, name="api-health"),
-    path("", include("apps.accounts.urls")),
-    path("", include("apps.workspaces.urls")),
-    path("", include("apps.access.urls")),
-    path("", include("apps.projects.urls")),
-    path("", include("apps.imports.urls")),
-    path("", include("apps.timetracking.urls")),  # tasks/<uuid>/… routes before tasks/<task_ref>
-    path("", include("apps.tasks.urls")),
-    path("", include("apps.planning.urls")),
-    path("", include("apps.collaboration.urls")),
-    path("", include("apps.notifications.urls")),
-    path("", include("apps.search.urls")),
-    path("", include("apps.audit.urls")),
-    path("", include("apps.reports.urls")),
-    path("", include("apps.dashboards.urls")),
-    path("", include("apps.realtime.urls")),
-    path("", include("apps.integrations.urls")),
-    path("", include("apps.channels.urls")),
+    path("", include("core.accounts.urls")),
+    path("", include("core.workspaces.urls")),
+    path("", include("core.access.urls")),
+    path("", include("core.collab.urls")),
+    path("", include("core.notifications.urls")),
+    path("", include("core.search.urls")),
+    path("", include("core.audit.urls")),
+    path("", include("core.realtime.urls")),
+    path("", include("core.channels.urls")),
+    path("tracking/", include(tracking_urlpatterns)),
 ]

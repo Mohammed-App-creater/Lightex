@@ -11,7 +11,7 @@ import signal
 
 def _close_streams() -> None:
     try:
-        from apps.realtime.hub import hub
+        from core.realtime.hub import hub
 
         hub.shutdown()
     except Exception:  # noqa: S110 - best effort while the worker exits
@@ -34,7 +34,7 @@ def post_worker_init(worker):
 def _start_channel_sweeper() -> None:
     """Board 38 §6.7: one event-driven sweeper per worker when channels send from a thread pool (no broker)."""
     try:
-        from apps.channels.runner import start_sweeper
+        from core.channels.runner import start_sweeper
 
         start_sweeper()
     except Exception:  # noqa: S110 - never stop a worker from booting over notifications

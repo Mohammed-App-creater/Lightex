@@ -38,13 +38,15 @@ jobs:
           ruff check .
           ruff format --check .
       - name: Type check
-        run: mypy apps config
+        run: mypy core modules config
+      - name: Import contracts (core never imports modules; modules are independent)
+        run: lint-imports
       - name: Migrations are up to date
         run: python manage.py makemigrations --check --dry-run --settings=config.settings.test
       - name: Tests and coverage
         run: |
           pytest --cov --cov-report=term --cov-fail-under=85
-          coverage report --include="apps/access/*" --fail-under=95
+          coverage report --include="core/access/*" --fail-under=95
       - name: OpenAPI schema is current
         run: |
           python manage.py spectacular --file /tmp/openapi.yaml --validate --settings=config.settings.test

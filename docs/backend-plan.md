@@ -18,6 +18,12 @@ differ, the frontend shape is used and the difference is listed in §7 and in th
 
 ## 1. Repository layout
 
+> **Platform Stage 1 (2026-10-17):** `apps/` is gone. Core apps live in `backend/core/` (`collaboration` is now
+> `core/collab`) and the tracking apps in `backend/modules/tracking/`, each keeping its app label; tracking routes moved
+> under `/api/v1/tracking/`, and permission codes, event types and audit actions are namespaced (`core.*` /
+> `tracking.*`). See `docs/platform/stage1-contract.md`, `docs/platform-architecture.md` §4 and the backend README's
+> "Layout". The tree below is the original v1 plan.
+
 ```
 backend/
   manage.py  pyproject.toml  requirements.txt  requirements-dev.txt

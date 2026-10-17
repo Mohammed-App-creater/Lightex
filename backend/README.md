@@ -140,9 +140,9 @@ Twilio inbound `<API_PUBLIC_URL>/api/v1/webhooks/twilio/sms`; the status callbac
 `API_PUBLIC_URL` must be the exact public origin Twilio calls (signatures cover the full URL). Local development with a
 real bot: `manage.py telegram_poll`; without one: `manage.py telegram_fake_start <code>`.
 
-GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/integrations/github/callback`, Setup URL
-`<API_PUBLIC_URL>/api/v1/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/webhooks/github`, permissions
-and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/integrations/gitlab/callback`, scope `api`)
+GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/tracking/integrations/github/callback`, Setup URL
+`<API_PUBLIC_URL>/api/v1/tracking/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/tracking/webhooks/github`, permissions
+and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/tracking/integrations/gitlab/callback`, scope `api`)
 are described in `docs/v2/37-integrations-github-gitlab.md` §2. Run `manage.py process_integrations` every 5 minutes
 where cron exists (it drains work, queues catch-ups, checks token expiry with `--check-tokens` and purges).
 
@@ -150,9 +150,10 @@ where cron exists (it drains work, queues catch-ups, checks token expiry with `-
 
 ```bash
 make test        # pytest
-make cov         # coverage gates: 85 % overall, 95 % on apps/access
+make cov         # coverage gates: 85 % overall, 95 % on core/access
 make lint        # ruff check + ruff format --check
 make typecheck   # mypy (django-stubs)
+make imports     # lint-imports (core never imports modules; modules are independent)
 make schema      # regenerate ../docs/openapi.yaml
 sh scripts/check.sh   # everything CI runs, in order, stopping at the first failure
 ```
@@ -165,12 +166,12 @@ Tests need PostgreSQL (full-text search, partial unique indexes and row locks ar
 
 Highlights of the suite:
 
-- **Permission matrix** (`apps/access/tests/test_permission_matrix.py`): for every route and method, the roles
+- **Permission matrix** (`core/access/tests/test_permission_matrix.py`): for every route and method, the roles
   that must pass and the roles that must be refused. The table is checked against the URL configuration, so a
   new endpoint without an entry fails the suite.
-- **IDOR** (`apps/access/tests/test_idor.py`): every route called by a user from another workspace (always 404)
+- **IDOR** (`core/access/tests/test_idor.py`): every route called by a user from another workspace (always 404)
   and every project route called by workspace members who aren't on the project (403/404).
-- **Concurrency** (`apps/tasks/tests/test_concurrency.py`): real threads; parallel creates get unique keys,
+- **Concurrency** (`modules/tracking/tasks/tests/test_concurrency.py`): real threads; parallel creates get unique keys,
   simultaneous edits at the same version yield exactly one success.
 
 ## Running without a Celery worker
@@ -245,7 +246,7 @@ curl -N -H "Authorization: Bearer $TOKEN" -H "Accept: text/event-stream" \
 ```
 
 It prints `retry: 3000` and `event: hello` at once, then `: ping …` every 15 s. Change something in another
-terminal (edit a task in the web client, or `PATCH /api/v1/tasks/{id}`) and a `task.changed` event appears. Add
+terminal (edit a task in the web client, or `PATCH /api/v1/tracking/tasks/{id}`) and a `tracking.task.changed` event appears. Add
 `-H "Last-Event-ID: <id>"` to replay what came after an id.
 
 `bash scripts/sse_smoke.sh` runs the same checks against the real image (gunicorn gthread, LISTEN/NOTIFY, the stream
@@ -311,23 +312,34 @@ The image (`Dockerfile`) runs migrations and then gunicorn on `$PORT` with gthre
 
 ```
 config/            settings (base, dev, test, prod), URLs, Celery app
-apps/
+core/              the platform core (docs/platform-architecture.md); never imports modules/
   common/          base models (UUID, timestamps, soft delete), errors, pagination, rich-text sanitising,
                    fractional index, throttles, health, seed_demo
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
-  access/          permission catalogue, roles, can(), DRF permission class
+  access/          permission catalogue (core.* / tracking.* codes), roles, can(), DRF permission class
   workspaces/      workspaces, members, invitations, access requests
-  projects/        projects, members, statuses, labels, access requests, recents, saved views
-  planning/        objectives, milestones, epics, sprints
-  tasks/           tasks, status history, board, backlog, bulk, activity
-  collaboration/   comments, attachments, storage backends
+  collab/          comments, attachments, storage backends
   notifications/   outbox events, notifications, preferences, email templates
-  reports/         burndown, velocity, cycle time, throughput, progress, KPIs, workload
-  dashboards/      board 33: project dashboards (shared / personal) and their widget layouts
+  channels/        board 38: Telegram, SMS and Web Push delivery
   realtime/        board 33: the SSE stream, the per-process hub and brokers, events, presence
   audit/           audit log, activity feeds, trash
   search/          PostgreSQL full-text search
+modules/
+  tracking/        the tracking module, served under /api/v1/tracking/
+    projects/      projects, members, statuses, labels, access requests, recents, saved views
+    planning/      objectives, milestones, epics, sprints
+    tasks/         tasks, status history, board, backlog, bulk, activity
+    reports/       burndown, velocity, cycle time, throughput, progress, KPIs, workload
+    dashboards/    board 33: project dashboards (shared / personal) and their widget layouts
+    imports/       board 40: CSV / Jira / Trello / Asana imports
+    integrations/  board 37: GitHub and GitLab
+    timetracking/  board 39: time entries, timers, timesheet
+  sales/           empty skeleton (Stage 3)
 ```
+
+Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so migrations and table names are unchanged.
+`lint-imports` (import-linter, configured in `pyproject.toml`) enforces that `core` never imports `modules` and that
+modules never import each other; today's core→tracking imports are listed there as `ignore_imports` until Stage 2.
 
 Every app follows the same layering: `models.py` (fields and invariants), `selectors.py` (reads, always scoped
 through membership), `services.py` (writes and business rules; every mutation writes an audit row),

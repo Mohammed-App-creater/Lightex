@@ -1,0 +1,284 @@
+"""Task reads. Lists are always scoped to a project the caller belongs to (resolved by the view)."""
+
+from __future__ import annotations
+
+import datetime as dt
+import uuid
+from typing import Any
+
+from django.db.models import Count, Exists, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Sum, Value
+from django.db.models.functions import Coalesce
+
+from core.common.exceptions import invalid, not_found
+from core.common.utils import iso_date
+from modules.tracking.planning.models import Objective
+from modules.tracking.projects.models import Label, ProjectMember
+from modules.tracking.projects.selectors import project_for
+
+from .models import ExternalLink, Task, TaskDependency, TaskFieldValue
+
+
+def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
+    sub = qs.filter(**{fk: OuterRef("pk")}).order_by().values(fk).annotate(c=Count("pk")).values("c")
+    return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
+
+
+def open_blocker_links() -> QuerySet[TaskDependency]:
+    """Dependency rows whose blocker is live and not closed (Done and Canceled both close it)."""
+    return TaskDependency.objects.filter(blocker__deleted_at__isnull=True).exclude(blocker__status__category="done")
+
+
+def is_blocked() -> Exists:
+    """`isBlocked` as an expression on Task querysets (filters and saved views)."""
+    return Exists(open_blocker_links().filter(blocked=OuterRef("pk")))
+
+
+def _sum_minutes() -> Coalesce:
+    from modules.tracking.timetracking.models import TimeEntry
+
+    sub = TimeEntry.objects.filter(task=OuterRef("pk")).order_by().values("task").annotate(s=Sum("minutes")).values("s")
+    return Coalesce(Subquery(sub, output_field=IntegerField()), Value(0))
+
+
+def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
+    """Adds the counters the Task payload carries, using subqueries (no join fan-out), and prefetches the
+    custom-field values and open blockers (one query each, whatever the number of tasks)."""
+    from core.collab.models import Attachment, Comment
+
+    live_subtasks = Task.objects.all()
+    done_subtasks = Task.objects.filter(status__category="done").exclude(status__glyph="canceled")
+    # Board 37 `Task.dev`: visible link counts and the candidate headline PRs (one prefetch query).
+    links = ExternalLink.objects.filter(suppressed=False)
+    return qs.annotate(
+        dev_pr_count=_count(links.filter(type="pull_request")),
+        dev_branch_count=_count(links.filter(type="branch", state="active")),
+        dev_commit_count=_count(links.filter(type="commit")),
+        subtask_count=_count(live_subtasks, "parent"),
+        subtask_done_count=_count(done_subtasks, "parent"),
+        comment_count=_count(Comment.objects.all()),
+        attachment_count=_count(Attachment.objects.filter(status="ready")),
+        logged_minutes=_sum_minutes(),
+    ).prefetch_related(
+        Prefetch("objectives", queryset=Objective.objects.only("id")),
+        Prefetch("labels", queryset=Label.objects.only("id")),
+        Prefetch(
+            "field_values",
+            queryset=TaskFieldValue.objects.only("id", "task", "field", "text", "number", "date", "option", "user"),
+        ),
+        Prefetch(
+            "blocked_by_links",
+            queryset=open_blocker_links()
+            .select_related("blocker")
+            .only("id", "blocked", "blocker__id", "blocker__key", "blocker__title", "blocker__number")
+            .order_by("blocker__number"),
+            to_attr="open_blocker_links",
+        ),
+        Prefetch(
+            "external_links",
+            queryset=links.filter(type="pull_request", state__in=("open", "draft", "merged")).only(
+                "id",
+                "task",
+                "provider",
+                "number",
+                "state",
+                "checks",
+                "checks_state",
+                "approvals",
+                "base_branch",
+                "merged_at",
+                "source_updated_at",
+                "updated_at",
+            ),
+            to_attr="dev_pr_links",
+        ),
+    )
+
+
+def dependencies_of(task: Task) -> tuple[QuerySet[TaskDependency], QuerySet[TaskDependency]]:
+    """(blocked by, blocks) for a task, oldest first. Rows whose other task is soft-deleted are hidden."""
+    blocked_by = (
+        TaskDependency.objects.filter(blocked=task, blocker__deleted_at__isnull=True)
+        .select_related("blocker__status")
+        .order_by("created_at", "id")
+    )
+    blocks = (
+        TaskDependency.objects.filter(blocker=task, blocked__deleted_at__isnull=True)
+        .select_related("blocked__status")
+        .order_by("created_at", "id")
+    )
+    return blocked_by, blocks
+
+
+def is_uuid(value: Any) -> bool:
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def task_for(user: Any, task_id: Any, *, include_deleted: bool = False) -> Task:
+    """A task the user can see (project membership required; 404 / 403 like projects)."""
+    manager = Task.all_objects if include_deleted else Task.objects
+    task = (
+        manager.select_related("project", "status").filter(pk=task_id, project__deleted_at__isnull=True).first()
+        if is_uuid(task_id)
+        else None
+    )
+    if task is None:
+        raise not_found("Task not found. It may have been deleted, or you may not have access.")
+    project_for(user, task.project_id)
+    return task
+
+
+def task_by_key(user: Any, key: str, *, workspace: Any = None) -> Task:
+    qs = Task.objects.select_related("project", "status").filter(
+        key__iexact=key, project__deleted_at__isnull=True, project__workspace__deleted_at__isnull=True
+    )
+    if workspace is not None:
+        qs = qs.filter(project__workspace=workspace)
+    else:
+        mine = ProjectMember.objects.filter(user_id=user.pk).values("project_id")
+        qs = qs.filter(project_id__in=mine)
+    task = qs.first()
+    if task is None:
+        raise not_found("Task not found. It may have been deleted, or you may not have access.")
+    project_for(user, task.project_id)
+    return task
+
+
+def task_by_id_or_key(user: Any, value: str) -> Task:
+    return task_for(user, value) if is_uuid(value) else task_by_key(user, value)
+
+
+# ───────────────────────── list filters and sorting ─────────────────────────
+
+SORTS: dict[str, tuple[str, Any]] = {
+    # api name: (model field, sentinel for nulls or None)
+    "number": ("number", None),
+    "key": ("number", None),
+    "title": ("title", None),
+    "priority": ("priority", None),
+    "dueDate": ("due_date", dt.date(9999, 12, 31)),
+    "startDate": ("start_date", dt.date(9999, 12, 31)),
+    "estimate": ("estimate", 10_000),
+    "createdAt": ("created_at", None),
+    "updatedAt": ("updated_at", None),
+    "position": ("position", None),
+    "type": ("type", None),
+}
+
+
+def _ids(values: list[str], field: str, *, allow: tuple[str, ...] = ()) -> list[str]:
+    bad = [v for v in values if v not in allow and not is_uuid(v)]
+    if bad:
+        raise invalid({f"filter[{field}]": f"“{bad[0]}” isn’t a valid id"})
+    return values
+
+
+def filter_tasks(qs: QuerySet[Task], params: Any, user: Any) -> QuerySet[Task]:
+    def values(key: str) -> list[str]:
+        return [v for v in params.getlist(f"filter[{key}]") if v != ""]
+
+    def nullable(field: str, key: str, model_field: str) -> None:
+        nonlocal qs
+        raw = _ids(values(key), key, allow=("none", "me") if key == "assignee" else ("none",))
+        if not raw:
+            return
+        ids = [user.pk if v == "me" else v for v in raw if v != "none"]
+        cond = Q(**{f"{model_field}__in": ids}) if ids else Q()
+        if "none" in raw:
+            cond = cond | Q(**{f"{model_field}__isnull": True}) if ids else Q(**{f"{model_field}__isnull": True})
+        qs = qs.filter(cond)
+
+    status = _ids(values("status"), "status")
+    if status:
+        qs = qs.filter(status_id__in=status)
+    nullable("assignee", "assignee", "assignee_id")
+    nullable("sprint", "sprint", "sprint_id")
+    nullable("epic", "epic", "epic_id")
+    nullable("milestone", "milestone", "milestone_id")
+    nullable("parent", "parent", "parent_id")
+    labels = _ids(values("label"), "label")
+    if labels:
+        qs = qs.filter(labels__id__in=labels).distinct()
+    priorities = values("priority")
+    if priorities:
+        try:
+            qs = qs.filter(priority__in=[int(p) for p in priorities])
+        except ValueError as exc:
+            raise invalid({"filter[priority]": "Priority is 0–4"}) from exc
+    blocked = set(values("blocked"))
+    if blocked - {"true", "false"}:
+        raise invalid({"filter[blocked]": "Use true or false"})
+    if blocked == {"true"}:
+        qs = qs.filter(is_blocked())
+    elif blocked == {"false"}:
+        qs = qs.filter(~is_blocked())
+    types = values("type")
+    if types:
+        qs = qs.filter(type__in=types)
+    q = (params.get("q") or "").strip()
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(key__iexact=q) | Q(key__istartswith=q))
+    return filter_schedule(qs, params)
+
+
+# ───────────────────────── board 32: date range and scheduled filters ─────────────────────────
+
+MAX_RANGE_DAYS = 400
+
+
+def filter_schedule(qs: QuerySet[Task], params: Any) -> QuerySet[Task]:
+    """`filter[from]`, `filter[to]` (inclusive overlap with the effective span
+    [start_date ?? due_date, due_date ?? start_date]) and `filter[scheduled]`. Unscheduled tasks never match a
+    range. The first value of each parameter is used."""
+
+    def first(key: str) -> str | None:
+        found = [v for v in params.getlist(f"filter[{key}]") if v != ""]
+        return found[0] if found else None
+
+    raw_from, raw_to, scheduled = first("from"), first("to"), first("scheduled")
+    errors: dict[str, str] = {}
+    frm = iso_date(raw_from)
+    to = iso_date(raw_to)
+    if raw_from is not None and frm is None:
+        errors["filter[from]"] = "Pick a date"
+    if raw_to is not None and to is None:
+        errors["filter[to]"] = "Pick a date"
+    if scheduled is not None and scheduled not in ("true", "false"):
+        errors["filter[scheduled]"] = "Use true or false"
+    if frm is not None and to is not None:
+        if to < frm:
+            errors["filter[to]"] = "End must be on or after the start"
+        elif (to - frm).days + 1 > MAX_RANGE_DAYS:
+            errors["filter[to]"] = f"Pick a range of {MAX_RANGE_DAYS} days or less"
+    if errors:
+        raise invalid(errors)
+    if frm is not None:
+        qs = qs.annotate(_span_end=Coalesce("due_date", "start_date")).filter(_span_end__gte=frm)
+    if to is not None:
+        qs = qs.annotate(_span_start=Coalesce("start_date", "due_date")).filter(_span_start__lte=to)
+    if scheduled == "true":
+        qs = qs.filter(Q(start_date__isnull=False) | Q(due_date__isnull=False))
+    elif scheduled == "false":
+        qs = qs.filter(start_date__isnull=True, due_date__isnull=True)
+    return qs
+
+
+def sort_spec(raw: str | None) -> list[tuple[str, bool]]:
+    raw = raw or "number"
+    desc = raw.startswith("-")
+    name = raw[1:] if desc else raw
+    if name not in SORTS:
+        raise invalid({"sort": f"Sort by one of: {', '.join(SORTS)}"})
+    return [(f"_sort_{SORTS[name][0]}", desc), ("id", False)]
+
+
+def apply_sort_annotation(qs: QuerySet[Task], raw: str | None) -> QuerySet[Task]:
+    name = (raw or "number").lstrip("-")
+    field, sentinel = SORTS.get(name, SORTS["number"])
+    from django.db.models import F
+
+    expr = Coalesce(F(field), Value(sentinel)) if sentinel is not None else F(field)
+    return qs.annotate(**{f"_sort_{field}": expr})
