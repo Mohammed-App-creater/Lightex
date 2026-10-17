@@ -1,5 +1,5 @@
 import type { DataScope, DataScopeMap, Permission, PermissionGroup, PermissionInfo, Role, RoleScope, WorkspaceMember } from "@/api/types";
-import { PERMISSION_GROUP_ORDER } from "@/platform/roles/catalogue";
+import { PERMISSION_GROUP_ORDER, SELF_SERVICE_CODES } from "@/platform/roles/catalogue";
 
 /* ───────────────────────── Invite email chips (board 18 A.6) ───────────────────────── */
 
@@ -245,7 +245,8 @@ export function grantedCount(role: Pick<Role, "permissions" | "scope">, catalogu
  */
 export function canGrantRole(role: Pick<Role, "permissions">, myPermissions: readonly string[]) {
   const mine = new Set(myPermissions);
-  return role.permissions.every((p) => mine.has(p));
+  // Sales S7: self-service codes can be granted without holding them.
+  return role.permissions.every((p) => mine.has(p) || SELF_SERVICE_CODES.has(p));
 }
 
 /**

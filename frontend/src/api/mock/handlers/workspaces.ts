@@ -1,6 +1,6 @@
 import { auditTargetFields } from "@/lib/audit";
 import type { AuditChange, Paginated, PermissionInfo, SearchResult, WorkspaceMember } from "@/api/types";
-import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/platform/roles/catalogue";
+import { PERMISSION_CATALOGUE, DEFAULT_ROLES, SELF_SERVICE_CODES } from "@/platform/roles/catalogue";
 import { nowISO, uid } from "../db";
 import type { MockDB, RoleRec } from "../db-types";
 import {
@@ -63,12 +63,6 @@ export function workspaceRolesFrom(db: MockDB, workspaceId: string, body: unknow
   if (!role) invalid({ roleId: "Pick a workspace role" });
   return [role];
 }
-
-/**
- * Sales S7 (backend `grantable_without_holding`): self-service codes only act on the holder's own things, so anyone
- * allowed to assign roles may grant them without holding them.
- */
-const SELF_SERVICE_CODES = new Set(["sales.dailyreport.submit"]);
 
 /**
  * No privilege escalation: adding or removing roles needs every (enabled) permission they grant, self-service codes

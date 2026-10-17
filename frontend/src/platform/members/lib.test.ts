@@ -167,6 +167,8 @@ describe("several roles per member (sales S0)", () => {
   it("can grant a role only when every permission is the viewer's", () => {
     expect(canGrantRole(seller, adminPerms)).toBe(true);
     expect(canGrantRole(owner, adminPerms)).toBe(false);
+    // Sales S7: a self-service code (sales.dailyreport.submit) can be granted without holding it.
+    expect(canGrantRole({ permissions: ["core.workspace.view", "sales.dailyreport.submit"] as Permission[] }, ["core.workspace.view"])).toBe(true);
   });
 
   it("explains why a checkbox is locked: Owner, the last role, then escalation", () => {

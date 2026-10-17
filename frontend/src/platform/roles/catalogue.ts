@@ -112,6 +112,12 @@ export const SALES_PERMISSIONS: PermissionInfo[] = [
   sales("sales.settings.manage", "Sales: settings", "Manage sales settings", "Edit stages, products, lost reasons, the working calendar and thresholds", false),
 ];
 
+/**
+ * Sales S7 (backend `self_service`): codes that only act on the holder's own things. No-escalation lets anyone who
+ * may assign roles grant them without holding them.
+ */
+export const SELF_SERVICE_CODES: ReadonlySet<string> = new Set(["sales.dailyreport.submit"]);
+
 /** Owner and Admin get every sales code (scope `all`) except submitting a daily report; Member gets none. */
 export const OWNER_ADMIN_SALES_CODES = SALES_PERMISSIONS.map((p) => p.key as WorkspacePermission).filter((k) => k !== "sales.dailyreport.submit");
 const OWNER_ADMIN_SALES_SCOPES: Record<string, DataScope> = Object.fromEntries(

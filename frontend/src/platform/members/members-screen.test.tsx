@@ -66,14 +66,13 @@ describe("MembersScreen roles", () => {
     expect(memberItem).toHaveAttribute("aria-disabled", "true");
     expect(memberItem).toHaveTextContent("Keep at least one role");
 
-    // CEO / GM: Owner lacks `sales.dailyreport.submit`, so no-escalation refuses the roles that grant it.
-    await userEvent.click(within(menu).getByRole("menuitemcheckbox", { name: /^CEO \/ GM/ }));
-    await waitFor(() => expect(rolesOf("u_sam")).toEqual([R("member"), R("sales_ceo")]));
+    await userEvent.click(within(menu).getByRole("menuitemcheckbox", { name: /^Salesperson/ }));
+    await waitFor(() => expect(rolesOf("u_sam")).toEqual([R("member"), R("sales_salesperson")]));
     // The menu stays open, and Member can be removed again.
     await waitFor(() => expect(within(screen.getByRole("menu")).getByRole("menuitemcheckbox", { name: /^Member/ })).not.toHaveAttribute("aria-disabled"));
     // The member's chips show both roles.
     await userEvent.keyboard("{Escape}");
-    expect(await screen.findByRole("button", { name: "Roles for Sam Patel: Member + CEO / GM" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Roles for Sam Patel: Member + Salesperson" })).toBeInTheDocument();
   });
 
   it("locks the Owner role and hides Remove for an owner when the viewer is an Admin", async () => {
@@ -104,10 +103,10 @@ describe("MembersScreen roles", () => {
     const dialog = await screen.findByRole("dialog");
     await userEvent.type(within(dialog).getByLabelText("Emails"), "drew@x.dev,");
     await userEvent.click(within(dialog).getByRole("button", { name: /Roles/ }));
-    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitemcheckbox", { name: /^CEO \/ GM/ }));
+    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitemcheckbox", { name: /^Sales Manager/ }));
     await userEvent.keyboard("{Escape}");
-    expect(within(dialog).getByRole("button", { name: /Member \+ CEO \/ GM/ })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /Member \+ Sales Manager/ })).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole("button", { name: "Send invite" }));
-    await waitFor(() => expect(getDB().invites.find((i) => i.email === "drew@x.dev")?.roleIds).toEqual([R("member"), R("sales_ceo")]));
+    await waitFor(() => expect(getDB().invites.find((i) => i.email === "drew@x.dev")?.roleIds).toEqual([R("member"), R("sales_manager")]));
   });
 });

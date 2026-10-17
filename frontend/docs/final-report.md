@@ -674,7 +674,7 @@ implemented in the mock (SCHEMA 8):
 - Mock (SCHEMA 9): the four sales default roles use the backend's GRANT_TABLE; Owner / Admin get every sales code (scope `all`) except `sales.dailyreport.submit`; Member gets none.
 - Role editor and mock: system roles' permissions are editable (as on the backend), except Owner; renaming, re-describing and deleting system roles stay refused.
 - `GET sales/workspaces/{slug}/health` left the backend schema; `SalesHealth` is now a client-only type and only the mock answers it, until the sales screens replace the placeholder.
-- Role grants (backend S7): `sales.dailyreport.submit` is self-service, so no-escalation lets anyone who may assign roles grant it without holding it; assigning roles (member changes, invites, removal, delete-with-reassign) also can't hand out a data scope wider than the actor's own (403 `data_scope_exceeds_own`, owners exempt). Mirrored in the mock's `ensureCanGrant`.
+- Role grants (backend S7): `sales.dailyreport.submit` is self-service, so no-escalation lets anyone who may assign roles grant it without holding it; assigning roles (member changes, invites, removal, delete-with-reassign) also can't hand out a data scope wider than the actor's own (403 `data_scope_exceeds_own`, owners exempt). Mirrored in the mock's `ensureCanGrant` and in the UI's `canGrantRole` (self-service only).
 
 ---
 
