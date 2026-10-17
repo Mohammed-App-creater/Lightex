@@ -10,7 +10,7 @@ import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
 import { useProjectMembers } from "@/modules/tracking/projects/queries";
 import type { CustomField, CustomFieldValue, TaskDetail, TaskPatch } from "@/api/types";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { PresenceField } from "@/platform/presence/presence-ui";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";

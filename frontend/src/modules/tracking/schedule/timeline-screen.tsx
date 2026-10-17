@@ -17,7 +17,7 @@ import { rememberOrigin } from "@/modules/tracking/tasks/task-origin";
 import type { ISODate, Task, TimelineGroup, TimelineZoom } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, replaceUrl, routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, replaceUrl, routes, withTaskParam } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { DependencyArrows } from "./dependency-arrows";

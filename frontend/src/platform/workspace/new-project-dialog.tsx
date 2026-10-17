@@ -15,7 +15,7 @@ import type { Project, ProjectTemplate, Status } from "@/api/types";
 import { CATEGORY_LABEL, PROJECT_TEMPLATES, templateDef } from "@/lib/domain/project-templates";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { deriveKey, validateKey } from "./my-work";
 import { useProjects } from "./queries";

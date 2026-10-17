@@ -8,7 +8,7 @@ import { ErrorState } from "@/ui/feedback";
 import { isApiError } from "@/api/errors";
 import type { DashboardSummary } from "@/api/types";
 import { can, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { NewDashboardDialog } from "./dashboard-dialogs";
 import { DashboardSkeleton, DashboardState, MonoNote } from "./dashboard-states";
 import { isPendingDelete, lastDashboard, useDashboards } from "./queries";

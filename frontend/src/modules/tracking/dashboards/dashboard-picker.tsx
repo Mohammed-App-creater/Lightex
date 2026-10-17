@@ -9,7 +9,7 @@ import { useMe } from "@/platform/auth/session";
 import { errorMessage, isApiError } from "@/api/errors";
 import type { Dashboard, DashboardSummary, Project } from "@/api/types";
 import { can, canChangeVisibility, canEditDashboard, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { DeleteDashboardDialog, NewDashboardDialog, RenameDashboardDialog } from "./dashboard-dialogs";
 import { usePendingDashboardDelete, useUpdateDashboard } from "./queries";
 

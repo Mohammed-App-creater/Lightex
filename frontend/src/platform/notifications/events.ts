@@ -1,5 +1,5 @@
 import type { Notification, NotificationEvent, NotificationType, StatusGlyph } from "@/api/types";
-import { importNotificationText } from "@/modules/tracking/import/import-lib";
+import { notificationText } from "@/registry/services";
 import { ago, addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 
 /*
@@ -71,9 +71,9 @@ export const EVENTS: Record<NotificationType, EventMeta> = {
 /** Preferences matrix rows, in design order, mapped to the inbox type that carries the icon. */
 export const PREF_ROWS: { event: NotificationEvent; type: NotificationType }[] = [
   { event: "tracking.task.assigned", type: "assigned" },
-  { event: "tracking.comment.mentioned", type: "mention" },
+  { event: "core.comment.mentioned", type: "mention" },
   { event: "tracking.task.status_changed", type: "status" },
-  { event: "tracking.comment.created", type: "comment" },
+  { event: "core.comment.created", type: "comment" },
   { event: "tracking.task.due_soon", type: "due" },
   { event: "tracking.sprint.started", type: "sprint" },
 ];
@@ -98,10 +98,9 @@ export function dueLabel(dueDate: string | undefined, today = todayISO()) {
  */
 export function lineParts(n: Notification, actorName: string | null, today = todayISO()) {
   if (n.type === "due") return { lead: dueLabel(n.payload.dueDate, today), verb: "" };
-  if (n.type === "import") {
-    const t = importNotificationText(n.payload);
-    return { lead: t.lead, verb: `· ${t.rest}` };
-  }
+  // Module-owned types (board 40 "import") supply their own text through the registry.
+  const own = notificationText(n);
+  if (own) return { lead: own.lead, verb: `· ${own.rest}` };
   // Board 37: an automation's change names the provider ("GitHub moved PRJ-42 to Done").
   const via = n.payload.via === "github" ? "GitHub" : n.payload.via === "gitlab" ? "GitLab" : null;
   const lead = via ?? actorName ?? (n.actorId ? "Someone" : "Lightex");
@@ -119,7 +118,7 @@ export function verbText(n: Notification, actorName: string | null, today = toda
 /** What line 2 shows: task key + title, or the sprint name for task-less events. */
 export function subjectOf(n: Notification) {
   if (n.taskKey) return { key: n.taskKey, title: n.taskTitle ?? "" };
-  return { key: null, title: n.payload.sprintName ?? n.projectName };
+  return { key: null, title: n.payload.sprintName ?? n.projectName ?? n.title ?? "" };
 }
 
 /** Accessible name of a row's hit target (design 1.3). */

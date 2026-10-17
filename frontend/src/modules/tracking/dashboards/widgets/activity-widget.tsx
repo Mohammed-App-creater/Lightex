@@ -5,7 +5,7 @@ import { firstName } from "@/platform/presence/presence-lib";
 import { activityActorName, activityText } from "@/modules/tracking/tasks/activity-text";
 import { ActorAvatar } from "@/platform/audit/audit-parts";
 import type { ActivityEntry } from "@/api/types";
-import { useIsLive } from "@/lib/realtime/status-store";
+import { useIsLive } from "@/platform/realtime/status-store";
 import { cn } from "@/lib/utils/cn";
 import { ago } from "@/lib/utils/dates";
 import { useActivityWidget } from "@/modules/tracking/dashboards/queries";

@@ -38,7 +38,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   unfamiliar Next APIs.
 - **Performance rules:** the React Compiler is on (Turbopack's Rust port, no Babel plugin), so write plain
   hooks-compliant components and let it memoize. Change only the query string (`?task=`, filters, dialog state)
-  with `pushUrl` / `replaceUrl` from `src/lib/routes.ts`, never `router.push`: the router refetches the page for
+  with `pushUrl` / `replaceUrl` from `src/platform/routes.ts`, never `router.push`: the router refetches the page for
   every `router.push`, the History API does not. Heavy, open-on-demand modules (Tiptap, cmdk) stay code-split
   through `lazyWithPreload` (`src/lib/hooks/lazy-with-preload.tsx`), warmed at idle; route-only ones (Recharts)
   simply live in their route.
@@ -66,12 +66,13 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Screens call `api.<group>.<fn>` from `endpoints.ts`, with query keys from `qk` in `query-keys.ts`.
   - `getTransport()` picks `HttpTransport` (live) or `MockTransport` (mock) based on `NEXT_PUBLIC_API_MODE`.
   - Errors: `ApiError { code, message, details, status }`.
-- **`src/lib/realtime/`** (v2, board 33) — the one SSE stream and presence. `RealtimeProvider` (mounted by
+- **`src/platform/realtime/`** (v2, board 33) — the one SSE stream and presence. `RealtimeProvider` (mounted by
   `app/[workspace]/layout.tsx`) elects a leader tab (Web Locks + BroadcastChannel); the leader runs the fetch-based
   stream (`http-source.ts`, or `MockRealtimeSource` in mock mode, in-process) and every tab applies events to its
   cache (`apply-event.ts`). `useLiveInterval(ms)` is `false` while live, `ms` otherwise; use it instead of a literal
   `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`platform/presence`).
-- **`src/lib/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts` (tracking routes registered as `/tracking/...`). Each handler file exports `register<Area>()`,
+- **`src/api/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts` (tracking routes registered as `/tracking/...`;
+  comments and attachments on `/targets/:type/:id/...`, which resolve only `tracking.task`). Each handler file exports `register<Area>()`,
   which is called from `mock/transport.ts`.
   - Realtime: handlers publish events through `mockBus` (`mock/realtime.ts`); the transport emits a request's events
     only when its handler succeeds. Planning and settings routes publish from the table in `mock/publish-routes.ts`.
@@ -87,15 +88,24 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - `src/modules/tracking/` — the tracking module: projects, board, list, tasks, sprints, epics, goals, filters,
     schedule, reports, dashboards, fields, dependencies, time, import, integrations, development, my-tasks,
     project-settings. `src/modules/sales/` is an empty placeholder (Stage 3).
-  - `src/registry/` — the module registry (key, name, sidebar nav items). The sidebar renders module links from it;
-    add a module's nav there, not in `sidebar.tsx`.
-  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` should not grow
-    new imports of `modules/` (existing ones are Stage 2 work).
+  - `src/registry/` — the module registry. `index.ts` lists each module's `module.tsx` (nav items, project nav,
+    sidebar sections and cards, shell overlays, palette actions); `services.ts` lists each module's `services.ts`
+    (comment / attachment target types with the queries a collab event touches, notification text). Platform code
+    renders these slots; add a module's UI there, not in `sidebar.tsx` / `app-shell.tsx` / the palette.
+  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` does not import
+    `modules/` (one known exception: the inbox preview's `useStatuses` in `platform/notifications/preview.tsx`).
+    The workspace home (`modules/tracking/home/`) and the project activity feed (`modules/tracking/projects/`) are
+    tracking screens.
 - **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
   (everything project-related); catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
   (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
   `core.<entity>.<verb>` (stream control events `hello` / `reset` / `reconnect` stay bare); notification
   preference keys are `tracking.task.assigned` and so on. `actionEntity()` in `src/lib/audit.ts` strips the prefix.
+- **Generic services (platform Stage 2, `docs/platform/stage2-contract.md` at the repo root).** Comments and
+  attachments hang off a target (`TargetRef`: `targetType` `tracking.task`, `targetId` the task id; `taskTarget()`
+  builds it). Collab realtime events are `core.comment.*` / `core.attachment.*` with `{targetType, targetId}`; the
+  comment preference keys are `core.comment.created` / `core.comment.mentioned`. Audit `entityType` / `targetType`
+  and trash kinds may arrive namespaced: `auditEntity()` and `normalizeTrashList()` (`endpoints.ts`) strip the module.
 
 ## Rules that must not be broken
 
@@ -109,7 +119,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Mock mode: the session is a user id in `lightex-mock-session`. It is not a token.
 - **Mutations:** optimistic, with rollback and a toast (`src/modules/tracking/tasks/mutations.ts`, `src/api/optimistic.ts`).
   Board moves send `version`; a 409 shows "Someone else changed this card".
-- **Freshness:** No WebSockets. One SSE stream (`src/lib/realtime/`) invalidates queries while live; otherwise
+- **Freshness:** No WebSockets. One SSE stream (`src/platform/realtime/`) invalidates queries while live; otherwise
   refetch on window focus and poll the board and inbox every 30s while visible. SSE is the agreed exception (board 33);
   any failure, or the server saying realtime is off, falls back to that polling.
 - **Every screen** has loading (skeleton), empty and error (retry) states. It must work at 390px and in the navy,
@@ -129,7 +139,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     (Telegram / SMS / Web Push notification channels, `docs/v2/38-telegram-sms-push.md`).
   - What a spec itself leaves out stays hidden or "Coming soon" (Trello and API import connectors, Telegram quick
     replies, report PNG/PDF export).
-  - Import: the CSV parser lives only in `src/lib/mock/import/` (the lazily loaded mock chunk); the live client never
+  - Import: the CSV parser lives only in `src/api/mock/import/` (the lazily loaded mock chunk); the live client never
     parses CSV. Trello and every API connector stay "Coming soon".
   - Dashboards and presence: realtime is one SSE stream per browser per workspace (never a WebSocket). No
     character-level co-editing, remote cursors or remote selections (spec §9 #8, #9); typing indicators only.

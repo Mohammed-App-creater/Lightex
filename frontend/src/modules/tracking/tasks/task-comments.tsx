@@ -19,10 +19,11 @@ import type { Comment, PresencePerson, RichDoc, TaskDetail, User } from "@/api/t
 import { can } from "@/platform/roles/can";
 import { ago, agoOrDate } from "@/lib/utils/dates";
 import { activityActorName, activityText } from "./activity-text";
+import { taskTarget } from "./target";
 import { CommentComposer, RichView, richIsEmpty, useRichEditor } from "./rich-text";
 import { TypingIndicator } from "@/platform/presence/presence-ui";
 import { useTypingSignal } from "@/platform/presence/use-typing";
-import { useIsLive } from "@/lib/realtime/status-store";
+import { useIsLive } from "@/platform/realtime/status-store";
 
 const NO_TYPISTS: readonly PresencePerson[] = [];
 
@@ -37,7 +38,7 @@ type Presence = {
 
 export function TaskConversation({ task, deleted, ...presence }: { task: TaskDetail; deleted: boolean } & Presence) {
   const [tab, setTab] = useState<"comments" | "activity">("comments");
-  const { data: comments = [], isPending } = useQuery({ queryKey: qk.comments(task.id), queryFn: () => api.comments.list(task.id) });
+  const { data: comments = [], isPending } = useQuery({ queryKey: qk.comments(task.id), queryFn: () => api.comments.list(taskTarget(task.id)) });
   const idBase = `conv-${task.id}`;
   return (
     <section aria-label="Comments and activity">
@@ -86,11 +87,11 @@ function Comments({
   }, [canComment, onComposer]);
 
   const send = useMutation({
-    mutationFn: (body: RichDoc) => api.comments.create(task.id, body),
+    mutationFn: (body: RichDoc) => api.comments.create(taskTarget(task.id), body),
     onMutate: async (body) => {
       await qc.cancelQueries({ queryKey: qk.comments(task.id) });
       const prev = qc.getQueryData<Comment[]>(qk.comments(task.id));
-      const temp: Comment = { id: `temp-${Date.now()}`, taskId: task.id, authorId: me.id, body, mentions: [], createdAt: new Date().toISOString(), editedAt: null };
+      const temp: Comment = { id: `temp-${Date.now()}`, ...taskTarget(task.id), authorId: me.id, body, mentions: [], createdAt: new Date().toISOString(), editedAt: null };
       qc.setQueryData<Comment[]>(qk.comments(task.id), (l) => [...(l ?? []), temp]);
       return { prev, tempId: temp.id };
     },

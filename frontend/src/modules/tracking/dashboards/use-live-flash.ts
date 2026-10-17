@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { liveUpdateToast } from "@/platform/presence/live-toast";
 import type { User } from "@/api/types";
-import { claimLiveToast, remoteMarks, type RemoteMark } from "@/lib/realtime/remote";
-import { useIsLive } from "@/lib/realtime/status-store";
+import { claimLiveToast, remoteMarks, type RemoteMark } from "@/platform/realtime/remote";
+import { useIsLive } from "@/platform/realtime/status-store";
 import { changedKeys } from "./widget-lib";
 
 /*

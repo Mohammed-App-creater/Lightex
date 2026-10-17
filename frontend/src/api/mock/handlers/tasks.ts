@@ -32,6 +32,15 @@ function taskById(ctx: Ctx, id: string) {
   return t;
 }
 
+/** Platform Stage 2: the one comment / attachment target type the mock registers (targetId = Task.id). */
+export const TASK_TARGET = "tracking.task";
+
+/** Resolves `targets/:type/:id` (the server's target registry); unknown types are a 404 like a missing record. */
+function targetTask(ctx: Ctx) {
+  if (ctx.params.type !== TASK_TARGET) fail(404, "not_found", "Unknown target type.");
+  return taskById(ctx, ctx.params.id!);
+}
+
 /** edit_any, or edit_own when the user reported or is assigned the task. */
 export function canEditTask(db: MockDB, userId: string, t: TaskRec) {
   const perms = projectPermissions(db, userId, t.projectId);
@@ -101,12 +110,12 @@ function richText(doc: RichDoc | null | undefined): string {
 }
 
 /* Uploaded bodies live only in memory (never in localStorage). */
-const uploads = new Map<string, { taskId: string; fileName: string; size: number; mimeType: string; blob?: Blob }>();
+const uploads = new Map<string, { targetType: string; targetId: string; fileName: string; size: number; mimeType: string; blob?: Blob }>();
 export const mockUploads = uploads;
 
 /** Board 40: the import ticket (I1) reuses the signed-upload map; the blob arrives through mockUpload(). */
 export function registerMockUpload(id: string, fileName: string, size: number, mimeType = "text/csv") {
-  uploads.set(id, { taskId: "", fileName: fileName.slice(0, 120), size, mimeType });
+  uploads.set(id, { targetType: "", targetId: "", fileName: fileName.slice(0, 120), size, mimeType });
 }
 
 function kindOf(fileName: string, mime: string): AttachmentRec["kind"] {
@@ -495,19 +504,22 @@ export function registerTasks() {
     };
   });
 
-  /* comments */
-  route("GET", "/tracking/tasks/:id/comments", (ctx) => {
-    const t = taskById(ctx, ctx.params.id!);
-    return ctx.db.comments.filter((c) => c.taskId === t.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  /*
+   * Comments and attachments (platform Stage 2): generic targets/{targetType}/{targetId}/… routes. Only tracking
+   * registers a target type here ("tracking.task", targetId = Task.id); permissions use its tracking.* codes.
+   */
+  route("GET", "/targets/:type/:id/comments", (ctx) => {
+    const t = targetTask(ctx);
+    return ctx.db.comments.filter((c) => c.targetId === t.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   });
-  route("POST", "/tracking/tasks/:id/comments", (ctx) => {
-    const t = taskById(ctx, ctx.params.id!);
+  route("POST", "/targets/:type/:id/comments", (ctx) => {
+    const t = targetTask(ctx);
     requireProject(ctx, t.projectId, "tracking.comment.create");
     const body = (ctx.body as { body?: RichDoc })?.body;
     const text = richText(body);
     if (!body || !text) invalid({ body: "Write something first" });
     if (text.length > 2000) invalid({ body: "Keep comments under 2,000 characters" });
-    const c: Comment = { id: uid("c"), taskId: t.id, authorId: ctx.userId!, body, mentions: mentionIds(body), createdAt: nowISO(), editedAt: null };
+    const c: Comment = { id: uid("c"), targetType: TASK_TARGET, targetId: t.id, authorId: ctx.userId!, body, mentions: mentionIds(body), createdAt: nowISO(), editedAt: null };
     ctx.db.comments.push(c);
     logActivity(ctx.db, ctx.userId, "commented", t.projectId, t);
     const quote = text.slice(0, 140);
@@ -522,7 +534,7 @@ export function registerTasks() {
     const userId = requireUser(ctx);
     const c = ctx.db.comments.find((x) => x.id === ctx.params.id);
     if (!c) fail(404, "not_found", "Comment not found.");
-    const t = taskById(ctx, c.taskId);
+    const t = taskById(ctx, c.targetId);
     requireProject(ctx, t.projectId, "tracking.comment.edit_own");
     if (c.authorId !== userId) fail(403, "forbidden", "You can only edit your own comments.", { permission: "tracking.comment.edit_own" });
     const body = (ctx.body as { body?: RichDoc })?.body;
@@ -537,7 +549,7 @@ export function registerTasks() {
     const userId = requireUser(ctx);
     const c = ctx.db.comments.find((x) => x.id === ctx.params.id);
     if (!c) fail(404, "not_found", "Comment not found.");
-    const t = taskById(ctx, c.taskId);
+    const t = taskById(ctx, c.targetId);
     const perms = projectPermissions(ctx.db, userId, t.projectId);
     const own = c.authorId === userId && perms.includes("tracking.comment.edit_own");
     if (!own && !perms.includes("tracking.comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "tracking.comment.delete_any" });
@@ -547,34 +559,36 @@ export function registerTasks() {
     return undefined;
   });
 
-  /* attachments: signed URL → direct upload → confirm */
-  route("GET", "/tracking/tasks/:id/attachments", (ctx) => {
-    const t = taskById(ctx, ctx.params.id!);
-    return ctx.db.attachments.filter((a) => a.taskId === t.id).map(toAttachment);
+  /* attachments: signed URL → direct upload → confirm (attachments/{id}/confirm; the upload id is the attachment id) */
+  route("GET", "/targets/:type/:id/attachments", (ctx) => {
+    const t = targetTask(ctx);
+    return ctx.db.attachments.filter((a) => a.targetId === t.id).map(toAttachment);
   });
-  route("POST", "/tracking/tasks/:id/attachments/upload-url", (ctx) => {
-    const t = taskById(ctx, ctx.params.id!);
+  route("POST", "/targets/:type/:id/attachments/upload-url", (ctx) => {
+    const t = targetTask(ctx);
     requireProject(ctx, t.projectId, "tracking.attachment.upload");
     const fileName = str(ctx.body, "fileName") ?? "";
     const size = Number((ctx.body as { size?: number })?.size ?? 0);
     const mimeType = str(ctx.body, "mimeType") ?? "";
     const problem = validateUpload({ name: fileName, size, type: mimeType });
     if (problem) invalid({ file: problem });
-    const uploadId = uid("up");
-    uploads.set(uploadId, { taskId: t.id, fileName: fileName.slice(0, 120), size, mimeType });
+    const uploadId = uid("at");
+    uploads.set(uploadId, { targetType: TASK_TARGET, targetId: t.id, fileName: fileName.slice(0, 120), size, mimeType });
     return { uploadId, url: `mock-upload://${uploadId}`, method: "PUT", headers: { "Content-Type": mimeType || "application/octet-stream" }, expiresAt: new Date(Date.now() + 600_000).toISOString() };
   });
-  route("POST", "/tracking/tasks/:id/attachments", (ctx) => {
-    const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "tracking.attachment.upload");
-    const uploadId = str(ctx.body, "uploadId") ?? "";
+  route("POST", "/attachments/:id/confirm", (ctx) => {
+    const uploadId = ctx.params.id!;
     const up = uploads.get(uploadId);
-    if (!up || up.taskId !== t.id || !up.blob) fail(400, "upload_missing", "Upload not found or incomplete. Try again.");
+    if (!up || up.targetType !== TASK_TARGET) fail(400, "upload_missing", "Upload not found or incomplete. Try again.");
+    const t = taskById(ctx, up.targetId);
+    requireProject(ctx, t.projectId, "tracking.attachment.upload");
+    if (!up.blob) fail(400, "upload_missing", "Upload not found or incomplete. Try again.");
     const kind = kindOf(up.fileName, up.mimeType);
     const url = URL.createObjectURL(up.blob);
     const a: AttachmentRec = {
-      id: uid("at"),
-      taskId: t.id,
+      id: uploadId,
+      targetType: TASK_TARGET,
+      targetId: t.id,
       uploaderId: ctx.userId!,
       fileName: up.fileName,
       size: up.size,
@@ -587,19 +601,19 @@ export function registerTasks() {
     ctx.db.attachments.push(a);
     uploads.delete(uploadId);
     logActivity(ctx.db, ctx.userId, "attached", t.projectId, t, { file: a.fileName });
-    publishAttachment(ctx.db, ctx.userId, t, "created");
+    publishAttachment(ctx.db, ctx.userId, t, a.id, "created");
     return toAttachment(a);
   });
   route("DELETE", "/attachments/:id", (ctx) => {
     const userId = requireUser(ctx);
     const a = ctx.db.attachments.find((x) => x.id === ctx.params.id);
     if (!a) fail(404, "not_found", "File not found.");
-    const t = taskById(ctx, a.taskId);
+    const t = taskById(ctx, a.targetId);
     const perms = projectPermissions(ctx.db, userId, t.projectId);
     if (!(a.uploaderId === userId && perms.includes("tracking.attachment.upload")) && !perms.includes("tracking.attachment.delete_any"))
       fail(403, "forbidden", "You can’t delete this file.", { permission: "tracking.attachment.delete_any" });
     ctx.db.attachments = ctx.db.attachments.filter((x) => x.id !== a.id);
-    publishAttachment(ctx.db, userId, t, "deleted");
+    publishAttachment(ctx.db, userId, t, a.id, "deleted");
     return undefined;
   });
 }

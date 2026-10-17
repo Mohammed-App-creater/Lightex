@@ -18,8 +18,11 @@ import type {
   WsMemberRec,
 } from "./db-types";
 
-/** 4: Stage 1 namespaced permission codes, event types, audit actions and preference keys. */
-export const SCHEMA = 4;
+/**
+ * 4: Stage 1 namespaced permission codes, event types, audit actions and preference keys.
+ * 5: Stage 2 generic targets (comments / attachments carry targetType + targetId, no taskId) and core.comment.* preference keys.
+ */
+export const SCHEMA = 5;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -527,7 +530,8 @@ export function createSeed(): MockDB {
   db.comments.push(
     {
       id: "c1",
-      taskId: "p_prj-t42",
+      targetType: "tracking.task",
+      targetId: "p_prj-t42",
       authorId: JL,
       body: {
         type: "doc",
@@ -550,7 +554,8 @@ export function createSeed(): MockDB {
     },
     {
       id: "c2",
-      taskId: "p_prj-t42",
+      targetType: "tracking.task",
+      targetId: "p_prj-t42",
       authorId: AK,
       body: {
         type: "doc",
@@ -571,7 +576,8 @@ export function createSeed(): MockDB {
     },
     {
       id: "c3",
-      taskId: "p_prj-t48",
+      targetType: "tracking.task",
+      targetId: "p_prj-t48",
       authorId: SP,
       body: {
         type: "doc",
@@ -594,7 +600,8 @@ export function createSeed(): MockDB {
   const att: AttachmentRec[] = [
     {
       id: "at1",
-      taskId: "p_prj-t42",
+      targetType: "tracking.task",
+      targetId: "p_prj-t42",
       uploaderId: JL,
       fileName: "drag-glitch.png",
       size: 1_258_291,
@@ -606,7 +613,8 @@ export function createSeed(): MockDB {
     },
     {
       id: "at2",
-      taskId: "p_prj-t42",
+      targetType: "tracking.task",
+      targetId: "p_prj-t42",
       uploaderId: AK,
       fileName: "reflow.ts",
       size: 4096,
@@ -645,6 +653,11 @@ export function createSeed(): MockDB {
       payload,
       createdAt: ago(minutes),
       readAt: read ? ago(minutes - 1) : null,
+      // Platform Stage 2 (describe(): the target's title and link).
+      targetType: "tracking.task",
+      targetId: t.id,
+      title: t.title,
+      link: `/platform/tasks/${t.key}`,
     };
   };
   db.notifications.push(

@@ -48,7 +48,7 @@ import type { Label, Status, Task, TaskPatch, User } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, routes, withTaskParam } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, dueTone, shortDate, todayISO } from "@/lib/utils/dates";
 import { COLUMNS, cfColumn, clampWidth, groupTasks, isCfColumn, labelSlots, sortTasks, type ColumnDef, type ColumnId, type Ctx, type Group, type GroupBy, type SortState } from "./list-model";

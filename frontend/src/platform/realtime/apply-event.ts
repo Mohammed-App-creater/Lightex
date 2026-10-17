@@ -1,17 +1,20 @@
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { findTask, patchTasks } from "@/api/optimistic";
 import { qk } from "@/api/query-keys";
-import type {
-  AttachmentChangedEvent,
-  CommentChangedEvent,
-  DashboardChangedEvent,
-  InboxChangedEvent,
-  IntegrationChangedEvent,
-  PresenceUpdatedEvent,
-  ProjectArea,
-  ProjectChangedEvent,
-  RealtimeEnvelope,
-  TaskChangedEvent,
+import { targetDefinition } from "@/registry/services";
+import {
+  ATTACHMENT_EVENT_TYPES,
+  COMMENT_EVENT_TYPES,
+  type AttachmentEvent,
+  type CommentEvent,
+  type DashboardChangedEvent,
+  type InboxChangedEvent,
+  type IntegrationChangedEvent,
+  type PresenceUpdatedEvent,
+  type ProjectArea,
+  type ProjectChangedEvent,
+  type RealtimeEnvelope,
+  type TaskChangedEvent,
 } from "./events";
 import { remoteMarks } from "./remote";
 import { replaceLocation, type CachedRoster } from "./roster";
@@ -179,7 +182,16 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
     qc.setQueryData<CachedRoster>(qk.presence(ctx.slug, pid), (r) => replaceLocation(r, pid, ev.data));
   }
 
+  /** Platform Stage 2: core.comment.* / core.attachment.* on any registered target type. */
+  function onCollab(ev: CommentEvent | AttachmentEvent, list: "comments" | "attachments") {
+    const { targetType, targetId } = ev.data;
+    if (!targetType || !targetId) return;
+    invalidate(qk[list](targetId), ...(targetDefinition(targetType)?.related?.(targetId, { qc, slug: ctx.slug, projectId: ev.projectId }) ?? []));
+  }
+
   function handle(ev: RealtimeEnvelope) {
+    if ((COMMENT_EVENT_TYPES as string[]).includes(ev.type)) return onCollab(ev as CommentEvent, "comments");
+    if ((ATTACHMENT_EVENT_TYPES as string[]).includes(ev.type)) return onCollab(ev as AttachmentEvent, "attachments");
     switch (ev.type) {
       case "hello":
       case "reset":
@@ -193,17 +205,6 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
           invalidate(qk.scope(ev.projectId), qk.views(ctx.slug), ["task", ctx.slug], qk.myTasks(ctx.slug));
         }
         return;
-      case "tracking.comment.changed": {
-        const d = (ev as CommentChangedEvent).data;
-        invalidate(qk.comments(d.taskId), qk.taskActivity(d.taskId), qk.task(ctx.slug, d.key));
-        if (ev.projectId) invalidate(qk.activity(ev.projectId));
-        return;
-      }
-      case "tracking.attachment.changed": {
-        const d = (ev as AttachmentChangedEvent).data;
-        invalidate(qk.attachments(d.taskId), qk.task(ctx.slug, d.key));
-        return;
-      }
       case "tracking.project.changed":
         return onProject(ev as ProjectChangedEvent);
       case "tracking.dashboard.changed":

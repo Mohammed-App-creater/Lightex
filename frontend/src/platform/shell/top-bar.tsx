@@ -8,7 +8,7 @@ import { ProjectBadge } from "@/ui/avatar";
 import { Kbd } from "@/ui/kbd";
 import { useProjects } from "@/platform/workspace/queries";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/platform/routes";
 import { shell } from "./shell-state";
 
 const VIEW_LABEL: Record<string, string> = {

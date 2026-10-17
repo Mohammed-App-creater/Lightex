@@ -440,9 +440,17 @@ export interface TaskMove {
   version: number;
 }
 
-export interface Comment {
+/**
+ * Platform Stage 2: comments and attachments hang off a generic target (`targets/{targetType}/{targetId}/…`).
+ * `targetType` is "<module>.<entity>" ("tracking.task"); `targetId` is the record's id (for tasks, `Task.id`).
+ */
+export interface TargetRef {
+  targetType: string;
+  targetId: ID;
+}
+
+export interface Comment extends TargetRef {
   id: ID;
-  taskId: ID;
   authorId: ID;
   body: RichDoc;
   mentions: ID[];
@@ -452,9 +460,8 @@ export interface Comment {
 
 export type AttachmentKind = "image" | "code" | "text";
 
-export interface Attachment {
+export interface Attachment extends TargetRef {
   id: ID;
-  taskId: ID;
   uploaderId: ID;
   fileName: string;
   size: number;
@@ -524,8 +531,9 @@ export interface Notification {
   type: NotificationType;
   /** null for system notifications (e.g. "Due tomorrow"). */
   actorId: ID | null;
-  projectId: ID;
-  projectName: string;
+  /** Platform Stage 2: null for notifications whose target has no project. */
+  projectId: ID | null;
+  projectName: string | null;
   taskId: ID | null;
   taskKey: string | null;
   taskTitle: string | null;
@@ -546,13 +554,20 @@ export interface Notification {
   };
   createdAt: ISODateTime;
   readAt: ISODateTime | null;
+  /* Platform Stage 2 (additive; optional so older rows still parse). */
+  targetType?: string | null;
+  targetId?: ID | null;
+  /** The target's title from the module's describe() (task title, project name…). */
+  title?: string | null;
+  /** Absolute URL of the target, from describe() (the mock sends an app-relative path). */
+  link?: string | null;
 }
 
 export type NotificationEvent =
   | "tracking.task.assigned"
-  | "tracking.comment.mentioned"
+  | "core.comment.mentioned"
   | "tracking.task.status_changed"
-  | "tracking.comment.created"
+  | "core.comment.created"
   | "tracking.task.due_soon"
   | "tracking.sprint.started";
 /** Board 38 (v2): the channels that leave the app. */
@@ -580,6 +595,8 @@ export interface NotificationPreferences {
   emailDelivery: "instant" | "hourly" | "daily";
   /** Board 38. */
   quietHours: QuietHours;
+  /** Platform Stage 2: row labels from the event type registry, when the server sends them. */
+  labels?: Partial<Record<NotificationEvent, string>>;
 }
 
 /* ───────── Board 38 (v2): Telegram, SMS and push channels ───────── */
@@ -695,6 +712,10 @@ export interface AuditEntry {
   source?: "web" | "api" | "import" | "webhook";
   requestId?: string | null;
   changes?: AuditChange[];
+  /* Platform Stage 2 (additive). `entityType` / `targetType` may be namespaced ("tracking.task"). */
+  module?: string;
+  targetType?: string | null;
+  targetId?: ID | null;
 }
 
 /** Field-level change. `kind` tells the UI how to render values (status glyph, priority bars…). */
@@ -715,10 +736,25 @@ export interface AuditPage {
 
 /* ───────────────────────── Search, reports, misc ───────────────────────── */
 
-export type SearchResult =
-  | { type: "task"; task: Task; projectKey: string; projectName: string; status: Pick<Status, "name" | "glyph"> }
-  | { type: "project"; project: Project }
-  | { type: "user"; user: User; roleName: string };
+/** Platform Stage 2: every result names its target ("tracking.task", "core.user"…); `link` is null for users. */
+export interface SearchTarget {
+  targetType?: string;
+  targetId?: ID;
+  title?: string;
+  link?: string | null;
+}
+
+/**
+ * Workspace search results. The global `GET /search` also returns `comment` results
+ * (`comment: {id, targetType, targetId, authorId, excerpt, createdAt}`, `taskKey`, `taskTitle`, `projectKey`); the client
+ * doesn't call it.
+ */
+export type SearchResult = SearchTarget &
+  (
+    | { type: "task"; task: Task; projectKey: string; projectName: string; status: Pick<Status, "name" | "glyph"> }
+    | { type: "project"; project: Project }
+    | { type: "user"; user: User; roleName: string }
+  );
 
 export interface ProjectSummary {
   openTasks: number;
@@ -829,6 +865,8 @@ export interface TrashItem extends TrashRef {
   parentKey: string | null;
   /** Projects: live task count inside the trashed project. */
   taskCount: number | null;
+  /** Platform Stage 2: the module that registered the kind ("tracking", "core"). */
+  module?: string;
   /** Owning project for tasks and comments; null for projects. */
   project: Pick<Project, "id" | "key" | "name" | "hue"> | null;
   deletedBy: Pick<User, "id" | "name" | "hue"> | null;

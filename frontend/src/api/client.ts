@@ -13,7 +13,7 @@ export function getTransport(): Promise<Transport> {
   transportPromise ??=
     apiMode === "live"
       ? Promise.resolve(new HttpTransport(apiUrl))
-      : import("@/lib/mock/transport").then((m) => new m.MockTransport());
+      : import("@/api/mock/transport").then((m) => new m.MockTransport());
   return transportPromise;
 }
 

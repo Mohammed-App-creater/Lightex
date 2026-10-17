@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "@/api/errors";
 import type { Dashboard, DashboardSummary, PresenceHeartbeat, PresenceRoster, Project, Task, WorkloadReport } from "@/api/types";
-import { presenceClaims } from "@/lib/realtime/presence";
-import type { RealtimeEnvelope } from "@/lib/realtime/events";
+import { presenceClaims } from "@/platform/realtime/presence";
+import type { RealtimeEnvelope } from "@/platform/realtime/events";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB, setDB } from "./db";
 import { createSeed } from "./seed";
@@ -325,8 +325,8 @@ describe("the bus publishes §6.2 events", () => {
     await req("POST", `/tracking/tasks/${tk.id}/move`, { statusId: statuses.find((s) => s.glyph === "review")!.id, position: "a0", version: tk.version + 1 });
     expect(events.filter((e) => e.type === "tracking.task.changed").at(-1)).toMatchObject({ data: { op: "moved", fields: ["statusId", "position"] } });
     expect(events.some((e) => e.type === "core.inbox.changed" && e.userId === "u_sam")).toBe(true);
-    await req("POST", `/tracking/tasks/${tk.id}/comments`, { body: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "hi" }] }] } });
-    expect(events.filter((e) => e.type === "tracking.comment.changed").at(-1)).toMatchObject({ data: { taskId: tk.id, op: "created" } });
+    await req("POST", `/targets/tracking.task/${tk.id}/comments`, { body: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "hi" }] }] } });
+    expect(events.filter((e) => e.type === "core.comment.created").at(-1)).toMatchObject({ projectId: "p_prj", data: { targetType: "tracking.task", targetId: tk.id } });
     const ids = events.filter((e) => e.id).map((e) => Number(e.id));
     expect(ids).toEqual([...ids].sort((a, b) => a - b));
   });

@@ -284,7 +284,7 @@ describe("W1 workspace SMS policy", () => {
 
 describe("dispatcher (fan-out, quiet hours, summaries)", () => {
   const prefsOf = (u: string) => getDB().prefs.find((p) => p.userId === u)!.prefs;
-  const send = (urgent: boolean, now: Date, event: "tracking.task.assigned" | "tracking.comment.created" = "tracking.task.assigned") =>
+  const send = (urgent: boolean, now: Date, event: "tracking.task.assigned" | "core.comment.created" = "tracking.task.assigned") =>
     fanOut(getDB(), "u_alex", event, { workspaceId: "ws_platform", notificationId: null, taskKey: "PRJ-42", urgent, now });
 
   it("sends to wanted, usable targets outside quiet hours (one row per push device)", () => {
@@ -307,7 +307,7 @@ describe("dispatcher (fan-out, quiet hours, summaries)", () => {
   it("releases one row as is and several as one summary (originals coalesced)", () => {
     const night = new Date("2026-10-10T03:00:00Z");
     send(false, night);
-    send(false, night, "tracking.comment.created");
+    send(false, night, "core.comment.created");
     const summaries = releaseDue(getDB(), new Date("2026-10-10T12:00:30Z"));
     expect(summaries.map((s) => [s.channel, s.kind, s.status]).sort()).toEqual([
       ["push", "summary", "sent"],

@@ -6,7 +6,7 @@ import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
 import { useProjectMembers } from "@/modules/tracking/projects/queries";
 import { PanelHeader } from "@/modules/tracking/project-settings/project-parts";
 import type { ImportJobSummary, ImportStatus, Project } from "@/api/types";
-import { pushUrl } from "@/lib/routes";
+import { pushUrl } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { agoLong } from "@/lib/utils/dates";
 import { openImportWizard, useWarmImportWizard } from "./import-wizard-host";

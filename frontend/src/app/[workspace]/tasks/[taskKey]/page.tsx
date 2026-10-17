@@ -6,7 +6,7 @@ import { TaskDetailView } from "@/modules/tracking/tasks/task-detail";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import { ProjectScope, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 
 /** Full-page task (board 14 frame g): two columns with a 300px properties rail. */
 export default function TaskPage() {

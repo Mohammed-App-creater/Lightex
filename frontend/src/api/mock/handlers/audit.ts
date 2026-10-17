@@ -1,5 +1,5 @@
 import type { AuditChange, AuditEntry } from "@/api/types";
-import { actionEntity, auditActionKind, auditEntity } from "@/lib/audit";
+import { auditActionKind, auditEntity, auditTargetFields } from "@/lib/audit";
 import type { MockDB } from "../db-types";
 import { filterValues, paginate, requireWs, wsBySlug, type Ctx } from "../router";
 
@@ -72,7 +72,7 @@ const HEAD: Fx[] = [
   { actor: TN, action: "tracking.task.assigned", key: "PRJ-57", name: "Proration on plan change", t: 310, changes: [ch("Assignee", "person", null, TN)] },
   { actor: AK, action: "core.member.invited", name: "priya@team.dev", t: 338, changes: [ch("Email", "value", null, "priya@team.dev"), ch("Role", "value", null, "Member")] },
   { actor: RC, action: "tracking.sprint.created", name: "Sprint 15", t: 1196, changes: [ch("Name", "value", null, "Sprint 15"), ch("Dates", "value", null, "Oct 15 – Oct 28")] },
-  { actor: JL, action: "tracking.comment.created", key: "PRJ-33", name: "SSO login with Okta", t: 1340, changes: [ch("Comment", "text", null, "Okta sandbox is ready, testing SAML today.")] },
+  { actor: JL, action: "core.comment.created", key: "PRJ-33", name: "SSO login with Okta", t: 1340, changes: [ch("Comment", "text", null, "Okta sandbox is ready, testing SAML today.")] },
   { actor: AK, action: "tracking.project.updated", key: "PRJ", name: "Platform Rebuild", t: 1417, changes: [ch("Target date", "value", "Dec 2", "Dec 9"), ch("Lead", "person", JL, AK)] },
   { actor: AUTO, action: "tracking.task.updated", key: "PRJ-53", name: "Burndown off by one day", src: "api", t: 1633, changes: [ch("Priority", "priority", 3, 4)] },
 ];
@@ -123,7 +123,7 @@ function generate(db: MockDB): Fx[] {
     } else if (kind === "assigned") {
       fx = { action: "tracking.task.assigned", key, name: title, changes: [ch("Assignee", "person", rnd() < 0.5 ? null : pick([AK, JL, SP]), pick(people))] };
     } else if (kind === "commented") {
-      fx = { action: "tracking.comment.created", key, name: title, changes: [ch("Comment", "text", null, pick(COMMENTS))] };
+      fx = { action: "core.comment.created", key, name: title, changes: [ch("Comment", "text", null, pick(COMMENTS))] };
     } else if (kind === "created") {
       if (rnd() < 0.8) fx = { action: "tracking.task.created", key, name: title, changes: [ch("Title", "text", null, title), ch("Status", "status", null, "todo")] };
       else {
@@ -134,7 +134,7 @@ function generate(db: MockDB): Fx[] {
       fx =
         rnd() < 0.6
           ? { action: "tracking.task.deleted", key, name: title, changes: [ch("Title", "value", title, null)] }
-          : { action: "tracking.comment.deleted", key, name: title, changes: [ch("Comment", "value", pick(COMMENTS), null)] };
+          : { action: "core.comment.deleted", key, name: title, changes: [ch("Comment", "value", pick(COMMENTS), null)] };
     } else if (kind === "role") {
       fx = { action: "core.member.role_changed", name: nameOf(pick([SP, MD, TN])), changes: [ch("Role", "value", "Viewer", "Member")] };
     } else if (kind === "invited") {
@@ -186,8 +186,9 @@ export function ensureAuditFixtures(db: MockDB) {
     actorKind: INTEGRATIONS[f.actor] ? "integration" : "user",
     action: f.action,
     target: f.name,
-    entityType: actionEntity(f.action),
+    ...auditTargetFields(f.action),
     entityKey: f.key ?? null,
+    targetId: null,
     source: f.src ?? "web",
     requestId: `req_${hex(rnd, 10)}`,
     changes: f.changes,

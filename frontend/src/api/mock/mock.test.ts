@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "@/api/errors";
-import type { Project, Task, TaskDetail } from "@/api/types";
+import type { Attachment, Comment, Project, Task, TaskDetail, UploadTicket } from "@/api/types";
 import { buildQueryString, parseQueryString } from "@/api/transport";
 import { mockControls } from "./controls";
 import { mockSession, resetDB, getDB } from "./db";
+import { mockUploads } from "./handlers/tasks";
 import { MockTransport } from "./transport";
 
 const t = new MockTransport();
@@ -123,9 +124,9 @@ describe("tasks", () => {
   });
 
   it("validates uploads server-side (10 MB, types)", async () => {
-    const big = await rejects(req("POST", "/tracking/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.png", size: 11 * 1024 * 1024, mimeType: "image/png" }));
+    const big = await rejects(req("POST", "/targets/tracking.task/p_prj-t42/attachments/upload-url", { fileName: "a.png", size: 11 * 1024 * 1024, mimeType: "image/png" }));
     expect(big.code).toBe("validation_failed");
-    const exe = await rejects(req("POST", "/tracking/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.exe", size: 10, mimeType: "application/x-msdownload" }));
+    const exe = await rejects(req("POST", "/targets/tracking.task/p_prj-t42/attachments/upload-url", { fileName: "a.exe", size: 10, mimeType: "application/x-msdownload" }));
     expect(exe.fieldErrors.file).toBe("Images or code files only");
   });
 });
@@ -147,5 +148,35 @@ describe("query strings", () => {
     const qs = buildQueryString({ q: "reflow", sort: "-priority", cursor: "50", filter: { status: ["a", "b"], sprint: "s1" } });
     expect(qs).toBe("?q=reflow&sort=-priority&cursor=50&filter%5Bstatus%5D=a&filter%5Bstatus%5D=b&filter%5Bsprint%5D=s1");
     expect(parseQueryString(qs.slice(1))).toEqual({ q: "reflow", sort: "-priority", cursor: "50", filter: { status: ["a", "b"], sprint: "s1" } });
+  });
+});
+
+describe("generic comment / attachment targets (platform Stage 2)", () => {
+  const doc = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "hi" }] }] };
+
+  it("lists and creates comments on targets/tracking.task/{taskId}, with targetType / targetId and no taskId", async () => {
+    as("u_alex");
+    const list = await req<Comment[]>("GET", "/targets/tracking.task/p_prj-t42/comments");
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.every((c) => c.targetType === "tracking.task" && c.targetId === "p_prj-t42" && !("taskId" in c))).toBe(true);
+    const c = await req<Comment>("POST", "/targets/tracking.task/p_prj-t42/comments", { body: doc });
+    expect(c).toMatchObject({ targetType: "tracking.task", targetId: "p_prj-t42" });
+    const e = await rejects(req("GET", "/targets/fake.widget/p_prj-t42/comments"));
+    expect(e.status).toBe(404);
+    as("u_casey");
+    expect((await rejects(req("GET", "/targets/tracking.task/p_prj-t42/comments"))).status).toBe(403);
+  });
+
+  it("confirms an upload at attachments/{uploadId}/confirm; the upload id becomes the attachment id", async () => {
+    as("u_alex");
+    const ticket = await req<UploadTicket>("POST", "/targets/tracking.task/p_prj-t42/attachments/upload-url", { fileName: "a.txt", size: 2, mimeType: "text/plain" });
+    expect((await rejects(req("POST", `/attachments/${ticket.uploadId}/confirm`))).code).toBe("upload_missing");
+    mockUploads.get(ticket.uploadId)!.blob = new Blob(["hi"], { type: "text/plain" });
+    const created = (URL as { createObjectURL?: unknown }).createObjectURL;
+    if (!created) Object.assign(URL, { createObjectURL: () => "blob:mock" });
+    const a = await req<Attachment>("POST", `/attachments/${ticket.uploadId}/confirm`);
+    expect(a).toMatchObject({ id: ticket.uploadId, targetType: "tracking.task", targetId: "p_prj-t42", fileName: "a.txt" });
+    const files = await req<Attachment[]>("GET", "/targets/tracking.task/p_prj-t42/attachments");
+    expect(files.some((f) => f.id === a.id)).toBe(true);
   });
 });

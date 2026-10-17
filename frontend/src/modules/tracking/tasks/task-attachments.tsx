@@ -11,6 +11,7 @@ import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Attachment, TaskDetail } from "@/api/types";
 import { uploadAttachment } from "@/api/uploads";
+import { taskTarget } from "./target";
 import { ACCEPT_ATTR, MAX_FILES_PER_DROP, formatBytes, isRasterImage, validateUpload } from "@/lib/files";
 import { can } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
@@ -26,7 +27,7 @@ type Upload = { id: string; name: string; size: number; pct: number; error?: str
 export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail; canUpload: boolean; deleted: boolean }) {
   const qc = useQueryClient();
   const me = useMe();
-  const { data: files = [], isPending } = useQuery({ queryKey: qk.attachments(task.id), queryFn: () => api.attachments.list(task.id) });
+  const { data: files = [], isPending } = useQuery({ queryKey: qk.attachments(task.id), queryFn: () => api.attachments.list(taskTarget(task.id)) });
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -101,7 +102,7 @@ export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail
       }
       const ctrl = new AbortController();
       setUploads((u) => [...u, { ...entry, ctrl }]);
-      uploadAttachment(task.id, file, (pct) => patchUpload(id, { pct }), ctrl.signal)
+      uploadAttachment(taskTarget(task.id), file, (pct) => patchUpload(id, { pct }), ctrl.signal)
         .then((att) => {
           setUploads((u) => u.filter((x) => x.id !== id));
           qc.setQueryData<Attachment[]>(qk.attachments(task.id), (l) => [...(l ?? []), att]);

@@ -14,7 +14,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Timesheet, TimesheetCell } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl } from "@/lib/routes";
+import { replaceUrl } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { formatHours } from "./duration";

@@ -10,7 +10,7 @@ import { Tooltip } from "@/ui/tooltip";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError, isNotFound } from "@/api/errors";
 import type { Invite } from "@/api/types";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { useAuthFlow } from "./auth-flow";
 import {
   AuthBanner,

@@ -22,7 +22,7 @@ import { qk } from "@/api/query-keys";
 import type { Status, Task, TaskDetail, TaskPatch } from "@/api/types";
 import { isTypingTarget } from "@/lib/hooks/use-hotkeys";
 import { can, canEditTask, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { useCreateTask, useDeleteTask, useUpdateTask } from "./mutations";
 import { DescriptionEditor, RichView } from "./rich-text";
@@ -41,10 +41,10 @@ import { PresenceStack } from "@/platform/presence/presence-stack";
 import { EditingPill, FieldFlagProvider, PresenceField } from "@/platform/presence/presence-ui";
 import { useEditingField } from "@/platform/presence/use-editing-field";
 import { usePresence, useRoster } from "@/platform/presence/use-presence";
-import { fieldLabel } from "@/lib/realtime/apply-event";
-import { claimLiveToast, remoteMarks, type RemoteMark } from "@/lib/realtime/remote";
-import { onScreen } from "@/lib/realtime/screen-registry";
-import { useIsLive } from "@/lib/realtime/status-store";
+import { fieldLabel } from "@/platform/realtime/apply-event";
+import { claimLiveToast, remoteMarks, type RemoteMark } from "@/platform/realtime/remote";
+import { onScreen } from "@/platform/realtime/screen-registry";
+import { useIsLive } from "@/platform/realtime/status-store";
 
 const NO_FLASH: ReadonlySet<string> = new Set();
 

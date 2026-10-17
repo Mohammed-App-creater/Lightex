@@ -6,7 +6,7 @@ import { Button } from "@/ui/button";
 import { Kbd } from "@/ui/kbd";
 import { CopyGlyph, DEV_ICON, DevGlyph } from "@/modules/tracking/integrations/icons";
 import { BRANCH_MAX, validateBranch } from "@/modules/tracking/integrations/lib/branch-name";
-import { useCopy } from "@/modules/tracking/integrations/queries";
+import { useCopy } from "@/lib/hooks/use-copy";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
 import type { DevBranch, DevRepositoryOption } from "@/api/types";

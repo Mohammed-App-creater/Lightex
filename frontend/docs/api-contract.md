@@ -1,7 +1,7 @@
 # Lightex REST contract (frontend assumption)
 
 > No backend API document was provided. This is the contract the frontend is written against. It is
-> implemented by the in-browser mock (`src/lib/mock`) and the live HTTP transport (`src/api`).
+> implemented by the in-browser mock (`src/api/mock`) and the live HTTP transport (`src/api`).
 > **Every endpoint below is a "requested API addition" until the backend confirms it.**
 > Paths live in exactly one place: `src/api/endpoints.ts`.
 
@@ -30,9 +30,9 @@
 
 - **Routes:** platform (core) routes keep their paths (`/auth/*`, `/workspaces`, `/workspaces/:slug` with
   members, invites, roles, audit, trash, presence, stream and search, `/roles/*`, `/permissions`,
-  `/notifications*`, `/me/notification-channels*`, `/push/*`, `/comments/:id`, `/attachments/:id`). Every
-  route served by the tracking module is prefixed with `/tracking`: projects, planning, tasks (including
-  `/tracking/tasks/:id/comments` and `/attachments`), reports, dashboards, imports, integrations, time
+  `/notifications*`, `/me/notification-channels*`, `/push/*`, `/targets/:targetType/:targetId/*`, `/comments/:id`,
+  `/attachments/:id`). Every route served by the tracking module is prefixed with `/tracking`: projects, planning,
+  tasks, reports, dashboards, imports, integrations, time
   tracking, saved views, `/tracking/me/{tasks,recents,timer}` and
   `/tracking/workspaces/:slug/{projects,project-directory,tasks,activity,views,timesheet,integrations}`.
 - **Permission codes:** `module.resource.action`: `core.workspace.*`, `core.roles.manage`,
@@ -42,6 +42,29 @@
   `tracking.project.changed`, `core.presence.updated`, `core.channels.changed`, `core.inbox.changed`,
   `core.access.changed`; audit `tracking.task.status_changed`, `core.member.invited`, and so on. The stream's
   control events (`hello`, `reset`, `reconnect`) are not prefixed.
+
+## Generic services (platform Stage 2)
+
+`docs/platform/stage2-contract.md` at the repo root is binding; what the client relies on:
+
+- **Targets:** comments and attachments hang off a target: `targetType` is `module.entity` (`tracking.task`) and
+  `targetId` the record's id (for tasks `Task.id`, never the key). `Comment` and `Attachment` carry `targetType` and
+  `targetId`; the client no longer reads `taskId`.
+- **Realtime:** `core.comment.created|updated|deleted|restored|purged` and `core.attachment.created|changed|deleted`,
+  payload `{targetType, targetId, commentId}` / `{targetType, targetId, attachmentId}` (created, deleted); the
+  envelope's `projectId` is set when the target belongs to a project, otherwise the event goes to the whole workspace. The client invalidates the target's comment / attachment list, plus what the target's module
+  registers (for tasks: the task detail, its activity and the project activity).
+- **Notification preferences:** the comment keys are `core.comment.created` and `core.comment.mentioned`. An optional
+  `labels: {event: string}` in the response overrides the client's row names.
+- **Additive fields:** `Notification.targetType|targetId|title|link` (`projectId` / `projectName` may be null),
+  `AuditEntry.module|targetType|targetId`, `TrashItem.module`, and `targetType|targetId|title|link` on every search
+  result (global comment results carry `comment.targetType|targetId` instead of `taskId`).
+- **Trash** kinds are always namespaced (`tracking.task`, `tracking.project`, `core.comment`), in lists and in the
+  restore / purge echo; the client strips the module and sends bare kinds, which the server accepts.
+- **Audit** `entityType` / `targetType` are `module.entity`. `filter[entity]` is a server-registered group, and the client
+  mirrors the groups in `AUDIT_GROUPS` (`src/lib/audit.ts`; e.g. `core.attachment` → task, `tracking.epic` → project,
+  ungrouped → workspace). Collab actions: `core.comment.created|updated|deleted|restored|purged`,
+  `core.attachment.created|deleted`.
 
 ## Auth
 | Method | Path | Body → Response |
@@ -126,11 +149,12 @@ tasks and are read-only.
 ## Comments and attachments
 | Method | Path | Notes |
 |---|---|---|
-| GET/POST | /tracking/tasks/:id/comments | `{body: TiptapDoc, mentions: userId[]}` (`tracking.comment.create`) |
+| GET/POST | /targets/:targetType/:targetId/comments | `{body: TiptapDoc, mentions: userId[]}` (for `tracking.task`: `tracking.comment.create`) |
 | PATCH/DELETE | /comments/:id | own: `tracking.comment.edit_own`; anyone's delete: `tracking.comment.delete_any` |
-| POST | /tracking/tasks/:id/attachments/upload-url | `{fileName,size,mimeType}` → `{uploadId,url,method,headers,expiresAt}` (server re-validates the 10 MB limit and type) |
+| GET | /targets/:targetType/:targetId/attachments | `Attachment[]` |
+| POST | /targets/:targetType/:targetId/attachments/upload-url | `{fileName,size,mimeType}` → `{uploadId,url,method,headers,expiresAt}` (server re-validates the 10 MB limit and type) |
 | PUT | `<signed url>` | direct upload to object storage (not under /api) |
-| POST | /tracking/tasks/:id/attachments | `{uploadId}` confirm → `Attachment` |
+| POST | /attachments/:uploadId/confirm | no body; the ticket's `uploadId` is the pending attachment's id → `Attachment` |
 | DELETE | /attachments/:id | own, or `tracking.attachment.delete_any` |
 
 `Attachment.downloadUrl` is a short-lived signed URL with `Content-Disposition: attachment` for any
@@ -145,7 +169,7 @@ type that is not a raster image. HTML and SVG are always served as downloads.
 | GET | /notifications/unread-count | `{count}` |
 | POST | /notifications/:id/read | `{read: boolean}` |
 | POST | /notifications/read-all | `{before}` (so undo can re-mark) |
-| GET/PUT | /notification-preferences | `{events: {event: {in_app, email, telegram, sms, push}}, emailDelivery: instant|hourly|daily, quietHours}`; event keys: `tracking.task.assigned`, `tracking.comment.mentioned`, `tracking.task.status_changed`, `tracking.comment.created`, `tracking.task.due_soon`, `tracking.sprint.started` |
+| GET/PUT | /notification-preferences | `{events: {event: {in_app, email, telegram, sms, push}}, emailDelivery: instant|hourly|daily, quietHours}`; event keys: `tracking.task.assigned`, `core.comment.mentioned`, `tracking.task.status_changed`, `core.comment.created`, `tracking.task.due_soon`, `tracking.sprint.started`; optional `labels` (Stage 2) |
 
 ## Additions found while building the client
 

@@ -18,7 +18,7 @@ import { qk } from "@/api/query-keys";
 import type { Sprint } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, routes } from "@/lib/routes";
+import { pushUrl, routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { DeleteSprintDialog, EditSprintDialog, StartSprintDialog } from "./sprint-dialogs";

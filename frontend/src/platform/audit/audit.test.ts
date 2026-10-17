@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuditEntry } from "@/api/types";
 import { auditActionKind, auditEntity } from "@/lib/audit";
-import { mockControls } from "@/lib/mock/controls";
-import { mockSession, resetDB } from "@/lib/mock/db";
-import { MockTransport } from "@/lib/mock/transport";
-import { dayLabel, groupByDay, activityCategory } from "./activity-feed";
+import { mockControls } from "@/api/mock/controls";
+import { mockSession, resetDB } from "@/api/mock/db";
+import { MockTransport } from "@/api/mock/transport";
 import { auditTime, isWordDiff, toCsv, wordDiff } from "./lib";
 
 const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", action: "tracking.task.updated", target: "T", createdAt: "2026-10-07T14:32:05.000Z", ...p });
@@ -12,13 +11,31 @@ const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", ac
 describe("audit vocabulary", () => {
   it("maps wire actions to the eight action kinds and entity types", () => {
     expect(auditActionKind(row({ action: "tracking.task.status_changed" }))).toBe("status");
-    expect(auditActionKind(row({ action: "tracking.comment.created" }))).toBe("commented");
+    expect(auditActionKind(row({ action: "core.comment.created" }))).toBe("commented");
     expect(auditActionKind(row({ action: "tracking.task.created" }))).toBe("created");
     expect(auditActionKind(row({ action: "core.member.removed" }))).toBe("deleted");
     expect(auditActionKind(row({ action: "core.member.role_changed" }))).toBe("role");
     expect(auditActionKind(row({ action: "core.role.updated" }))).toBe("updated");
     expect(auditEntity(row({ action: "core.member.invited" }))).toBe("member");
     expect(auditEntity(row({ action: "weird.thing" }))).toBe("workspace");
+  });
+
+  it("accepts namespaced entity / target types and any module prefix (platform Stage 2)", () => {
+    expect(auditEntity(row({ action: "tracking.task.updated", entityType: "tracking.task" }))).toBe("task");
+    expect(auditEntity(row({ action: "x.y.z", targetType: "core.comment", entityType: "comment" }))).toBe("comment");
+    expect(auditEntity(row({ action: "sales.deal.created" }))).toBe("workspace");
+    expect(auditActionKind(row({ action: "core.comment.created", entityType: "core.comment" }))).toBe("commented");
+  });
+
+  it("groups target types like the server's filter[entity] buckets", () => {
+    expect(auditEntity(row({ action: "core.attachment.created", entityType: "core.attachment" }))).toBe("task");
+    expect(auditEntity(row({ action: "tracking.epic.updated", entityType: "tracking.epic" }))).toBe("project");
+    expect(auditEntity(row({ action: "tracking.project_member.added", entityType: "tracking.project_member" }))).toBe("member");
+    expect(auditEntity(row({ action: "tracking.dashboard.created", entityType: "tracking.dashboard" }))).toBe("workspace");
+    expect(auditActionKind(row({ action: "core.attachment.deleted", entityType: "core.attachment" }))).toBe("deleted");
+    expect(auditActionKind(row({ action: "core.comment.purged", entityType: "core.comment" }))).toBe("deleted");
+    expect(auditActionKind(row({ action: "core.comment.restored", entityType: "core.comment" }))).toBe("updated");
+    expect(auditActionKind(row({ action: "core.comment.updated", entityType: "core.comment" }))).toBe("updated");
   });
 });
 
@@ -50,22 +67,6 @@ describe("audit helpers", () => {
     expect(head).toBe("time,actor,action,entity_type,entity,source,request_id,changes");
     expect(line).toContain('"Say ""hi"", ok"');
     expect(line).toContain('"Priority: 2 → 3"');
-  });
-});
-
-describe("activity feed grouping", () => {
-  const now = new Date(2026, 9, 7, 15, 0);
-  it("labels days relative to now", () => {
-    expect(dayLabel(new Date(2026, 9, 7, 9).toISOString(), now)).toBe("Today");
-    expect(dayLabel(new Date(2026, 9, 6, 23).toISOString(), now)).toBe("Yesterday");
-    expect(dayLabel(new Date(2026, 9, 5, 10).toISOString(), now)).toBe("Mon, Oct 5");
-  });
-  it("groups consecutive entries by day and categorises verbs", () => {
-    const items = [new Date(2026, 9, 7, 10), new Date(2026, 9, 7, 9), new Date(2026, 9, 6, 9)].map((d) => ({ createdAt: d.toISOString() }));
-    expect(groupByDay(items, now).map((g) => [g.label, g.items.length])).toEqual([["Today", 2], ["Yesterday", 1]]);
-    expect(activityCategory({ verb: "status_changed" })).toBe("status");
-    expect(activityCategory({ verb: "member_added" })).toBe("member");
-    expect(activityCategory({ verb: "created" })).toBe("other");
   });
 });
 

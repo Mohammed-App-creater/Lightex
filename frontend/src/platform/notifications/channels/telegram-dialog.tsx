@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/ui/button";
 import { toast } from "@/ui/toast";
-import { useCopy } from "@/modules/tracking/integrations/queries";
+import { useCopy } from "@/lib/hooks/use-copy";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import type { TelegramLink } from "@/api/types";
@@ -107,8 +107,8 @@ export function TelegramDialog({ opening, onClose, onSendTest }: { opening: numb
     setGen((g) => g + 1);
   };
   const simulateScan = async () => {
-    const m = await import("@/lib/mock/handlers/channels");
-    const { mockSession } = await import("@/lib/mock/db");
+    const m = await import("@/api/mock/handlers/channels");
+    const { mockSession } = await import("@/api/mock/db");
     m.simulateTelegramScan(mockSession.get());
     await qc.refetchQueries({ queryKey: ["notification-channels", "telegram-link"] });
   };

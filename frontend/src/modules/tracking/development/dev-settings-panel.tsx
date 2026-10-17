@@ -18,7 +18,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { DevAutomationRule, DevTrigger, Project } from "@/api/types";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 
 const TRIGGER_TEXT: Record<DevTrigger, string> = {
   branch_created: "When a branch is created",

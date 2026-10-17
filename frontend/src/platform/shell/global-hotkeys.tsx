@@ -7,7 +7,7 @@ import { toast } from "@/ui/toast";
 import { useProjects } from "@/platform/workspace/queries";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
+import { routes, useRouteInfo, type ProjectView } from "@/platform/routes";
 import { shell } from "./shell-state";
 
 const THEME_CYCLE = [...THEMES, "system"] as const;

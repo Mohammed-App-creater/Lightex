@@ -9,7 +9,7 @@ import { qk } from "@/api/query-keys";
 import type { Project } from "@/api/types";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl } from "@/lib/routes";
+import { pushUrl } from "@/platform/routes";
 import { canImportInto, importNotificationText, isTerminalStatus } from "./import-lib";
 import { invalidateAfterImport, unwatchImport, useImportJob, watchedImports } from "./queries";
 

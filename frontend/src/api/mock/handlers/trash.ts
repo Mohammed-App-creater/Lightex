@@ -5,6 +5,7 @@ import type { MockDB, ProjectRec, TaskRec, TrashStore } from "../db-types";
 import { projectMembership, projectPermissions, statusesOf, wsPermissions } from "../derive";
 import { logActivity } from "./common";
 import { audit } from "./workspaces";
+import { publishComment } from "../realtime";
 import { fail, invalid, route, wsBySlug, type Ctx } from "../router";
 
 /*
@@ -66,10 +67,10 @@ function expire(db: MockDB, store: TrashStore, now = Date.now()) {
 function purgeTask(db: MockDB, t: TaskRec) {
   const ids = new Set([t.id, ...db.tasks.filter((x) => x.parentId === t.id).map((x) => x.id)]);
   db.tasks = db.tasks.filter((x) => !ids.has(x.id));
-  db.comments = db.comments.filter((c) => !ids.has(c.taskId));
-  db.attachments = db.attachments.filter((a) => !ids.has(a.taskId));
+  db.comments = db.comments.filter((c) => !ids.has(c.targetId));
+  db.attachments = db.attachments.filter((a) => !ids.has(a.targetId));
   if (db.trash) {
-    db.trash.comments = db.trash.comments.filter((c) => !ids.has(c.taskId));
+    db.trash.comments = db.trash.comments.filter((c) => !ids.has(c.targetId));
     ids.forEach((id) => delete db.trash!.taskDeletedBy[id]);
   }
 }
@@ -82,8 +83,8 @@ function purgeProjectData(db: MockDB, projectId: string, tasks: TaskRec[]) {
   db.epics = db.epics.filter((e) => e.projectId !== projectId);
   db.objectives = db.objectives.filter((o) => o.projectId !== projectId);
   db.milestones = db.milestones.filter((m) => m.projectId !== projectId);
-  db.comments = db.comments.filter((c) => !ids.has(c.taskId));
-  db.attachments = db.attachments.filter((a) => !ids.has(a.taskId));
+  db.comments = db.comments.filter((c) => !ids.has(c.targetId));
+  db.attachments = db.attachments.filter((a) => !ids.has(a.targetId));
   db.accessRequests = db.accessRequests.filter((r) => r.projectId !== projectId);
 }
 
@@ -130,6 +131,14 @@ function accessFor(db: MockDB, userId: string, workspaceId: string): Access {
 
 /* ───────── listing ───────── */
 
+/**
+ * Platform Stage 2: kinds are registered per module and always returned namespaced ("tracking.task", "core.comment"),
+ * also in the restore / purge echo; requests accept the namespaced and the old bare kinds.
+ */
+const KIND_MODULE: Record<TrashKind, string> = { task: "tracking", comment: "core", project: "tracking" };
+const wireKind = (kind: TrashKind) => `${KIND_MODULE[kind]}.${kind}` as TrashKind;
+const bareKind = (kind: string) => (kind.includes(".") ? kind.slice(kind.lastIndexOf(".") + 1) : kind) as TrashKind;
+
 const purgeAt = (iso: string) => new Date(new Date(iso).getTime() + RETENTION_DAYS * DAY).toISOString();
 
 function docText(doc: RichDoc | null | undefined): string {
@@ -162,7 +171,8 @@ function listItems(db: MockDB, userId: string, workspaceId: string, acc: Access)
     const parent = t.parentId ? db.tasks.find((x) => x.id === t.parentId) : null;
     if (parent?.deletedAt) continue;
     items.push({
-      kind: "task",
+      kind: wireKind("task"),
+      module: KIND_MODULE.task,
       id: t.id,
       title: t.title,
       key: t.key,
@@ -177,10 +187,11 @@ function listItems(db: MockDB, userId: string, workspaceId: string, acc: Access)
   }
   // Comments on live tasks (comments on a deleted task return with the task).
   for (const c of store.comments) {
-    const t = db.tasks.find((x) => x.id === c.taskId);
+    const t = db.tasks.find((x) => x.id === c.targetId);
     if (!t || t.deletedAt || !projectIds.has(t.projectId) || !acc.comment(t.projectId, c.authorId, c.deletedBy)) continue;
     items.push({
-      kind: "comment",
+      kind: wireKind("comment"),
+      module: KIND_MODULE.comment,
       id: c.id,
       title: docText(c.body).slice(0, 160) || "Comment",
       key: null,
@@ -196,7 +207,8 @@ function listItems(db: MockDB, userId: string, workspaceId: string, acc: Access)
   for (const tp of store.projects) {
     if (tp.project.workspaceId !== workspaceId || !acc.project(tp)) continue;
     items.push({
-      kind: "project",
+      kind: wireKind("project"),
+      module: KIND_MODULE.project,
       id: tp.project.id,
       title: tp.project.name,
       key: tp.project.key,
@@ -220,11 +232,12 @@ function refsOf(ctx: Ctx): TrashRef[] {
   if (!Array.isArray(raw) || !raw.length) invalid({ items: "Pick at least one item" });
   return raw
     .slice(0, 200)
-    .filter((r): r is TrashRef => Boolean(r) && typeof r.id === "string" && ["task", "comment", "project"].includes(r.kind));
+    .filter((r): r is TrashRef => Boolean(r) && typeof r.id === "string" && typeof r.kind === "string" && ["task", "comment", "project"].includes(bareKind(r.kind)))
+    .map((r) => ({ kind: bareKind(r.kind), id: r.id }));
 }
 
 function findVisible(db: MockDB, userId: string, workspaceId: string, acc: Access, ref: TrashRef) {
-  const ok = listItems(db, userId, workspaceId, acc).some((i) => i.kind === ref.kind && i.id === ref.id);
+  const ok = listItems(db, userId, workspaceId, acc).some((i) => bareKind(i.kind) === ref.kind && i.id === ref.id);
   if (!ok) fail(404, "not_found", "That item isn’t in the Trash any more.", { item: ref });
 }
 
@@ -244,6 +257,8 @@ function restoreOne(ctx: Ctx, wsId: string, ref: TrashRef) {
     const { deletedAt: _d, deletedBy: _b, ...c } = store.comments[i]!;
     store.comments.splice(i, 1);
     db.comments.push(c);
+    const t = db.tasks.find((x) => x.id === c.targetId);
+    if (t) publishComment(db, ctx.userId, t, c.id, "restored");
   } else {
     const i = store.projects.findIndex((x) => x.project.id === ref.id);
     const tp = store.projects[i]!;
@@ -262,7 +277,12 @@ function purgeOne(ctx: Ctx, wsId: string, ref: TrashRef) {
   const db = ctx.db;
   const store = trashOf(db);
   if (ref.kind === "task") purgeTask(db, db.tasks.find((x) => x.id === ref.id)!);
-  else if (ref.kind === "comment") store.comments = store.comments.filter((c) => c.id !== ref.id);
+  else if (ref.kind === "comment") {
+    const c = store.comments.find((x) => x.id === ref.id);
+    store.comments = store.comments.filter((x) => x.id !== ref.id);
+    const t = c && db.tasks.find((x) => x.id === c.targetId);
+    if (t) publishComment(db, ctx.userId, t, ref.id, "purged");
+  }
   else {
     const tp = store.projects.find((x) => x.project.id === ref.id)!;
     purgeProjectData(db, tp.project.id, tp.tasks);
@@ -284,7 +304,7 @@ export function registerTrash() {
 
   route("GET", "/workspaces/:slug/trash", (ctx): TrashList => {
     const { ws, userId, acc } = setup(ctx);
-    return { data: listItems(ctx.db, userId, ws.id, acc), scope: acc.scope, kinds: acc.kinds, retentionDays: RETENTION_DAYS };
+    return { data: listItems(ctx.db, userId, ws.id, acc), scope: acc.scope, kinds: acc.kinds.map(wireKind), retentionDays: RETENTION_DAYS };
   });
 
   route("POST", "/workspaces/:slug/trash/restore", (ctx) => {
@@ -292,7 +312,7 @@ export function registerTrash() {
     const refs = refsOf(ctx);
     refs.forEach((r) => findVisible(ctx.db, userId, ws.id, acc, r));
     refs.forEach((r) => restoreOne(ctx, ws.id, r));
-    return { restored: refs };
+    return { restored: refs.map((r) => ({ ...r, kind: wireKind(r.kind) })) };
   });
 
   route("POST", "/workspaces/:slug/trash/purge", (ctx) => {
@@ -300,7 +320,7 @@ export function registerTrash() {
     const refs = refsOf(ctx);
     refs.forEach((r) => findVisible(ctx.db, userId, ws.id, acc, r));
     refs.forEach((r) => purgeOne(ctx, ws.id, r));
-    return { purged: refs };
+    return { purged: refs.map((r) => ({ ...r, kind: wireKind(r.kind) })) };
   });
 }
 
@@ -363,7 +383,8 @@ function seedTrash(db: MockDB, store: TrashStore) {
     if (!taskId) return;
     store.comments.push({
       id: `c_trash_${store.comments.length + 1}`,
-      taskId,
+      targetType: "tracking.task",
+      targetId: taskId,
       authorId,
       body: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
       mentions: [],

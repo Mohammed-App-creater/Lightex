@@ -50,11 +50,17 @@ export type TaskChangedEvent = RealtimeEnvelope<
   { taskId: ID; key: string; op: TaskOp; version: number | null; fields: string[] }
 >;
 export type TasksBulkChangedEvent = RealtimeEnvelope<"tracking.tasks.bulk_changed", { taskIds: ID[] | null; op: TaskOp }>;
-export type CommentChangedEvent = RealtimeEnvelope<
-  "tracking.comment.changed",
-  { taskId: ID; key: string; commentId: ID; op: "created" | "updated" | "deleted" }
->;
-export type AttachmentChangedEvent = RealtimeEnvelope<"tracking.attachment.changed", { taskId: ID; key: string; op: "created" | "deleted" }>;
+/**
+ * Platform Stage 2: collab events are core's, on a generic target (`targetType` "tracking.task", `targetId` the
+ * record id). The envelope's projectId is set when the target belongs to a project; without one the event goes to
+ * the whole workspace. `attachmentId` is sent with created / deleted.
+ */
+export type CommentOp = "created" | "updated" | "deleted" | "restored" | "purged";
+export type AttachmentOp = "created" | "changed" | "deleted";
+export type CommentEvent = RealtimeEnvelope<`core.comment.${CommentOp}`, { targetType: string; targetId: ID; commentId: ID }>;
+export type AttachmentEvent = RealtimeEnvelope<`core.attachment.${AttachmentOp}`, { targetType: string; targetId: ID; attachmentId?: ID }>;
+export const COMMENT_EVENT_TYPES = ["created", "updated", "deleted", "restored", "purged"].map((op) => `core.comment.${op}`) as CommentEvent["type"][];
+export const ATTACHMENT_EVENT_TYPES = ["created", "changed", "deleted"].map((op) => `core.attachment.${op}`) as AttachmentEvent["type"][];
 export type ProjectChangedEvent = RealtimeEnvelope<"tracking.project.changed", { areas: ProjectArea[] }>;
 export type DashboardChangedEvent = RealtimeEnvelope<
   "tracking.dashboard.changed",
@@ -88,8 +94,8 @@ export type RealtimeEvent =
   | ReconnectEvent
   | TaskChangedEvent
   | TasksBulkChangedEvent
-  | CommentChangedEvent
-  | AttachmentChangedEvent
+  | CommentEvent
+  | AttachmentEvent
   | ProjectChangedEvent
   | DashboardChangedEvent
   | InboxChangedEvent
@@ -104,8 +110,8 @@ export type RealtimeEventType = RealtimeEvent["type"];
 export const DURABLE_TYPES: readonly RealtimeEventType[] = [
   "tracking.task.changed",
   "tracking.tasks.bulk_changed",
-  "tracking.comment.changed",
-  "tracking.attachment.changed",
+  ...COMMENT_EVENT_TYPES,
+  ...ATTACHMENT_EVENT_TYPES,
   "tracking.project.changed",
   "tracking.dashboard.changed",
   "core.inbox.changed",

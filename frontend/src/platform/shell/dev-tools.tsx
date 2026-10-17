@@ -14,9 +14,9 @@ import { useSession } from "@/platform/auth/session";
 import { api } from "@/api/endpoints";
 import { errorMessage } from "@/api/errors";
 import { apiMode, devToolsEnabled } from "@/lib/env";
-import { mockControls } from "@/lib/mock/controls";
-import { useRealtimeStatus } from "@/lib/realtime/status-store";
-import { useRouteInfo } from "@/lib/routes";
+import { mockControls } from "@/api/mock/controls";
+import { useRealtimeStatus } from "@/platform/realtime/status-store";
+import { useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 
 /*
@@ -59,7 +59,7 @@ function DevToolsInner() {
     if (!isMock || !meId) return;
     let off: (() => void) | undefined;
     let live = true;
-    void import("@/lib/mock/realtime").then(({ mockBus }) => {
+    void import("@/api/mock/realtime").then(({ mockBus }) => {
       if (!live) return;
       off = mockBus.subscribe((e) => {
         if (e.type !== "mock.sms_code" || e.userId !== meId) return;
@@ -219,8 +219,8 @@ function DevToolsInner() {
                 <Button
                   size="sm"
                   onClick={async () => {
-                    const { simulateTeammateEdit } = await import("@/lib/mock/teammates");
-                    const { getDB } = await import("@/lib/mock/db");
+                    const { simulateTeammateEdit } = await import("@/api/mock/teammates");
+                    const { getDB } = await import("@/api/mock/db");
                     const key = search.get("task");
                     const target = key ? getDB().tasks.find((t) => t.key === key.toUpperCase())?.id : undefined;
                     const changed = simulateTeammateEdit(target);
@@ -235,7 +235,7 @@ function DevToolsInner() {
                   size="sm"
                   variant="danger-ghost"
                   onClick={async () => {
-                    const { resetDB } = await import("@/lib/mock/db");
+                    const { resetDB } = await import("@/api/mock/db");
                     resetDB();
                     await qc.invalidateQueries();
                     toast.info("Mock data reset to the seed");
@@ -264,7 +264,7 @@ function DevToolsInner() {
                     key={fn}
                     size="sm"
                     onClick={async () => {
-                      const m = await import("@/lib/mock/handlers/integrations");
+                      const m = await import("@/api/mock/handlers/integrations");
                       const msg = m[fn](search.get("task"));
                       await qc.invalidateQueries();
                       toast.info(msg);
@@ -277,7 +277,7 @@ function DevToolsInner() {
                   size="sm"
                   variant="danger-ghost"
                   onClick={async () => {
-                    const m = await import("@/lib/mock/handlers/integrations");
+                    const m = await import("@/api/mock/handlers/integrations");
                     const msg = m.simulateExpireToken(route.workspace || "platform");
                     await qc.invalidateQueries();
                     toast.info(msg);
@@ -305,16 +305,16 @@ function DevToolsInner() {
               <div className="flex flex-wrap gap-2">
                 {(
                   [
-                    ["Block bot", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateTelegramBlocked(id)],
-                    ["Reply STOP", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "STOP")],
-                    ["Reply START", (m: typeof import("@/lib/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "START")],
+                    ["Block bot", (m: typeof import("@/api/mock/handlers/channels"), id: string | null) => m.simulateTelegramBlocked(id)],
+                    ["Reply STOP", (m: typeof import("@/api/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "STOP")],
+                    ["Reply START", (m: typeof import("@/api/mock/handlers/channels"), id: string | null) => m.simulateSmsReply(id, "START")],
                   ] as const
                 ).map(([label, fn]) => (
                   <Button
                     key={label}
                     size="sm"
                     onClick={async () => {
-                      const m = await import("@/lib/mock/handlers/channels");
+                      const m = await import("@/api/mock/handlers/channels");
                       const msg = fn(m, user?.id ?? null);
                       await qc.invalidateQueries({ queryKey: ["notification-channels"] });
                       toast.info(msg);

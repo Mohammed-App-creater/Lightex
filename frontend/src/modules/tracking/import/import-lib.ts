@@ -10,7 +10,7 @@ import type {
 
 /*
  * Board 40 import wizard: pure helpers (unit-tested in import-lib.test.ts). No React, no parser:
- * the live client never parses CSV (the parser lives only in src/lib/mock/import/).
+ * the live client never parses CSV (the parser lives only in src/api/mock/import/).
  */
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;

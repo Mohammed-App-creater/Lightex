@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { replaceUrl } from "@/lib/routes";
+import { replaceUrl } from "@/platform/routes";
 import { useCallback, useMemo, type ReactNode } from "react";
 import { Avatar } from "@/ui/avatar";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";

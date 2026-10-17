@@ -20,7 +20,7 @@ import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { confirmState, slugError, slugSegments, URL_HOST, WS_NAME_MAX, workspaceIcon, workspaceNameError } from "./lib";
 import { SaveBar, type SaveState } from "./save-bar";

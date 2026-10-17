@@ -14,7 +14,7 @@ import { qk } from "@/api/query-keys";
 import type { Notification, TaskDetail, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { agoLong, dueTone, shortDate } from "@/lib/utils/dates";
-import { importNotificationText } from "@/modules/tracking/import/import-lib";
+import { notificationText } from "@/registry/services";
 import { dueLabel, glyphForStatusName, isSystem } from "./events";
 import { ArrowRightIcon, CheckIcon, CloseIcon, HollowCircleIcon } from "./icons";
 import { WhoTile } from "./notification-row";
@@ -97,7 +97,7 @@ export function PreviewContent({
   const review = accessHref(slug, n);
   const importLink = importHref(slug, n);
   const tone = task ? dueTone(task.dueDate, status?.category === "done") : "none";
-  const title = task?.title ?? n.taskTitle ?? n.payload.sprintName ?? n.projectName;
+  const title = task?.title ?? n.taskTitle ?? n.payload.sprintName ?? n.projectName ?? n.title ?? "";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -211,13 +211,13 @@ export function PreviewContent({
 }
 
 function importVerb(n: Notification) {
-  const t = importNotificationText(n.payload);
-  return `· ${t.lead} · ${t.rest}`;
+  const t = notificationText(n);
+  return t ? `· ${t.lead} · ${t.rest}` : "";
 }
 
 function EventCard({ n, actor, me }: { n: Notification; actor: User | null; me: User }) {
   const system = isSystem(n) || !actor;
-  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : n.type === "access" ? `requested access to ${n.projectName}` : n.type === "import" ? importVerb(n) : "commented";
+  const verb = n.type === "status" ? "changed status" : n.type === "sprint" ? `started ${n.payload.sprintName ?? "a sprint"}` : n.type === "due" ? "" : n.type === "mention" ? "mentioned you" : n.type === "assigned" ? "assigned you" : n.type === "access" ? `requested access to ${n.projectName ?? "a project"}` : n.type === "import" ? importVerb(n) : "commented";
   return (
     <div className="flex flex-col gap-2.5 rounded-[10px] border border-line bg-bg p-3">
       <div className="flex items-center gap-2 text-[12.5px] text-fg-2">

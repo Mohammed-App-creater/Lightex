@@ -10,7 +10,7 @@ import { useSparking } from "@/modules/tracking/tasks/task-bits";
 import { shortDate } from "@/modules/tracking/reports/lib";
 import type { Status, Task, WidgetConfigMap } from "@/api/types";
 import { can, canEditTask } from "@/platform/roles/can";
-import { pushUrl, withTaskParam } from "@/lib/routes";
+import { pushUrl, withTaskParam } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { useMyTasksWidget } from "@/modules/tracking/dashboards/queries";

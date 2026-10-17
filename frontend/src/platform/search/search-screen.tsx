@@ -13,7 +13,7 @@ import { FilterPills } from "@/ui/tabs";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 
 type Kind = "all" | "task" | "project" | "user";
 

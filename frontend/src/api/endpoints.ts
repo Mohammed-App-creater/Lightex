@@ -8,6 +8,7 @@ import type {
   AuditPage,
   BurndownPoint,
   Comment,
+  TargetRef,
   CustomField,
   CustomFieldInput,
   CustomFieldPatch,
@@ -54,6 +55,7 @@ import type {
   TaskDetail,
   TaskMove,
   TaskPatch,
+  TrashKind,
   TrashList,
   TrashRef,
   ThroughputPoint,
@@ -254,18 +256,22 @@ export const backlog = {
     http.get<{ sprints: { sprintId: string; tasks: Task[] }[]; backlog: Task[] }>(`/tracking/projects/${enc(projectId)}/backlog`),
 };
 
+/** Platform Stage 2: `targets/{targetType}/{targetId}/…` (for tasks: "tracking.task" and `Task.id`). */
+const targetPath = (t: TargetRef) => `/targets/${enc(t.targetType)}/${enc(t.targetId)}`;
+
 export const comments = {
-  list: (taskId: string) => http.get<Comment[]>(`/tracking/tasks/${enc(taskId)}/comments`),
-  create: (taskId: string, body: RichDoc) => http.post<Comment>(`/tracking/tasks/${enc(taskId)}/comments`, { body }),
+  list: (target: TargetRef) => http.get<Comment[]>(`${targetPath(target)}/comments`),
+  create: (target: TargetRef, body: RichDoc) => http.post<Comment>(`${targetPath(target)}/comments`, { body }),
   update: (id: string, body: RichDoc) => http.patch<Comment>(`/comments/${enc(id)}`, { body }),
   remove: (id: string) => http.del(`/comments/${enc(id)}`),
 };
 
 export const attachments = {
-  list: (taskId: string) => http.get<Attachment[]>(`/tracking/tasks/${enc(taskId)}/attachments`),
-  uploadUrl: (taskId: string, file: { fileName: string; size: number; mimeType: string }) =>
-    http.post<UploadTicket>(`/tracking/tasks/${enc(taskId)}/attachments/upload-url`, file),
-  confirm: (taskId: string, uploadId: string) => http.post<Attachment>(`/tracking/tasks/${enc(taskId)}/attachments`, { uploadId }),
+  list: (target: TargetRef) => http.get<Attachment[]>(`${targetPath(target)}/attachments`),
+  uploadUrl: (target: TargetRef, file: { fileName: string; size: number; mimeType: string }) =>
+    http.post<UploadTicket>(`${targetPath(target)}/attachments/upload-url`, file),
+  /** The ticket's `uploadId` is the pending attachment's id. */
+  confirm: (uploadId: string) => http.post<Attachment>(`/attachments/${enc(uploadId)}/confirm`),
   remove: (id: string) => http.del(`/attachments/${enc(id)}`),
 };
 
@@ -350,11 +356,29 @@ export const views = {
   reorder: (slug: string, ids: string[]) => http.put<SavedViewT[]>(`/tracking/workspaces/${enc(slug)}/views/order`, { ids }),
 };
 
+/**
+ * Platform Stage 2: the server returns trash kinds namespaced ("tracking.task", "core.comment"), in lists and in the
+ * restore / purge echo. The UI works on the bare kind; requests send it bare, which the server still accepts.
+ */
+export const bareTrashKind = (kind: string): TrashKind => (kind.includes(".") ? kind.slice(kind.lastIndexOf(".") + 1) : kind) as TrashKind;
+
+const bareTrashRef = (r: TrashRef): TrashRef => ({ ...r, kind: bareTrashKind(r.kind) });
+
+export function normalizeTrashList(list: TrashList): TrashList {
+  return {
+    ...list,
+    kinds: list.kinds.map(bareTrashKind),
+    data: list.data.map((it) => ({ ...it, kind: bareTrashKind(it.kind), module: it.module ?? (it.kind.includes(".") ? it.kind.split(".")[0] : undefined) })),
+  };
+}
+
 /** Workspace trash (board 29): soft-deleted tasks, comments and projects, kept 30 days. */
 export const trash = {
-  list: (slug: string) => http.get<TrashList>(`/workspaces/${enc(slug)}/trash`),
-  restore: (slug: string, items: TrashRef[]) => http.post<{ restored: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/restore`, { items }),
-  purge: (slug: string, items: TrashRef[]) => http.post<{ purged: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/purge`, { items }),
+  list: (slug: string) => http.get<TrashList>(`/workspaces/${enc(slug)}/trash`).then(normalizeTrashList),
+  restore: (slug: string, items: TrashRef[]) =>
+    http.post<{ restored: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/restore`, { items }).then((r) => ({ restored: r.restored.map(bareTrashRef) })),
+  purge: (slug: string, items: TrashRef[]) =>
+    http.post<{ purged: TrashRef[] }>(`/workspaces/${enc(slug)}/trash/purge`, { items }).then((r) => ({ purged: r.purged.map(bareTrashRef) })),
 };
 
 /* ───────── Board 39 (v2): custom fields, dependencies, time tracking. Requested API additions. ───────── */
@@ -523,7 +547,7 @@ export const channels = {
     http.post<ChannelTestResult>(`/me/notification-channels/${channel}/test`, body ?? {}),
 };
 
-/** S1. The stream is not a JSON request: src/lib/realtime opens it. The path is kept here for the paper trail. */
+/** S1. The stream is not a JSON request: src/platform/realtime opens it. The path is kept here for the paper trail. */
 export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };
 
 export const api = {

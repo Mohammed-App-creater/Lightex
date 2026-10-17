@@ -259,11 +259,11 @@ describe("preferences helpers", () => {
   });
   it("toggles exactly one cell", () => {
     const d = defaultPreferences();
-    const n = toggleCell(d, "tracking.comment.created", "sms", true);
-    expect(n.events["tracking.comment.created"].sms).toBe(true);
-    expect(n.events["tracking.comment.created"].telegram).toBe(true);
+    const n = toggleCell(d, "core.comment.created", "sms", true);
+    expect(n.events["core.comment.created"].sms).toBe(true);
+    expect(n.events["core.comment.created"].telegram).toBe(true);
     expect(n.events["tracking.task.assigned"]).toBe(d.events["tracking.task.assigned"]);
-    expect(d.events["tracking.comment.created"].sms).toBe(false);
+    expect(d.events["core.comment.created"].sms).toBe(false);
   });
   it("words each test failure", () => {
     expect(testErrorCopy("telegram", apiErr(502, "channel_send_failed", { reason: "blocked" }))).toEqual({ title: "Couldn’t reach Telegram", body: "You blocked the bot. Unblock it and send /start." });

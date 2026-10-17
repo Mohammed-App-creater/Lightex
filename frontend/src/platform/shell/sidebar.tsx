@@ -37,20 +37,16 @@ import {
   MenuSubTrigger,
   MenuTrigger,
 } from "@/ui/menu";
-import { ProgressRing } from "@/ui/feedback";
 import { toast } from "@/ui/toast";
 import { Tooltip } from "@/ui/tooltip";
 import { useSession } from "@/platform/auth/session";
-import { useActiveSprint } from "@/modules/tracking/projects/queries";
 import { useProjects, useRoles, useUnreadCount, useWorkspaces, useMyTasks } from "@/platform/workspace/queries";
-import type { Project, Workspace } from "@/api/types";
+import type { Workspace } from "@/api/types";
 import { can, useCan, useCurrentWorkspace } from "@/platform/roles/can";
-import { daysUntil } from "@/lib/domain/progress";
-import { routes, useRouteInfo } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { useModKey } from "@/lib/hooks/use-platform";
-import { PinnedViews } from "@/modules/tracking/filters/pinned-views";
-import { moduleNavItems, projectNavItems } from "@/registry";
+import { moduleNavItems, projectNavItems, sidebarProjectCards, sidebarSections } from "@/registry";
 import { shell } from "./shell-state";
 
 /** Project links from the module registry that this project's permissions allow. */
@@ -93,41 +89,6 @@ function SectionHeader({ label, open, onToggle, count, action }: { label: string
       </button>
       {action}
     </div>
-  );
-}
-
-function SprintCard({ project, ws, rail, onNavigate }: { project: Project | undefined; ws: string; rail?: boolean; onNavigate?: () => void }) {
-  const { data: sprint } = useActiveSprint(project?.id);
-  if (!project || !sprint) return null;
-  const pct = sprint.progress.percent;
-  const left = Math.max(0, daysUntil(sprint.endDate));
-  const label = `${sprint.name}, ${pct} percent, ${left} days left. Open board`;
-  const href = routes.project(ws, project.key, "board");
-  if (rail) {
-    return (
-      <Tooltip content={`${sprint.name} · ${pct}% · ${left}d left`} side="right">
-        <Link href={href} aria-label={label} className="flex h-9 w-10 items-center justify-center rounded-md hover:bg-hover">
-          <ProgressRing value={pct} size={24} stroke={4} color="var(--accent-t)" label={sprint.name} />
-        </Link>
-      </Tooltip>
-    );
-  }
-  return (
-    <Link
-      href={href}
-      aria-label={label}
-      onClick={onNavigate}
-      className="mb-1.5 flex items-center gap-2.5 rounded-[10px] border border-line bg-bg px-2.5 py-[9px] transition-[border-color,background-color,transform] duration-150 [transition-timing-function:var(--spring)] hover:-translate-y-px hover:border-line-2 hover:bg-raised"
-    >
-      <ProgressRing value={pct} size={30} stroke={3.5} color="var(--accent-t)" label={sprint.name} />
-      <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-        <span className="truncate text-[13px] font-semibold leading-4">{sprint.name}</span>
-        <span className="font-mono text-[11px] leading-[14px] text-fg-3">
-          {pct}% · {left}d left
-        </span>
-      </span>
-      <ChevronRight size={14} className="text-fg-3" aria-hidden />
-    </Link>
   );
 }
 
@@ -235,7 +196,14 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
   const canCreateProject = useCan("tracking.project.create");
   const canManageMembers = useCan("core.workspace.manage_members");
   const canCreateTask = projects.some((p) => can("tracking.task.create", p.my_permissions));
-  const [pinnedOpen, setPinnedOpen] = useState(true);
+  // Module sidebar sections (registry), open by default.
+  const [closedSections, setClosedSections] = useState<ReadonlySet<string>>(() => new Set());
+  const toggleSection = (id: string) =>
+    setClosedSections((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [openKey, setOpenKey] = useState<string | null>(route.projectKey);
   const [filter, setFilter] = useState("");
@@ -290,7 +258,9 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           </RailLink>
         ))}
         <span className="flex-1" />
-        <SprintCard project={activeProject} ws={ws.slug} rail />
+        {sidebarProjectCards().map(({ id, Component }) => (
+          <Component key={id} project={activeProject} ws={ws.slug} rail />
+        ))}
         <RailLink href={routes.settings(ws.slug, "profile")} label="Settings" keys={["⌘", ","]} active={route.page === "settings"}>
           <Settings size={16} strokeWidth={1.6} aria-hidden />
         </RailLink>
@@ -396,7 +366,9 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
         ))}
 
         {/* Saved views pinned by me (board 30): Manage / Done, Alt+↑↓ reorder. */}
-        <PinnedViews open={pinnedOpen} onToggle={() => setPinnedOpen((o) => !o)} onNavigate={nav} />
+        {sidebarSections().map(({ id, Component }) => (
+          <Component key={id} open={!closedSections.has(id)} onToggle={() => toggleSection(id)} onNavigate={nav} />
+        ))}
 
         <SectionHeader
           label="Projects"
@@ -504,7 +476,9 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
       </div>
 
       <div className="flex flex-col gap-0.5 border-t border-line px-2.5 pb-2.5 pt-2">
-        <SprintCard project={activeProject} ws={ws.slug} onNavigate={nav} />
+        {sidebarProjectCards().map(({ id, Component }) => (
+          <Component key={id} project={activeProject} ws={ws.slug} onNavigate={nav} />
+        ))}
         <div className="flex items-end gap-0.5">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             {canManageMembers && (

@@ -11,7 +11,7 @@ import { useSession } from "@/platform/auth/session";
 import { canOpenTrash } from "@/platform/trash/lib";
 import { useProjects, useRoles } from "@/platform/workspace/queries";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo, type SettingsSection } from "@/lib/routes";
+import { routes, useRouteInfo, type SettingsSection } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 
 type NavItem = { key: SettingsSection | "danger" | "trash"; label: string; icon: ReactNode; href: string; danger?: boolean; /** Warning dot with its accessible reason. */ dot?: string };

@@ -7,7 +7,7 @@ import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { SavedView, SavedViewInput } from "@/api/types";
 import { POLL_MS } from "@/platform/workspace/queries";
-import { useLiveInterval } from "@/lib/realtime/status-store";
+import { useLiveInterval } from "@/platform/realtime/status-store";
 
 /* Saved views (board 30): list, create, edit, pin, reorder, delete with Undo. */
 

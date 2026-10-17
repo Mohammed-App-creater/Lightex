@@ -8,7 +8,7 @@ import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
 import { StatusGlyph, glyphLabel, type GlyphKind } from "@/ui/glyphs";
 import { useProjectMembers } from "@/modules/tracking/projects/queries";
 import { activityActorName, activityText } from "@/modules/tracking/tasks/activity-text";
-import { ActorAvatar } from "./audit-parts";
+import { ActorAvatar } from "@/platform/audit/audit-parts";
 import { useWsMembers } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";

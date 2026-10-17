@@ -13,7 +13,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Project } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { confirmState } from "@/platform/settings/lib";
 import { FactChips } from "./project-parts";

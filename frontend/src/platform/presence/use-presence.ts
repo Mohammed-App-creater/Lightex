@@ -6,8 +6,8 @@ import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import type { PresenceLocation } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { presenceClaims, type PresenceClaim } from "@/lib/realtime/presence";
-import { mergeRoster, type CachedRoster } from "@/lib/realtime/roster";
+import { presenceClaims, type PresenceClaim } from "@/platform/realtime/presence";
+import { mergeRoster, type CachedRoster } from "@/platform/realtime/roster";
 
 /*
  * usePresence (spec §7.6): a screen claims where this tab is (board, dashboard, task) with its

@@ -9,16 +9,21 @@ design boards and like every other screen.
   `api.auth`, `api.workspaces`, `api.roles`, `api.projects`, `api.planning`, `api.tasks`, `api.board`,
   `api.backlog`, `api.comments`, `api.attachments`, `api.reports`, `api.notifications`, `api.search`,
   `api.audit`). Never call `fetch` directly. Types: `@/api/types`.
-- Mock backend: `src/lib/mock/**` (handlers mirror the contract). Mock mode is the default. Tracking
+- Mock backend: `src/api/mock/**` (handlers mirror the contract). Mock mode is the default. Tracking
   routes live under `/tracking/...` in both `endpoints.ts` and the mock router; core routes are unprefixed.
-- Module nav goes in `src/registry` (the sidebar reads it). Module screens live in `src/modules/<module>/`,
-  platform screens in `src/platform/`.
+  Comments and attachments use the generic `targets/{targetType}/{targetId}/…` routes; tracking code passes
+  `taskTarget(task.id)` (`src/modules/tracking/tasks/target.ts`).
+- Module screens live in `src/modules/<module>/`, platform screens in `src/platform/`. `src/platform` does not
+  import `src/modules`: a module contributes through `src/registry` instead. UI (nav items, sidebar sections and
+  cards, shell overlays, palette actions) goes in its `module.tsx`, listed by `src/registry/index.ts`; non-UI hooks
+  (comment / attachment target types, notification text) go in its `services.ts`, listed by
+  `src/registry/services.ts`.
 
 ## Stack rules
 - Next.js 16 App Router, client components for screens (`"use client"`). Route files under
   `src/app/**/page.tsx` stay thin and render a feature component from `src/platform/<area>/` or `src/modules/tracking/<area>/`.
 - Next 16: `params` in server `page`/`layout` is a Promise (`const { key } = await params`). In client
-  components use `useParams()` or `useRouteInfo()` from `@/lib/routes`. Wrap components that call
+  components use `useParams()` or `useRouteInfo()` from `@/platform/routes`. Wrap components that call
   `useSearchParams()` in `<Suspense>`.
 - Tailwind v4 with design tokens. Colours: `bg-bg bg-surface bg-raised bg-hover border-line border-line-2
   border-control text-fg text-fg-2 text-fg-3 bg-accent text-accent-t bg-accent-s text-ok text-warn

@@ -7,7 +7,7 @@ import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Notification, NotificationPreferences } from "@/api/types";
 import { POLL_MS } from "@/platform/workspace/queries";
-import { useLiveInterval } from "@/lib/realtime/status-store";
+import { useLiveInterval } from "@/platform/realtime/status-store";
 
 export type InboxPage = Awaited<ReturnType<typeof api.notifications.list>>;
 

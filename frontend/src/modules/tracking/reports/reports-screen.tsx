@@ -12,7 +12,7 @@ import { isApiError } from "@/api/errors";
 import type { Project, Workspace } from "@/api/types";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl, routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/platform/routes";
 import { BurndownCard, CycleTimeCard, ThroughputCard, VelocityCard } from "./charts";
 import { ExportMenu, ProjectSelect, RangeSelect } from "./controls";
 import {

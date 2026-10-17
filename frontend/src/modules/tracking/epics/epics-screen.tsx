@@ -3,7 +3,7 @@
 import { Archive, ArrowLeft, ChevronRight, Flag, Layers, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { pushUrl } from "@/lib/routes";
+import { pushUrl } from "@/platform/routes";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { Avatar, UnassignedAvatar } from "@/ui/avatar";
 import { Button } from "@/ui/button";

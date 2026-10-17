@@ -10,7 +10,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { DependencyItem, DependencyRelation, Task, TaskDetail } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { DependencyPicker } from "./dependency-picker";
 

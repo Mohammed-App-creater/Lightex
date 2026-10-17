@@ -20,7 +20,7 @@ import { errorMessage } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Project } from "@/api/types";
 import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl, routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/platform/routes";
 import { GeneralPanel } from "./project-general";
 import { LabelsPanel } from "./project-labels";
 import { isAdminRole } from "./project-lib";

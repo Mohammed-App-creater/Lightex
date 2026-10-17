@@ -15,7 +15,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Project, ProjectTemplate, Workspace } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { EmailChips } from "./email-chips";
 import {

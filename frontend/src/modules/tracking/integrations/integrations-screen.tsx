@@ -12,7 +12,7 @@ import { qk } from "@/api/query-keys";
 import type { Integration, IntegrationsOverview, Provider } from "@/api/types";
 import { apiMode } from "@/lib/env";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl } from "@/lib/routes";
+import { replaceUrl } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { ConnectionCard } from "./connection-card";
 import { DisconnectDialog, GitLabConnectDialog, MockAuthorizeDialog, ReconnectTokenDialog } from "./dialogs";
@@ -163,7 +163,7 @@ export function IntegrationsScreen() {
 
   const cancelWaiting = () => {
     if (mockAuth) {
-      void import("@/lib/mock/handlers/integrations").then((m) => {
+      void import("@/api/mock/handlers/integrations").then((m) => {
         window.location.hash = m.fakeAuthorize(mockAuth.attempt, { deny: true });
       });
     }
@@ -301,7 +301,7 @@ export function IntegrationsScreen() {
           onCancel={cancelWaiting}
           onAuthorize={() => {
             const a = mockAuth;
-            void import("@/lib/mock/handlers/integrations").then((m) => {
+            void import("@/api/mock/handlers/integrations").then((m) => {
               window.location.hash = m.fakeAuthorize(a.attempt);
             });
           }}

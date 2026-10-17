@@ -1,4 +1,4 @@
-import { actionEntity } from "@/lib/audit";
+import { auditTargetFields } from "@/lib/audit";
 import { suggestBranch, validateBranch } from "@/modules/tracking/integrations/lib/branch-name";
 import { aggregateChecks, PROVIDER_NAME } from "@/modules/tracking/integrations/lib/dev-lib";
 import type {
@@ -445,7 +445,7 @@ function auditRow(db: MockDB, a: AuditInput) {
     action: a.action,
     target: a.target,
     createdAt: nowISO(),
-    entityType: actionEntity(a.action),
+    ...auditTargetFields(a.action),
     entityKey: a.entityKey ?? null,
     source: a.source ?? "web",
     requestId: null,

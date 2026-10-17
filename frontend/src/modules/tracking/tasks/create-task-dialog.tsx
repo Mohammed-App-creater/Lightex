@@ -21,7 +21,7 @@ import { errorMessage, isApiError } from "@/api/errors";
 import type { Priority, RichDoc } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 import { useCreateTask } from "./mutations";

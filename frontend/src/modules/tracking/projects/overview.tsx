@@ -23,7 +23,7 @@ import type { BurndownPoint, Milestone, Project, Status, Task } from "@/api/type
 import { daysUntil, isDoneStatus } from "@/lib/domain/progress";
 import { useIsTouch } from "@/lib/hooks/use-media-query";
 import { can, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, agoOrDate, shortDate, todayISO } from "@/lib/utils/dates";
 

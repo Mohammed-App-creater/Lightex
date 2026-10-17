@@ -22,7 +22,7 @@ import { qk } from "@/api/query-keys";
 import type { Permission, PermissionInfo, Role, RoleScope } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import {
   changeCount,

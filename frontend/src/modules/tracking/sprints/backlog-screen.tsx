@@ -35,7 +35,7 @@ import { qk } from "@/api/query-keys";
 import type { Sprint, Status, Task, User } from "@/api/types";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentProject } from "@/platform/roles/can";
-import { pushUrl, withTaskParam } from "@/lib/routes";
+import { pushUrl, withTaskParam } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
 import { keyBetween } from "@/lib/utils/fractional-index";

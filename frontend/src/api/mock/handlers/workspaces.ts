@@ -1,4 +1,4 @@
-import { actionEntity } from "@/lib/audit";
+import { auditTargetFields } from "@/lib/audit";
 import type { SearchResult, WorkspaceMember } from "@/api/types";
 import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { nowISO, uid } from "../db";
@@ -29,7 +29,8 @@ export function audit(db: MockDB, workspaceId: string, actorId: string, action: 
     action,
     target,
     createdAt: nowISO(),
-    entityType: actionEntity(action),
+    ...auditTargetFields(action),
+    targetId: null,
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,
   });
@@ -347,13 +348,26 @@ function searchHandler(ctx: Ctx) {
     for (const t of tasks) {
       const p = ctx.db.projects.find((x) => x.id === t.projectId)!;
       const s = ctx.db.statuses.find((x) => x.id === t.statusId)!;
-      out.push({ type: "task", task: toTask(ctx.db, t), projectKey: p.key, projectName: p.name, status: { name: s.name, glyph: s.glyph } });
+      out.push({
+        type: "task",
+        task: toTask(ctx.db, t),
+        projectKey: p.key,
+        projectName: p.name,
+        status: { name: s.name, glyph: s.glyph },
+        // Platform Stage 2: every result names its target (links are app-relative in the mock).
+        targetType: "tracking.task",
+        targetId: t.id,
+        title: t.title,
+        link: `/${ws.slug}/tasks/${t.key}`,
+      });
     }
   }
   if (want("project")) {
     ctx.db.projects
       .filter((p) => ids.includes(p.id) && (!q || p.name.toLowerCase().includes(q) || p.key.toLowerCase().includes(q)))
-      .forEach((p) => out.push({ type: "project", project: toProject(ctx.db, p, userId) }));
+      .forEach((p) =>
+        out.push({ type: "project", project: toProject(ctx.db, p, userId), targetType: "tracking.project", targetId: p.id, title: p.name, link: `/${ws.slug}/projects/${p.key}/board` }),
+      );
   }
   if (want("user")) {
     ctx.db.wsMembers
@@ -361,7 +375,7 @@ function searchHandler(ctx: Ctx) {
       .forEach((m) => {
         const u = ctx.db.users.find((x) => x.id === m.userId)!;
         if (q && !u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return;
-        out.push({ type: "user", user: toUser(u), roleName: ctx.db.roles.find((r) => r.id === m.roleId)?.name ?? "" });
+        out.push({ type: "user", user: toUser(u), roleName: ctx.db.roles.find((r) => r.id === m.roleId)?.name ?? "", targetType: "core.user", targetId: u.id, title: u.name, link: null });
       });
   }
   return out;

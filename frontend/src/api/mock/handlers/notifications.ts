@@ -14,7 +14,7 @@ export function registerNotifications() {
     const unread = filterValues(ctx.query, "unread")[0] === "true";
     const workspaceId = filterValues(ctx.query, "workspace")[0];
     const projectIds = workspaceId ? ctx.db.projects.filter((p) => p.workspaceId === workspaceId).map((p) => p.id) : null;
-    const mine = ctx.db.notifications.filter((n) => n.recipientId === userId && (!projectIds || projectIds.includes(n.projectId)));
+    const mine = ctx.db.notifications.filter((n) => n.recipientId === userId && (!projectIds || (!!n.projectId && projectIds.includes(n.projectId))));
     const list = mine
       .filter((n) => tab === "all" || (tab === "mentions" ? n.type === "mention" : n.type === "assigned"))
       .filter((n) => !unread || !n.readAt)
@@ -36,7 +36,7 @@ export function registerNotifications() {
     const workspaceId = filterValues(ctx.query, "workspace")[0];
     const projectIds = workspaceId ? ctx.db.projects.filter((p) => p.workspaceId === workspaceId).map((p) => p.id) : null;
     return {
-      count: ctx.db.notifications.filter((n) => n.recipientId === userId && !n.readAt && (!projectIds || projectIds.includes(n.projectId))).length,
+      count: ctx.db.notifications.filter((n) => n.recipientId === userId && !n.readAt && (!projectIds || (!!n.projectId && projectIds.includes(n.projectId)))).length,
     };
   });
 

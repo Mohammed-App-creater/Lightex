@@ -10,7 +10,7 @@ import { TaskPanelHost } from "@/modules/tracking/tasks/task-panel-host";
 import { isForbidden, isNotFound, isApiError } from "@/api/errors";
 import type { Project, ProjectAccessInfo } from "@/api/types";
 import { can, ProjectScope, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
+import { routes, useRouteInfo, type ProjectView } from "@/platform/routes";
 import { useProject } from "./queries";
 
 /** Project views shown as tabs, gated only by my_permissions. */

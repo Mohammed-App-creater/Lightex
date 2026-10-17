@@ -11,7 +11,7 @@ import { qk } from "@/api/query-keys";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, routes, withTaskParam } from "@/platform/routes";
 import { taskOrigin } from "./task-origin";
 
 // Tiptap and the detail view (~460 KB) load on first open, not with every project page. The chunk

@@ -8,7 +8,7 @@ import { StatusGlyph, type GlyphKind } from "@/ui/glyphs";
 import { ProgressRing } from "@/ui/feedback";
 import type { Status, Task, User } from "@/api/types";
 import { daysLabel } from "@/lib/domain/progress";
-import { pushUrl, withTaskParam } from "@/lib/routes";
+import { pushUrl, withTaskParam } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { groupTasksByStatus } from "./helpers";
 

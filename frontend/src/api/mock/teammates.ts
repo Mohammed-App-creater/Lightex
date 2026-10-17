@@ -1,4 +1,4 @@
-import { presenceClaims } from "@/lib/realtime/presence";
+import { presenceClaims } from "@/platform/realtime/presence";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { getDB, mockSession, nowISO, persist } from "./db";
 import type { MockDB } from "./db-types";

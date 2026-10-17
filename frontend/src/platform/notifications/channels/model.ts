@@ -25,9 +25,9 @@ export const EXTERNAL: ExternalChannel[] = ["telegram", "sms", "push"];
 /** The design's DEF table (§3.8): in_app / email are v1's defaults. */
 export const DEFAULT_EVENTS: NotificationPreferences["events"] = {
   "tracking.task.assigned": { in_app: true, email: true, telegram: true, sms: false, push: true },
-  "tracking.comment.mentioned": { in_app: true, email: true, telegram: true, sms: false, push: true },
+  "core.comment.mentioned": { in_app: true, email: true, telegram: true, sms: false, push: true },
   "tracking.task.status_changed": { in_app: true, email: false, telegram: false, sms: false, push: false },
-  "tracking.comment.created": { in_app: true, email: false, telegram: true, sms: false, push: true },
+  "core.comment.created": { in_app: true, email: false, telegram: true, sms: false, push: true },
   "tracking.task.due_soon": { in_app: true, email: true, telegram: true, sms: true, push: true },
   "tracking.sprint.started": { in_app: true, email: false, telegram: false, sms: false, push: false },
 };

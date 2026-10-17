@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { Checkbox } from "@/ui/choice";
 import { api } from "@/api/endpoints";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { useAuthFlow } from "./auth-flow";
 import {
   AuthBanner,

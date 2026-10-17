@@ -1,6 +1,6 @@
 import type { ActivityVerb, NotificationEvent, NotificationType } from "@/api/types";
 import { nowISO, uid } from "../db";
-import type { MockDB, TaskRec } from "../db-types";
+import type { MockDB, ProjectRec, TaskRec } from "../db-types";
 import { publishInbox } from "../realtime";
 import { fanOut } from "../channels-dispatch";
 
@@ -26,12 +26,23 @@ export function logActivity(
   if (db.activity.length > 500) db.activity.length = 500;
 }
 
+/**
+ * Platform Stage 2: a notification names its target (describe(): title and link). Task notifications target the task,
+ * project-only ones (sprint, access, import) the project. Links are app-relative here (the server sends absolute URLs).
+ */
+export function notificationTarget(db: MockDB, task: Pick<TaskRec, "id" | "key" | "title"> | null, project: ProjectRec) {
+  const slug = db.workspaces.find((w) => w.id === project.workspaceId)?.slug ?? "";
+  return task
+    ? { targetType: "tracking.task", targetId: task.id, title: task.title, link: `/${slug}/tasks/${task.key}` }
+    : { targetType: "tracking.project", targetId: project.id, title: project.name, link: `/${slug}/projects/${project.key}/board` };
+}
+
 /** Preference row per type; access requests have none (they can't be switched off). */
 const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
   assigned: "tracking.task.assigned",
-  mention: "tracking.comment.mentioned",
+  mention: "core.comment.mentioned",
   status: "tracking.task.status_changed",
-  comment: "tracking.comment.created",
+  comment: "core.comment.created",
   due: "tracking.task.due_soon",
   sprint: "tracking.sprint.started",
   access: null,
@@ -72,6 +83,7 @@ export function notify(
     payload,
     createdAt: nowISO(),
     readAt: null,
+    ...notificationTarget(db, task, project),
   });
   // Board 33: inbox.changed to the recipient with the new unread count.
   publishInbox(db, recipientId, project.workspaceId);

@@ -1,5 +1,5 @@
-import type { RealtimeEnvelope } from "@/lib/realtime/events";
-import type { RealtimeSource, RunOptions, RunOutcome } from "@/lib/realtime/source";
+import type { RealtimeEnvelope } from "@/platform/realtime/events";
+import type { RealtimeSource, RunOptions, RunOutcome } from "@/platform/realtime/source";
 import { getDB, mockSession, nowISO } from "./db";
 import type { MockDB, TaskRec } from "./db-types";
 import { mockControls } from "./controls";
@@ -139,12 +139,16 @@ export function publishBulk(db: MockDB, actorId: string | null, projectId: strin
   });
 }
 
-export function publishComment(db: MockDB, actorId: string | null, t: TaskRec, commentId: string, op: "created" | "updated" | "deleted") {
-  mockBus.publish("tracking.comment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, commentId, op } });
+/** Platform Stage 2: collab events are core.comment.* / core.attachment.* on a generic target. */
+export type CommentOp = "created" | "updated" | "deleted" | "restored" | "purged";
+export type AttachmentOp = "created" | "changed" | "deleted";
+
+export function publishComment(db: MockDB, actorId: string | null, t: TaskRec, commentId: string, op: CommentOp) {
+  mockBus.publish(`core.comment.${op}`, { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { targetType: "tracking.task", targetId: t.id, commentId } });
 }
 
-export function publishAttachment(db: MockDB, actorId: string | null, t: TaskRec, op: "created" | "deleted") {
-  mockBus.publish("tracking.attachment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, op } });
+export function publishAttachment(db: MockDB, actorId: string | null, t: TaskRec, attachmentId: string, op: AttachmentOp) {
+  mockBus.publish(`core.attachment.${op}`, { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { targetType: "tracking.task", targetId: t.id, attachmentId } });
 }
 
 export function publishProject(db: MockDB, actorId: string | null, projectId: string, areas: string[]) {

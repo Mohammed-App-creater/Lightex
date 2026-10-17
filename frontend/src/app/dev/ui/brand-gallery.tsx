@@ -6,7 +6,7 @@ import { ILLUSTRATIONS, Illustration } from "@/ui/brand/illustrations";
 import { Button } from "@/ui/button";
 import { Segmented } from "@/ui/choice";
 import { EmptyState } from "@/ui/feedback";
-import { ActivityFeed } from "@/platform/audit/activity-feed";
+import { ActivityFeed } from "@/modules/tracking/projects/activity-feed";
 import type { ActivityEntry } from "@/api/types";
 
 /* Board 35 (illustrations, loading) and the board 31 activity feed, for the /dev/ui gallery. */

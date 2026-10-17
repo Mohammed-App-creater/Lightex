@@ -1,5 +1,5 @@
 import type { PresenceLocation, PresencePerson, PresenceRoster } from "@/api/types";
-import { mergeRoster, peopleAtLocation, replaceLocation } from "@/lib/realtime/roster";
+import { mergeRoster, peopleAtLocation, replaceLocation } from "@/platform/realtime/roster";
 
 /*
  * Presence labels and selections (spec §1.5). Pure; unit-tested. Rosters include the caller: the

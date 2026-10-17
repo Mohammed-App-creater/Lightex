@@ -98,15 +98,25 @@ describe("applyEvent", () => {
     expect(invalid(qk.views(SLUG))).toBe(true);
   });
 
-  it("comment.changed and attachment.changed: their lists and the task", () => {
+  it("core.comment.* and core.attachment.*: the target's lists, plus the task (found by id) via the registry", () => {
     const a = applier();
-    a.apply(ev("tracking.comment.changed", { taskId: "t1", key: "PRJ-1", commentId: "c1", op: "created" }));
-    a.apply(ev("tracking.attachment.changed", { taskId: "t1", key: "PRJ-1", op: "deleted" }));
+    a.apply(ev("core.comment.created", { targetType: "tracking.task", targetId: "t1", commentId: "c1" }));
+    a.apply(ev("core.attachment.deleted", { targetType: "tracking.task", targetId: "t1", attachmentId: "at1" }));
     flush();
     expect(invalid(qk.comments("t1"))).toBe(true);
     expect(invalid(qk.attachments("t1"))).toBe(true);
     expect(invalid(qk.task(SLUG, "PRJ-1"))).toBe(true);
     expect(invalid(qk.activity(P))).toBe(true);
+  });
+
+  it("collab events on an unregistered target type touch only that target's lists", () => {
+    const a = applier();
+    set(qk.comments("w9"), []);
+    a.apply(ev("core.comment.restored", { targetType: "fake.widget", targetId: "w9", commentId: "c9" }, { projectId: null }));
+    flush();
+    expect(invalid(qk.comments("w9"))).toBe(true);
+    expect(invalid(qk.task(SLUG, "PRJ-1"))).toBe(false);
+    expect(invalid(qk.activity(P))).toBe(false);
   });
 
   it("project.changed: per area", () => {

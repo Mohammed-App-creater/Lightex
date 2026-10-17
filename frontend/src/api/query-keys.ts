@@ -38,8 +38,9 @@ export const qk = {
   reports: (projectId: string, kind: string, ...args: (string | undefined)[]) => ["p", projectId, "reports", kind, ...args] as const,
 
   task: (slug: string, key: string) => ["task", slug, key.toUpperCase()] as const,
-  comments: (taskId: string) => ["t", taskId, "comments"] as const,
-  attachments: (taskId: string) => ["t", taskId, "attachments"] as const,
+  /** Platform Stage 2: keyed by the generic target's id (for tasks, the task id). */
+  comments: (targetId: string) => ["t", targetId, "comments"] as const,
+  attachments: (targetId: string) => ["t", targetId, "attachments"] as const,
   taskActivity: (taskId: string) => ["t", taskId, "activity"] as const,
 
   /* Board 39 (v2) */

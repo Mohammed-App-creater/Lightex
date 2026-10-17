@@ -9,7 +9,7 @@ import { toast } from "@/ui/toast";
 import { useSession } from "@/platform/auth/session";
 import { useProjects } from "@/platform/workspace/queries";
 import type { SavedView } from "@/api/types";
-import { routes, useRouteInfo } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { withRules } from "./filter-model";
 import { ViewGlyph } from "./view-icons";

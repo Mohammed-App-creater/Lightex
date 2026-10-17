@@ -1,7 +1,7 @@
 import { validateUpload } from "@/lib/files";
 import { attachments, imports } from "./endpoints";
 import { ApiError } from "./errors";
-import type { Attachment, ImportJob, ImportSource, UploadTicket } from "./types";
+import type { Attachment, ImportJob, ImportSource, TargetRef, UploadTicket } from "./types";
 
 /**
  * Upload flow: 1) request a signed URL, 2) PUT the file directly to storage with progress,
@@ -9,20 +9,20 @@ import type { Attachment, ImportJob, ImportSource, UploadTicket } from "./types"
  * the server validates again when issuing the URL.
  */
 export async function uploadAttachment(
-  taskId: string,
+  target: TargetRef,
   file: File,
   onProgress: (pct: number) => void,
   signal?: AbortSignal,
 ): Promise<Attachment> {
   const problem = validateUpload(file);
   if (problem) throw new ApiError({ code: "validation_failed", message: problem, status: 422 });
-  const ticket = await attachments.uploadUrl(taskId, {
+  const ticket = await attachments.uploadUrl(target, {
     fileName: file.name,
     size: file.size,
     mimeType: file.type || "application/octet-stream",
   });
   await putToSignedUrl(ticket, file, onProgress, signal);
-  return attachments.confirm(taskId, ticket.uploadId);
+  return attachments.confirm(ticket.uploadId);
 }
 
 /**
@@ -48,7 +48,7 @@ export async function uploadImportFile(
 
 async function putToSignedUrl(ticket: UploadTicket, file: File, onProgress: (pct: number) => void, signal?: AbortSignal) {
   if (ticket.url.startsWith("mock-upload://")) {
-    const { mockUpload } = await import("@/lib/mock/transport");
+    const { mockUpload } = await import("@/api/mock/transport");
     return mockUpload(ticket.url, file, onProgress, signal);
   }
   // fetch() has no upload progress; XHR does.

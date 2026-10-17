@@ -11,7 +11,7 @@ import { useMilestones, useObjectives, useProjectMembers, useStatuses } from "@/
 import { errorMessage, isApiError } from "@/api/errors";
 import type { Milestone, Objective } from "@/api/types";
 import { useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl, routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { GoalPanel, type PanelState } from "./goal-panel";
 import { defaultMilestoneId, sortByDue } from "./helpers";

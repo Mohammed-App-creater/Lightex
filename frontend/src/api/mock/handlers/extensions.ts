@@ -1,4 +1,4 @@
-import { actionEntity } from "@/lib/audit";
+import { auditTargetFields } from "@/lib/audit";
 import type {
   AuditChange,
   CustomField,
@@ -244,7 +244,7 @@ function audit(db: MockDB, projectId: string, actorId: string, action: string, t
     actorKind: "user",
     action,
     target,
-    entityType: actionEntity(action),
+    ...auditTargetFields(action),
     entityKey: extra.key ?? null,
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,

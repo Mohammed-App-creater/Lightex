@@ -201,7 +201,7 @@ banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 
 The contract is `docs/v2/39-fields-dependencies-time.md` (repo root); the backend builds the same document in
 parallel. Every item below is typed in `src/lib/api/types.ts`, has an `endpoints.ts` function and a `qk` key, and is
-implemented in the mock (`src/lib/mock/handlers/extensions.ts`, tested in `src/lib/mock/extensions.test.ts`).
+implemented in the mock (`src/api/mock/handlers/extensions.ts`, tested in `src/api/mock/extensions.test.ts`).
 
 **Endpoints**
 
@@ -249,8 +249,8 @@ and 403 / 409 on timer stop (timer discarded).
 
 The contract is `docs/v2/32-timeline-calendar.md` (repo root). **No new endpoint**: board 32 adds fields, filters, a
 sort key and validation to existing endpoints. Every item is typed in `src/lib/api/types.ts`, reachable through
-`endpoints.ts` / `qk`, and implemented in the mock (`src/lib/mock/handlers/schedule.ts`, wired into `tasks.ts` and
-`planning.ts`; tested in `src/lib/mock/schedule.test.ts`).
+`endpoints.ts` / `qk`, and implemented in the mock (`src/api/mock/handlers/schedule.ts`, wired into `tasks.ts` and
+`planning.ts`; tested in `src/api/mock/schedule.test.ts`).
 
 **Fields**
 
@@ -297,8 +297,8 @@ that path is the backend's to add (this frontend change doesn't touch `backend/`
 
 The contract is `docs/v2/40-import-wizard.md` (repo root). Every item is typed in `src/lib/api/types.ts`, reachable
 through `endpoints.ts` (`api.imports.*`, `uploadImportFile` in `uploads.ts`) and `qk` (`imports`, `importJob`,
-`importRows`), and implemented in the mock (`src/lib/mock/handlers/imports.ts` + `src/lib/mock/import/*`; tested in
-`src/lib/mock/imports.test.ts` and `src/lib/mock/import/import.test.ts`).
+`importRows`), and implemented in the mock (`src/api/mock/handlers/imports.ts` + `src/api/mock/import/*`; tested in
+`src/api/mock/imports.test.ts` and `src/api/mock/import/import.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -346,20 +346,20 @@ the mock API"); parsed rows live in memory only, so a reload fails `ready` / `qu
 **Shared test vectors and fixtures** (the contract puts the backend copies under
 `backend/apps/imports/tests/data/`; this change doesn't touch `backend/`):
 
-- `src/lib/mock/import/fixtures/import_vectors.json`: decoding, delimiter sniffing, parsing, header synonyms,
+- `src/api/mock/import/fixtures/import_vectors.json`: decoding, delimiter sniffing, parsing, header synonyms,
   suggestions, presets, status / type / people / priority matching, dates and `dateOrder`, numbers, durations,
   `csv_safe`.
-- `src/lib/mock/import/fixtures/jira-export.csv` (the contract's 6-row Jira export) and
-  `src/lib/mock/import/fixtures/sample.ts` (the design's 48-row sample).
+- `src/api/mock/import/fixtures/jira-export.csv` (the contract's 6-row Jira export) and
+  `src/api/mock/import/fixtures/sample.ts` (the design's 48-row sample).
 - `public/import-template.csv`: the live-mode "Download template" file.
 
 ### v2 · Board 33: dashboards, presence and realtime
 
 The contract is `docs/v2/33-dashboards-presence.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
-`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.dashboards.*`, `api.reports.workload`,
+`src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.dashboards.*`, `api.reports.workload`,
 `api.presence.*`, `api.realtime.streamPath`) and `qk` (`dashboards`, `dashboard`, `presence`, `myProjectTasks`), and
-implemented in the mock (`src/lib/mock/handlers/dashboards.ts`, `handlers/presence.ts`, `mock/realtime.ts`; tested in
-`src/lib/mock/dashboards.test.ts`).
+implemented in the mock (`src/api/mock/handlers/dashboards.ts`, `handlers/presence.ts`, `mock/realtime.ts`; tested in
+`src/api/mock/dashboards.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -375,7 +375,7 @@ implemented in the mock (`src/lib/mock/handlers/dashboards.ts`, `handlers/presen
 | P1 | PUT | `/workspaces/:slug/presence/:sessionId` `{ location, state, field, typing }` | member + `project.view` on the location | 200 `{ expiresAt, heartbeatSec, roster }` (the whole project's roster) | `api.presence.put` |
 | P2 | DELETE | `/workspaces/:slug/presence/:sessionId` | member | 204, idempotent (`fetch` `keepalive` on `pagehide`) | `api.presence.leave` |
 | P3 | GET | `/workspaces/:slug/presence?filter[project]=` | `project.view` | 200 `PresenceRoster` | `api.presence.roster` · `qk.presence` |
-| S1 | GET | `/workspaces/:slug/stream?v=1` (`Accept: text/event-stream`, `Authorization: Bearer`, `Last-Event-ID`) | member | 200 `text/event-stream` | `src/lib/realtime/http-source.ts` |
+| S1 | GET | `/workspaces/:slug/stream?v=1` (`Accept: text/event-stream`, `Authorization: Bearer`, `Last-Event-ID`) | member | 200 `text/event-stream` | `src/platform/realtime/http-source.ts` |
 
 **Types:** `WidgetType`, `WidgetConfigMap`, `DashboardWidget`, `DashboardWidgetInput`, `DashboardVisibility`,
 `DashboardTemplate`, `Dashboard`, `DashboardSummary`, `WorkloadRow`, `WorkloadReport`, `PresenceLocationKind`,
@@ -426,9 +426,9 @@ when they differ (they are identical today).
 ### v2 · Board 37: integrations & development (GitHub and GitLab)
 
 The contract is `docs/v2/37-integrations-github-gitlab.md` (repo root). Every item is typed in `src/lib/api/types.ts`
-and `src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.integrations.*`, `api.development.*`) and
+and `src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.integrations.*`, `api.development.*`) and
 `qk` (`integrations`, `availableRepos`, `development`, `devRules`), and implemented in the mock
-(`src/lib/mock/handlers/integrations.ts`, `src/lib/mock/dev-derive.ts`; tested in `src/lib/mock/integrations.test.ts`).
+(`src/api/mock/handlers/integrations.ts`, `src/api/mock/dev-derive.ts`; tested in `src/api/mock/integrations.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -495,11 +495,11 @@ should be created from this file, and the two must stay identical.
 ### v2 · Board 38: Telegram, SMS and push notification channels
 
 The contract is `docs/v2/38-telegram-sms-push.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
-`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.channels.*`, the widened
+`src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.channels.*`, the widened
 `api.notifications.preferences` / `savePreferences`, `api.workspaces.update`) and `qk` (`channels`, `telegramLink`;
-existing `prefs`, `workspace`), and implemented in the mock (`src/lib/mock/handlers/channels.ts`,
-`src/lib/mock/channels-dispatch.ts`, P1 in `handlers/notifications.ts`, W1 in `handlers/workspaces.ts` /
-`derive.ts`; tested in `src/lib/mock/channels.test.ts`).
+existing `prefs`, `workspace`), and implemented in the mock (`src/api/mock/handlers/channels.ts`,
+`src/api/mock/channels-dispatch.ts`, P1 in `handlers/notifications.ts`, W1 in `handlers/workspaces.ts` /
+`derive.ts`; tested in `src/api/mock/channels.test.ts`).
 
 **Endpoints** (all under `/api/v1`, any signed-in user unless noted; the same codes and `details` as the contract)
 
@@ -539,6 +539,23 @@ it as `?workspace=`. The backend should accept the body field (or say which it w
 §5.6 validation table: NANP rules, trunk 0 for GB / DE, mobile prefixes, digit counts, IN only when allowed), read by
 `channels-lib.test.ts`. The spec names the backend copy `backend/apps/channels/tests/data/phone_vectors.json`, which
 doesn't exist yet: it should be created from this file, and the two must stay identical.
+
+### Platform Stage 2: generic services
+
+The routes and fields come from `docs/platform/stage2-contract.md` (comments and attachments on
+`targets/{targetType}/{targetId}/…`, confirm at `attachments/{id}/confirm`, `core.comment.*` / `core.attachment.*`
+events, `core.comment.created|mentioned` preference keys, additive `targetType` / `targetId` / `link` / `module`).
+Names the contract left open, which the client assumed and the backend confirmed (types in `src/api/types.ts`, mock in
+`src/api/mock`; `docs/api-contract.md` "Generic services" lists the final shapes, including `Notification.title`,
+search result targets, always-namespaced trash kinds and audit filter groups):
+
+- `UploadTicket.uploadId` is the pending attachment's id, so the client confirms with `POST attachments/{uploadId}/confirm`
+  and no body.
+- Collab event payloads name the record `commentId` / `attachmentId` (optional; the client only needs `targetType`
+  and `targetId`), and the envelope keeps `projectId` for project-owned targets.
+- `GET notification-preferences` may return `labels: {event: string}` to name the matrix rows.
+- Trash and audit namespaced values: kinds `tracking.task`, `tracking.project`, `core.comment`; audit
+  `entityType` = `targetType` = `module.entity` (comment rows `core.comment`, actions `core.comment.created|deleted`).
 
 ---
 
@@ -768,8 +785,8 @@ Spec: `docs/v2/32-timeline-calendar.md`. API additions are listed in §5 ("v2 ·
 ### Board 40: import wizard (built)
 
 Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Board 40"). Code: `src/features/import/`
-(UI), `src/lib/mock/import/` (parser, presets, matching, conversion, planner, report) and
-`src/lib/mock/handlers/imports.ts` (I1–I9, the runner).
+(UI), `src/api/mock/import/` (parser, presets, matching, conversion, planner, report) and
+`src/api/mock/handlers/imports.ts` (I1–I9, the runner).
 
 - **Wizard** (`?import=new`, then `?import=<jobId>` with `replaceUrl`): a `DialogShell` modal (new bare dialog
   primitive in `components/ui/modal.tsx`), 760 × 640 on desktop, a full-height sheet at ≤ 760 px. Head (icon,
@@ -857,7 +874,7 @@ Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Boa
 ### Board 33: dashboards & presence, realtime over SSE (built)
 
 Spec: `docs/v2/33-dashboards-presence.md`. API additions are listed in §5 ("v2 · Board 33"). Code:
-`src/features/dashboards/` (UI), `src/features/presence/` (presence UI and hooks), `src/lib/realtime/` (the stream
+`src/features/dashboards/` (UI), `src/features/presence/` (presence UI and hooks), `src/platform/realtime/` (the stream
 client), `src/lib/domain/dashboards.ts` (widget catalogue and `pack()`), and in the mock `handlers/dashboards.ts`,
 `handlers/presence.ts`, `mock/realtime.ts`, `mock/publish-routes.ts` and the presence part of `mock/teammates.ts`.
 
@@ -1194,7 +1211,7 @@ pure logic and tests), `public/sw.js` + `public/push-badge.png`, and in the mock
   state; preference helpers; the Telegram and SMS machines; OTP editing), `push.test.ts` (enable / denied /
   dismissed / C11 failure / Check again / Turn off / sync incl. key rotation and 404 / logout order and the 1.5 s cap;
   `public/sw.js` push, malformed push, open-redirect guard, notificationclick focus vs open, pushsubscriptionchange),
-  `src/lib/mock/channels.test.ts` (seed and `ensureExt38`, C1–C14 incl. every limit and error, P1 merge and
+  `src/api/mock/channels.test.ts` (seed and `ensureExt38`, C1–C14 incl. every limit and error, P1 merge and
   validation, W1 permission and audit, the dispatcher), `preferences.test.tsx` (matrix, page per role, policy switch,
   saves, quiet-hours validation, Send test success / 502, disconnect, the SMS flow incl. lock-out and send failure,
   the Telegram flow incl. cancel, scan, countdown warn and New code, push enable / blocked), and the realtime mapping.

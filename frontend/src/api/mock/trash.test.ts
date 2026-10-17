@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { normalizeTrashList } from "@/api/endpoints";
 import type { ApiError } from "@/api/errors";
 import type { Label, Project, Status, TrashList } from "@/api/types";
 import { mockControls } from "./controls";
@@ -8,6 +9,8 @@ import { MockTransport } from "./transport";
 const t = new MockTransport();
 const as = (userId: string | null) => mockSession.set(userId);
 const req = <T,>(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: unknown) => t.request<T>({ method, path, body });
+/** The client normalizes namespaced kinds ("tracking.task") to the bare ones the UI uses. */
+const listTrash = async () => normalizeTrashList(await req<TrashList>("GET", "/workspaces/platform/trash"));
 async function rejects(p: Promise<unknown>) {
   try {
     await p;
@@ -26,14 +29,14 @@ beforeEach(() => {
 describe("trash (board 29)", () => {
   it("scopes by role: admin sees all kinds, member only their own, viewer is denied", async () => {
     as("u_alex");
-    const all = await req<TrashList>("GET", "/workspaces/platform/trash");
+    const all = await listTrash();
     expect(all.scope).toBe("all");
     expect(all.kinds).toContain("project");
     expect(all.data.some((i) => i.kind === "task")).toBe(true);
     expect(all.data.some((i) => i.kind === "project" && i.key === "LA")).toBe(true);
 
     as("u_sam");
-    const own = await req<TrashList>("GET", "/workspaces/platform/trash");
+    const own = await listTrash();
     expect(own.scope).toBe("own");
     expect(own.kinds).not.toContain("project");
     expect(own.data.length).toBeGreaterThan(0);
@@ -49,7 +52,7 @@ describe("trash (board 29)", () => {
     const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
     await req("DELETE", `/tracking/projects/${p.id}`, { confirm: "PRJ" });
     expect((await rejects(req("GET", "/tracking/workspaces/platform/projects/PRJ"))).status).toBe(404);
-    const list = await req<TrashList>("GET", "/workspaces/platform/trash");
+    const list = await listTrash();
     expect(list.data.some((i) => i.kind === "project" && i.id === p.id)).toBe(true);
     await req("POST", "/workspaces/platform/trash/restore", { items: [{ kind: "project", id: p.id }] });
     const back = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
@@ -62,7 +65,7 @@ describe("trash (board 29)", () => {
     const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
     const task = getDB().tasks.find((x) => x.projectId === p.id && !x.deletedAt && !x.parentId)!;
     await req("DELETE", `/tracking/tasks/${task.id}`);
-    let list = await req<TrashList>("GET", "/workspaces/platform/trash");
+    let list = await listTrash();
     const row = list.data.find((i) => i.id === task.id)!;
     expect(row.deletedBy?.id).toBe("u_alex");
     await req("POST", "/workspaces/platform/trash/restore", { items: [{ kind: "task", id: task.id }] });
@@ -70,20 +73,34 @@ describe("trash (board 29)", () => {
 
     const c = getDB().comments[0]!;
     await req("DELETE", `/comments/${c.id}`);
-    list = await req<TrashList>("GET", "/workspaces/platform/trash");
+    list = await listTrash();
     expect(list.data.some((i) => i.kind === "comment" && i.id === c.id)).toBe(true);
     await req("POST", "/workspaces/platform/trash/purge", { items: [{ kind: "comment", id: c.id }] });
-    list = await req<TrashList>("GET", "/workspaces/platform/trash");
+    list = await listTrash();
     expect(list.data.some((i) => i.id === c.id)).toBe(false);
     expect(getDB().comments.some((x) => x.id === c.id)).toBe(false);
   });
 
+  it("lists namespaced kinds with their module and accepts namespaced and bare kinds (platform Stage 2)", async () => {
+    as("u_alex");
+    const raw = await req<TrashList>("GET", "/workspaces/platform/trash");
+    expect(raw.kinds).toEqual(expect.arrayContaining(["tracking.task", "core.comment", "tracking.project"]));
+    const task = raw.data.find((i) => (i.kind as string) === "tracking.task")!;
+    expect(task.module).toBe("tracking");
+    expect(raw.data.find((i) => (i.kind as string) === "core.comment")?.module).toBe("core");
+    const echo = await req<{ restored: { kind: string }[] }>("POST", "/workspaces/platform/trash/restore", { items: [{ kind: "task", id: task.id }] });
+    expect(echo.restored[0]!.kind).toBe("tracking.task");
+    expect(getDB().tasks.find((x) => x.id === task.id)!.deletedAt).toBeNull();
+    const list = await listTrash();
+    expect(list.data.every((i) => ["task", "comment", "project"].includes(i.kind))).toBe(true);
+  });
+
   it("purges items older than 30 days automatically", async () => {
     as("u_alex");
-    await req<TrashList>("GET", "/workspaces/platform/trash");
+    await listTrash();
     const old = getDB().trash!.comments[0]!;
     old.deletedAt = new Date(Date.now() - 31 * 86_400_000).toISOString();
-    const list = await req<TrashList>("GET", "/workspaces/platform/trash");
+    const list = await listTrash();
     expect(list.data.some((i) => i.id === old.id)).toBe(false);
   });
 });

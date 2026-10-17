@@ -3,7 +3,7 @@ import type { RealtimeEnvelope } from "./events";
 
 /*
  * Where the stream's messages come from (spec §7.7). Live: HttpRealtimeSource (fetch + SSE parser).
- * Mock: MockRealtimeSource from @/lib/mock/realtime, loaded lazily like getTransport(), so live
+ * Mock: MockRealtimeSource from @/api/mock/realtime, loaded lazily like getTransport(), so live
  * builds never download the mock and mock mode never opens a network stream.
  */
 
@@ -46,7 +46,7 @@ export function getRealtimeSource(): Promise<RealtimeSource> {
   sourcePromise ??=
     apiMode === "live"
       ? import("./http-source").then((m) => new m.HttpRealtimeSource(apiUrl))
-      : import("@/lib/mock/realtime").then((m) => new m.MockRealtimeSource());
+      : import("@/api/mock/realtime").then((m) => new m.MockRealtimeSource());
   return sourcePromise;
 }
 

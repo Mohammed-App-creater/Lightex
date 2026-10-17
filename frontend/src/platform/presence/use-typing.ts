@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { presenceClaims } from "@/lib/realtime/presence";
+import { presenceClaims } from "@/platform/realtime/presence";
 
 /*
  * useTypingSignal (spec §2.8): typing comes from the comment composer only. The first key turns

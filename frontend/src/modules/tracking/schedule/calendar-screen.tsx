@@ -14,7 +14,7 @@ import { rememberOrigin } from "@/modules/tracking/tasks/task-origin";
 import type { CalendarMode, ISODate, Task } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, replaceUrl, routes, withTaskParam } from "@/lib/routes";
+import { pushUrl, replaceUrl, routes, withTaskParam } from "@/platform/routes";
 import { todayISO } from "@/lib/utils/dates";
 import { Agenda } from "./agenda";
 import { CalendarMonth, type CalCtx } from "./calendar-month";

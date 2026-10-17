@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
-import { pushUrl } from "@/lib/routes";
+import { pushUrl } from "@/platform/routes";
 import { getPushPlatform, syncPush } from "./push";
 
 /*

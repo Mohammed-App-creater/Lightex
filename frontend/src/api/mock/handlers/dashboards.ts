@@ -1,3 +1,4 @@
+import { auditTargetFields } from "@/lib/audit";
 import type {
   AuditChange,
   Dashboard,
@@ -239,7 +240,7 @@ function audit(db: MockDB, p: ProjectRec, actorId: string, action: string, targe
     actorKind: "user",
     action,
     target,
-    entityType: "dashboard",
+    ...auditTargetFields(action),
     entityKey: p.key,
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,

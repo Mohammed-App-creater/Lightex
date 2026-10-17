@@ -21,7 +21,7 @@ import { uploadImportFile } from "@/api/uploads";
 import { apiMode } from "@/lib/env";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { replaceUrl, routes } from "@/lib/routes";
+import { replaceUrl, routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { analysisErrorMeta, canImport, canImportInto, footerReason, isActiveStatus, isTerminalStatus, precheckImportFile, stepOf, type WizardStep } from "./import-lib";
 import { CheckGlyph, ImportIcon, LockGlyph, WarnGlyph } from "./parts";
@@ -199,7 +199,7 @@ export function ImportWizard({ param, project: current, onClose }: { param: stri
   const sample =
     apiMode === "mock"
       ? () =>
-          void import("@/lib/mock/import/fixtures/sample").then((m) => {
+          void import("@/api/mock/import/fixtures/sample").then((m) => {
             if (!source) setSource("csv");
             void begin(m.sampleFile(), targetId, source ?? "csv");
           })

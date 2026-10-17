@@ -9,8 +9,8 @@ import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import type { Project, Status, Task } from "@/api/types";
 import { can, canEditTask, useCurrentWorkspace } from "@/platform/roles/can";
-import { withTaskParam } from "@/lib/routes";
-import { useProjects } from "./queries";
+import { withTaskParam } from "@/platform/routes";
+import { useProjects } from "@/platform/workspace/queries";
 
 /** Status lookup across every project the user can see (for cross-project task lists). */
 export function useStatusMap() {

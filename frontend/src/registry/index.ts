@@ -1,12 +1,16 @@
-import { BarChart3, CircleCheck, Clock, Columns3, Flag, ListTodo, RefreshCcw, Target, type LucideIcon } from "lucide-react";
-import { can } from "@/platform/roles/can";
-import { routes, type ProjectView, type RouteInfo } from "@/lib/routes";
+import type { ComponentType, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import type { Project } from "@/api/types";
+import type { ProjectView, RouteInfo } from "@/platform/routes";
+import { tracking } from "@/modules/tracking/module";
 
 /*
- * Module registry (docs/platform-architecture.md §5 and §11). Platform Stage 1 keeps it minimal: each
- * module declares its key, its name and the navigation it adds to the shell. The sidebar renders these
- * items instead of hard-coding them. `enabled_modules`, route groups and required permissions per module
- * arrive in Stage 3; until then every registered module is on.
+ * Module registry (docs/platform-architecture.md §5 and §11). Each module declares its key, its name, the
+ * navigation it adds to the shell and (platform Stage 2) the UI it contributes to platform screens: sidebar
+ * sections and cards, shell overlays and command palette actions. Platform code renders these slots instead
+ * of importing a module. Non-UI contributions (target types, notification text) live in `./services.ts`.
+ * `enabled_modules`, route groups and required permissions per module arrive in Stage 3; until then every
+ * registered module is on.
  */
 
 export type ModuleKey = "tracking";
@@ -32,39 +36,43 @@ export interface ModuleProjectNavItem {
   gate?: (perms: string[]) => boolean;
 }
 
+/** A command palette action. */
+export interface PaletteAction {
+  id: string;
+  label: string;
+  keys: string[];
+  icon: ReactNode;
+  run: () => void | Promise<void>;
+  /** Hidden unless allowed (permission-gated actions are absent, not disabled). */
+  allowed: boolean;
+}
+
+export type SidebarSectionProps = { open: boolean; onToggle: () => void; onNavigate?: () => void };
+export type SidebarProjectCardProps = { project: Project | undefined; ws: string; rail?: boolean; onNavigate?: () => void };
+
 export interface ModuleDefinition {
   key: ModuleKey;
   name: string;
   nav: ModuleNavItem[];
   projectNav: ModuleProjectNavItem[];
+  /** Collapsible sections between the workspace links and Projects (expanded sidebar only). */
+  sidebarSections?: { id: string; Component: ComponentType<SidebarSectionProps> }[];
+  /** Cards for the current project at the foot of the sidebar (expanded and rail). */
+  sidebarProjectCards?: { id: string; Component: ComponentType<SidebarProjectCardProps> }[];
+  /** Global overlays mounted once by the app shell; `preload` warms their chunk when the shell is idle. */
+  shellOverlays?: { id: string; Component: ComponentType; preload: () => void }[];
+  /** Actions added to the command palette after "Create task". */
+  paletteActions?: (ctx: { currentProject: Project | null }) => PaletteAction[];
 }
 
-export const tracking: ModuleDefinition = {
-  key: "tracking",
-  name: "Tracking",
-  nav: [
-    { id: "my-tasks", label: "My tasks", icon: CircleCheck, href: (ws) => routes.myTasks(ws), page: "my-tasks", keys: ["G", "T"] },
-    // Board 39 (v2): every workspace member; data is limited to projects they can see.
-    { id: "timesheet", label: "Timesheet", icon: Clock, href: (ws) => routes.timesheet(ws), page: "timesheet" },
-  ],
-  projectNav: [
-    { view: "board", label: "Board", icon: Columns3 },
-    { view: "backlog", label: "Backlog", icon: ListTodo },
-    {
-      view: "sprints",
-      label: "Sprints",
-      icon: RefreshCcw,
-      // People who plan or move work see sprints; read-only viewers don't (board 13).
-      gate: (p) => can("tracking.sprint.manage", p) || can("tracking.task.move", p),
-    },
-    { view: "objectives", label: "Objectives", icon: Target },
-    { view: "milestones", label: "Milestones", icon: Flag },
-    { view: "reports", label: "Reports", icon: BarChart3, gate: (p) => can("tracking.report.view", p) },
-  ],
-};
+export { tracking };
 
 /** Every module, in sidebar order. */
 export const MODULES: readonly ModuleDefinition[] = [tracking];
 
 export const moduleNavItems = () => MODULES.flatMap((m) => m.nav);
 export const projectNavItems = () => MODULES.flatMap((m) => m.projectNav);
+export const sidebarSections = () => MODULES.flatMap((m) => m.sidebarSections ?? []);
+export const sidebarProjectCards = () => MODULES.flatMap((m) => m.sidebarProjectCards ?? []);
+export const shellOverlays = () => MODULES.flatMap((m) => m.shellOverlays ?? []);
+export const modulePaletteActions = (ctx: { currentProject: Project | null }) => MODULES.flatMap((m) => m.paletteActions?.(ctx) ?? []);

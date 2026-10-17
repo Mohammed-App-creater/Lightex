@@ -18,7 +18,7 @@ import type { Notification, User } from "@/api/types";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { groupByDay } from "./events";
 import { AlertIcon, CheckIcon, DoubleCheckIcon } from "./icons";

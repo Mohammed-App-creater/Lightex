@@ -10,7 +10,7 @@ import { toast } from "@/ui/toast";
 import { errorMessage, isApiError } from "@/api/errors";
 import type { Dashboard, DashboardTemplate, DashboardVisibility, Project } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { useCreateDashboard, useUpdateDashboard } from "./queries";
 
 /* New / rename dialogs and the delete confirm (spec §1.6). */

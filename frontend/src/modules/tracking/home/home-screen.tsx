@@ -23,13 +23,13 @@ import { daysUntil } from "@/lib/domain/progress";
 import { templateDef } from "@/lib/domain/project-templates";
 import { isTypingTarget } from "@/lib/hooks/use-hotkeys";
 import { can, useCan, useCurrentWorkspace } from "@/platform/roles/can";
-import { pushUrl, replaceUrl, routes } from "@/lib/routes";
+import { pushUrl, replaceUrl, routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
-import { dueLabel, dueSoon, homeStats, longDate } from "./my-work";
-import { NewProjectDialog } from "./new-project-dialog";
-import { useMyTasks, useProjects, useRoles, useWsMembers } from "./queries";
-import { ScreenError } from "./screen-error";
+import { dueLabel, dueSoon, homeStats, longDate } from "@/platform/workspace/my-work";
+import { NewProjectDialog } from "@/platform/workspace/new-project-dialog";
+import { useMyTasks, useProjects, useRoles, useWsMembers } from "@/platform/workspace/queries";
+import { ScreenError } from "@/platform/workspace/screen-error";
 import { canChangeStatus, useSetStatus, useStatusMap, useTaskHref } from "./task-line";
 
 /**

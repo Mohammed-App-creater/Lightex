@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CircleAlert, FileText, Inbox, Link2, Moon, Plus, SearchX, Settings, Upload } from "lucide-react";
+import { ArrowRight, CircleAlert, FileText, Inbox, Link2, Moon, Plus, SearchX, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
@@ -22,26 +22,17 @@ import { toast } from "@/ui/toast";
 import { cycleTheme } from "@/platform/shell/global-hotkeys";
 import { shell, useShell, type PaletteScope } from "@/platform/shell/shell-state";
 import { useSession } from "@/platform/auth/session";
-import { canImportInto } from "@/modules/tracking/import/import-lib";
-import { openImportWizard } from "@/modules/tracking/import/import-wizard-host";
+import { modulePaletteActions, type PaletteAction } from "@/registry";
 import { useProjects, useWsMembers, useRoles } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import type { Project, Status, Task, User } from "@/api/types";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
+import { routes, useRouteInfo, type ProjectView } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 
-type Action = {
-  id: string;
-  label: string;
-  keys: string[];
-  icon: ReactNode;
-  run: () => void | Promise<void>;
-  /** Hidden unless allowed (permission-gated actions are absent, not disabled). */
-  allowed: boolean;
-};
+type Action = PaletteAction;
 
 type Row =
   | { kind: "task"; id: string; task: Task; projectKey: string; projectName: string; status: Pick<Status, "name" | "glyph"> }
@@ -140,15 +131,8 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         run: () => shell.openCreateTask(currentProject && can("tracking.task.create", currentProject.my_permissions) ? { projectId: currentProject.id } : {}),
         allowed: canCreateAnywhere,
       },
-      {
-        // Board 40 (E4): project context only, with tracking.project.import + tracking.task.create on an active project.
-        id: "import",
-        label: "Import tasks…",
-        keys: [],
-        icon: <Upload size={12} aria-hidden />,
-        run: () => openImportWizard(),
-        allowed: Boolean(currentProject && canImportInto(currentProject)),
-      },
+      // Module actions (registry), e.g. tracking's "Import tasks…" (board 40).
+      ...modulePaletteActions({ currentProject }),
       { id: "board", label: "Go to board", keys: ["G", "B"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("board"), allowed: projects.length > 0 },
       {
         id: "theme",

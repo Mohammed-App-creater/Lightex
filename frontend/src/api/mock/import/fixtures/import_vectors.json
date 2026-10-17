@@ -1,6 +1,6 @@
 {
  "version": 1,
- "about": "Board 40 shared import vectors (docs/v2/40-import-wizard.md §8). The frontend mock (src/lib/mock/import/import.test.ts) and the backend (apps/imports, pytest) must give the same results. Byte inputs are hex. Statuses and members are fixtures, not seed ids.",
+ "about": "Board 40 shared import vectors (docs/v2/40-import-wizard.md §8). The frontend mock (src/api/mock/import/import.test.ts) and the backend (apps/imports, pytest) must give the same results. Byte inputs are hex. Statuses and members are fixtures, not seed ids.",
  "decode": [
   {
    "name": "utf-8 with BOM",

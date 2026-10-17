@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
-import { useLiveInterval } from "@/lib/realtime/status-store";
+import { useLiveInterval } from "@/platform/realtime/status-store";
 
 /**
  * 30s polling while the tab is visible (TanStack pauses intervals in background tabs). Board 33:

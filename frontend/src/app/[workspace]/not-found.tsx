@@ -2,7 +2,7 @@
 
 import { NotFoundScreen } from "@/platform/shell/edge-screens";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 
 export default function WorkspaceNotFound() {
   const ws = useCurrentWorkspace();

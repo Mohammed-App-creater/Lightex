@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/ui/feedback";
 import { can, useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 
 /** /settings → General for people who can edit the workspace, Profile for everyone else. */
 export function SettingsIndex() {

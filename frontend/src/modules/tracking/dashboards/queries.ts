@@ -7,7 +7,7 @@ import { api } from "@/api/endpoints";
 import { errorMessage, isApiError, isNotFound } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { Dashboard, DashboardSummary, DashboardTemplate, DashboardVisibility, DashboardWidgetInput, WidgetConfigMap } from "@/api/types";
-import { useLiveInterval } from "@/lib/realtime/status-store";
+import { useLiveInterval } from "@/platform/realtime/status-store";
 
 /*
  * Dashboards (board 33): the list, one dashboard, its mutations, and one query per widget. Widget

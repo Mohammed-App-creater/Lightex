@@ -15,7 +15,7 @@ import { qk } from "@/api/query-keys";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
 import { WorkspaceScope } from "@/platform/roles/can";
-import { routes, useRouteInfo } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { ErrorScreen, NotFoundScreen } from "./edge-screens";
 import { DevTools } from "./dev-tools";
@@ -24,11 +24,11 @@ import { OfflineBanner } from "./offline-banner";
 import { shell, useShell } from "./shell-state";
 import { Sidebar } from "./sidebar";
 import { TopBar, TopBarSlotProvider } from "./top-bar";
+import { shellOverlays } from "@/registry";
 
 // Overlays open on demand: split out of the shell chunk so first paint doesn't wait for cmdk/Tiptap.
 // They are warmed once the shell is idle, so the first ⌘K / "c" / "?" opens without a Suspense delay.
 const { Component: CommandPalette, preload: preloadPalette } = lazyWithPreload(() => import("@/platform/palette/command-palette").then((m) => m.CommandPalette));
-const { Component: CreateTaskDialog, preload: preloadCreateTask } = lazyWithPreload(() => import("@/modules/tracking/tasks/create-task-dialog").then((m) => m.CreateTaskDialog));
 const { Component: ShortcutsDialog, preload: preloadShortcuts } = lazyWithPreload(() => import("./shortcuts-dialog").then((m) => m.ShortcutsDialog));
 
 /** Redirects anonymous visitors to /login?next=… and shows the loader while the session boots. */
@@ -97,7 +97,7 @@ function Shell({ children }: { children: ReactNode }) {
     () =>
       whenIdle(() => {
         preloadPalette();
-        preloadCreateTask();
+        shellOverlays().forEach((o) => o.preload());
         preloadShortcuts();
       }),
     [],
@@ -137,7 +137,9 @@ function Shell({ children }: { children: ReactNode }) {
           </div>
           <GlobalHotkeys />
           <CommandPalette />
-          <CreateTaskDialog />
+          {shellOverlays().map(({ id, Component }) => (
+            <Component key={id} />
+          ))}
           <ShortcutsDialog />
           <SessionExpiredModal />
           <Suspense fallback={null}>

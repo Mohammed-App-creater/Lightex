@@ -18,7 +18,7 @@ import { errorMessage, isForbidden } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import type { TrashItem, TrashList, TrashRef } from "@/api/types";
 import { useCurrentWorkspace } from "@/platform/roles/can";
-import { routes } from "@/lib/routes";
+import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import {
   agoLabel,

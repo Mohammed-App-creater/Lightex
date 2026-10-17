@@ -111,7 +111,8 @@ export function PreferencesMatrix({
       </div>
       <div role="rowgroup">
         {PREF_ROWS.map(({ event, type }) => {
-          const name = EVENTS[type].pref;
+          // Platform Stage 2: the server's event type registry may label rows; the local table is the fallback.
+          const name = prefs.labels?.[event] ?? EVENTS[type].pref;
           return (
             <div key={event} role="row" className={cn(ROW, "border-t border-line")}>
               <span role="rowheader" className="flex min-h-12 min-w-0 items-center gap-2.5 px-4 font-medium max-[760px]:min-h-[52px] max-[760px]:gap-2 max-[760px]:px-2.5 max-[760px]:text-[12px]">

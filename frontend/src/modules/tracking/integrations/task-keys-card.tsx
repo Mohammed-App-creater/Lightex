@@ -8,7 +8,8 @@ import type { Task } from "@/api/types";
 import { CopyGlyph, DEV_ICON, DevGlyph, KeyText } from "./icons";
 import { suggestBranch } from "./lib/branch-name";
 import { highlightKeys } from "./lib/key-match";
-import { useCopy, useProjectKeys } from "./queries";
+import { useCopy } from "@/lib/hooks/use-copy";
+import { useProjectKeys } from "./queries";
 
 /**
  * "Task keys" (design): three static examples, then the branch-name generator over the caller's open

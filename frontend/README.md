@@ -71,7 +71,9 @@ The backend must:
   `{ code, message, details }`, cursor pagination, `filter[...]`, `sort`, `?q=`;
 - return `my_permissions` on workspace and project responses, with module-namespaced codes (`core.*`,
   `tracking.*`), and serve tracking routes under `/api/v1/tracking/` (see `docs/platform/stage1-contract.md`
-  at the repo root).
+  at the repo root);
+- serve comments and attachments on the generic `targets/{targetType}/{targetId}/…` routes (for tasks
+  `targetType` is `tracking.task` and `targetId` the task id; see `docs/platform/stage2-contract.md`).
 
 The UI decides what to render **only** from `my_permissions`. Nothing is inferred from role names.
 
@@ -91,20 +93,22 @@ src/
     dev/ui/, dev/emails/    component gallery and email previews (dev tools only)
   platform/                 core, shared by every module
     shell/                  sidebar, top bar, hotkeys, dev tools, edge screens (404/403/500), offline banner
+    realtime/               the SSE stream, leader election, presence and cache updates
+    routes.ts               typed URL builders, useRouteInfo, pushUrl / replaceUrl
     auth/ workspace/ settings/ members/ roles/ notifications/ search/ audit/ trash/ onboarding/ palette/ presence/
                             (roles/ also holds the permission catalogue, useCan / <Can> and the role editor)
   modules/
     tracking/               the project-tracking module: projects/ board/ list/ tasks/ sprints/ epics/ goals/
                             filters/ schedule/ reports/ dashboards/ fields/ dependencies/ time/ import/
-                            integrations/ development/ my-tasks/ project-settings/
+                            integrations/ development/ my-tasks/ home/ project-settings/
+                            module.tsx (its registry entry), services.ts (target types, notification text)
     sales/                  placeholder (platform Stage 3)
-  registry/                 module registry: key, name and the nav items the sidebar renders
+  registry/                 module registry: nav items and UI slots (index.ts), non-UI services (services.ts)
   api/                      types, endpoints, transports, query keys, optimistic helpers, uploads
+    mock/                   seed, in-memory DB, router and handlers (mock backend)
   ui/                       design-system primitives (button, menu, modal, side panel, toast, glyphs, ...)
     brand/                  logo, app loader, illustrations
   lib/
-    mock/                   seed, in-memory DB, router and handlers (mock backend)
-    realtime/               the SSE stream, leader election, presence and cache updates
     domain/                 computed progress and risk (never stored)
     hooks/ utils/           hotkeys, media queries, fractional indexing, dates, ...
   styles/tokens.css         design tokens for the dark (navy), black and light themes

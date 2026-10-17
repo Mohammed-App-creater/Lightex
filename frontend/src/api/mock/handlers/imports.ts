@@ -1,4 +1,4 @@
-import { actionEntity } from "@/lib/audit";
+import { auditTargetFields } from "@/lib/audit";
 import { canImport } from "@/modules/tracking/import/import-lib";
 import type {
   ImportColumnMapping,
@@ -26,7 +26,7 @@ import { analyzeColumns, planImport, type ParsedFile, type PlanProject, type Pla
 import { detectPreset, suggestColumns } from "../import/presets";
 import { buildReport, reportFileName } from "../import/report";
 import { fail, filterValues, requireUser, route, str, type Ctx } from "../router";
-import { logActivity } from "./common";
+import { logActivity, notificationTarget } from "./common";
 import { publishBulk } from "../realtime";
 import { DEP_LIMIT, findCycle } from "./extensions";
 import { memberProject } from "./projects";
@@ -951,6 +951,7 @@ function notifyFinished(db: MockDB, rec: ImportJobRec, project: ProjectRec) {
     payload: { importId: rec.id, projectKey: project.key, imported: rec.result?.imported ?? 0, skipped: rec.result?.skipped ?? 0, importStatus },
     createdAt: nowISO(),
     readAt: null,
+    ...notificationTarget(db, null, project),
   });
 }
 
@@ -963,7 +964,7 @@ function recordAudit(db: MockDB, rec: ImportJobRec, project: ProjectRec, action:
     action,
     target,
     createdAt: nowISO(),
-    entityType: actionEntity(action),
+    ...auditTargetFields(action),
     entityKey: key ?? (action.startsWith("tracking.project.") ? project.key : null),
     source: "import",
     requestId: rec.requestId || null,

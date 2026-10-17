@@ -9,10 +9,10 @@ import { DevelopmentSettingsPanel } from "@/modules/tracking/development/dev-set
 import { PrChip } from "@/modules/tracking/development/pr-chip";
 import { setTransport } from "@/api/client";
 import type { Project, TaskDetail, Workspace } from "@/api/types";
-import { mockControls } from "@/lib/mock/controls";
-import { getDB, mockSession, resetDB } from "@/lib/mock/db";
-import { fakeTiming, mockProviderConfig, setIntegrationError } from "@/lib/mock/handlers/integrations";
-import { MockTransport } from "@/lib/mock/transport";
+import { mockControls } from "@/api/mock/controls";
+import { getDB, mockSession, resetDB } from "@/api/mock/db";
+import { fakeTiming, mockProviderConfig, setIntegrationError } from "@/api/mock/handlers/integrations";
+import { MockTransport } from "@/api/mock/transport";
 import { WorkspaceScope } from "@/platform/roles/can";
 import { IntegrationsScreen } from "./integrations-screen";
 import { RepoPicker } from "./repo-picker";
