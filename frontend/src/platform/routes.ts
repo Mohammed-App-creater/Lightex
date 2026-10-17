@@ -17,7 +17,7 @@ export type ProjectView =
   | "dashboards"
   | "settings";
 
-export type SettingsSection = "general" | "members" | "roles" | "modules" | "integrations" | "notifications" | "profile" | "audit";
+export type SettingsSection = "general" | "members" | "roles" | "teams" | "modules" | "integrations" | "notifications" | "profile" | "audit";
 
 export const routes = {
   login: (next?: string) => (next ? `/login?next=${encodeURIComponent(next)}` : "/login"),

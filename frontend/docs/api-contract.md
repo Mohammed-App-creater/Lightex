@@ -36,7 +36,7 @@
   tracking, saved views, `/tracking/me/{tasks,recents,timer}` and
   `/tracking/workspaces/:slug/{projects,project-directory,tasks,activity,views,timesheet,integrations}`.
 - **Permission codes:** `module.resource.action`: `core.workspace.*`, `core.roles.manage`,
-  `core.audit.view`, `core.modules.manage`, `core.teams.manage` (the last two have no endpoints yet), and
+  `core.audit.view`, `core.modules.manage` (Stage 3), `core.teams.manage` (Stage 4), and
   `tracking.*` for everything project-related (`tracking.task.create`, `tracking.project.view`, …).
 - **Realtime event types and audit actions** carry a module prefix: `tracking.task.changed`,
   `tracking.project.changed`, `core.presence.updated`, `core.channels.changed`, `core.inbox.changed`,
@@ -78,6 +78,30 @@ return 403 `module_disabled`.
 | GET | /workspaces/:slug/modules | → `[{key, name, description, isCore, toggleable, enabled, dependsOn, enabledAt, enabledBy, navItems}]`, core included, not paginated; any member |
 | PUT | /workspaces/:slug/modules/:key | `{enabled}` → the module (`core.modules.manage`); 404 unknown; 400 `module_not_toggleable`; 400 `module_dependency` `details.modules` |
 | GET | /sales/workspaces/:slug/health | → `{status: "ok", module: "sales", workspace}` (`sales.health.view`) |
+
+## Teams and data scope (platform Stage 4)
+
+`docs/platform/stage4-contract.md` §1–§2 is binding. Reads are open to any workspace member; writes need
+`core.teams.manage` and are audited (`core.team.created|updated|deleted|member_added|member_removed|member_updated`).
+A team from another workspace is a 404. Removing someone from the workspace removes their team memberships.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | /workspaces/:slug/teams | → `[{id, name, description, memberCount, leadIds, createdAt}]`, by name, not paginated |
+| POST | /workspaces/:slug/teams | `{name, description?}` → `TeamDetail`; 409 `team_name_taken` (case-insensitive); 422 empty name |
+| GET | /teams/:id | → `TeamDetail` (the list item plus `members`) |
+| PATCH | /teams/:id | `{name?, description?}` → `TeamDetail`; 409 `team_name_taken` |
+| DELETE | /teams/:id | → 204 (soft delete) |
+| GET | /teams/:id/members | → `[{userId, name, email, avatarUrl, isLead}]` |
+| POST | /teams/:id/members | `{userId, isLead?}` → member; 400 `not_a_workspace_member`; 409 `already_a_member` |
+| PATCH | /teams/:id/members/:userId | `{isLead}` → member |
+| DELETE | /teams/:id/members/:userId | → 204 |
+
+**Data scope.** `GET /permissions` entries carry `scopable` (workspace scope only). Role create / update accept
+`dataScopes: {code: "own" | "team" | "all"}` next to `permissions`: a granted scopable code without a scope is 400
+`data_scope_required` (`details.codes`), a scope on a non-scopable code is 400 `data_scope_not_allowed`. Role
+responses carry `dataScopes`; workspace and project responses carry `myDataScopes` (the same workspace-level map,
+disabled modules excluded). The client reads it with `useDataScope(code)`; the server applies the scope itself.
 
 ## Auth
 | Method | Path | Body → Response |

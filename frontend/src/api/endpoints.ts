@@ -35,6 +35,10 @@ import type {
   ProjectMember,
   ProjectSummary,
   ProgressRow,
+  Team,
+  TeamDetail,
+  TeamMember,
+  DataScopeMap,
   Dashboard,
   DashboardSummary,
   DashboardTemplate,
@@ -155,9 +159,13 @@ export const workspaces = {
 export const roles = {
   list: (slug: string, scope?: "workspace" | "project") =>
     http.get<Role[]>(`/workspaces/${enc(slug)}/roles`, scope ? { filter: { scope } } : undefined),
-  create: (slug: string, body: Pick<Role, "name" | "description" | "scope" | "permissions">) =>
+  /**
+   * Stage 4: `dataScopes` gives the scope of each granted scopable code. 400 `data_scope_required` (`details.codes`)
+   * when one is missing, 400 `data_scope_not_allowed` for a scope on a non-scopable code.
+   */
+  create: (slug: string, body: Pick<Role, "name" | "description" | "scope" | "permissions"> & { dataScopes?: DataScopeMap }) =>
     http.post<Role>(`/workspaces/${enc(slug)}/roles`, body),
-  update: (id: string, body: Partial<Pick<Role, "name" | "description" | "permissions">>) =>
+  update: (id: string, body: Partial<Pick<Role, "name" | "description" | "permissions">> & { dataScopes?: DataScopeMap }) =>
     http.patch<Role>(`/roles/${enc(id)}`, body),
   remove: (id: string, reassignTo?: string) => http.del(`/roles/${enc(id)}`, reassignTo ? { reassignTo } : undefined),
   catalogue: () => http.get<PermissionInfo[]>("/permissions"),
@@ -557,6 +565,26 @@ export const modules = {
   set: (slug: string, key: string, enabled: boolean) => http.put<WorkspaceModule>(`/workspaces/${enc(slug)}/modules/${enc(key)}`, { enabled }),
 };
 
+/**
+ * Platform Stage 4 (docs/platform/stage4-contract.md §1): teams. Reads are open to workspace members; writes need
+ * `core.teams.manage`. A team from another workspace is a 404. Not paginated.
+ */
+export const teams = {
+  list: (slug: string) => http.get<Team[]>(`/workspaces/${enc(slug)}/teams`),
+  /** 409 `team_name_taken` (case-insensitive, per workspace). */
+  create: (slug: string, body: { name: string; description?: string }) => http.post<TeamDetail>(`/workspaces/${enc(slug)}/teams`, body),
+  get: (id: string) => http.get<TeamDetail>(`/teams/${enc(id)}`),
+  /** 409 `team_name_taken`. */
+  update: (id: string, body: { name?: string; description?: string }) => http.patch<TeamDetail>(`/teams/${enc(id)}`, body),
+  remove: (id: string) => http.del(`/teams/${enc(id)}`),
+  members: (id: string) => http.get<TeamMember[]>(`/teams/${enc(id)}/members`),
+  /** 400 `not_a_workspace_member`, 409 `already_a_member`. */
+  addMember: (id: string, body: { userId: string; isLead?: boolean }) => http.post<TeamMember>(`/teams/${enc(id)}/members`, body),
+  updateMember: (id: string, userId: string, body: { isLead: boolean }) =>
+    http.patch<TeamMember>(`/teams/${enc(id)}/members/${enc(userId)}`, body),
+  removeMember: (id: string, userId: string) => http.del(`/teams/${enc(id)}/members/${enc(userId)}`),
+};
+
 /** Platform Stage 3: the sales module's placeholder endpoint (behind the module guard). */
 export const sales = {
   health: (slug: string) => http.get<{ status: "ok"; module: "sales"; workspace: string }>(`/sales/workspaces/${enc(slug)}/health`),
@@ -567,6 +595,7 @@ export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)
 
 export const api = {
   modules,
+  teams,
   sales,
   channels,
   integrations,

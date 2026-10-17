@@ -1,4 +1,4 @@
-import type { Permission, PermissionGroup, PermissionInfo, Role, RoleScope, WorkspaceMember } from "@/api/types";
+import type { DataScope, DataScopeMap, Permission, PermissionGroup, PermissionInfo, Role, RoleScope, WorkspaceMember } from "@/api/types";
 import { PERMISSION_GROUP_ORDER } from "@/platform/roles/catalogue";
 
 /* ───────────────────────── Invite email chips (board 18 A.6) ───────────────────────── */
@@ -125,7 +125,13 @@ export function roleNameError(name: string, others: string[]): string | null {
 
 /* ───────────────────────── Permission matrix ───────────────────────── */
 
-export type RoleDraft = { name: string; description: string; permissions: Permission[] };
+export type RoleDraft = {
+  name: string;
+  description: string;
+  permissions: Permission[];
+  /** Platform Stage 4: the scope of each granted scopable code (missing = not chosen yet). */
+  dataScopes?: DataScopeMap;
+};
 
 export function diffPermissions(saved: readonly string[], draft: readonly string[]) {
   const a = new Set(saved);
@@ -136,16 +142,54 @@ export function diffPermissions(saved: readonly string[], draft: readonly string
   };
 }
 
-/** Toggled permissions, +1 if the name changed, +1 if the description changed. */
+/** Toggled permissions, +1 if the name changed, +1 if the description changed, +1 per re-scoped grant. */
 export function changeCount(saved: RoleDraft, draft: RoleDraft) {
   const { added, removed } = diffPermissions(saved.permissions, draft.permissions);
   return (
     added.length +
     removed.length +
     (saved.name.trim() !== draft.name.trim() ? 1 : 0) +
-    (saved.description.trim() !== draft.description.trim() ? 1 : 0)
+    (saved.description.trim() !== draft.description.trim() ? 1 : 0) +
+    rescoped(saved, draft).length
   );
 }
+
+/** Codes granted before and after whose data scope changed (new grants count once, as a toggle). */
+export function rescoped(saved: RoleDraft, draft: RoleDraft): string[] {
+  return draft.permissions.filter((p) => saved.permissions.includes(p) && (saved.dataScopes?.[p] ?? null) !== (draft.dataScopes?.[p] ?? null));
+}
+
+/* ───────────────────────── Data scope (platform Stage 4) ───────────────────────── */
+
+const scopableKeys = (catalogue: readonly PermissionInfo[]) => new Set(catalogue.filter((p) => p.scopable).map((p) => p.key as string));
+
+/** Granted scopable codes that have no scope yet (the server would answer 400 data_scope_required). */
+export function missingScopes(draft: RoleDraft, catalogue: readonly PermissionInfo[]): string[] {
+  const keys = scopableKeys(catalogue);
+  return draft.permissions.filter((p) => keys.has(p) && !draft.dataScopes?.[p]);
+}
+
+/** The request's `dataScopes`: only granted scopable codes (a scope on anything else is data_scope_not_allowed). */
+export function requestScopes(draft: RoleDraft, catalogue: readonly PermissionInfo[]): DataScopeMap {
+  const keys = scopableKeys(catalogue);
+  const out: DataScopeMap = {};
+  for (const p of draft.permissions) {
+    const s = draft.dataScopes?.[p];
+    if (keys.has(p) && s) out[p] = s;
+  }
+  return out;
+}
+
+/** Sets one grant's scope. */
+export const withScope = (map: DataScopeMap | undefined, key: string, scope: DataScope): DataScopeMap => ({ ...map, [key]: scope });
+
+/** Turning a permission off forgets its scope; turning it on leaves the scope to be chosen. */
+export function dropScope(map: DataScopeMap | undefined, key: string): DataScopeMap {
+  const { [key]: _gone, ...rest } = map ?? {};
+  return rest;
+}
+
+export const DATA_SCOPE_LABELS: Record<DataScope, string> = { own: "Own", team: "Team", all: "All" };
 
 /** Set of keys changed since save, for the per-row "changed" dot. */
 export function changedKeys(saved: readonly string[], draft: readonly string[]) {

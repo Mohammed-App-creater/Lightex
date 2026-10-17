@@ -81,7 +81,18 @@ export interface PermissionInfo {
   group: PermissionGroup;
   label: string;
   description: string;
+  /**
+   * Platform Stage 4: a scopable permission carries a data scope (own / team / all) on every role that grants it.
+   * Workspace scope only in this phase. Optional so older payloads still parse (missing = false).
+   */
+  scopable?: boolean;
 }
+
+/** Platform Stage 4 (stage4-contract.md §2): how much of the workspace's data a scopable grant reaches. */
+export type DataScope = "own" | "team" | "all";
+export const DATA_SCOPES: readonly DataScope[] = ["own", "team", "all"];
+/** `{code: scope}` for scopable codes. */
+export type DataScopeMap = Record<string, DataScope>;
 
 export interface Role {
   id: ID;
@@ -92,6 +103,8 @@ export interface Role {
   isSystem: boolean;
   permissions: Permission[];
   memberCount: number;
+  /** Platform Stage 4: the scope of each granted scopable code. Optional so older payloads still parse. */
+  dataScopes?: DataScopeMap;
 }
 
 /* ───────────────────────── People and workspaces ───────────────────────── */
@@ -121,6 +134,34 @@ export interface Workspace {
   notificationPolicy?: { sms: boolean };
   /** Platform Stage 3: module keys turned on for this workspace. Always contains "core". */
   enabledModules: string[];
+  /** Platform Stage 4: the scope of each scopable code the user holds (disabled modules excluded). */
+  myDataScopes?: DataScopeMap;
+}
+
+/* Platform Stage 4 (stage4-contract.md §1): flat teams inside a workspace. */
+
+/** `GET workspaces/{slug}/teams` item. */
+export interface Team {
+  id: ID;
+  name: string;
+  description: string;
+  memberCount: number;
+  leadIds: ID[];
+  createdAt: ISODateTime;
+}
+
+/** A team member. User fields as in the workspace member serializer (no hue: the UI takes it from the member list). */
+export interface TeamMember {
+  userId: ID;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  isLead: boolean;
+}
+
+/** `GET teams/{id}`: the list item plus its members. */
+export interface TeamDetail extends Team {
+  members: TeamMember[];
 }
 
 /** A nav item a module contributes (Stage 3 contract §1); `path` is relative to the workspace. */
@@ -202,6 +243,8 @@ export interface Project {
   nextTaskNumber: number;
   /** Board 37: at least one active integration has a tracked repository that applies to this project. */
   devEnabled: boolean;
+  /** Platform Stage 4: the same workspace-level map as `Workspace.myDataScopes` (for symmetry). */
+  myDataScopes?: DataScopeMap;
 }
 
 /** Board 24 "Not on any project": a member asks workspace admins to be added to a project. */

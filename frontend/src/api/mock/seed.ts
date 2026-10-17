@@ -23,8 +23,9 @@ import type {
  * 5: Stage 2 generic targets (comments / attachments carry targetType + targetId, no taskId) and core.comment.* preference keys.
  * 6: Stage 3 modules (`workspaceModules`: tracking on in every workspace, sales off) and `sales.health.view` on the
  *    workspace Owner / Admin / Member roles.
+ * 7: Stage 4 teams (`teams`, `teamMembers`: three in Platform team, one in Design guild) and `dataScopes` on roles.
  */
-export const SCHEMA = 6;
+export const SCHEMA = 7;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -128,6 +129,8 @@ export function createSeed(): MockDB {
     wsMembers: [],
     workspaceModules: [],
     roles: [],
+    teams: [],
+    teamMembers: [],
     invites: [],
     projects: [],
     projectMembers: [],
@@ -214,6 +217,16 @@ export function createSeed(): MockDB {
     wsm("ws_guild", AK, "member", 60 * 24 * 3),
     wsm("ws_guild", JL, "admin", 60 * 8),
   );
+  /* Stage 4 teams: flat, a person may be in several (Riley is in Backend and Infrastructure); Taylor is in none. */
+  const team = (id: string, workspaceId: string, name: string, description: string, members: [string, boolean][]) => {
+    db.teams.push({ id, workspaceId, name, description, createdAt: T("2026-04-01"), deletedAt: null });
+    for (const [userId, isLead] of members) db.teamMembers.push({ workspaceId, teamId: id, userId, isLead, addedAt: T("2026-04-01") });
+  };
+  team("team_frontend", "ws_platform", "Frontend", "Web client, design system and the board.", [[AK, true], [SP, false], [CB, false]]);
+  team("team_backend", "ws_platform", "Backend", "API, realtime and integrations.", [[JL, true], [RC, false], [MD, false]]);
+  team("team_infra", "ws_platform", "Infrastructure", "", [[RC, true], [JL, false]]);
+  team("team_brand", "ws_guild", "Brand", "Logo, type and illustration.", [[DH, true], [AK, false]]);
+
   db.invites.push(
     {
       id: "inv_1",

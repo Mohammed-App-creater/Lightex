@@ -19,7 +19,7 @@ import { useRoles, useWsMembers } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
-import type { Permission, PermissionInfo, Role, RoleScope } from "@/api/types";
+import type { DataScope, DataScopeMap, Permission, PermissionInfo, Role, RoleScope } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/platform/routes";
@@ -28,12 +28,18 @@ import {
   changeCount,
   changedKeys,
   copyName,
+  DATA_SCOPE_LABELS,
+  dropScope,
   enabledCatalogue,
   groupCatalogueByModule,
   grantedCount,
   isOwnerRole,
+  missingScopes,
+  requestScopes,
+  rescoped,
   roleNameError,
   rolesFor,
+  withScope,
   togglePermission,
   uniqueName,
   type RoleDraft,
@@ -45,7 +51,7 @@ import { MODULES } from "@/registry";
 const MODULE_NAMES: Record<string, string> = { core: "Core", ...Object.fromEntries(MODULES.map((m) => [m.key, m.name])) };
 const MODULE_ORDER = MODULES.map((m) => m.key);
 
-const toDraft = (r: Role): RoleDraft => ({ name: r.name, description: r.description, permissions: [...r.permissions] });
+const toDraft = (r: Role): RoleDraft => ({ name: r.name, description: r.description, permissions: [...r.permissions], dataScopes: { ...r.dataScopes } });
 
 /** Roles (board 18 A.5): scope switch, role list, permission matrix editor. */
 export function RolesScreen() {
@@ -64,12 +70,16 @@ export function RolesScreen() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  /** Stage 4: granted scopable codes still missing a scope (client check or 400 data_scope_required). */
+  const [scopeErrors, setScopeErrors] = useState<string[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [deleting, setDeleting] = useState<Role | null>(null);
   /** Which role action is in flight: guards double submits and drives the button spinners. */
   const [pending, setPending] = useState<"create" | "duplicate" | "delete" | null>(null);
 
   const list = useMemo(() => rolesFor(roles.data ?? [], scope), [roles.data, scope]);
+  // Stage 3: permissions of modules turned off for the workspace are hidden (role responses omit them too).
+  const cat = enabledCatalogue(catalogue.data ?? [], ws.enabledModules);
   const current = list.find((r) => r.id === selected[scope]) ?? list.find((r) => !isOwnerRole(r)) ?? list[0];
   const editable = canManage && current ? !current.isSystem : false;
   const saved = current ? toDraft(current) : null;
@@ -92,6 +102,7 @@ export function RolesScreen() {
       setSelected((s) => ({ ...s, [scope]: id }));
       setDraft(null);
       setNameError(null);
+      setScopeErrors([]);
       setSaveError(false);
       setEditorOpen(true);
     });
@@ -101,6 +112,8 @@ export function RolesScreen() {
     const next = { ...working, ...patch, id: current.id };
     setDraft(next);
     setSaveError(false);
+    // A chosen (or removed) grant no longer needs a scope.
+    if (scopeErrors.length) setScopeErrors(scopeErrors.filter((c) => next.permissions.includes(c as Permission) && !next.dataScopes?.[c]));
     if (patch.name !== undefined)
       setNameError(roleNameError(patch.name, list.filter((r) => r.id !== current.id).map((r) => r.name)));
   };
@@ -113,8 +126,19 @@ export function RolesScreen() {
       nudge();
       return;
     }
+    const missing = missingScopes(working, cat);
+    if (missing.length) {
+      setScopeErrors(missing);
+      nudge();
+      return;
+    }
     const before = toDraft(current);
-    const body = { name: working.name.trim().slice(0, 40), description: working.description.trim().slice(0, 80), permissions: working.permissions };
+    const body = {
+      name: working.name.trim().slice(0, 40),
+      description: working.description.trim().slice(0, 80),
+      permissions: working.permissions,
+      dataScopes: requestScopes(working, cat),
+    };
     setSaving(true);
     try {
       const r = await api.roles.update(current.id, body);
@@ -126,7 +150,7 @@ export function RolesScreen() {
           key: "Z",
           onClick: async () => {
             try {
-              await api.roles.update(current.id, before);
+              await api.roles.update(current.id, { ...before, dataScopes: requestScopes(before, cat) });
               await refresh();
             } catch (e) {
               toast.error("Couldn’t undo", { body: errorMessage(e) });
@@ -136,6 +160,7 @@ export function RolesScreen() {
       });
     } catch (e) {
       if (isApiError(e) && e.fieldErrors.name) setNameError(e.fieldErrors.name);
+      else if (isApiError(e) && e.code === "data_scope_required") setScopeErrors(scopeCodes(e.details) ?? missingScopes(working, cat));
       else setSaveError(true);
       toast.error("Couldn’t save role", { body: errorMessage(e) });
     } finally {
@@ -143,12 +168,12 @@ export function RolesScreen() {
     }
   };
 
-  const create = (base: Pick<Role, "name" | "description" | "permissions">, kind: "create" | "duplicate") =>
+  const create = (base: Pick<Role, "name" | "description" | "permissions" | "dataScopes">, kind: "create" | "duplicate") =>
     guard(async () => {
       if (pending) return;
       setPending(kind);
       try {
-        const r = await api.roles.create(ws.slug, { ...base, scope });
+        const r = await api.roles.create(ws.slug, { ...base, scope, dataScopes: { ...base.dataScopes } });
         await refresh();
         setSelected((s) => ({ ...s, [scope]: r.id }));
         setDraft(null);
@@ -190,7 +215,13 @@ export function RolesScreen() {
           key: "Z",
           onClick: async () => {
             try {
-              await api.roles.create(ws.slug, { name: role.name, description: role.description, scope: role.scope, permissions: role.permissions });
+              await api.roles.create(ws.slug, {
+                name: role.name,
+                description: role.description,
+                scope: role.scope,
+                permissions: role.permissions,
+                dataScopes: { ...role.dataScopes },
+              });
               await refresh();
             } catch (e) {
               toast.error("Couldn’t undo", { body: errorMessage(e) });
@@ -209,8 +240,6 @@ export function RolesScreen() {
 
   const loading = roles.isPending || catalogue.isPending;
   const error = roles.error ?? catalogue.error;
-  // Stage 3: permissions of modules turned off for the workspace are hidden (role responses omit them too).
-  const cat = enabledCatalogue(catalogue.data ?? [], ws.enabledModules);
   const total = cat.filter((p) => p.scope === scope).length;
 
   const header = (
@@ -224,6 +253,7 @@ export function RolesScreen() {
           setScope(v);
           setDraft(null);
           setNameError(null);
+          setScopeErrors([]);
           setEditorOpen(false);
         })
       }
@@ -261,7 +291,7 @@ export function RolesScreen() {
     body = <RolesSkeleton />;
   } else {
     const holders = scope === "workspace" ? (members.data ?? []).filter((m) => m.roleId === current.id) : [];
-    const changed = changedKeys(current.permissions, working.permissions);
+    const changed = new Set([...changedKeys(current.permissions, working.permissions), ...rescoped(toDraft(current), working)]);
     const showList = !mobile || !editorOpen;
     const showEditor = !mobile || editorOpen;
     body = (
@@ -319,7 +349,12 @@ export function RolesScreen() {
                   loading={pending === "duplicate"}
                   onClick={() =>
                     create(
-                      { name: copyName(current.name, list.map((r) => r.name)), description: current.description, permissions: current.permissions },
+                      {
+                        name: copyName(current.name, list.map((r) => r.name)),
+                        description: current.description,
+                        permissions: current.permissions,
+                        dataScopes: current.dataScopes,
+                      },
                       "duplicate",
                     )
                   }
@@ -398,9 +433,17 @@ export function RolesScreen() {
               enabledModules={ws.enabledModules}
               scope={scope}
               granted={working.permissions}
+              scopes={working.dataScopes ?? {}}
+              scopeErrors={scopeErrors}
               changed={changed}
               locked={!editable}
-              onToggle={(key, on) => update({ permissions: togglePermission(working.permissions, key, on) })}
+              onToggle={(key, on) =>
+                update({
+                  permissions: togglePermission(working.permissions, key, on),
+                  dataScopes: on ? working.dataScopes : dropScope(working.dataScopes, key),
+                })
+              }
+              onScope={(key, s) => update({ dataScopes: withScope(working.dataScopes, key, s) })}
             />
           </section>
         )}
@@ -429,13 +472,14 @@ export function RolesScreen() {
       </div>
       {canManage && (
         <SaveBar
-          state={saving ? "saving" : saveError && dirty ? "error" : nameError && dirty ? "invalid" : dirty ? "dirty" : "idle"}
+          state={saving ? "saving" : saveError && dirty ? "error" : (nameError || scopeErrors.length > 0) && dirty ? "invalid" : dirty ? "dirty" : "idle"}
           count={changes}
           shake={shake}
           onSave={() => void save()}
           onDiscard={() => {
             setDraft(null);
             setNameError(null);
+            setScopeErrors([]);
             setSaveError(false);
           }}
         />
@@ -512,6 +556,12 @@ function RoleGroup({
   );
 }
 
+type ScopeProps = {
+  scopes: DataScopeMap;
+  scopeErrors: string[];
+  onScope: (key: Permission, scope: DataScope) => void;
+};
+
 function PermissionMatrix({
   catalogue,
   enabledModules,
@@ -520,6 +570,7 @@ function PermissionMatrix({
   changed,
   locked,
   onToggle,
+  ...scopeProps
 }: {
   catalogue: PermissionInfo[];
   enabledModules: readonly string[];
@@ -528,7 +579,7 @@ function PermissionMatrix({
   changed: Set<string>;
   locked: boolean;
   onToggle: (key: Permission, on: boolean) => void;
-}) {
+} & ScopeProps) {
   const modules = groupCatalogueByModule(catalogue, scope, enabledModules, MODULE_ORDER);
   return (
     <div className="flex flex-col gap-4">
@@ -537,7 +588,7 @@ function PermissionMatrix({
           <h3 id={`perm-mod-${m.module}`} className="m-0 pb-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.07em] text-fg-3">
             {MODULE_NAMES[m.module] ?? m.module}
           </h3>
-          <PermissionGroups groups={m.groups} granted={granted} changed={changed} locked={locked} onToggle={onToggle} />
+          <PermissionGroups groups={m.groups} granted={granted} changed={changed} locked={locked} onToggle={onToggle} {...scopeProps} />
         </section>
       ))}
     </div>
@@ -550,13 +601,16 @@ function PermissionGroups({
   changed,
   locked,
   onToggle,
+  scopes,
+  scopeErrors,
+  onScope,
 }: {
   groups: ReturnType<typeof groupCatalogueByModule>[number]["groups"];
   granted: Permission[];
   changed: Set<string>;
   locked: boolean;
   onToggle: (key: Permission, on: boolean) => void;
-}) {
+} & ScopeProps) {
   return (
     <div className="flex flex-col">
       {groups.map((g) => {
@@ -574,7 +628,7 @@ function PermissionGroups({
             {g.items.map((p) => {
               const checked = granted.includes(p.key);
               const dot = changed.has(p.key);
-              return (
+              const row = (
                 <label
                   key={p.key}
                   className={cn(
@@ -598,12 +652,79 @@ function PermissionGroups({
                   />
                 </label>
               );
+              if (!p.scopable || !checked) return row;
+              // Stage 4: a granted scopable permission picks how much data it reaches. Outside the <label>, so
+              // the segment buttons don't toggle the switch.
+              return (
+                <div key={p.key} className="flex flex-col">
+                  {row}
+                  <DataScopeRow
+                    permission={p}
+                    value={scopes[p.key] ?? null}
+                    error={scopeErrors.includes(p.key)}
+                    locked={locked}
+                    onChange={(s) => onScope(p.key, s)}
+                  />
+                </div>
+              );
             })}
           </fieldset>
         );
       })}
     </div>
   );
+}
+
+const SCOPE_HINT: Record<DataScope, string> = {
+  own: "Only records they own",
+  team: "Records owned by anyone in their teams",
+  all: "Every record in the workspace",
+};
+
+/** Own / Team / All for a granted scopable permission (stage4-contract.md §4). */
+function DataScopeRow({
+  permission,
+  value,
+  error,
+  locked,
+  onChange,
+}: {
+  permission: PermissionInfo;
+  value: DataScope | null;
+  error: boolean;
+  locked: boolean;
+  onChange: (scope: DataScope) => void;
+}) {
+  const label = `${permission.label} data scope`;
+  return (
+    <div className="-mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pb-1.5 pr-2 max-[760px]:pb-2.5">
+      <span className="text-[12px] text-fg-3">Applies to</span>
+      {locked ? (
+        <span className="text-[12px] font-medium text-fg-2" aria-label={label}>
+          {value ? DATA_SCOPE_LABELS[value] : "Not set"}
+        </span>
+      ) : (
+        <Segmented<DataScope | "">
+          label={label}
+          value={value ?? ""}
+          onChange={(v) => v && onChange(v)}
+          options={(["own", "team", "all"] as const).map((s) => ({ value: s, label: DATA_SCOPE_LABELS[s] }))}
+        />
+      )}
+      {value && !error && <span className="text-[12px] text-fg-3">{SCOPE_HINT[value]}</span>}
+      {error && (
+        <span role="alert" className="text-[12px] text-danger">
+          Choose Own, Team or All
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** `details.codes` of a 400 data_scope_required, if present. */
+function scopeCodes(details: Record<string, unknown> | undefined): string[] | null {
+  const codes = details?.codes;
+  return Array.isArray(codes) && codes.length ? codes.map(String) : null;
 }
 
 function DeleteRoleDialog({

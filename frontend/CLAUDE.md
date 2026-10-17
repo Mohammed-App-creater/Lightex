@@ -50,7 +50,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
-  - Also: `trash`, `sales` (Stage 3 placeholder), `settings/{general,members,roles,modules,integrations,notifications,profile,audit}` (`integrations`: v2,
+  - Also: `trash`, `sales` (Stage 3 placeholder), `settings/{general,members,roles,teams,modules,integrations,notifications,profile,audit}` (`teams`: Stage 4) (`integrations`: v2,
     board 37; `notifications`: channels, matrix and quiet hours since v2 board 38), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
   - Board 37 has no project route of its own: the task panel's Development section, the board / list PR chip and
     project settings `?tab=development` (shown when `Project.devEnabled`).
@@ -104,6 +104,13 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   groups permissions by module and hides disabled ones. The mock keeps `workspaceModules` rows, guards every
   `/{module}/…` route once in `mock/router.ts` (403 `module_disabled`) and filters a disabled module's permissions out
   of `my_permissions`, role responses and search (`mock/modules.ts`). Sales starts off in the seed.
+- **Teams and data scope (platform Stage 4, `docs/platform/stage4-contract.md`).** Settings → Teams is
+  `platform/teams/` (every member reads it; writes need `core.teams.manage`, shown with a `disabledReason`). Catalogue
+  entries carry `scopable`; a granted scopable permission gets an Own / Team / All selector in the role editor and
+  saving sends `dataScopes`. `useDataScope(code)` (`platform/roles/can.tsx`) reads `myDataScopes`. No real module has
+  a scopable permission yet: tests push a fixture entry into `PERMISSION_CATALOGUE`, which the mock reads too
+  (`mock/data-scope.ts`). The seed (SCHEMA 7) has Frontend, Backend and Infrastructure in `platform` and Brand in
+  `design-guild`.
 - **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
   (everything project-related), plus `sales.health.view`; catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
   (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or

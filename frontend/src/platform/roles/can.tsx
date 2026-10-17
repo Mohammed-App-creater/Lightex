@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import type {
   Dashboard,
+  DataScope,
+  DataScopeMap,
   Permission,
   Project,
   ProjectPermission,
@@ -74,6 +76,25 @@ export function usePermissions() {
 
 export function useCan(permission: Permission, scope?: Scope): boolean {
   return usePermissions()(permission, scope);
+}
+
+/*
+ * Platform Stage 4 data scope (stage4-contract.md §2). Scopable permissions are workspace scope only, so the map
+ * comes from the workspace's `myDataScopes` (a project's holds the same map). null = no grant: the user sees none
+ * of that data. Like `my_permissions`, it only shapes the UI; the server applies the scope itself.
+ *
+ *   const scope = useDataScope("sales.lead.view")    → "own" | "team" | "all" | null
+ */
+
+/** Pure lookup, usable outside React. */
+export function dataScopeOf(code: string, map: DataScopeMap | undefined | null): DataScope | null {
+  return map?.[code] ?? null;
+}
+
+export function useDataScope(code: string): DataScope | null {
+  const ws = useContext(WorkspaceCtx);
+  const project = useContext(ProjectCtx);
+  return dataScopeOf(code, ws?.myDataScopes ?? project?.myDataScopes);
 }
 
 /** Edit rule for a task: edit_any, or edit_own on tasks you reported or are assigned. */

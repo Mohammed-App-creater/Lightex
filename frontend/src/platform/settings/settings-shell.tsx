@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Boxes, Building2, KeyRound, Plug, ShieldCheck, Trash2, TriangleAlert, UserRound, Users } from "lucide-react";
+import { Bell, Boxes, Building2, KeyRound, Plug, ShieldCheck, Trash2, TriangleAlert, UserRound, Users, UsersRound } from "lucide-react";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
 import Link from "next/link";
@@ -49,6 +49,8 @@ export function SettingsShell({ children }: { children: ReactNode }) {
     { key: "general", label: "General", icon: <Building2 size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "general") },
     { key: "members", label: "Members", icon: <Users size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "members") },
     { key: "roles", label: "Roles", icon: <KeyRound size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "roles") },
+    // Platform Stage 4: readable by every member; writes are gated on the page (core.teams.manage).
+    { key: "teams", label: "Teams", icon: <UsersRound size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "teams") },
     // Platform Stage 3: hidden (not disabled) without core.modules.manage.
     ...(can("core.modules.manage", ws.my_permissions)
       ? [{ key: "modules" as const, label: "Modules", icon: <Boxes size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "modules") }]

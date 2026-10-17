@@ -1,4 +1,5 @@
-import type { ModuleNavItemInfo, Permission, WorkspaceModule } from "@/api/types";
+import type { DataScope, ModuleNavItemInfo, Permission, WorkspaceModule } from "@/api/types";
+import { PERMISSION_CATALOGUE, isScopable } from "@/platform/roles/catalogue";
 import type { MockDB, WorkspaceModuleRec } from "./db-types";
 
 /*
@@ -17,6 +18,8 @@ export interface MockModuleDef {
   navItems: ModuleNavItemInfo[];
   /** Default role grants by system role key, seeded idempotently when the module is turned on. */
   defaultRoleGrants: Record<string, Permission[]>;
+  /** Stage 4: scopes for scopable codes in `defaultRoleGrants`, by role key. Default: Owner / Admin `all`, others `own`. */
+  defaultRoleScopes?: Record<string, Record<string, DataScope>>;
 }
 
 /** Registration order. Exported mutable so tests can register a module that depends on another. */
@@ -119,9 +122,17 @@ export function writeModule(db: MockDB, workspaceId: string, key: string, enable
 
 /** Enabling seeds the module's default role grants on the workspace's system roles, idempotently. */
 function seedGrants(db: MockDB, workspaceId: string, key: string) {
-  const grants = moduleDef(key)?.defaultRoleGrants ?? {};
+  const def = moduleDef(key);
+  const grants = def?.defaultRoleGrants ?? {};
   for (const role of db.roles) {
     if (role.workspaceId !== workspaceId || !role.isSystem || !role.key) continue;
-    for (const code of grants[role.key] ?? []) if (!role.permissions.includes(code)) role.permissions.push(code);
+    for (const code of grants[role.key] ?? []) {
+      if (!role.permissions.includes(code)) role.permissions.push(code);
+      // Stage 4: a scopable grant always carries a scope.
+      if (isScopable(PERMISSION_CATALOGUE, code) && !role.dataScopes?.[code]) {
+        const scope = def?.defaultRoleScopes?.[role.key]?.[code] ?? (role.key === "owner" || role.key === "admin" ? "all" : "own");
+        role.dataScopes = { ...role.dataScopes, [code]: scope };
+      }
+    }
   }
 }

@@ -28,6 +28,7 @@ import type {
 } from "./db-types";
 import { devEnabledOf, devSummaryOf } from "./dev-derive";
 import { enabledModules, onlyEnabled } from "./modules";
+import { myDataScopes, roleDataScopes } from "./data-scope";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
@@ -81,6 +82,7 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
     my_permissions: wsPermissions(db, userId, w.id),
     notificationPolicy: { sms: w.smsEnabled !== false },
     enabledModules: enabledModules(db, w.id),
+    myDataScopes: myDataScopes(db, userId, w.id),
   };
 }
 
@@ -99,6 +101,7 @@ export function toRole(db: MockDB, r: RoleRec): Role {
     // Stage 3: role responses omit a disabled module's permissions (the stored rows are untouched).
     permissions: onlyEnabled(db, r.workspaceId, r.permissions as Permission[]),
     memberCount,
+    dataScopes: roleDataScopes(db, r),
   };
 }
 
@@ -128,6 +131,8 @@ export function toProject(db: MockDB, p: ProjectRec, userId: string): Project {
     my_permissions: projectPermissions(db, userId, p.id),
     nextTaskNumber: p.taskSeq + 1,
     devEnabled: devEnabledOf(db, p.id),
+    // Stage 4: the workspace-level map, for symmetry with the workspace response.
+    myDataScopes: myDataScopes(db, userId, p.workspaceId),
   };
 }
 

@@ -33,14 +33,14 @@ const ws = (
   group: PermissionGroup,
   label: string,
   description: string,
-): PermissionInfo => ({ key, module: moduleOf(key), scope: "workspace", group, label, description });
+): PermissionInfo => ({ key, module: moduleOf(key), scope: "workspace", group, label, description, scopable: false });
 
 const prj = (
   key: ProjectPermission,
   group: PermissionGroup,
   label: string,
   description: string,
-): PermissionInfo => ({ key, module: moduleOf(key), scope: "project", group, label, description });
+): PermissionInfo => ({ key, module: moduleOf(key), scope: "project", group, label, description, scopable: false });
 
 export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   // Workspace scope
@@ -92,6 +92,10 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   prj("tracking.project.archive", "Administration", "Archive project", "Close out finished projects"),
   prj("tracking.project.delete", "Administration", "Delete project", "Delete the project and its tasks"),
 ];
+
+/** Platform Stage 4: no real module has a scopable permission yet, so every entry above says `scopable: false`. */
+export const isScopable = (catalogue: readonly PermissionInfo[], code: string) =>
+  catalogue.some((p) => p.key === code && p.scopable === true);
 
 export function permissionsFor(scope: RoleScope) {
   return PERMISSION_CATALOGUE.filter((p) => p.scope === scope);

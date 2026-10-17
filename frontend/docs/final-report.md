@@ -574,6 +574,24 @@ Assumed where the contract is silent: `enabledBy` is a user id (nullable) and `e
 carries `details: {module}`; `POST workspaces` with an unknown module key is a 422 on `modules`. The client sends
 `modules: []` for "Core tracking only". A module toggle publishes no realtime event; other tabs catch up on focus.
 
+### Platform Stage 4: teams and data scope
+
+From `docs/platform/stage4-contract.md` §1–§2; typed in `src/api/types.ts` (`Team`, `TeamDetail`, `TeamMember`,
+`DataScope`), called through `api.teams` / `api.roles`, implemented in the mock (`handlers/teams.ts`,
+`mock/data-scope.ts`):
+
+- `GET|POST workspaces/{slug}/teams`, `GET|PATCH|DELETE teams/{id}`, `GET|POST teams/{id}/members`,
+  `PATCH|DELETE teams/{id}/members/{userId}` · `qk.teams` / `qk.team`; 409 `team_name_taken`, 400
+  `not_a_workspace_member`, 409 `already_a_member`, 404 across workspaces.
+- `PermissionInfo.scopable`, `Role.dataScopes`, `dataScopes` on role create / update (400 `data_scope_required` with
+  `details.codes`, 400 `data_scope_not_allowed`), `Workspace.myDataScopes` and `Project.myDataScopes`.
+
+Assumed where the contract is silent: team list not paginated and sorted by name; create / rename return the detail;
+name 1–60 characters and description up to 280 (422 `validation_failed` otherwise); member items carry no `hue` (the
+UI takes it from the workspace member list); `data_scope_not_allowed` carries `details.codes`; an unknown scope value
+is a 422 on `dataScopes`; a role PATCH that leaves `dataScopes` out keeps the stored scopes. Team writes publish no
+realtime event.
+
 ---
 
 ## 6. Known gaps

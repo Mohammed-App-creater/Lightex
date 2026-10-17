@@ -23,6 +23,7 @@ import type {
   User,
   Comment,
   Attachment,
+  DataScopeMap,
   CustomField,
   CustomFieldValue,
   ImportIssue,
@@ -78,7 +79,20 @@ export type RoleRec = {
   scope: RoleScope;
   isSystem: boolean;
   permissions: Permission[];
+  /** Platform Stage 4: `RolePermission.data_scope` for each granted scopable code (missing = none). */
+  dataScopes?: DataScopeMap;
 };
+/** Platform Stage 4 `Team`: name unique per workspace (case-insensitive, among live teams). */
+export type TeamRec = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  deletedAt: string | null;
+};
+/** Platform Stage 4 `TeamMember`: unique on (teamId, userId). */
+export type TeamMemberRec = { workspaceId: string; teamId: string; userId: string; isLead: boolean; addedAt: string };
 export type InviteRec = {
   id: string;
   token: string;
@@ -92,7 +106,7 @@ export type InviteRec = {
 };
 export type ProjectRec = Omit<
   Project,
-  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber" | "devEnabled"
+  "my_permissions" | "myRoleId" | "memberCount" | "openTaskCount" | "activeSprintId" | "nextTaskNumber" | "devEnabled" | "myDataScopes"
 > & { taskSeq: number };
 export type ProjectMemberRec = { projectId: string; userId: string; roleId: string; addedAt: string };
 export type ObjectiveRec = Omit<Objective, "progress" | "taskIds">;
@@ -125,6 +139,9 @@ export interface MockDB {
   /** Platform Stage 3 (SCHEMA 6). */
   workspaceModules: WorkspaceModuleRec[];
   roles: RoleRec[];
+  /** Platform Stage 4 (SCHEMA 7). */
+  teams: TeamRec[];
+  teamMembers: TeamMemberRec[];
   invites: InviteRec[];
   projects: ProjectRec[];
   projectMembers: ProjectMemberRec[];

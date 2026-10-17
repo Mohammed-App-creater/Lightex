@@ -7,6 +7,7 @@ import { projectMembership, toProject, toRole, toTask, toUser, toWorkspace, wsMe
 import { isModuleOn, moduleOfCode, onlyEnabled, writeModule } from "../modules";
 import { auditList } from "./audit";
 import { creationModules } from "./modules";
+import { resolveDataScopes } from "../data-scope";
 import { toInvite } from "./auth";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
@@ -169,6 +170,8 @@ export function registerWorkspaces() {
     ctx.db.wsMembers = ctx.db.wsMembers.filter((x) => x !== m);
     const projectIds = ctx.db.projects.filter((p) => p.workspaceId === ws.id).map((p) => p.id);
     ctx.db.projectMembers = ctx.db.projectMembers.filter((pm) => !(pm.userId === m.userId && projectIds.includes(pm.projectId)));
+    // Stage 4: leaving the workspace removes the person's team memberships.
+    ctx.db.teamMembers = ctx.db.teamMembers.filter((tm) => !(tm.workspaceId === ws.id && tm.userId === m.userId));
     audit(ctx.db, ws.id, ctx.userId!, "core.member.removed", m.userId);
     return undefined;
   });
@@ -253,6 +256,7 @@ export function registerWorkspaces() {
       invalid({ name: "A role with this name exists" });
     // Stage 3: a disabled module's permissions can't be granted while it's off.
     const allowed = onlyEnabled(ctx.db, ws.id, PERMISSION_CATALOGUE.filter((p) => p.scope === scope).map((p) => p.key));
+    const permissions = (body.permissions ?? []).filter((p) => allowed.includes(p));
     const role: RoleRec = {
       id: uid("role"),
       workspaceId: ws.id,
@@ -261,7 +265,9 @@ export function registerWorkspaces() {
       description: (body.description ?? "").slice(0, 80),
       scope,
       isSystem: false,
-      permissions: (body.permissions ?? []).filter((p) => allowed.includes(p)),
+      permissions,
+      // Stage 4: every granted scopable code needs a scope (400 data_scope_required / data_scope_not_allowed).
+      dataScopes: resolveDataScopes(permissions, body.dataScopes),
     };
     ctx.db.roles.push(role);
     audit(ctx.db, ws.id, ctx.userId!, "core.role.created", role.name);
@@ -285,6 +291,10 @@ export function registerWorkspaces() {
       // Stage 3: the client never sees a disabled module's grants, so they are kept as stored.
       const hidden = role.permissions.filter((p) => !isModuleOn(ctx.db, role.workspaceId, moduleOfCode(p)));
       role.permissions = [...body.permissions.filter((p) => allowed.includes(p)), ...hidden];
+    }
+    // Stage 4: validated against the final grants; stored scopes stand in for codes the request leaves out.
+    if (body.permissions || body.dataScopes !== undefined) {
+      role.dataScopes = resolveDataScopes(role.permissions, body.dataScopes, role.dataScopes);
     }
     audit(ctx.db, role.workspaceId, ctx.userId!, "core.role.updated", role.name);
     return toRole(ctx.db, role);

@@ -58,6 +58,8 @@ export const AUDIT_GROUPS: Record<string, AuditEntityType> = {
   "core.comment": "comment",
   "core.member": "member",
   "core.role": "role",
+  /* Platform Stage 4: team changes file under members. */
+  "core.team": "member",
   "tracking.project": "project",
   "tracking.status": "project",
   "tracking.label": "project",

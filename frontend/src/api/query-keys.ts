@@ -17,6 +17,9 @@ export const qk = {
   trash: (slug: string) => ["workspace", slug, "trash"] as const,
   /** Platform Stage 3: the workspace's modules (under the workspace, so its blanket invalidation reaches it). */
   modules: (slug: string) => ["workspace", slug, "modules"] as const,
+  /** Platform Stage 4: teams, and one team's detail under the list (so invalidating the list reaches both). */
+  teams: (slug: string) => ["workspace", slug, "teams"] as const,
+  team: (slug: string, id: string) => ["workspace", slug, "teams", id] as const,
   salesHealth: (slug: string) => ["workspace", slug, "sales", "health"] as const,
   search: (slug: string, q: string, types?: string) => ["workspace", slug, "search", q, types ?? "all"] as const,
   recents: () => ["recents"] as const,
