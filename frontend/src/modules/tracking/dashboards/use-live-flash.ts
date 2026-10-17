@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { liveUpdateToast } from "@/features/presence/live-toast";
-import type { User } from "@/lib/api/types";
+import { liveUpdateToast } from "@/platform/presence/live-toast";
+import type { User } from "@/api/types";
 import { claimLiveToast, remoteMarks, type RemoteMark } from "@/lib/realtime/remote";
 import { useIsLive } from "@/lib/realtime/status-store";
 import { changedKeys } from "./widget-lib";

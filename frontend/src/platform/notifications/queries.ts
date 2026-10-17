@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient, type QueryClient, type QueryKey } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
-import { api, type NotificationTab } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Notification, NotificationPreferences } from "@/lib/api/types";
-import { POLL_MS } from "@/features/workspace/queries";
+import { toast } from "@/ui/toast";
+import { api, type NotificationTab } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Notification, NotificationPreferences } from "@/api/types";
+import { POLL_MS } from "@/platform/workspace/queries";
 import { useLiveInterval } from "@/lib/realtime/status-store";
 
 export type InboxPage = Awaited<ReturnType<typeof api.notifications.list>>;

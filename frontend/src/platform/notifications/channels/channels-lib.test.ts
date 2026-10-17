@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ApiError } from "@/lib/api/errors";
-import type { NotificationChannels, PushDevice, QuietHours, SmsVerification, TelegramLink } from "@/lib/api/types";
+import { ApiError } from "@/api/errors";
+import type { NotificationChannels, PushDevice, QuietHours, SmsVerification, TelegramLink } from "@/api/types";
 import { backspaceAt, pasteInto, typeInto } from "./otp";
 import { columnStates, defaultPreferences, pushRow, pushView, smsRow, telegramRow, testErrorCopy, toggleCell, withDefaults } from "./model";
 import { formatNational, nationalDigits, phoneHelp, placeholderFor, validateNational } from "./phone";
@@ -250,20 +250,20 @@ describe("channel rows (§8.5 table)", () => {
 describe("preferences helpers", () => {
   it("has the design's DEF defaults and fills an older payload without touching its values", () => {
     const d = defaultPreferences();
-    expect(d.events.assigned).toEqual({ in_app: true, email: true, telegram: true, sms: false, push: true });
-    expect(d.events.due_soon.sms).toBe(true);
+    expect(d.events["tracking.task.assigned"]).toEqual({ in_app: true, email: true, telegram: true, sms: false, push: true });
+    expect(d.events["tracking.task.due_soon"].sms).toBe(true);
     expect(d.quietHours).toMatchObject({ enabled: true, from: "22:00", to: "08:00", timezone: null, urgentBypass: true });
-    const old = withDefaults({ events: { assigned: { in_app: false, email: false } } as never, emailDelivery: "daily" });
-    expect(old.events.assigned).toEqual({ in_app: false, email: false, telegram: true, sms: false, push: true });
+    const old = withDefaults({ events: { "tracking.task.assigned": { in_app: false, email: false } } as never, emailDelivery: "daily" });
+    expect(old.events["tracking.task.assigned"]).toEqual({ in_app: false, email: false, telegram: true, sms: false, push: true });
     expect(old.emailDelivery).toBe("daily");
   });
   it("toggles exactly one cell", () => {
     const d = defaultPreferences();
-    const n = toggleCell(d, "comment", "sms", true);
-    expect(n.events.comment.sms).toBe(true);
-    expect(n.events.comment.telegram).toBe(true);
-    expect(n.events.assigned).toBe(d.events.assigned);
-    expect(d.events.comment.sms).toBe(false);
+    const n = toggleCell(d, "tracking.comment.created", "sms", true);
+    expect(n.events["tracking.comment.created"].sms).toBe(true);
+    expect(n.events["tracking.comment.created"].telegram).toBe(true);
+    expect(n.events["tracking.task.assigned"]).toBe(d.events["tracking.task.assigned"]);
+    expect(d.events["tracking.comment.created"].sms).toBe(false);
   });
   it("words each test failure", () => {
     expect(testErrorCopy("telegram", apiErr(502, "channel_send_failed", { reason: "blocked" }))).toEqual({ title: "Couldn’t reach Telegram", body: "You blocked the bot. Unblock it and send /start." });

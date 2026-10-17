@@ -1,6 +1,6 @@
 /* Pure helpers for the workspace Trash (board 29). */
 
-import type { Project, TrashItem, TrashKind, TrashRef, WorkspacePermission } from "@/lib/api/types";
+import type { Project, TrashItem, TrashKind, TrashRef, WorkspacePermission } from "@/api/types";
 
 export const RETENTION_DAYS = 30;
 /** Rows at or below this many days left are flagged (board 29 `warn`). */
@@ -90,11 +90,11 @@ export function purgeWarning(items: readonly Pick<TrashItem, "kind">[]): string 
 /**
  * Who may open the Trash (mirrors the mock/server rule in handlers/trash.ts): anyone who can delete
  * tasks, delete any comment, delete their own comments, or delete projects in some project, plus
- * workspace admins (project.assign_admin). Project viewers get "No access to Trash".
+ * workspace admins (tracking.project.assign_admin). Project viewers get "No access to Trash".
  */
 export function canOpenTrash(wsPerms: readonly WorkspacePermission[], projects: readonly Pick<Project, "my_permissions">[]): boolean {
-  if (wsPerms.includes("project.assign_admin")) return true;
+  if (wsPerms.includes("tracking.project.assign_admin")) return true;
   return projects.some((p) =>
-    p.my_permissions.some((x) => x === "task.delete" || x === "comment.delete_any" || x === "comment.edit_own" || x === "project.delete"),
+    p.my_permissions.some((x) => x === "tracking.task.delete" || x === "tracking.comment.delete_any" || x === "tracking.comment.edit_own" || x === "tracking.project.delete"),
   );
 }

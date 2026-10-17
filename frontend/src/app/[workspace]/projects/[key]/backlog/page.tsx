@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { BacklogScreen } from "@/features/sprints/backlog-screen";
+import { BacklogScreen } from "@/modules/tracking/sprints/backlog-screen";
 
 export default function BacklogPage() {
   return (

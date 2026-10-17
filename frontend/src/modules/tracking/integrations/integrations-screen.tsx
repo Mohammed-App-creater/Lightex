@@ -3,15 +3,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Info, TriangleAlert, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { SettingsPage, SettingsSection } from "@/features/settings/settings-shell";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Integration, IntegrationsOverview, Provider } from "@/lib/api/types";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { SettingsPage, SettingsSection } from "@/platform/settings/settings-shell";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Integration, IntegrationsOverview, Provider } from "@/api/types";
 import { apiMode } from "@/lib/env";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { ConnectionCard } from "./connection-card";
@@ -51,14 +51,14 @@ const stripHash = () => replaceUrl(window.location.pathname + window.location.se
 /**
  * Workspace settings → Integrations (board 37, §9.3): Source control (a card per connection, then a
  * tile per provider not yet connected) and Task keys. Every member sees it; actions need
- * `integration.manage`. The provider round-trip (§9.6) ends here with `#connect=<attempt>.<token>`,
+ * `tracking.integration.manage`. The provider round-trip (§9.6) ends here with `#connect=<attempt>.<token>`,
  * which is removed from the address bar before the confirm call.
  */
 export function IntegrationsScreen() {
   const ws = useCurrentWorkspace()!;
   const slug = ws.slug;
   const qc = useQueryClient();
-  const canManage = can("integration.manage", ws.my_permissions);
+  const canManage = can("tracking.integration.manage", ws.my_permissions);
   const q = useIntegrations(slug);
   const [banner, setBanner] = useState<Banner | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import type { ProviderInfo } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Spinner } from "@/ui/spinner";
+import type { ProviderInfo } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { DEV_ICON, DevGlyph, ProviderLogo } from "./icons";
 import { PR_NOUN } from "./lib/dev-lib";
@@ -12,7 +12,7 @@ export type TileState = "idle" | "waiting" | "choosing";
 /**
  * A provider that isn't connected yet (design "Not connected" / "Connecting"): name, the three
  * chips, and Connect, the "Waiting for authorization…" busy state with Cancel, or the lock note
- * for people without `integration.manage` (§11 #5: no role names).
+ * for people without `tracking.integration.manage` (§11 #5: no role names).
  */
 export function ProviderTile({
   info,

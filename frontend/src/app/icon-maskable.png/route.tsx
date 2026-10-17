@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { maskableIconSvg, svgDataUri } from "@/components/brand/icon-svg";
+import { maskableIconSvg, svgDataUri } from "@/ui/brand/icon-svg";
 
 /* Maskable PWA icon (board 35 "Maskable · 80%"): full-bleed tile, mark inside the safe zone. */
 

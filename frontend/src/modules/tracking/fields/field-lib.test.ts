@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { CustomField, Task } from "@/lib/api/types";
-import { sortTasks, type Ctx } from "@/features/list/list-model";
+import type { CustomField, Task } from "@/api/types";
+import { sortTasks, type Ctx } from "@/modules/tracking/list/list-model";
 import { cardChip, cfSortValue, displayValue, fieldNameError, optionsError, validateValue, visibleRows } from "./field-lib";
 
 const f = (over: Partial<CustomField>): CustomField => ({ id: "f", projectId: "p", name: "F", type: "text", required: false, position: 0, options: [], taskCount: 0, createdAt: "", ...over });

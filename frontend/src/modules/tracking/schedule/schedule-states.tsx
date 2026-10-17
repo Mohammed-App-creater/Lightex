@@ -1,9 +1,9 @@
 "use client";
 
 import { Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { isApiError } from "@/lib/api/errors";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { isApiError } from "@/api/errors";
 import { cn } from "@/lib/utils/cn";
 import { useAnnouncement } from "./use-reschedule";
 

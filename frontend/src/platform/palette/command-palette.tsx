@@ -5,7 +5,7 @@ import { ArrowRight, CircleAlert, FileText, Inbox, Link2, Moon, Plus, SearchX, S
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Avatar, ProjectBadge } from "@/components/ui/avatar";
+import { Avatar, ProjectBadge } from "@/ui/avatar";
 import {
   CommandFooter,
   CommandGroup,
@@ -14,22 +14,22 @@ import {
   CommandList,
   CommandScopeChip,
   CommandShell,
-} from "@/components/ui/command-shell";
-import { Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, priorityMeta } from "@/components/ui/glyphs";
-import { Kbd } from "@/components/ui/kbd";
-import { toast } from "@/components/ui/toast";
-import { cycleTheme } from "@/components/shell/global-hotkeys";
-import { shell, useShell, type PaletteScope } from "@/components/shell/shell-state";
-import { useSession } from "@/features/auth/session";
-import { canImportInto } from "@/features/import/import-lib";
-import { openImportWizard } from "@/features/import/import-wizard-host";
-import { useProjects, useWsMembers, useRoles } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { Project, Status, Task, User } from "@/lib/api/types";
+} from "@/ui/command-shell";
+import { Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, priorityMeta } from "@/ui/glyphs";
+import { Kbd } from "@/ui/kbd";
+import { toast } from "@/ui/toast";
+import { cycleTheme } from "@/platform/shell/global-hotkeys";
+import { shell, useShell, type PaletteScope } from "@/platform/shell/shell-state";
+import { useSession } from "@/platform/auth/session";
+import { canImportInto } from "@/modules/tracking/import/import-lib";
+import { openImportWizard } from "@/modules/tracking/import/import-wizard-host";
+import { useProjects, useWsMembers, useRoles } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { Project, Status, Task, User } from "@/api/types";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 
@@ -126,7 +126,7 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
     const p = currentProject ?? projects[0];
     if (p) router.push(routes.project(ws.slug, p.key, view));
   };
-  const canCreateAnywhere = projects.some((p) => can("task.create", p.my_permissions));
+  const canCreateAnywhere = projects.some((p) => can("tracking.task.create", p.my_permissions));
 
   const close = () => shell.closePalette();
 
@@ -137,11 +137,11 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         label: "Create task",
         keys: ["C"],
         icon: <Plus size={12} aria-hidden />,
-        run: () => shell.openCreateTask(currentProject && can("task.create", currentProject.my_permissions) ? { projectId: currentProject.id } : {}),
+        run: () => shell.openCreateTask(currentProject && can("tracking.task.create", currentProject.my_permissions) ? { projectId: currentProject.id } : {}),
         allowed: canCreateAnywhere,
       },
       {
-        // Board 40 (E4): project context only, with project.import + task.create on an active project.
+        // Board 40 (E4): project context only, with tracking.project.import + tracking.task.create on an active project.
         id: "import",
         label: "Import tasks…",
         keys: [],
@@ -185,14 +185,14 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         keys: [],
         icon: <Plus size={12} aria-hidden />,
         run: () => router.push(`${routes.home(ws.slug)}?new-project=1`),
-        allowed: can("project.create", ws.my_permissions),
+        allowed: can("tracking.project.create", ws.my_permissions),
       },
       {
         id: "settings",
         label: "Open settings",
         keys: ["⌘", ","],
         icon: <Settings size={12} aria-hidden />,
-        run: () => router.push(routes.settings(ws.slug, can("workspace.update", ws.my_permissions) ? "general" : "profile")),
+        run: () => router.push(routes.settings(ws.slug, can("core.workspace.update", ws.my_permissions) ? "general" : "profile")),
         allowed: true,
       },
       { id: "shortcuts", label: "Keyboard shortcuts", keys: ["?"], icon: <FileText size={12} aria-hidden />, run: () => shell.setShortcuts(true), allowed: true },

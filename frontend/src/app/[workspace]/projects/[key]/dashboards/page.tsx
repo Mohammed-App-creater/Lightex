@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { DashboardsIndex } from "@/features/dashboards/dashboards-index";
+import { DashboardsIndex } from "@/modules/tracking/dashboards/dashboards-index";
 
 /** Board 33 (v2): opens the last dashboard you opened here, else the first one, else "No dashboards yet". */
 export default function DashboardsPage() {

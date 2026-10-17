@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Segmented, Switch } from "@/components/ui/choice";
-import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { FilterRule, SavedView, ViewIcon } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Segmented, Switch } from "@/ui/choice";
+import { Modal } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { FilterRule, SavedView, ViewIcon } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { fieldIcon } from "./filter-bar";
 import { completeRules } from "./filter-model";
@@ -34,7 +34,7 @@ export function SaveViewDialog({
   layout: SavedView["layout"];
   rules: FilterRule[];
   opts: FilterOptions;
-  /** Project-visible views need task.create (viewers save "Only me" views). */
+  /** Project-visible views need tracking.task.create (viewers save "Only me" views). */
   canShare: boolean;
   onSaved: (v: SavedView) => void;
 }) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, type HTMLAttributes, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/feedback";
+import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/feedback";
 import { cn } from "@/lib/utils/cn";
 
 /*

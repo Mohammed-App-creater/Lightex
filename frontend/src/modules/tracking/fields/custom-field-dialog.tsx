@@ -3,12 +3,12 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Lock, Plus, X } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/choice";
-import { Modal } from "@/components/ui/modal";
-import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { CustomField, CustomFieldInput, CustomFieldType, FieldColor } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Switch } from "@/ui/choice";
+import { Modal } from "@/ui/modal";
+import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { CustomField, CustomFieldInput, CustomFieldType, FieldColor } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { COLOR_NAMES, FIELD_NAME_MAX, FIELD_TYPES, OPTION_NAME_MAX, PALETTE, TYPE_LABEL, fieldNameError, optionsError } from "./field-lib";
 

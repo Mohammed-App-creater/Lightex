@@ -3,10 +3,10 @@
 import { motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useCallback, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { StatusGlyph, type GlyphKind } from "@/components/ui/glyphs";
-import { ProgressRing } from "@/components/ui/feedback";
-import type { Status, Task, User } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { StatusGlyph, type GlyphKind } from "@/ui/glyphs";
+import { ProgressRing } from "@/ui/feedback";
+import type { Status, Task, User } from "@/api/types";
 import { daysLabel } from "@/lib/domain/progress";
 import { pushUrl, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";

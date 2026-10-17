@@ -1,5 +1,5 @@
-import type { CustomField, CustomFieldType, CustomFieldValue, FieldColor, Task, User } from "@/lib/api/types";
-import { FIELD_COLORS } from "@/lib/api/types";
+import type { CustomField, CustomFieldType, CustomFieldValue, FieldColor, Task, User } from "@/api/types";
+import { FIELD_COLORS } from "@/api/types";
 import { shortDate, todayISO } from "@/lib/utils/dates";
 
 /* Custom-field logic shared by the panel, board card, list and settings (board 39). Pure; unit-tested. */

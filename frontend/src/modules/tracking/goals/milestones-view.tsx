@@ -3,9 +3,9 @@
 import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import type { Milestone, Status, Task } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { toast } from "@/ui/toast";
+import type { Milestone, Status, Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { barGeometry, monthLabelStep, shortDate, timelineScale } from "./helpers";
 import { AtRiskBadge, CheckMark, DaysLabel, FillBar, Flash, OwnerAvatar, TaskGrid, useOpenTask, type PeopleMap } from "./parts";

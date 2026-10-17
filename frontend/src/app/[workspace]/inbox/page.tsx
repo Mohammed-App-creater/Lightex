@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox } from "@/features/notifications/inbox";
+import { Inbox } from "@/platform/notifications/inbox";
 
 export default function InboxPage() {
   return <Inbox />;

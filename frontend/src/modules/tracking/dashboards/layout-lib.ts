@@ -1,4 +1,4 @@
-import type { DashboardWidget, DashboardWidgetInput, WidgetType } from "@/lib/api/types";
+import type { DashboardWidget, DashboardWidgetInput, WidgetType } from "@/api/types";
 import { COLS, DEFAULT_SIZE, MAX_H, MIN_H, MIN_W, STACK_HEIGHT, WIDGET_NAME, defaultConfig, pack, packedRows, type Rect } from "@/lib/domain/dashboards";
 
 /*

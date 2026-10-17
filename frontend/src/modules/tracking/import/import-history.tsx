@@ -1,11 +1,11 @@
 "use client";
 
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { useProjectMembers } from "@/features/projects/queries";
-import { PanelHeader } from "@/features/settings/project-parts";
-import type { ImportJobSummary, ImportStatus, Project } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { PanelHeader } from "@/modules/tracking/project-settings/project-parts";
+import type { ImportJobSummary, ImportStatus, Project } from "@/api/types";
 import { pushUrl } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { agoLong } from "@/lib/utils/dates";

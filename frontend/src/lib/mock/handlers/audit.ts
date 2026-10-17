@@ -1,5 +1,5 @@
-import type { AuditChange, AuditEntry } from "@/lib/api/types";
-import { auditActionKind, auditEntity } from "@/lib/audit";
+import type { AuditChange, AuditEntry } from "@/api/types";
+import { actionEntity, auditActionKind, auditEntity } from "@/lib/audit";
 import type { MockDB } from "../db-types";
 import { filterValues, paginate, requireWs, wsBySlug, type Ctx } from "../router";
 
@@ -13,7 +13,7 @@ type Row = AuditEntry & { workspaceId: string };
 
 export function auditList(ctx: Ctx) {
   const ws = wsBySlug(ctx, ctx.params.slug!);
-  requireWs(ctx, ws.id, "audit.view");
+  requireWs(ctx, ws.id, "core.audit.view");
   ensureAuditFixtures(ctx.db);
   const actors = filterValues(ctx.query, "actor");
   const action = filterValues(ctx.query, "action")[0];
@@ -63,18 +63,18 @@ const ch = (field: string, kind: AuditChange["kind"], before: AuditChange["befor
 
 /** Hand-written head of the log (mirrors the board's fixture). */
 const HEAD: Fx[] = [
-  { actor: AK, action: "task.updated", key: "PRJ-42", name: "Fix flaky board reflow on column resize", t: 8, changes: [ch("Title", "text", "Fix flaky board reflow on resize", "Fix flaky board reflow on column resize"), ch("Priority", "priority", 2, 3)] },
-  { actor: JL, action: "task.status_changed", key: "PRJ-44", name: "Debounce reflow on sidebar toggle", t: 35, changes: [ch("Status", "status", "progress", "review")] },
-  { actor: BOT, action: "task.status_changed", key: "PRJ-59", name: "Stripe webhook retries", src: "api", t: 49, changes: [ch("Status", "status", "review", "done"), ch("Linked commit", "value", null, "a41c9e2")] },
-  { actor: MD, action: "task.updated", key: "PRJ-50", name: "Carry-over prompt at sprint close", t: 142, changes: [ch("Description", "text", "Prompt owners to move unfinished tasks when a sprint closes.", "Prompt owners to carry over or return unfinished tasks when a sprint closes."), ch("Due date", "value", "Oct 4", "Oct 6")] },
-  { actor: AK, action: "member.role_changed", name: "Riley Chen", t: 180, changes: [ch("Role", "value", "Member", "Admin")] },
-  { actor: SP, action: "view.deleted", name: "Old triage", t: 268, changes: [ch("Name", "value", "Old triage", null), ch("Filters", "value", "Status is Backlog", null), ch("Visibility", "value", "Project", null)] },
-  { actor: TN, action: "task.assigned", key: "PRJ-57", name: "Proration on plan change", t: 310, changes: [ch("Assignee", "person", null, TN)] },
-  { actor: AK, action: "member.invited", name: "priya@team.dev", t: 338, changes: [ch("Email", "value", null, "priya@team.dev"), ch("Role", "value", null, "Member")] },
-  { actor: RC, action: "sprint.created", name: "Sprint 15", t: 1196, changes: [ch("Name", "value", null, "Sprint 15"), ch("Dates", "value", null, "Oct 15 – Oct 28")] },
-  { actor: JL, action: "comment.created", key: "PRJ-33", name: "SSO login with Okta", t: 1340, changes: [ch("Comment", "text", null, "Okta sandbox is ready, testing SAML today.")] },
-  { actor: AK, action: "project.updated", key: "PRJ", name: "Platform Rebuild", t: 1417, changes: [ch("Target date", "value", "Dec 2", "Dec 9"), ch("Lead", "person", JL, AK)] },
-  { actor: AUTO, action: "task.updated", key: "PRJ-53", name: "Burndown off by one day", src: "api", t: 1633, changes: [ch("Priority", "priority", 3, 4)] },
+  { actor: AK, action: "tracking.task.updated", key: "PRJ-42", name: "Fix flaky board reflow on column resize", t: 8, changes: [ch("Title", "text", "Fix flaky board reflow on resize", "Fix flaky board reflow on column resize"), ch("Priority", "priority", 2, 3)] },
+  { actor: JL, action: "tracking.task.status_changed", key: "PRJ-44", name: "Debounce reflow on sidebar toggle", t: 35, changes: [ch("Status", "status", "progress", "review")] },
+  { actor: BOT, action: "tracking.task.status_changed", key: "PRJ-59", name: "Stripe webhook retries", src: "api", t: 49, changes: [ch("Status", "status", "review", "done"), ch("Linked commit", "value", null, "a41c9e2")] },
+  { actor: MD, action: "tracking.task.updated", key: "PRJ-50", name: "Carry-over prompt at sprint close", t: 142, changes: [ch("Description", "text", "Prompt owners to move unfinished tasks when a sprint closes.", "Prompt owners to carry over or return unfinished tasks when a sprint closes."), ch("Due date", "value", "Oct 4", "Oct 6")] },
+  { actor: AK, action: "core.member.role_changed", name: "Riley Chen", t: 180, changes: [ch("Role", "value", "Member", "Admin")] },
+  { actor: SP, action: "tracking.view.deleted", name: "Old triage", t: 268, changes: [ch("Name", "value", "Old triage", null), ch("Filters", "value", "Status is Backlog", null), ch("Visibility", "value", "Project", null)] },
+  { actor: TN, action: "tracking.task.assigned", key: "PRJ-57", name: "Proration on plan change", t: 310, changes: [ch("Assignee", "person", null, TN)] },
+  { actor: AK, action: "core.member.invited", name: "priya@team.dev", t: 338, changes: [ch("Email", "value", null, "priya@team.dev"), ch("Role", "value", null, "Member")] },
+  { actor: RC, action: "tracking.sprint.created", name: "Sprint 15", t: 1196, changes: [ch("Name", "value", null, "Sprint 15"), ch("Dates", "value", null, "Oct 15 – Oct 28")] },
+  { actor: JL, action: "tracking.comment.created", key: "PRJ-33", name: "SSO login with Okta", t: 1340, changes: [ch("Comment", "text", null, "Okta sandbox is ready, testing SAML today.")] },
+  { actor: AK, action: "tracking.project.updated", key: "PRJ", name: "Platform Rebuild", t: 1417, changes: [ch("Target date", "value", "Dec 2", "Dec 9"), ch("Lead", "person", JL, AK)] },
+  { actor: AUTO, action: "tracking.task.updated", key: "PRJ-53", name: "Burndown off by one day", src: "api", t: 1633, changes: [ch("Priority", "priority", 3, 4)] },
 ];
 
 const COMMENTS = ["Repro on Safari only.", "Ready for review.", "Blocked on the Okta sandbox.", "Moved to next sprint.", "Added a test for this.", "Can we split this into two tasks?", "Mockups attached."];
@@ -119,41 +119,41 @@ function generate(db: MockDB): Fx[] {
     let fx: Omit<Fx, "actor" | "t" | "src">;
     if (kind === "status") {
       const s = Math.floor(rnd() * 4);
-      fx = { action: "task.status_changed", key, name: title, changes: [ch("Status", "status", FLOW[s]!, FLOW[s + 1]!)] };
+      fx = { action: "tracking.task.status_changed", key, name: title, changes: [ch("Status", "status", FLOW[s]!, FLOW[s + 1]!)] };
     } else if (kind === "assigned") {
-      fx = { action: "task.assigned", key, name: title, changes: [ch("Assignee", "person", rnd() < 0.5 ? null : pick([AK, JL, SP]), pick(people))] };
+      fx = { action: "tracking.task.assigned", key, name: title, changes: [ch("Assignee", "person", rnd() < 0.5 ? null : pick([AK, JL, SP]), pick(people))] };
     } else if (kind === "commented") {
-      fx = { action: "comment.created", key, name: title, changes: [ch("Comment", "text", null, pick(COMMENTS))] };
+      fx = { action: "tracking.comment.created", key, name: title, changes: [ch("Comment", "text", null, pick(COMMENTS))] };
     } else if (kind === "created") {
-      if (rnd() < 0.8) fx = { action: "task.created", key, name: title, changes: [ch("Title", "text", null, title), ch("Status", "status", null, "todo")] };
+      if (rnd() < 0.8) fx = { action: "tracking.task.created", key, name: title, changes: [ch("Title", "text", null, title), ch("Status", "status", null, "todo")] };
       else {
         const n = pick(["Bugs this sprint", "My reviews", "Unassigned"]);
-        fx = { action: "view.created", name: n, changes: [ch("Name", "value", null, n)] };
+        fx = { action: "tracking.view.created", name: n, changes: [ch("Name", "value", null, n)] };
       }
     } else if (kind === "deleted") {
       fx =
         rnd() < 0.6
-          ? { action: "task.deleted", key, name: title, changes: [ch("Title", "value", title, null)] }
-          : { action: "comment.deleted", key, name: title, changes: [ch("Comment", "value", pick(COMMENTS), null)] };
+          ? { action: "tracking.task.deleted", key, name: title, changes: [ch("Title", "value", title, null)] }
+          : { action: "tracking.comment.deleted", key, name: title, changes: [ch("Comment", "value", pick(COMMENTS), null)] };
     } else if (kind === "role") {
-      fx = { action: "member.role_changed", name: nameOf(pick([SP, MD, TN])), changes: [ch("Role", "value", "Viewer", "Member")] };
+      fx = { action: "core.member.role_changed", name: nameOf(pick([SP, MD, TN])), changes: [ch("Role", "value", "Viewer", "Member")] };
     } else if (kind === "invited") {
       const email = `${pick(["dana", "lee.w", "omar", "kim.s"])}@team.dev`;
-      fx = { action: "member.invited", name: email, changes: [ch("Email", "value", null, email), ch("Role", "value", null, "Member")] };
+      fx = { action: "core.member.invited", name: email, changes: [ch("Email", "value", null, email), ch("Role", "value", null, "Member")] };
     } else {
       const r = rnd();
       if (r < 0.35) {
         const p = Math.floor(rnd() * 3) + 1;
-        fx = { action: "task.updated", key, name: title, changes: [ch("Priority", "priority", p, p + 1)] };
+        fx = { action: "tracking.task.updated", key, name: title, changes: [ch("Priority", "priority", p, p + 1)] };
       } else if (r < 0.65) {
         const a = Math.floor(rnd() * 5);
-        fx = { action: "task.updated", key, name: title, changes: [ch("Due date", "value", DUES[a]!, DUES[a + 1]!)] };
+        fx = { action: "tracking.task.updated", key, name: title, changes: [ch("Due date", "value", DUES[a]!, DUES[a + 1]!)] };
       } else if (r < 0.85) {
         const [b, a] = pick(RENAMES);
-        fx = { action: "task.updated", key, name: a, changes: [ch("Title", "text", b, a)] };
+        fx = { action: "tracking.task.updated", key, name: a, changes: [ch("Title", "text", b, a)] };
       } else {
         fx = {
-          action: "project.updated",
+          action: "tracking.project.updated",
           key: "PRJ",
           name: "Platform Rebuild",
           changes: [ch("Description", "text", "Rebuild the board and sprint engine.", "Rebuild the board, sprint engine and billing.")],
@@ -186,7 +186,7 @@ export function ensureAuditFixtures(db: MockDB) {
     actorKind: INTEGRATIONS[f.actor] ? "integration" : "user",
     action: f.action,
     target: f.name,
-    entityType: f.action.split(".")[0],
+    entityType: actionEntity(f.action),
     entityKey: f.key ?? null,
     source: f.src ?? "web",
     requestId: `req_${hex(rnd, 10)}`,

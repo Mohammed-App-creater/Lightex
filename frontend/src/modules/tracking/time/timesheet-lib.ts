@@ -1,6 +1,6 @@
-import type { Timesheet } from "@/lib/api/types";
+import type { Timesheet } from "@/api/types";
 import { addDaysISO } from "@/lib/utils/dates";
-import { csvCell } from "@/features/reports/lib";
+import { csvCell } from "@/modules/tracking/reports/lib";
 import { formatHours } from "./duration";
 
 /* Timesheet maths (board 39): weeks, heat scale, CSV, export gate. Pure; unit-tested. */
@@ -60,9 +60,9 @@ export function timesheetCsv(ts: Timesheet, today: string) {
 /** `timesheet-<projectkey or all>-<weekStart>.csv`, lower-case. */
 export const csvName = (projectKey: string | null, monday: string) => `timesheet-${(projectKey ?? "all").toLowerCase()}-${monday}.csv`;
 
-/** Export: report.view on the selected project, or on at least one listed project for All projects. */
+/** Export: tracking.report.view on the selected project, or on at least one listed project for All projects. */
 export function canExport(ts: Pick<Timesheet, "projects"> | undefined, projectId: string | null) {
   if (!ts) return false;
   const list = projectId ? ts.projects.filter((p) => p.id === projectId) : ts.projects;
-  return list.some((p) => p.my_permissions.includes("report.view"));
+  return list.some((p) => p.my_permissions.includes("tracking.report.view"));
 }

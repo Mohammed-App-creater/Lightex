@@ -3,8 +3,8 @@
 import { AlertCircle, Check } from "lucide-react";
 import { AnimatePresence, motion, useAnimate } from "motion/react";
 import { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/ui/button";
+import { Spinner } from "@/ui/spinner";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 import { cn } from "@/lib/utils/cn";
 

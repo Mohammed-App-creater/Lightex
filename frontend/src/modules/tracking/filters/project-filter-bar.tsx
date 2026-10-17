@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { FilterRule, Project, SavedView } from "@/lib/api/types";
-import { can } from "@/lib/permissions/can";
+import type { FilterRule, Project, SavedView } from "@/api/types";
+import { can } from "@/platform/roles/can";
 import { FilterBar } from "./filter-bar";
 import { SaveViewDialog } from "./save-view-dialog";
 import type { FilterOptions } from "./use-filters";
@@ -46,7 +46,7 @@ export function ProjectFilterBar({
         layout={layout}
         rules={rules}
         opts={opts}
-        canShare={can("task.create", project.my_permissions)}
+        canShare={can("tracking.task.create", project.my_permissions)}
         onSaved={(v) => setRules(v.filters, v.id)}
       />
     </>

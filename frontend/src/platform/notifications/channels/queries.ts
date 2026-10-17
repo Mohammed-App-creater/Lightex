@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { TelegramLink } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { TelegramLink } from "@/api/types";
 
 /** C1. staleTime 30 s; refetch on window focus (v1 rule) covers STOP / blocked-bot changes made elsewhere. */
 export function useChannels() {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Label, ProjectMember, Role, Status } from "@/lib/api/types";
+import type { Label, ProjectMember, Role, Status } from "@/api/types";
 import {
   colorName,
   defaultMoveTarget,
@@ -80,8 +80,8 @@ describe("project settings lib", () => {
 
   it("detects the only project admin", () => {
     const roles = [
-      { id: "admin", permissions: ["project.manage_members"] },
-      { id: "member", permissions: ["task.create"] },
+      { id: "admin", permissions: ["tracking.project.manage_members"] },
+      { id: "member", permissions: ["tracking.task.create"] },
     ] as Role[];
     const m = (userId: string, roleId: string) => ({ projectId: "p", userId, roleId }) as ProjectMember;
     const one = [m("a", "admin"), m("b", "member")];

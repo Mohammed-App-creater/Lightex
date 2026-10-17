@@ -3,12 +3,12 @@
 import { useQueries } from "@tanstack/react-query";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { triggerSpark } from "@/features/tasks/task-origin";
-import { useUpdateTask } from "@/features/tasks/mutations";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { Project, Status, Task } from "@/lib/api/types";
-import { can, canEditTask, useCurrentWorkspace } from "@/lib/permissions/can";
+import { triggerSpark } from "@/modules/tracking/tasks/task-origin";
+import { useUpdateTask } from "@/modules/tracking/tasks/mutations";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { Project, Status, Task } from "@/api/types";
+import { can, canEditTask, useCurrentWorkspace } from "@/platform/roles/can";
 import { withTaskParam } from "@/lib/routes";
 import { useProjects } from "./queries";
 
@@ -41,10 +41,10 @@ function build(projects: Project[], data: (Status[] | undefined)[], pending: boo
   return { statuses, byProject, projects: new Map<string, Project>(projects.map((p) => [p.id, p])), pending };
 }
 
-/** Same rule as the board: task.move, or the task-edit rule (edit_any / edit_own). */
+/** Same rule as the board: tracking.task.move, or the task-edit rule (edit_any / edit_own). */
 export function canChangeStatus(task: Task, project: Project | undefined, meId: string) {
   if (!project) return false;
-  return can("task.move", project.my_permissions) || canEditTask(task, project.my_permissions, meId);
+  return can("tracking.task.move", project.my_permissions) || canEditTask(task, project.my_permissions, meId);
 }
 
 /** Optimistic status change (rollback + toast live in useUpdateTask). Sparks on Done. */

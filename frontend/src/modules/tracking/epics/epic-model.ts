@@ -1,5 +1,5 @@
-import type { GlyphKind } from "@/components/ui/glyphs";
-import type { Epic, Status, Task } from "@/lib/api/types";
+import type { GlyphKind } from "@/ui/glyphs";
+import type { Epic, Status, Task } from "@/api/types";
 
 /* Pure helpers for the Epics view (board 27). React-free so they are unit-tested. */
 

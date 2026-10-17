@@ -3,18 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
-import { AppLoader } from "@/components/brand/app-loader";
-import { Drawer } from "@/components/ui/modal";
-import { useSession } from "@/features/auth/session";
-import { SessionExpiredModal } from "@/features/auth/session-expired";
-import { PushSync } from "@/features/notifications/channels/sw-bridge";
-import { useWorkspace } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { isNotFound } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
+import { AppLoader } from "@/ui/brand/app-loader";
+import { Drawer } from "@/ui/modal";
+import { useSession } from "@/platform/auth/session";
+import { SessionExpiredModal } from "@/platform/auth/session-expired";
+import { PushSync } from "@/platform/notifications/channels/sw-bridge";
+import { useWorkspace } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { isNotFound } from "@/api/errors";
+import { qk } from "@/api/query-keys";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
-import { WorkspaceScope } from "@/lib/permissions/can";
+import { WorkspaceScope } from "@/platform/roles/can";
 import { routes, useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { ErrorScreen, NotFoundScreen } from "./edge-screens";
@@ -27,8 +27,8 @@ import { TopBar, TopBarSlotProvider } from "./top-bar";
 
 // Overlays open on demand: split out of the shell chunk so first paint doesn't wait for cmdk/Tiptap.
 // They are warmed once the shell is idle, so the first ⌘K / "c" / "?" opens without a Suspense delay.
-const { Component: CommandPalette, preload: preloadPalette } = lazyWithPreload(() => import("@/features/palette/command-palette").then((m) => m.CommandPalette));
-const { Component: CreateTaskDialog, preload: preloadCreateTask } = lazyWithPreload(() => import("@/features/tasks/create-task-dialog").then((m) => m.CreateTaskDialog));
+const { Component: CommandPalette, preload: preloadPalette } = lazyWithPreload(() => import("@/platform/palette/command-palette").then((m) => m.CommandPalette));
+const { Component: CreateTaskDialog, preload: preloadCreateTask } = lazyWithPreload(() => import("@/modules/tracking/tasks/create-task-dialog").then((m) => m.CreateTaskDialog));
 const { Component: ShortcutsDialog, preload: preloadShortcuts } = lazyWithPreload(() => import("./shortcuts-dialog").then((m) => m.ShortcutsDialog));
 
 /** Redirects anonymous visitors to /login?next=… and shows the loader while the session boots. */

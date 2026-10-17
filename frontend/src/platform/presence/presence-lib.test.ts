@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PresencePerson, PresenceRoster } from "@/lib/api/types";
+import type { PresencePerson, PresenceRoster } from "@/api/types";
 import { canonicalField, editingLabel, fieldFlags, groupLabel, mergeRoster, othersFirst, peopleAt, personLabel, replaceLocation, taskViewers, typingLabel } from "./presence-lib";
 
 const P = (id: string, name: string, over: Partial<PresencePerson> = {}): PresencePerson => ({

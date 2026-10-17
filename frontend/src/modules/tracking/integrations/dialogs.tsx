@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { FilterPills } from "@/components/ui/tabs";
-import { isApiError } from "@/lib/api/errors";
-import type { Integration, Provider, ProviderInfo } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Field, Input } from "@/ui/input";
+import { Modal } from "@/ui/modal";
+import { FilterPills } from "@/ui/tabs";
+import { isApiError } from "@/api/errors";
+import type { Integration, Provider, ProviderInfo } from "@/api/types";
 import { DEV_ICON, DevGlyph, ProviderLogo } from "./icons";
 import { PROVIDER_NAME } from "./lib/dev-lib";
 

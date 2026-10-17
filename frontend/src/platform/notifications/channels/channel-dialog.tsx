@@ -3,7 +3,7 @@
 import * as D from "@radix-ui/react-dialog";
 import type { ReactNode } from "react";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import type { NotificationChannel } from "@/lib/api/types";
+import type { NotificationChannel } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ChannelIcon, XGlyph } from "./icons";
 

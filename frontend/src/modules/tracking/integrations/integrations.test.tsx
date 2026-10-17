@@ -2,18 +2,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Toaster } from "@/components/ui/toast";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { DevelopmentSection } from "@/features/development/development-section";
-import { DevelopmentSettingsPanel } from "@/features/development/dev-settings-panel";
-import { PrChip } from "@/features/development/pr-chip";
-import { setTransport } from "@/lib/api/client";
-import type { Project, TaskDetail, Workspace } from "@/lib/api/types";
+import { Toaster } from "@/ui/toast";
+import { TooltipProvider } from "@/ui/tooltip";
+import { DevelopmentSection } from "@/modules/tracking/development/development-section";
+import { DevelopmentSettingsPanel } from "@/modules/tracking/development/dev-settings-panel";
+import { PrChip } from "@/modules/tracking/development/pr-chip";
+import { setTransport } from "@/api/client";
+import type { Project, TaskDetail, Workspace } from "@/api/types";
 import { mockControls } from "@/lib/mock/controls";
 import { getDB, mockSession, resetDB } from "@/lib/mock/db";
 import { fakeTiming, mockProviderConfig, setIntegrationError } from "@/lib/mock/handlers/integrations";
 import { MockTransport } from "@/lib/mock/transport";
-import { WorkspaceScope } from "@/lib/permissions/can";
+import { WorkspaceScope } from "@/platform/roles/can";
 import { IntegrationsScreen } from "./integrations-screen";
 import { RepoPicker } from "./repo-picker";
 
@@ -213,7 +213,7 @@ describe("RepoPicker", () => {
 });
 
 async function detail(key: string) {
-  return get<TaskDetail>(`/workspaces/platform/tasks/${key}`);
+  return get<TaskDetail>(`/tracking/workspaces/platform/tasks/${key}`);
 }
 
 describe("DevelopmentSection", () => {
@@ -283,7 +283,7 @@ describe("DevelopmentSection", () => {
     await mount("u_alex", () => <DevelopmentSection task={t} />);
     expect(await screen.findByLabelText("Loading linked work")).toBeInTheDocument();
     cleanup();
-    const mob = await get<TaskDetail>("/workspaces/platform/tasks/MOB-12");
+    const mob = await get<TaskDetail>("/tracking/workspaces/platform/tasks/MOB-12");
     getDB().repositories!.forEach((r) => {
       r.allProjects = false;
       r.projectIds = ["p_prj"];
@@ -295,9 +295,9 @@ describe("DevelopmentSection", () => {
 });
 
 describe("Development settings tab", () => {
-  it("editable for Alex (status.manage), switches disabled for Sam", async () => {
+  it("editable for Alex (tracking.status.manage), switches disabled for Sam", async () => {
     mockSession.set("u_alex");
-    const p = await get<Project>("/workspaces/platform/projects/PRJ");
+    const p = await get<Project>("/tracking/workspaces/platform/projects/PRJ");
     await mount("u_alex", () => <DevelopmentSettingsPanel project={p} canEdit />);
     const merged = await screen.findByRole("switch", { name: "When a pull request is merged: on" });
     expect(merged).toBeEnabled();

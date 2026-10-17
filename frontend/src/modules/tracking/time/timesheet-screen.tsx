@@ -4,16 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Avatar, ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { useProjects } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Timesheet, TimesheetCell } from "@/lib/api/types";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { Avatar, ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { useProjects } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Timesheet, TimesheetCell } from "@/api/types";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
@@ -24,7 +24,7 @@ const GRID = "grid grid-cols-[minmax(150px,1.6fr)_repeat(7,minmax(54px,1fr))_min
 
 /**
  * Timesheet (board 39): week × person heat grid for the workspace or one project, with a hover /
- * focus breakdown and a client-built CSV export (report.view). Week and project live in the URL.
+ * focus breakdown and a client-built CSV export (tracking.report.view). Week and project live in the URL.
  */
 export function TimesheetScreen() {
   return (

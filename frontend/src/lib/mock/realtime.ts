@@ -122,7 +122,7 @@ export const mockBus = new MockBus();
 const wsOf = (db: MockDB, projectId: string) => db.projects.find((p) => p.id === projectId)?.workspaceId ?? "";
 
 export function publishTask(db: MockDB, actorId: string | null, t: TaskRec, op: "created" | "updated" | "moved" | "deleted" | "restored", fields: string[] = []) {
-  mockBus.publish("task.changed", {
+  mockBus.publish("tracking.task.changed", {
     workspaceId: wsOf(db, t.projectId),
     projectId: t.projectId,
     actorId,
@@ -131,7 +131,7 @@ export function publishTask(db: MockDB, actorId: string | null, t: TaskRec, op: 
 }
 
 export function publishBulk(db: MockDB, actorId: string | null, projectId: string, taskIds: string[] | null, op: "updated" | "deleted" | "restored" | "created") {
-  mockBus.publish("tasks.bulk_changed", {
+  mockBus.publish("tracking.tasks.bulk_changed", {
     workspaceId: wsOf(db, projectId),
     projectId,
     actorId,
@@ -140,19 +140,19 @@ export function publishBulk(db: MockDB, actorId: string | null, projectId: strin
 }
 
 export function publishComment(db: MockDB, actorId: string | null, t: TaskRec, commentId: string, op: "created" | "updated" | "deleted") {
-  mockBus.publish("comment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, commentId, op } });
+  mockBus.publish("tracking.comment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, commentId, op } });
 }
 
 export function publishAttachment(db: MockDB, actorId: string | null, t: TaskRec, op: "created" | "deleted") {
-  mockBus.publish("attachment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, op } });
+  mockBus.publish("tracking.attachment.changed", { workspaceId: wsOf(db, t.projectId), projectId: t.projectId, actorId, data: { taskId: t.id, key: t.key, op } });
 }
 
 export function publishProject(db: MockDB, actorId: string | null, projectId: string, areas: string[]) {
-  mockBus.publish("project.changed", { workspaceId: wsOf(db, projectId), projectId, actorId, data: { areas } });
+  mockBus.publish("tracking.project.changed", { workspaceId: wsOf(db, projectId), projectId, actorId, data: { areas } });
 }
 
 export function publishDashboard(db: MockDB, actorId: string | null, d: { id: string; projectId: string; visibility: string; ownerId: string; version: number }, op: "created" | "updated" | "layout" | "deleted") {
-  mockBus.publish("dashboard.changed", {
+  mockBus.publish("tracking.dashboard.changed", {
     workspaceId: wsOf(db, d.projectId),
     projectId: d.visibility === "shared" ? d.projectId : null,
     // Personal dashboards: the owner only.
@@ -166,13 +166,13 @@ export function publishDashboard(db: MockDB, actorId: string | null, d: { id: st
 export function publishInbox(db: MockDB, userId: string, workspaceId?: string) {
   const unread = db.notifications.filter((n) => n.recipientId === userId && !n.readAt).length;
   const wsIds = workspaceId ? [workspaceId] : db.wsMembers.filter((m) => m.userId === userId).map((m) => m.workspaceId);
-  for (const ws of wsIds) mockBus.publish("inbox.changed", { workspaceId: ws, userId, actorId: null, data: { unread } });
+  for (const ws of wsIds) mockBus.publish("core.inbox.changed", { workspaceId: ws, userId, actorId: null, data: { unread } });
 }
 
 /** access.changed to the affected user (the stream then ends with `reconnect`), plus project.changed ["members"]. */
 export function publishAccess(db: MockDB, actorId: string | null, userId: string, projectId: string | null) {
   const ws = projectId ? wsOf(db, projectId) : db.wsMembers.find((m) => m.userId === userId)?.workspaceId ?? "";
-  mockBus.publish("access.changed", { workspaceId: ws, userId, actorId, data: { projectId } });
+  mockBus.publish("core.access.changed", { workspaceId: ws, userId, actorId, data: { projectId } });
   if (projectId) publishProject(db, actorId, projectId, ["members"]);
 }
 
@@ -223,12 +223,12 @@ export class MockRealtimeSource implements RealtimeSource {
     const ws = db.workspaces.find((w) => w.slug === o.slug && !w.deletedAt);
     if (!ws || !wsMembership(db, me, ws.id)) return { kind: "unavailable", retryAfterMs: null, code: "not_found" };
     const projects = new Set(
-      db.projects.filter((p) => p.workspaceId === ws.id && projectPermissions(db, me, p.id).includes("project.view")).map((p) => p.id),
+      db.projects.filter((p) => p.workspaceId === ws.id && projectPermissions(db, me, p.id).includes("tracking.project.view")).map((p) => p.id),
     );
     // Board 37: integration.changed has no project and goes to every member of the workspace.
     const visible = (e: BusEvent) =>
       e.ws === ws.id &&
-      ((e.userId ? e.userId === me : false) || (!e.userId && !!e.projectId && projects.has(e.projectId)) || (!e.userId && !e.projectId && e.type === "integration.changed"));
+      ((e.userId ? e.userId === me : false) || (!e.userId && !!e.projectId && projects.has(e.projectId)) || (!e.userId && !e.projectId && e.type === "tracking.integration.changed"));
 
     let replay: BusEvent[] = [];
     let reset = false;
@@ -267,7 +267,7 @@ export class MockRealtimeSource implements RealtimeSource {
         setTimeout(() => {
           if (done) return;
           send(e);
-          if (e.type === "access.changed" && e.userId === me) {
+          if (e.type === "core.access.changed" && e.userId === me) {
             send({ v: 1, type: "reconnect", data: { reason: "access_changed", retryMs: 500 } });
             finish({ kind: "ended" });
           }

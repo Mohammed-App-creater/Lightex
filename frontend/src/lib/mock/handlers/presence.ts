@@ -1,4 +1,4 @@
-import type { PresenceLocation, PresencePerson, PresenceRoster, PresenceUpdate } from "@/lib/api/types";
+import type { PresenceLocation, PresencePerson, PresenceRoster, PresenceUpdate } from "@/api/types";
 import { getDB } from "../db";
 import type { MockDB } from "../db-types";
 import { projectPermissions, toUser } from "../derive";
@@ -10,7 +10,7 @@ import { ensureExt33 } from "./dashboards";
  * Board 33 presence (spec §2.8, §5.3) against an in-memory session table: never persisted, so a
  * reload starts empty, like a server restart. Same TTL rules: 45 s per heartbeat, typing lives
  * 8 s, a 15 s sweeper (only while the tab is visible) expires rows and publishes
- * `presence.updated` for each affected location. A change of location, state, field or typing
+ * `core.presence.updated` for each affected location. A change of location, state, field or typing
  * publishes for the old and the new location; a pure refresh publishes nothing. Personal
  * dashboards are stored private: never listed, never broadcast.
  */
@@ -79,7 +79,7 @@ export function rosterFor(db: MockDB, projectId: string, now = Date.now()): Pres
 
 function broadcast(db: MockDB, s: Pick<PresenceSessionRec, "workspaceId" | "projectId" | "location" | "private">, actorId: string | null, now = Date.now()) {
   if (s.private) return;
-  mockBus.publish("presence.updated", {
+  mockBus.publish("core.presence.updated", {
     workspaceId: s.workspaceId,
     projectId: s.projectId,
     actorId,
@@ -94,8 +94,8 @@ function resolveLocation(db: MockDB, userId: string, workspaceId: string, loc: P
   const visible = (projectId: string) => {
     const p = db.projects.find((x) => x.id === projectId);
     if (!p || p.workspaceId !== workspaceId) notFound();
-    if (!projectPermissions(db, userId, projectId).includes("project.view")) {
-      fail(403, "project_membership_required", "You’re not a member of this project.", { permission: "project.view" });
+    if (!projectPermissions(db, userId, projectId).includes("tracking.project.view")) {
+      fail(403, "project_membership_required", "You’re not a member of this project.", { permission: "tracking.project.view" });
     }
   };
   if (loc.kind === "board") {
@@ -222,7 +222,7 @@ export function registerPresence() {
     if (!projectId) invalid({ "filter[project]": "Pick a project" });
     const p = ctx.db.projects.find((x) => x.id === projectId && x.workspaceId === ws.id);
     if (!p) fail(404, "not_found", "Project not found.");
-    requireProject(ctx, p.id, "project.view");
+    requireProject(ctx, p.id, "tracking.project.view");
     return rosterFor(ctx.db, p.id);
   });
 }

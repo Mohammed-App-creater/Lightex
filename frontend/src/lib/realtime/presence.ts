@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { PresenceLocation, PresenceUpdate } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { PresenceLocation, PresenceUpdate } from "@/api/types";
 import { mergeRoster, type CachedRoster } from "./roster";
 
 /*

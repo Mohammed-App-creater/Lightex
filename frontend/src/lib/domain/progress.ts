@@ -1,4 +1,4 @@
-import type { Progress, Status, Task } from "@/lib/api/types";
+import type { Progress, Status, Task } from "@/api/types";
 
 /*
  * Progress for objectives, milestones, sprints and epics is computed from tasks and never

@@ -3,17 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Play, Square, X } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { useProjectMembers } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { TaskDetail, TaskPatch, TimeEntry } from "@/lib/api/types";
-import { can } from "@/lib/permissions/can";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { TaskDetail, TaskPatch, TimeEntry } from "@/api/types";
+import { can } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { shortDate, todayISO } from "@/lib/utils/dates";
 import { checkEntry, checkEstimate, checkLogDate, formatClock, formatMinutes, logHint } from "./duration";
@@ -57,8 +57,8 @@ export function TaskTime({
   const me = useMe();
   const qc = useQueryClient();
   const perms = task.project.my_permissions;
-  const canLog = can("time.log", perms) && !deleted;
-  const canDeleteAny = can("time.delete_any", perms);
+  const canLog = can("tracking.time.log", perms) && !deleted;
+  const canDeleteAny = can("tracking.time.delete_any", perms);
   const entries = useQuery({ queryKey: qk.timeEntries(task.id), queryFn: () => api.time.entries(task.id) });
   const { data: members = [] } = useProjectMembers(task.projectId);
   const { data: timer } = useMyTimer();
@@ -209,7 +209,7 @@ export function TaskTime({
         <ul role="list" aria-label="Time entries" className="m-0 list-none p-0">
           {list.map((e) => {
             const u = userOf(e.userId);
-            const removable = (e.userId === me.id && can("time.log", perms)) || canDeleteAny;
+            const removable = (e.userId === me.id && can("tracking.time.log", perms)) || canDeleteAny;
             return (
               <li key={e.id} className="group/te -mx-2 flex min-h-[34px] items-center gap-2.5 rounded-sm px-2 hover:bg-hover max-[760px]:min-h-11">
                 <Avatar name={u?.name ?? "Former member"} hue={u?.hue} size={20} />

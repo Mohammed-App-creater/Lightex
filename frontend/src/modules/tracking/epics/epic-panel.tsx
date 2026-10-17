@@ -2,17 +2,17 @@
 
 import { Flag, X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Field, Input, Textarea } from "@/components/ui/input";
-import { Kbd } from "@/components/ui/kbd";
-import { Select } from "@/components/ui/select";
-import { SidePanel } from "@/components/ui/side-panel";
-import { toast } from "@/components/ui/toast";
-import { useSession } from "@/features/auth/session";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { Epic, Milestone, ProjectMember } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { DatePicker } from "@/ui/date-picker";
+import { Field, Input, Textarea } from "@/ui/input";
+import { Kbd } from "@/ui/kbd";
+import { Select } from "@/ui/select";
+import { SidePanel } from "@/ui/side-panel";
+import { toast } from "@/ui/toast";
+import { useSession } from "@/platform/auth/session";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { Epic, Milestone, ProjectMember } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils/cn";
 import { shortDate } from "@/lib/utils/dates";

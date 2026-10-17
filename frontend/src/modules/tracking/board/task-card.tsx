@@ -1,20 +1,20 @@
 "use client";
 
 import { memo, type CSSProperties, type KeyboardEvent, type MouseEvent, type Ref } from "react";
-import { groupLabel } from "@/features/presence/presence-lib";
-import { PresenceStack } from "@/features/presence/presence-stack";
-import { LabelChip } from "@/components/ui/badge";
-import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
-import { Tooltip } from "@/components/ui/tooltip";
-import type { Label, PresencePerson, Status, Task, User } from "@/lib/api/types";
+import { groupLabel } from "@/platform/presence/presence-lib";
+import { PresenceStack } from "@/platform/presence/presence-stack";
+import { LabelChip } from "@/ui/badge";
+import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
+import { Tooltip } from "@/ui/tooltip";
+import type { Label, PresencePerson, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/features/tasks/task-bits";
-import { BlockedBadge, blockedTitle } from "@/features/dependencies/blocked-badge";
-import { PrChip } from "@/features/development/pr-chip";
-import { cardChip } from "@/features/fields/field-lib";
-import { useCustomFields } from "@/features/fields/queries";
-import { formatClock } from "@/features/time/duration";
-import { elapsed, useMyTimer, useNow, useStopTimer } from "@/features/time/use-timer";
+import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/modules/tracking/tasks/task-bits";
+import { BlockedBadge, blockedTitle } from "@/modules/tracking/dependencies/blocked-badge";
+import { PrChip } from "@/modules/tracking/development/pr-chip";
+import { cardChip } from "@/modules/tracking/fields/field-lib";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { formatClock } from "@/modules/tracking/time/duration";
+import { elapsed, useMyTimer, useNow, useStopTimer } from "@/modules/tracking/time/use-timer";
 
 export type CardProps = {
   task: Task;

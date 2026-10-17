@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Checkbox } from "@/components/ui/choice";
-import { api } from "@/lib/api/endpoints";
+import { Checkbox } from "@/ui/choice";
+import { api } from "@/api/endpoints";
 import { routes } from "@/lib/routes";
 import { useAuthFlow } from "./auth-flow";
 import {

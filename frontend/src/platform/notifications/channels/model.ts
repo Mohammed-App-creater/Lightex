@@ -1,4 +1,4 @@
-import { isApiError } from "@/lib/api/errors";
+import { isApiError } from "@/api/errors";
 import type {
   ExternalChannel,
   NotificationChannel,
@@ -7,7 +7,7 @@ import type {
   NotificationPreferences,
   PushDevice,
   TestableChannel,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { DEFAULT_QUIET } from "./quiet";
 import type { PushSupport } from "./push";
 
@@ -24,12 +24,12 @@ export const EXTERNAL: ExternalChannel[] = ["telegram", "sms", "push"];
 
 /** The design's DEF table (§3.8): in_app / email are v1's defaults. */
 export const DEFAULT_EVENTS: NotificationPreferences["events"] = {
-  assigned: { in_app: true, email: true, telegram: true, sms: false, push: true },
-  mentioned: { in_app: true, email: true, telegram: true, sms: false, push: true },
-  status_change: { in_app: true, email: false, telegram: false, sms: false, push: false },
-  comment: { in_app: true, email: false, telegram: true, sms: false, push: true },
-  due_soon: { in_app: true, email: true, telegram: true, sms: true, push: true },
-  sprint_started: { in_app: true, email: false, telegram: false, sms: false, push: false },
+  "tracking.task.assigned": { in_app: true, email: true, telegram: true, sms: false, push: true },
+  "tracking.comment.mentioned": { in_app: true, email: true, telegram: true, sms: false, push: true },
+  "tracking.task.status_changed": { in_app: true, email: false, telegram: false, sms: false, push: false },
+  "tracking.comment.created": { in_app: true, email: false, telegram: true, sms: false, push: true },
+  "tracking.task.due_soon": { in_app: true, email: true, telegram: true, sms: true, push: true },
+  "tracking.sprint.started": { in_app: true, email: false, telegram: false, sms: false, push: false },
 };
 
 export function defaultPreferences(): NotificationPreferences {

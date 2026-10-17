@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { AuditEntry } from "@/lib/api/types";
+import type { AuditEntry } from "@/api/types";
 import { auditActionKind, auditEntity } from "@/lib/audit";
 import { mockControls } from "@/lib/mock/controls";
 import { mockSession, resetDB } from "@/lib/mock/db";
@@ -7,17 +7,17 @@ import { MockTransport } from "@/lib/mock/transport";
 import { dayLabel, groupByDay, activityCategory } from "./activity-feed";
 import { auditTime, isWordDiff, toCsv, wordDiff } from "./lib";
 
-const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", action: "task.updated", target: "T", createdAt: "2026-10-07T14:32:05.000Z", ...p });
+const row = (p: Partial<AuditEntry>): AuditEntry => ({ id: "a", actorId: "u", action: "tracking.task.updated", target: "T", createdAt: "2026-10-07T14:32:05.000Z", ...p });
 
 describe("audit vocabulary", () => {
   it("maps wire actions to the eight action kinds and entity types", () => {
-    expect(auditActionKind(row({ action: "task.status_changed" }))).toBe("status");
-    expect(auditActionKind(row({ action: "comment.created" }))).toBe("commented");
-    expect(auditActionKind(row({ action: "task.created" }))).toBe("created");
-    expect(auditActionKind(row({ action: "member.removed" }))).toBe("deleted");
-    expect(auditActionKind(row({ action: "member.role_changed" }))).toBe("role");
-    expect(auditActionKind(row({ action: "role.updated" }))).toBe("updated");
-    expect(auditEntity(row({ action: "member.invited" }))).toBe("member");
+    expect(auditActionKind(row({ action: "tracking.task.status_changed" }))).toBe("status");
+    expect(auditActionKind(row({ action: "tracking.comment.created" }))).toBe("commented");
+    expect(auditActionKind(row({ action: "tracking.task.created" }))).toBe("created");
+    expect(auditActionKind(row({ action: "core.member.removed" }))).toBe("deleted");
+    expect(auditActionKind(row({ action: "core.member.role_changed" }))).toBe("role");
+    expect(auditActionKind(row({ action: "core.role.updated" }))).toBe("updated");
+    expect(auditEntity(row({ action: "core.member.invited" }))).toBe("member");
     expect(auditEntity(row({ action: "weird.thing" }))).toBe("workspace");
   });
 });
@@ -79,7 +79,7 @@ describe("mock GET /workspaces/:slug/audit", () => {
     mockControls.set((c) => ({ ...c, errorRate: 0, latencyMin: 0, latencyMax: 0, offline: false, teammates: false }));
   });
 
-  it("is admin-only (audit.view), mirroring the hidden nav entry", async () => {
+  it("is admin-only (core.audit.view), mirroring the hidden nav entry", async () => {
     mockSession.set("u_sam");
     await expect(list()).rejects.toMatchObject({ status: 403 });
   });

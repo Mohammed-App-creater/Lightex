@@ -2,12 +2,12 @@
 
 import { Clock } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
+import { Button } from "@/ui/button";
+import { Field, Input } from "@/ui/input";
+import { Modal } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
 import { apiMode } from "@/lib/env";
 import { GoogleButton } from "./auth-ui";
 import { useSession } from "./session";

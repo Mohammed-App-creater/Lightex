@@ -3,13 +3,13 @@
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { StatusGlyph, type GlyphKind } from "@/components/ui/glyphs";
-import { Sheet } from "@/components/ui/modal";
-import { matchTask } from "@/features/goals/helpers";
-import type { Task, User } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { StatusGlyph, type GlyphKind } from "@/ui/glyphs";
+import { Sheet } from "@/ui/modal";
+import { matchTask } from "@/modules/tracking/goals/helpers";
+import type { Task, User } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils/cn";
 

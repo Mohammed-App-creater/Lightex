@@ -3,11 +3,11 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Settings2 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Segmented, Switch } from "@/components/ui/choice";
-import { Select } from "@/components/ui/select";
-import { useCustomFields } from "@/features/fields/queries";
-import { useObjectives, useSprints } from "@/features/projects/queries";
-import type { DashboardWidget, WidgetConfigMap, WidgetType } from "@/lib/api/types";
+import { Segmented, Switch } from "@/ui/choice";
+import { Select } from "@/ui/select";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { useObjectives, useSprints } from "@/modules/tracking/projects/queries";
+import type { DashboardWidget, WidgetConfigMap, WidgetType } from "@/api/types";
 import { WIDGET_NAME } from "@/lib/domain/dashboards";
 
 /*

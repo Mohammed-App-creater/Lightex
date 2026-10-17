@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
-import { POLL_MS } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError, isNotFound } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Dashboard, DashboardSummary, DashboardTemplate, DashboardVisibility, DashboardWidgetInput, WidgetConfigMap } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { POLL_MS } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError, isNotFound } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Dashboard, DashboardSummary, DashboardTemplate, DashboardVisibility, DashboardWidgetInput, WidgetConfigMap } from "@/api/types";
 import { useLiveInterval } from "@/lib/realtime/status-store";
 
 /*

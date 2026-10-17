@@ -1,6 +1,6 @@
-import { ApiError } from "@/lib/api/errors";
-import type { ListQuery, HttpMethod } from "@/lib/api/transport";
-import type { Paginated, Permission, ProjectPermission, WorkspacePermission } from "@/lib/api/types";
+import { ApiError } from "@/api/errors";
+import type { ListQuery, HttpMethod } from "@/api/transport";
+import type { Paginated, Permission, ProjectPermission, WorkspacePermission } from "@/api/types";
 import { getDB } from "./db";
 import type { MockDB } from "./db-types";
 import { projectPermissions, wsMembership, wsPermissions } from "./derive";

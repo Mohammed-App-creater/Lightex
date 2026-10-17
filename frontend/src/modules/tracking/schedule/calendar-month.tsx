@@ -1,6 +1,6 @@
 "use client";
 
-import type { ISODate, Task } from "@/lib/api/types";
+import type { ISODate, Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { CalendarChip, type ChipProps } from "./calendar-chip";
 import { MorePopover } from "./more-popover";

@@ -1,4 +1,4 @@
-import type { EpicWrite } from "@/lib/api/types";
+import type { EpicWrite } from "@/api/types";
 import { isDoneStatus } from "@/lib/domain/progress";
 import { nowISO, uid } from "../db";
 import type { EpicRec, MilestoneRec, ObjectiveRec, SprintRec } from "../db-types";
@@ -22,13 +22,13 @@ function find<T extends { id: string; projectId: string }>(list: T[], id: string
 
 export function registerPlanning() {
   /* objectives */
-  route("GET", "/projects/:id/objectives", (ctx) => {
+  route("GET", "/tracking/projects/:id/objectives", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return ctx.db.objectives.filter((o) => o.projectId === p.id).map((o) => toObjective(ctx.db, o));
   });
-  route("POST", "/projects/:id/objectives", (ctx) => {
+  route("POST", "/tracking/projects/:id/objectives", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "objective.manage");
+    requireProject(ctx, p.id, "tracking.objective.manage");
     const b = bodyOf<ObjectiveRec>(ctx);
     const fields: Record<string, string> = {};
     if (!b.title?.trim()) fields.title = "Add a title";
@@ -48,9 +48,9 @@ export function registerPlanning() {
     ctx.db.objectives.push(o);
     return toObjective(ctx.db, o);
   });
-  route("PATCH", "/objectives/:id", (ctx) => {
+  route("PATCH", "/tracking/objectives/:id", (ctx) => {
     const o = find(ctx.db.objectives, ctx.params.id!, "Objective");
-    requireProject(ctx, o.projectId, "objective.manage");
+    requireProject(ctx, o.projectId, "tracking.objective.manage");
     const b = bodyOf<ObjectiveRec>(ctx);
     if (b.title !== undefined) {
       if (!b.title.trim()) invalid({ title: "Add a title" });
@@ -65,16 +65,16 @@ export function registerPlanning() {
     if (b.status !== undefined) o.status = b.status;
     return toObjective(ctx.db, o);
   });
-  route("DELETE", "/objectives/:id", (ctx) => {
+  route("DELETE", "/tracking/objectives/:id", (ctx) => {
     const o = find(ctx.db.objectives, ctx.params.id!, "Objective");
-    requireProject(ctx, o.projectId, "objective.manage");
+    requireProject(ctx, o.projectId, "tracking.objective.manage");
     ctx.db.objectives = ctx.db.objectives.filter((x) => x.id !== o.id);
     ctx.db.tasks.forEach((t) => (t.objectiveIds = t.objectiveIds.filter((x) => x !== o.id)));
     return undefined;
   });
-  route("POST", "/objectives/:id/tasks", (ctx) => {
+  route("POST", "/tracking/objectives/:id/tasks", (ctx) => {
     const o = find(ctx.db.objectives, ctx.params.id!, "Objective");
-    requireProject(ctx, o.projectId, "objective.manage");
+    requireProject(ctx, o.projectId, "tracking.objective.manage");
     const ids = ((ctx.body as { taskIds?: string[] })?.taskIds ?? []).slice(0, 200);
     for (const id of ids) {
       const t = ctx.db.tasks.find((x) => x.id === id && x.projectId === o.projectId);
@@ -86,9 +86,9 @@ export function registerPlanning() {
     }
     return toObjective(ctx.db, o);
   });
-  route("DELETE", "/objectives/:id/tasks/:taskId", (ctx) => {
+  route("DELETE", "/tracking/objectives/:id/tasks/:taskId", (ctx) => {
     const o = find(ctx.db.objectives, ctx.params.id!, "Objective");
-    requireProject(ctx, o.projectId, "objective.manage");
+    requireProject(ctx, o.projectId, "tracking.objective.manage");
     const t = ctx.db.tasks.find((x) => x.id === ctx.params.taskId);
     if (t) {
       t.objectiveIds = t.objectiveIds.filter((x) => x !== o.id);
@@ -98,16 +98,16 @@ export function registerPlanning() {
   });
 
   /* milestones */
-  route("GET", "/projects/:id/milestones", (ctx) => {
+  route("GET", "/tracking/projects/:id/milestones", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return ctx.db.milestones
       .filter((m) => m.projectId === p.id)
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
       .map((m) => toMilestone(ctx.db, m));
   });
-  route("POST", "/projects/:id/milestones", (ctx) => {
+  route("POST", "/tracking/projects/:id/milestones", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "milestone.manage");
+    requireProject(ctx, p.id, "tracking.milestone.manage");
     const b = bodyOf<MilestoneRec & { taskIds: string[] }>(ctx);
     const fields: Record<string, string> = {};
     if (!b.name?.trim()) fields.name = "Add a title";
@@ -128,9 +128,9 @@ export function registerPlanning() {
     linkMilestoneTasks(ctx, m, b.taskIds);
     return toMilestone(ctx.db, m);
   });
-  route("PATCH", "/milestones/:id", (ctx) => {
+  route("PATCH", "/tracking/milestones/:id", (ctx) => {
     const m = find(ctx.db.milestones, ctx.params.id!, "Milestone");
-    requireProject(ctx, m.projectId, "milestone.manage");
+    requireProject(ctx, m.projectId, "tracking.milestone.manage");
     const b = bodyOf<MilestoneRec & { taskIds: string[]; completed: boolean }>(ctx);
     if (b.name !== undefined) {
       if (!b.name.trim()) invalid({ name: "Add a title" });
@@ -147,22 +147,22 @@ export function registerPlanning() {
     if (b.taskIds) linkMilestoneTasks(ctx, m, b.taskIds);
     return toMilestone(ctx.db, m);
   });
-  route("DELETE", "/milestones/:id", (ctx) => {
+  route("DELETE", "/tracking/milestones/:id", (ctx) => {
     const m = find(ctx.db.milestones, ctx.params.id!, "Milestone");
-    requireProject(ctx, m.projectId, "milestone.manage");
+    requireProject(ctx, m.projectId, "tracking.milestone.manage");
     ctx.db.milestones = ctx.db.milestones.filter((x) => x.id !== m.id);
     ctx.db.tasks.forEach((t) => t.milestoneId === m.id && (t.milestoneId = null));
     return undefined;
   });
 
   /* epics */
-  route("GET", "/projects/:id/epics", (ctx) => {
+  route("GET", "/tracking/projects/:id/epics", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return ctx.db.epics.filter((e) => e.projectId === p.id).map((e) => toEpic(ctx.db, e));
   });
-  route("POST", "/projects/:id/epics", (ctx) => {
+  route("POST", "/tracking/projects/:id/epics", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "epic.manage");
+    requireProject(ctx, p.id, "tracking.epic.manage");
     const b = bodyOf<EpicWrite>(ctx);
     if (!b.name?.trim()) invalid({ name: "Name the epic" });
     checkEpicFields(ctx, p.id, b, null);
@@ -183,9 +183,9 @@ export function registerPlanning() {
     ctx.db.epics.push(e);
     return toEpic(ctx.db, e);
   });
-  route("PATCH", "/epics/:id", (ctx) => {
+  route("PATCH", "/tracking/epics/:id", (ctx) => {
     const e = find(ctx.db.epics, ctx.params.id!, "Epic");
-    requireProject(ctx, e.projectId, "epic.manage");
+    requireProject(ctx, e.projectId, "tracking.epic.manage");
     const b = bodyOf<EpicWrite>(ctx);
     if (b.name !== undefined) {
       if (!b.name.trim()) invalid({ name: "Name the epic" });
@@ -204,25 +204,25 @@ export function registerPlanning() {
     if (b.archived !== undefined) e.archivedAt = b.archived ? (e.archivedAt ?? nowISO()) : null;
     return toEpic(ctx.db, e);
   });
-  route("DELETE", "/epics/:id", (ctx) => {
+  route("DELETE", "/tracking/epics/:id", (ctx) => {
     const e = find(ctx.db.epics, ctx.params.id!, "Epic");
-    requireProject(ctx, e.projectId, "epic.manage");
+    requireProject(ctx, e.projectId, "tracking.epic.manage");
     ctx.db.epics = ctx.db.epics.filter((x) => x.id !== e.id);
     ctx.db.tasks.forEach((t) => t.epicId === e.id && (t.epicId = null));
     return undefined;
   });
 
   /* sprints */
-  route("GET", "/projects/:id/sprints", (ctx) => {
+  route("GET", "/tracking/projects/:id/sprints", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return ctx.db.sprints
       .filter((s) => s.projectId === p.id)
       .sort((a, b) => a.number - b.number)
       .map((s) => toSprint(ctx.db, s));
   });
-  route("POST", "/projects/:id/sprints", (ctx) => {
+  route("POST", "/tracking/projects/:id/sprints", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "sprint.manage");
+    requireProject(ctx, p.id, "tracking.sprint.manage");
     const b = bodyOf<SprintRec>(ctx);
     const existing = ctx.db.sprints.filter((s) => s.projectId === p.id);
     const number = existing.reduce((a, s) => Math.max(a, s.number), 0) + 1;
@@ -244,9 +244,9 @@ export function registerPlanning() {
     ctx.db.sprints.push(s);
     return toSprint(ctx.db, s);
   });
-  route("PATCH", "/sprints/:id", (ctx) => {
+  route("PATCH", "/tracking/sprints/:id", (ctx) => {
     const s = find(ctx.db.sprints, ctx.params.id!, "Sprint");
-    requireProject(ctx, s.projectId, "sprint.manage");
+    requireProject(ctx, s.projectId, "tracking.sprint.manage");
     const b = bodyOf<SprintRec>(ctx);
     if (b.name !== undefined) s.name = b.name.trim().slice(0, 60) || s.name;
     if (b.goal !== undefined) s.goal = b.goal.slice(0, 200);
@@ -255,17 +255,17 @@ export function registerPlanning() {
     if (s.endDate < s.startDate) invalid({ endDate: "End must be after start" });
     return toSprint(ctx.db, s);
   });
-  route("DELETE", "/sprints/:id", (ctx) => {
+  route("DELETE", "/tracking/sprints/:id", (ctx) => {
     const s = find(ctx.db.sprints, ctx.params.id!, "Sprint");
-    requireProject(ctx, s.projectId, "sprint.manage");
+    requireProject(ctx, s.projectId, "tracking.sprint.manage");
     if (s.state !== "planned") fail(409, "sprint_not_planned", "Only planned sprints can be deleted.");
     ctx.db.tasks.forEach((t) => t.sprintId === s.id && (t.sprintId = null));
     ctx.db.sprints = ctx.db.sprints.filter((x) => x.id !== s.id);
     return undefined;
   });
-  route("POST", "/sprints/:id/start", (ctx) => {
+  route("POST", "/tracking/sprints/:id/start", (ctx) => {
     const s = find(ctx.db.sprints, ctx.params.id!, "Sprint");
-    requireProject(ctx, s.projectId, "sprint.manage");
+    requireProject(ctx, s.projectId, "tracking.sprint.manage");
     if (ctx.db.sprints.some((x) => x.projectId === s.projectId && x.state === "active"))
       fail(409, "sprint_active", "Complete the active sprint first.");
     if (!ctx.db.tasks.some((t) => t.sprintId === s.id && !t.deletedAt))
@@ -281,9 +281,9 @@ export function registerPlanning() {
       .forEach((m) => notify(ctx.db, m.userId, "sprint", ctx.userId, null, s.projectId, { sprintName: s.name }));
     return toSprint(ctx.db, s);
   });
-  route("POST", "/sprints/:id/complete", (ctx) => {
+  route("POST", "/tracking/sprints/:id/complete", (ctx) => {
     const s = find(ctx.db.sprints, ctx.params.id!, "Sprint");
-    requireProject(ctx, s.projectId, "sprint.manage");
+    requireProject(ctx, s.projectId, "tracking.sprint.manage");
     if (s.state !== "active") fail(409, "sprint_not_active", "Only the active sprint can be completed.");
     const target = str(ctx.body, "moveOpenTasksTo") ?? "backlog";
     const statuses = statusesOf(ctx.db, s.projectId);

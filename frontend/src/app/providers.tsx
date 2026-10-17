@@ -4,11 +4,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { ThemeProvider } from "next-themes";
 import { useEffect, useState, type ReactNode } from "react";
-import { Toaster } from "@/components/ui/toast";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { SessionProvider } from "@/features/auth/session";
-import { ServiceWorkerBridge } from "@/features/notifications/channels/sw-bridge";
-import { makeQueryClient } from "@/lib/api/query-client";
+import { Toaster } from "@/ui/toast";
+import { TooltipProvider } from "@/ui/tooltip";
+import { SessionProvider } from "@/platform/auth/session";
+import { ServiceWorkerBridge } from "@/platform/notifications/channels/sw-bridge";
+import { makeQueryClient } from "@/api/query-client";
 import { devToolsEnabled } from "@/lib/env";
 
 /** Theme names: "dark" = Deep navy (default), "black" = Near-black, "light". Plus "system". */

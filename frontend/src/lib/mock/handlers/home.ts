@@ -3,7 +3,7 @@ import { wsPermissions } from "../derive";
 import { fail, requireUser, route, wsBySlug } from "../router";
 
 /*
- * Board 24 "Not on any project": a member without project.create asks the workspace admins to be
+ * Board 24 "Not on any project": a member without tracking.project.create asks the workspace admins to be
  * added to a project. One pending request per user per workspace.
  */
 export function registerHome() {
@@ -18,7 +18,7 @@ export function registerHome() {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = requireUser(ctx);
     // Mirrors the UI: people who can create projects don't need to ask.
-    if (wsPermissions(ctx.db, userId, ws.id).includes("project.create")) {
+    if (wsPermissions(ctx.db, userId, ws.id).includes("tracking.project.create")) {
       fail(409, "conflict", "You can create projects yourself.");
     }
     const list = (ctx.db.wsAccessRequests ??= []);

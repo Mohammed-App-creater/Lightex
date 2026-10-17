@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { ApiError } from "@/lib/api/errors";
-import type { Label, Project, Status, TrashList } from "@/lib/api/types";
+import type { ApiError } from "@/api/errors";
+import type { Label, Project, Status, TrashList } from "@/api/types";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
 import { MockTransport } from "./transport";
@@ -46,22 +46,22 @@ describe("trash (board 29)", () => {
 
   it("deleting a project moves it to the trash; restore brings it back", async () => {
     as("u_alex");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    await req("DELETE", `/projects/${p.id}`, { confirm: "PRJ" });
-    expect((await rejects(req("GET", "/workspaces/platform/projects/PRJ"))).status).toBe(404);
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    await req("DELETE", `/tracking/projects/${p.id}`, { confirm: "PRJ" });
+    expect((await rejects(req("GET", "/tracking/workspaces/platform/projects/PRJ"))).status).toBe(404);
     const list = await req<TrashList>("GET", "/workspaces/platform/trash");
     expect(list.data.some((i) => i.kind === "project" && i.id === p.id)).toBe(true);
     await req("POST", "/workspaces/platform/trash/restore", { items: [{ kind: "project", id: p.id }] });
-    const back = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
+    const back = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
     expect(back.openTaskCount).toBe(p.openTaskCount);
     expect(back.memberCount).toBe(p.memberCount);
   });
 
   it("restores and purges tasks and comments", async () => {
     as("u_alex");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
     const task = getDB().tasks.find((x) => x.projectId === p.id && !x.deletedAt && !x.parentId)!;
-    await req("DELETE", `/tasks/${task.id}`);
+    await req("DELETE", `/tracking/tasks/${task.id}`);
     let list = await req<TrashList>("GET", "/workspaces/platform/trash");
     const row = list.data.find((i) => i.id === task.id)!;
     expect(row.deletedBy?.id).toBe("u_alex");
@@ -91,44 +91,44 @@ describe("trash (board 29)", () => {
 describe("project settings endpoints (board 28)", () => {
   it("statuses: counts, colour, delete with move, last-in-group guard", async () => {
     as("u_alex");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    const list = await req<Status[]>("GET", `/projects/${p.id}/statuses`);
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    const list = await req<Status[]>("GET", `/tracking/projects/${p.id}/statuses`);
     const review = list.find((s) => s.name === "In review")!;
     const progress = list.find((s) => s.name === "In progress")!;
     expect(typeof review.taskCount).toBe("number");
-    await req("PATCH", `/projects/${p.id}/statuses/${review.id}`, { color: "var(--danger)" });
+    await req("PATCH", `/tracking/projects/${p.id}/statuses/${review.id}`, { color: "var(--danger)" });
     const moved = review.taskCount ?? 0;
-    await req("DELETE", `/projects/${p.id}/statuses/${review.id}`, { moveTo: progress.id });
-    const after = await req<Status[]>("GET", `/projects/${p.id}/statuses`);
+    await req("DELETE", `/tracking/projects/${p.id}/statuses/${review.id}`, { moveTo: progress.id });
+    const after = await req<Status[]>("GET", `/tracking/projects/${p.id}/statuses`);
     expect(after.find((s) => s.id === review.id)).toBeUndefined();
     expect(after.find((s) => s.id === progress.id)!.taskCount).toBe((progress.taskCount ?? 0) + moved);
-    const e = await rejects(req("DELETE", `/projects/${p.id}/statuses/${progress.id}`, { moveTo: after[0]!.id }));
+    const e = await rejects(req("DELETE", `/tracking/projects/${p.id}/statuses/${progress.id}`, { moveTo: after[0]!.id }));
     expect(e.code).toBe("last_in_category");
     // Viewer can't manage statuses.
     as("u_taylor");
-    expect((await rejects(req("PATCH", `/projects/${p.id}/statuses/${progress.id}`, { name: "X" }))).status).toBe(403);
+    expect((await rejects(req("PATCH", `/tracking/projects/${p.id}/statuses/${progress.id}`, { name: "X" }))).status).toBe(403);
   });
 
-  it("labels: rename, recolor, delete (project.update) and hue on the project", async () => {
+  it("labels: rename, recolor, delete (tracking.project.update) and hue on the project", async () => {
     as("u_alex");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    const labels = await req<Label[]>("GET", `/projects/${p.id}/labels`);
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    const labels = await req<Label[]>("GET", `/tracking/projects/${p.id}/labels`);
     const bug = labels.find((l) => l.name === "bug")!;
     expect(bug.taskCount).toBeGreaterThan(0);
-    const renamed = await req<Label>("PATCH", `/projects/${p.id}/labels/${bug.id}`, { name: "Defect", color: "var(--warn)" });
+    const renamed = await req<Label>("PATCH", `/tracking/projects/${p.id}/labels/${bug.id}`, { name: "Defect", color: "var(--warn)" });
     expect(renamed).toMatchObject({ name: "defect", color: "var(--warn)" });
-    await req("DELETE", `/projects/${p.id}/labels/${bug.id}`);
+    await req("DELETE", `/tracking/projects/${p.id}/labels/${bug.id}`);
     expect(getDB().tasks.some((x) => x.labelIds.includes(bug.id))).toBe(false);
-    const next = await req<Project>("PATCH", `/projects/${p.id}`, { hue: 140 });
+    const next = await req<Project>("PATCH", `/tracking/projects/${p.id}`, { hue: 140 });
     expect(next.hue).toBe(140);
     as("u_sam");
-    expect((await rejects(req("DELETE", `/projects/${p.id}/labels/${labels[0]!.id}`))).status).toBe(403);
+    expect((await rejects(req("DELETE", `/tracking/projects/${p.id}/labels/${labels[0]!.id}`))).status).toBe(403);
   });
 
   it("refuses to demote or remove the only project admin", async () => {
     as("u_alex");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    const e = await rejects(req("DELETE", `/projects/${p.id}/members/u_alex`));
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    const e = await rejects(req("DELETE", `/tracking/projects/${p.id}/members/u_alex`));
     expect(e.code).toBe("last_admin");
   });
 });

@@ -2,10 +2,10 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api } from "@/lib/api/endpoints";
-import { logoutPush } from "@/features/notifications/channels/push";
-import { authEvents, tokenStore } from "@/lib/api/session";
-import type { User } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { logoutPush } from "@/platform/notifications/channels/push";
+import { authEvents, tokenStore } from "@/api/session";
+import type { User } from "@/api/types";
 import { apiMode } from "@/lib/env";
 
 type Status = "loading" | "anonymous" | "authenticated";

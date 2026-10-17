@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useProjects } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { IntegrationsOverview } from "@/lib/api/types";
+import { useProjects } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { IntegrationsOverview } from "@/api/types";
 
 /** G1. Polls every 1.5 s only while a sync / backfill runs (the "synced" event ends it sooner when live). */
 export function useIntegrations(slug: string) {

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { AppLoader } from "@/components/brand/app-loader";
-import { WorkspaceShell } from "@/components/shell/app-shell";
+import { AppLoader } from "@/ui/brand/app-loader";
+import { WorkspaceShell } from "@/platform/shell/app-shell";
 import { RealtimeProvider } from "@/lib/realtime/provider";
 
 export default async function WorkspaceLayout({ children, params }: LayoutProps<"/[workspace]">) {

@@ -1,23 +1,23 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { useMe } from "@/features/auth/session";
-import { useStatuses } from "@/features/projects/queries";
-import { useUpdateTask } from "@/features/tasks/mutations";
-import { triggerSpark } from "@/features/tasks/task-origin";
-import { useSparking } from "@/features/tasks/task-bits";
-import { shortDate } from "@/features/reports/lib";
-import type { Status, Task, WidgetConfigMap } from "@/lib/api/types";
-import { can, canEditTask } from "@/lib/permissions/can";
+import { StatusGlyph } from "@/ui/glyphs";
+import { useMe } from "@/platform/auth/session";
+import { useStatuses } from "@/modules/tracking/projects/queries";
+import { useUpdateTask } from "@/modules/tracking/tasks/mutations";
+import { triggerSpark } from "@/modules/tracking/tasks/task-origin";
+import { useSparking } from "@/modules/tracking/tasks/task-bits";
+import { shortDate } from "@/modules/tracking/reports/lib";
+import type { Status, Task, WidgetConfigMap } from "@/api/types";
+import { can, canEditTask } from "@/platform/roles/can";
 import { pushUrl, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
-import { useMyTasksWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLoading } from "../widget-frame";
-import { rowsFor } from "../layout-lib";
-import { dueSoon, myTaskRows, toggleTargets } from "../widget-lib";
+import { useMyTasksWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
+import { rowsFor } from "@/modules/tracking/dashboards/layout-lib";
+import { dueSoon, myTaskRows, toggleTargets } from "@/modules/tracking/dashboards/widget-lib";
 import { useWho, type WidgetProps } from "./common";
 
 /**
@@ -65,7 +65,7 @@ function MyTaskRow({ task, statuses, perms, flash }: { task: Task; statuses: Sta
   const spark = useSparking(task.id);
   const status = statuses.find((s) => s.id === task.statusId);
   const isDone = status?.category === "done";
-  const canToggle = canEditTask(task, perms, me.id) || can("task.move", perms);
+  const canToggle = canEditTask(task, perms, me.id) || can("tracking.task.move", perms);
   const { complete, reopen } = toggleTargets(statuses);
   const target = isDone ? reopen : complete;
   const soon = dueSoon(task.dueDate, todayISO(), isDone);

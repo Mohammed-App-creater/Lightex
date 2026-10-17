@@ -4,13 +4,13 @@ import { Eye, Flag, Plus, Target } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { useMilestones, useObjectives, useProjectMembers, useStatuses } from "@/features/projects/queries";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { Milestone, Objective } from "@/lib/api/types";
-import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { useMilestones, useObjectives, useProjectMembers, useStatuses } from "@/modules/tracking/projects/queries";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { Milestone, Objective } from "@/api/types";
+import { useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { GoalPanel, type PanelState } from "./goal-panel";
@@ -34,8 +34,8 @@ export function GoalsScreen({ tab }: { tab: GoalsTab }) {
   const router = useRouter();
   const projectId = project.id;
 
-  const canObjectives = useCan("objective.manage");
-  const canMilestones = useCan("milestone.manage");
+  const canObjectives = useCan("tracking.objective.manage");
+  const canMilestones = useCan("tracking.milestone.manage");
   const canManage = tab === "objectives" ? canObjectives : canMilestones;
   const readOnly = !canObjectives && !canMilestones;
 

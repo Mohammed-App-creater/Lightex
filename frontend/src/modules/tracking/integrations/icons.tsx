@@ -1,4 +1,4 @@
-import type { Provider } from "@/lib/api/types";
+import type { Provider } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /* Board 37 glyphs, from the design's ICON table (16×16 strokes). */

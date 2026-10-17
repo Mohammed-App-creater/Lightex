@@ -2,8 +2,8 @@
 
 import { X } from "lucide-react";
 import { useState, type DragEvent } from "react";
-import { Button } from "@/components/ui/button";
-import type { ImportJob, ImportSource } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import type { ImportJob, ImportSource } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { fileMeta, presetNote } from "./import-lib";
 import { Alert, Note, Section } from "./parts";

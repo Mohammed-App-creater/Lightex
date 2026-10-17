@@ -3,11 +3,11 @@
 import { CalendarPlus, X } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
-import type { ISODate, Status, Task, User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
+import type { ISODate, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { useBarDrag } from "./use-bar-drag";
 

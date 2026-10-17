@@ -1,4 +1,4 @@
-import type { Status, StatusGlyph, Task } from "@/lib/api/types";
+import type { Status, StatusGlyph, Task } from "@/api/types";
 import { addDaysISO, dateRange, todayISO } from "@/lib/utils/dates";
 
 /*

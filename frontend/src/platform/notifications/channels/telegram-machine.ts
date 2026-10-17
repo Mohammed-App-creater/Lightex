@@ -1,5 +1,5 @@
-import { isApiError } from "@/lib/api/errors";
-import type { TelegramConnection, TelegramLink } from "@/lib/api/types";
+import { isApiError } from "@/api/errors";
+import type { TelegramConnection, TelegramLink } from "@/api/types";
 
 /*
  * The Telegram connect dialog (board 38, spec §8.5) as a pure reducer:

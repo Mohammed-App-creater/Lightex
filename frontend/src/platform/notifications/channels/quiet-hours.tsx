@@ -1,9 +1,9 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Switch } from "@/components/ui/choice";
-import { PriorityIcon } from "@/components/ui/glyphs";
-import type { QuietHours as Quiet } from "@/lib/api/types";
+import { Switch } from "@/ui/choice";
+import { PriorityIcon } from "@/ui/glyphs";
+import type { QuietHours as Quiet } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { MoonGlyph } from "./icons";
 import { DAYS, browserTimeZone, quietError, segments, summary, timeZoneOptions, tzLabel } from "./quiet";

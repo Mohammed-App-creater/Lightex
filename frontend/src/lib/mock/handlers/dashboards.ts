@@ -8,7 +8,7 @@ import type {
   WidgetType,
   WorkloadReport,
   WorkloadRow,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { DEFAULT_SIZE, MAX_H, MIN_H, SPRINT_HEALTH, WIDGET_NAME, WIDGET_NEEDS, WIDGET_TYPES, defaultConfig } from "@/lib/domain/dashboards";
 import { nowISO, uid } from "../db";
 import type { DashboardRec, MockDB, ProjectRec } from "../db-types";
@@ -28,15 +28,15 @@ export const PERSONAL_LIMIT = 10;
 /* ───────── upgrade + seed ───────── */
 
 const GRANTS: Record<string, Permission[]> = {
-  project_admin: ["dashboard.create", "dashboard.manage"],
-  manager: ["dashboard.create", "dashboard.manage"],
-  project_member: ["dashboard.create"],
+  project_admin: ["tracking.dashboard.create", "tracking.dashboard.manage"],
+  manager: ["tracking.dashboard.create", "tracking.dashboard.manage"],
+  project_member: ["tracking.dashboard.create"],
 };
 
 /**
  * Runs once per database (marker `ext33`): from createSeed(), when a cached database loads, and on
  * the first dashboards route. 1) adds the two keys to cached **system** roles by key, right before
- * report.view (custom roles untouched), 2) seeds PRJ's dashboards.
+ * tracking.report.view (custom roles untouched), 2) seeds PRJ's dashboards.
  */
 export function ensureExt33(db: MockDB) {
   db.dashboards ??= [];
@@ -46,7 +46,7 @@ export function ensureExt33(db: MockDB) {
     if (!r.isSystem || !r.key) continue;
     for (const p of GRANTS[r.key] ?? []) {
       if (r.permissions.includes(p)) continue;
-      const at = r.permissions.indexOf("report.view");
+      const at = r.permissions.indexOf("tracking.report.view");
       if (at >= 0) r.permissions.splice(at, 0, p);
       else r.permissions.push(p);
     }
@@ -106,7 +106,7 @@ function toSummary(d: DashboardRec): DashboardSummary {
 /* ───────── rules (§4.3) ───────── */
 
 export function canEdit(perms: readonly string[], d: Pick<DashboardRec, "ownerId" | "visibility">, userId: string) {
-  return (d.ownerId === userId && perms.includes("dashboard.create")) || (d.visibility === "shared" && perms.includes("dashboard.manage"));
+  return (d.ownerId === userId && perms.includes("tracking.dashboard.create")) || (d.visibility === "shared" && perms.includes("tracking.dashboard.manage"));
 }
 
 /**
@@ -119,12 +119,12 @@ function loadDashboard(ctx: Ctx, id: string) {
   const d = ctx.db.dashboards!.find((x) => x.id === id);
   if (!d || (d.visibility === "personal" && d.ownerId !== userId)) fail(404, "not_found", "Dashboard not found.");
   const p = projectById(ctx, d.projectId);
-  const perms = requireProject(ctx, p.id, "project.view");
+  const perms = requireProject(ctx, p.id, "tracking.project.view");
   return { d, p, perms };
 }
 
 function requireEdit(perms: readonly string[], p: ProjectRec, d: DashboardRec, userId: string) {
-  const code = d.visibility === "shared" && d.ownerId !== userId ? "dashboard.manage" : "dashboard.create";
+  const code = d.visibility === "shared" && d.ownerId !== userId ? "tracking.dashboard.manage" : "tracking.dashboard.create";
   if (p.status === "archived") fail(403, "forbidden", "This project is archived. Dashboards are view only.", { permission: code });
   if (!canEdit(perms, d, userId)) fail(403, "forbidden", "You can’t edit this dashboard.", { permission: code });
 }
@@ -207,8 +207,8 @@ function validateLayout(db: MockDB, d: DashboardRec, perms: readonly string[], r
       return;
     }
     if (existing && existing.type !== type) bad[`${p}.type`] = "A widget’s type can’t be changed";
-    // Adding a report widget needs report.view; keeping an existing one doesn't.
-    if (!existing && WIDGET_NEEDS[type] === "report.view" && !perms.includes("report.view")) bad[`${p}.type`] = "You can’t view this report";
+    // Adding a report widget needs tracking.report.view; keeping an existing one doesn't.
+    if (!existing && WIDGET_NEEDS[type] === "tracking.report.view" && !perms.includes("tracking.report.view")) bad[`${p}.type`] = "You can’t view this report";
     if (seenTypes.has(type)) bad.widgets = "Each widget type can appear once";
     seenTypes.add(type);
     if (existing) seenIds.add(existing.id);
@@ -337,23 +337,23 @@ export function workloadReport(db: MockDB, p: ProjectRec, q: { sprint?: string; 
 
 export function registerDashboards() {
   // DB1
-  route("GET", "/projects/:id/dashboards", (ctx) => {
+  route("GET", "/tracking/projects/:id/dashboards", (ctx) => {
     const userId = requireUser(ctx);
     ensureExt33(ctx.db);
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.view");
+    requireProject(ctx, p.id, "tracking.project.view");
     const mine = ctx.db.dashboards!.filter((d) => d.projectId === p.id);
     const byName = (a: DashboardRec, b: DashboardRec) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
     return [...mine.filter((d) => d.visibility === "shared").sort(byName), ...mine.filter((d) => d.visibility === "personal" && d.ownerId === userId).sort(byName)].map(toSummary);
   });
 
   // DB2
-  route("POST", "/projects/:id/dashboards", (ctx) => {
+  route("POST", "/tracking/projects/:id/dashboards", (ctx) => {
     const userId = requireUser(ctx);
     ensureExt33(ctx.db);
     const p = projectById(ctx, ctx.params.id!);
-    const perms = requireProject(ctx, p.id, "dashboard.create");
-    if (p.status === "archived") fail(403, "forbidden", "This project is archived. Dashboards are view only.", { permission: "dashboard.create" });
+    const perms = requireProject(ctx, p.id, "tracking.dashboard.create");
+    if (p.status === "archived") fail(403, "forbidden", "This project is archived. Dashboards are view only.", { permission: "tracking.dashboard.create" });
     const b = (ctx.body ?? {}) as { name?: unknown; visibility?: unknown; template?: unknown };
     const visibility = b.visibility ?? "shared";
     const template = b.template ?? "blank";
@@ -382,16 +382,16 @@ export function registerDashboards() {
       updatedAt: now,
     };
     ctx.db.dashboards!.push(d);
-    audit(ctx.db, p, userId, "dashboard.created", name, [value("visibility", null, d.visibility), value("template", null, String(template))]);
+    audit(ctx.db, p, userId, "tracking.dashboard.created", name, [value("visibility", null, d.visibility), value("template", null, String(template))]);
     publishDashboard(ctx.db, userId, d, "created");
     return toDashboard(ctx.db, d);
   });
 
   // DB3
-  route("GET", "/dashboards/:id", (ctx) => toDashboard(ctx.db, loadDashboard(ctx, ctx.params.id!).d));
+  route("GET", "/tracking/dashboards/:id", (ctx) => toDashboard(ctx.db, loadDashboard(ctx, ctx.params.id!).d));
 
   // DB4
-  route("PATCH", "/dashboards/:id", (ctx) => {
+  route("PATCH", "/tracking/dashboards/:id", (ctx) => {
     const userId = requireUser(ctx);
     const { d, p, perms } = loadDashboard(ctx, ctx.params.id!);
     requireEdit(perms, p, d, userId);
@@ -401,8 +401,8 @@ export function registerDashboards() {
     if (b.visibility !== undefined) {
       if (b.visibility !== "shared" && b.visibility !== "personal") invalid({ visibility: "Pick shared or personal" });
       if (b.visibility !== d.visibility) {
-        if (!(d.ownerId === userId && perms.includes("dashboard.create"))) {
-          fail(403, "forbidden", "Only the owner can change who sees this dashboard.", { permission: "dashboard.create" });
+        if (!(d.ownerId === userId && perms.includes("tracking.dashboard.create"))) {
+          fail(403, "forbidden", "Only the owner can change who sees this dashboard.", { permission: "tracking.dashboard.create" });
         }
         const limit = b.visibility === "shared" ? SHARED_LIMIT : PERSONAL_LIMIT;
         const count = ctx.db.dashboards!.filter((x) => x.projectId === p.id && x.visibility === b.visibility && (b.visibility === "shared" || x.ownerId === userId)).length;
@@ -423,13 +423,13 @@ export function registerDashboards() {
     }
     d.version += 1;
     d.updatedAt = nowISO();
-    audit(ctx.db, p, userId, "dashboard.updated", d.name, changes);
+    audit(ctx.db, p, userId, "tracking.dashboard.updated", d.name, changes);
     publishDashboard(ctx.db, userId, d, "updated");
     return toDashboard(ctx.db, d);
   });
 
   // DB5
-  route("PUT", "/dashboards/:id/layout", (ctx) => {
+  route("PUT", "/tracking/dashboards/:id/layout", (ctx) => {
     const userId = requireUser(ctx);
     const { d, p, perms } = loadDashboard(ctx, ctx.params.id!);
     requireEdit(perms, p, d, userId);
@@ -438,26 +438,26 @@ export function registerDashboards() {
     d.widgets = validateLayout(ctx.db, d, perms, b.widgets, () => uid("wg"));
     d.version += 1;
     d.updatedAt = nowISO();
-    audit(ctx.db, p, userId, "dashboard.layout_updated", d.name, [value("widgets", null, d.widgets.map((x) => `${x.type}:${x.w}x${x.h}`).join(", "))]);
+    audit(ctx.db, p, userId, "tracking.dashboard.layout_updated", d.name, [value("widgets", null, d.widgets.map((x) => `${x.type}:${x.w}x${x.h}`).join(", "))]);
     publishDashboard(ctx.db, userId, d, "layout");
     return toDashboard(ctx.db, d);
   });
 
   // DB6
-  route("DELETE", "/dashboards/:id", (ctx) => {
+  route("DELETE", "/tracking/dashboards/:id", (ctx) => {
     const userId = requireUser(ctx);
     const { d, p, perms } = loadDashboard(ctx, ctx.params.id!);
     requireEdit(perms, p, d, userId);
     ctx.db.dashboards = ctx.db.dashboards!.filter((x) => x.id !== d.id);
-    audit(ctx.db, p, userId, "dashboard.deleted", d.name, [value("visibility", null, d.visibility), value("widgets", null, d.widgets.length)]);
+    audit(ctx.db, p, userId, "tracking.dashboard.deleted", d.name, [value("visibility", null, d.visibility), value("widgets", null, d.widgets.length)]);
     publishDashboard(ctx.db, userId, d, "deleted");
     return undefined;
   });
 
   // W1
-  route("GET", "/projects/:id/reports/workload", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/workload", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "report.view");
+    requireProject(ctx, p.id, "tracking.report.view");
     const f = ctx.query.filter ?? {};
     const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? "") : v === undefined || v === null ? undefined : String(v));
     return workloadReport(ctx.db, p, { sprint: one(f.sprint), unit: one(f.unit), person: one(f.person) });

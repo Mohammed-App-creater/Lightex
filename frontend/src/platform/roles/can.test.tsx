@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { Project, Workspace } from "@/lib/api/types";
-import { PROJECT_PERMISSIONS } from "@/lib/api/types";
+import type { Project, Workspace } from "@/api/types";
+import { PROJECT_PERMISSIONS } from "@/api/types";
 import { Can, ProjectScope, WorkspaceScope, canChangeVisibility, canEditDashboard, canEditTask, useCan } from "./can";
 import { DEFAULT_ROLES, PERMISSION_CATALOGUE } from "./catalogue";
 
@@ -15,10 +15,10 @@ function Probe({ p }: { p: Parameters<typeof useCan>[0] }) {
 describe("useCan / <Can>", () => {
   it("reads workspace permissions for workspace keys and project permissions for project keys", () => {
     render(
-      <WorkspaceScope workspace={ws(["workspace.view", "project.create"])}>
-        <ProjectScope project={prj(["project.view"])}>
-          <Probe p="project.create" />
-          <Probe p="task.create" />
+      <WorkspaceScope workspace={ws(["core.workspace.view", "tracking.project.create"])}>
+        <ProjectScope project={prj(["tracking.project.view"])}>
+          <Probe p="tracking.project.create" />
+          <Probe p="tracking.task.create" />
         </ProjectScope>
       </WorkspaceScope>,
     );
@@ -28,12 +28,12 @@ describe("useCan / <Can>", () => {
   it("never lets workspace permissions leak into project scope", () => {
     // A workspace owner without project membership: empty project permissions.
     render(
-      <WorkspaceScope workspace={ws(["workspace.view", "workspace.update", "workspace.manage_roles", "project.create"])}>
+      <WorkspaceScope workspace={ws(["core.workspace.view", "core.workspace.update", "core.roles.manage", "tracking.project.create"])}>
         <ProjectScope project={prj([])}>
-          <Can permission="task.delete">
+          <Can permission="tracking.task.delete">
             <button>Delete task</button>
           </Can>
-          <Can permission="project.create">
+          <Can permission="tracking.project.create">
             <button>New project</button>
           </Can>
         </ProjectScope>
@@ -45,8 +45,8 @@ describe("useCan / <Can>", () => {
 
   it("hidden means not rendered; fallback is opt-in", () => {
     render(
-      <ProjectScope project={prj(["project.view"])}>
-        <Can permission={["task.create", "task.assign"]} fallback={<span>read only</span>}>
+      <ProjectScope project={prj(["tracking.project.view"])}>
+        <Can permission={["tracking.task.create", "tracking.task.assign"]} fallback={<span>read only</span>}>
           <button>New task</button>
         </Can>
       </ProjectScope>,
@@ -57,23 +57,23 @@ describe("useCan / <Can>", () => {
 
   it("applies edit_own only to the user's tasks", () => {
     const task = { assigneeId: "u1", reporterId: "u2" };
-    expect(canEditTask(task, ["task.edit_own"], "u1")).toBe(true);
-    expect(canEditTask(task, ["task.edit_own"], "u3")).toBe(false);
-    expect(canEditTask(task, ["task.edit_any"], "u3")).toBe(true);
+    expect(canEditTask(task, ["tracking.task.edit_own"], "u1")).toBe(true);
+    expect(canEditTask(task, ["tracking.task.edit_own"], "u3")).toBe(false);
+    expect(canEditTask(task, ["tracking.task.edit_any"], "u3")).toBe(true);
   });
 });
 
 describe("board 33: dashboard permissions", () => {
-  it("places dashboard.create and dashboard.manage right before report.view (spec §4.4)", () => {
+  it("places tracking.dashboard.create and tracking.dashboard.manage right before tracking.report.view (spec §4.4)", () => {
     const order = [...PROJECT_PERMISSIONS];
-    expect(order.slice(-3)).toEqual(["dashboard.create", "dashboard.manage", "report.view"]);
-    expect(order.indexOf("dashboard.create")).toBe(order.indexOf("attachment.delete_any") + 1);
+    expect(order.slice(-3)).toEqual(["tracking.dashboard.create", "tracking.dashboard.manage", "tracking.report.view"]);
+    expect(order.indexOf("tracking.dashboard.create")).toBe(order.indexOf("tracking.attachment.delete_any") + 1);
     const cat = PERMISSION_CATALOGUE.filter((p) => p.group === "Reports" && p.scope === "project").map((p) => p.key);
-    expect(cat).toEqual(["dashboard.create", "dashboard.manage", "report.view"]);
+    expect(cat).toEqual(["tracking.dashboard.create", "tracking.dashboard.manage", "tracking.report.view"]);
   });
 
   it("grants both keys per §4.2 for all 7 default roles", () => {
-    const grant = Object.fromEntries(DEFAULT_ROLES.map((r) => [r.key, [r.permissions.includes("dashboard.create"), r.permissions.includes("dashboard.manage")]]));
+    const grant = Object.fromEntries(DEFAULT_ROLES.map((r) => [r.key, [r.permissions.includes("tracking.dashboard.create"), r.permissions.includes("tracking.dashboard.manage")]]));
     expect(grant).toEqual({
       owner: [false, false],
       admin: [false, false],
@@ -83,10 +83,10 @@ describe("board 33: dashboard permissions", () => {
       project_member: [true, false],
       viewer: [false, false],
     });
-    // Sam's example (board 37 §4.3, which adds development.link): the project Member list, in order.
+    // Sam's example (board 37 §4.3, which adds tracking.development.link): the project Member list, in order.
     expect(DEFAULT_ROLES.find((r) => r.key === "project_member")!.permissions).toEqual([
-      "project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "development.link", "time.log",
-      "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view",
+      "tracking.project.view", "tracking.task.create", "tracking.task.edit_own", "tracking.task.assign", "tracking.task.move", "tracking.project.import", "tracking.development.link", "tracking.time.log",
+      "tracking.comment.create", "tracking.comment.edit_own", "tracking.attachment.upload", "tracking.dashboard.create", "tracking.report.view",
     ]);
   });
 
@@ -106,10 +106,10 @@ describe("board 33: dashboard permissions", () => {
       [false, false, false, "shared", false, false],
     ];
     for (const [owner, create, manage, visibility, edit, vis] of rows) {
-      const perms = [create && "dashboard.create", manage && "dashboard.manage"].filter(Boolean) as string[];
+      const perms = [create && "tracking.dashboard.create", manage && "tracking.dashboard.manage"].filter(Boolean) as string[];
       const d = { ownerId: owner ? "me" : "other", visibility };
       expect([canEditDashboard(d, perms, "me"), canChangeVisibility(d, perms, "me")], JSON.stringify({ owner, create, manage, visibility })).toEqual([edit, vis]);
     }
-    expect(canEditDashboard({ ownerId: "me", visibility: "personal" }, ["dashboard.create"], undefined)).toBe(false);
+    expect(canEditDashboard({ ownerId: "me", visibility: "personal" }, ["tracking.dashboard.create"], undefined)).toBe(false);
   });
 });

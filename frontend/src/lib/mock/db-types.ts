@@ -36,7 +36,7 @@ import type {
   Integration,
   Provider,
   Repository,
-} from "@/lib/api/types";
+} from "@/api/types";
 
 /* Stored shapes. Derived fields (progress, counts, my_permissions) are computed per request. */
 
@@ -159,7 +159,7 @@ export interface MockDB {
   /* Board 40 (v2). Optional, created lazily by handlers/imports.ts, so no SCHEMA bump. Job records hold no file content. */
   imports?: ImportJobRec[];
   importRows?: ImportRowRec[];
-  /** Board 40 upgrade marker (project.import on cached system roles). */
+  /** Board 40 upgrade marker (tracking.project.import on cached system roles). */
   ext40?: boolean;
   /* Board 33 (v2). Optional, created by ensureExt33 (handlers/dashboards.ts), so no SCHEMA bump. Presence lives in memory only. */
   dashboards?: DashboardRec[];
@@ -321,4 +321,4 @@ export type TrashStore = {
   taskDeletedBy: Record<string, string>;
 };
 
-export type SavedViewRec = Omit<import("@/lib/api/types").SavedView, "pinned" | "position" | "count">;
+export type SavedViewRec = Omit<import("@/api/types").SavedView, "pinned" | "position" | "count">;

@@ -1,4 +1,4 @@
-import type { DevItem, DevPullRequest, TaskDevSummary } from "@/lib/api/types";
+import type { DevItem, DevPullRequest, TaskDevSummary } from "@/api/types";
 import type { DevLinkRec, MockDB, RepositoryRec } from "./db-types";
 
 /*

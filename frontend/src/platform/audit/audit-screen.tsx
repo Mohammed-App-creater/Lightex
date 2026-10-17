@@ -2,10 +2,10 @@
 
 import { ChevronDown, ChevronLeft, ChevronRight, Download, ShieldCheck } from "lucide-react";
 import { forwardRef, useMemo, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { Illustration } from "@/components/brand/illustrations";
-import { AvatarStack } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState, Skeleton } from "@/components/ui/feedback";
+import { Illustration } from "@/ui/brand/illustrations";
+import { AvatarStack } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { EmptyState, Skeleton } from "@/ui/feedback";
 import {
   Menu,
   MenuCheckboxItem,
@@ -15,21 +15,21 @@ import {
   MenuRadioItem,
   MenuSeparator,
   MenuTrigger,
-} from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { useRoles, useWsMembers } from "@/features/workspace/queries";
-import { isApiError, isForbidden } from "@/lib/api/errors";
-import type { AuditEntry } from "@/lib/api/types";
+} from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { useRoles, useWsMembers } from "@/platform/workspace/queries";
+import { isApiError, isForbidden } from "@/api/errors";
+import type { AuditEntry } from "@/api/types";
 import { AUDIT_ACTION_KINDS, AUDIT_ENTITY_TYPES, AUDIT_RANGES, type AuditActionKind, type AuditEntityType } from "@/lib/audit";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { ActionLabel, ActorAvatar, DiffPanel, EntityCell, EventCard, Path16, RowChevron, actorLabel, type PeopleIndex } from "./audit-parts";
 import { ACTION_META, AUDIT_ICON, ENTITY_META, auditTime, describe, exportFileName, toCsv, toJson, type ExportFormat } from "./lib";
 import { fetchAllAudit, isDefaultFilters, useAuditLog } from "./use-audit";
 
 /*
- * Audit log (board 31): admins only (`audit.view`). Actor / action / entity / date filters, rows
+ * Audit log (board 31): admins only (`core.audit.view`). Actor / action / entity / date filters, rows
  * that expand into a field-level before → after diff (word diff for text), cursor paging, and a
  * client-side CSV · JSON export of every row matching the filters. Mobile (≤760): cards + Load more.
  */
@@ -38,7 +38,7 @@ const COLS = "grid-cols-[28px_118px_170px_160px_minmax(0,1fr)_72px] max-[1023px]
 
 export function AuditScreen() {
   const ws = useCurrentWorkspace()!;
-  const allowed = useCan("audit.view");
+  const allowed = useCan("core.audit.view");
   const log = useAuditLog(ws.slug, allowed);
   const mobile = useIsMobile();
   const members = useWsMembers(ws.slug);
@@ -531,13 +531,13 @@ function LoadError({ error, onRetry, retrying }: { error: unknown; onRetry: () =
   );
 }
 
-/** Reached by URL without audit.view: "Admins only" with the admins to ask (nav entry is hidden). */
+/** Reached by URL without core.audit.view: "Admins only" with the admins to ask (nav entry is hidden). */
 function AdminsOnly() {
   const ws = useCurrentWorkspace()!;
   const roles = useRoles(ws.slug);
   const members = useWsMembers(ws.slug);
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
-  const adminRoleIds = new Set((roles.data ?? []).filter((r) => r.permissions.includes("audit.view")).map((r) => r.id));
+  const adminRoleIds = new Set((roles.data ?? []).filter((r) => r.permissions.includes("core.audit.view")).map((r) => r.id));
   const admins = (members.data ?? [])
     .filter((m) => m.status === "active" && adminRoleIds.has(m.roleId))
     .map((m) => ({ id: m.userId, name: m.user.name, hue: m.user.hue }));

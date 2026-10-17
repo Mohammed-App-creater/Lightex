@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Skeleton } from "@/components/ui/feedback";
+import { Skeleton } from "@/ui/feedback";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 
 /* Dashboard-level states (spec §1.7): skeleton cards and the grid-icon state panels (design `.db-state`). */

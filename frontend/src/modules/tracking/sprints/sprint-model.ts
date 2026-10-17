@@ -1,5 +1,5 @@
-import type { GlyphKind } from "@/components/ui/glyphs";
-import type { Sprint, Status, Task } from "@/lib/api/types";
+import type { GlyphKind } from "@/ui/glyphs";
+import type { Sprint, Status, Task } from "@/api/types";
 import { daysUntil } from "@/lib/domain/progress";
 
 /* Pure helpers for the Sprints screen and the 3-step review (board 26). React-free, unit-tested. */

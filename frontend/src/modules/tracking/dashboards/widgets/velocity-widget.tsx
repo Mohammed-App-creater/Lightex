@@ -1,11 +1,11 @@
 "use client";
 
-import { VelocityChart } from "@/features/reports/charts";
-import type { WidgetConfigMap } from "@/lib/api/types";
-import { useVelocityWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "../widget-frame";
-import { velocityAvg } from "../widget-lib";
+import { VelocityChart } from "@/modules/tracking/reports/charts";
+import type { WidgetConfigMap } from "@/api/types";
+import { useVelocityWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
+import { velocityAvg } from "@/modules/tracking/dashboards/widget-lib";
 import { useWho, type WidgetProps } from "./common";
 
 /** Velocity (§1.3): grouped committed / completed bars per sprint (S9…S13); meta "avg 35". */

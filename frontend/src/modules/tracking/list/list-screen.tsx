@@ -5,12 +5,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUp, ArrowUpRight, Ban, ChevronRight, Columns3, Copy, Filter, Layers, MoreHorizontal, Plus, Tag, Trash2, UserRound, X, MoveRight } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Kbd } from "@/components/ui/kbd";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
+import { Kbd } from "@/ui/kbd";
 import {
   Menu,
   MenuCheckboxItem,
@@ -21,33 +21,33 @@ import {
   MenuRadioItem,
   MenuSeparator,
   MenuTrigger,
-} from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { shell } from "@/components/shell/shell-state";
-import { TopBarActions } from "@/components/shell/top-bar";
-import { useMe } from "@/features/auth/session";
-import { ImportCsvButton } from "@/features/import/import-wizard-host";
-import { canImportInto } from "@/features/import/import-lib";
-import { epicSwatch } from "@/features/epics/epic-model";
-import { applyFilters, completeRules } from "@/features/filters/filter-model";
-import { ProjectFilterBar } from "@/features/filters/project-filter-bar";
-import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
-import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
-import { PrChip } from "@/features/development/pr-chip";
-import { blockedTitle } from "@/features/dependencies/blocked-badge";
-import { displayValue } from "@/features/fields/field-lib";
-import { useCustomFields } from "@/features/fields/queries";
-import { useCreateTask, useDeleteTask, useUpdateTask } from "@/features/tasks/mutations";
-import { rememberOrigin, triggerSpark } from "@/features/tasks/task-origin";
-import { useSparking } from "@/features/tasks/task-bits";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { patchTasks, restore, snapshotTasks } from "@/lib/api/optimistic";
-import { qk } from "@/lib/api/query-keys";
-import type { Label, Status, Task, TaskPatch, User } from "@/lib/api/types";
+} from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { shell } from "@/platform/shell/shell-state";
+import { TopBarActions } from "@/platform/shell/top-bar";
+import { useMe } from "@/platform/auth/session";
+import { ImportCsvButton } from "@/modules/tracking/import/import-wizard-host";
+import { canImportInto } from "@/modules/tracking/import/import-lib";
+import { epicSwatch } from "@/modules/tracking/epics/epic-model";
+import { applyFilters, completeRules } from "@/modules/tracking/filters/filter-model";
+import { ProjectFilterBar } from "@/modules/tracking/filters/project-filter-bar";
+import { useFilterOptions, useUrlFilters } from "@/modules/tracking/filters/use-filters";
+import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/modules/tracking/projects/queries";
+import { PrChip } from "@/modules/tracking/development/pr-chip";
+import { blockedTitle } from "@/modules/tracking/dependencies/blocked-badge";
+import { displayValue } from "@/modules/tracking/fields/field-lib";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { useCreateTask, useDeleteTask, useUpdateTask } from "@/modules/tracking/tasks/mutations";
+import { rememberOrigin, triggerSpark } from "@/modules/tracking/tasks/task-origin";
+import { useSparking } from "@/modules/tracking/tasks/task-bits";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { patchTasks, restore, snapshotTasks } from "@/api/optimistic";
+import { qk } from "@/api/query-keys";
+import type { Label, Status, Task, TaskPatch, User } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
-import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, dueTone, shortDate, todayISO } from "@/lib/utils/dates";
@@ -106,8 +106,8 @@ export function ListScreen() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const perms = project.my_permissions;
-  const canCreate = can("task.create", perms);
-  const canBulk = can("task.edit_any", perms) || can("task.move", perms) || can("task.delete", perms);
+  const canCreate = can("tracking.task.create", perms);
+  const canBulk = can("tracking.task.edit_any", perms) || can("tracking.task.move", perms) || can("tracking.task.delete", perms);
   const update = useUpdateTask();
 
   const ctx: Ctx = useMemo(() => {
@@ -436,9 +436,9 @@ export function ListScreen() {
                     selected={selected.has(r.task.id)}
                     canBulk={canBulk}
                     canEdit={canEditTask(r.task, perms, me.id)}
-                    canStatus={canEditTask(r.task, perms, me.id) || can("task.move", perms)}
-                    canAssign={canEditTask(r.task, perms, me.id) && can("task.assign", perms)}
-                    canDelete={can("task.delete", perms)}
+                    canStatus={canEditTask(r.task, perms, me.id) || can("tracking.task.move", perms)}
+                    canAssign={canEditTask(r.task, perms, me.id) && can("tracking.task.assign", perms)}
+                    canDelete={can("tracking.task.delete", perms)}
                     canCreate={canCreate}
                     onSelect={(on) => setSelected((s) => {
                       const nx = new Set(s);
@@ -461,11 +461,11 @@ export function ListScreen() {
         members={members.map((m) => m.user)}
         statuses={statuses}
         labels={labels}
-        canAssign={can("task.assign", perms)}
-        // Mirrors the server's patch rule: a status-only change needs task.move (or edit rights); any other field needs edit rights.
-        canMove={can("task.move", perms) || can("task.edit_any", perms)}
-        canLabel={can("task.edit_any", perms)}
-        canDelete={can("task.delete", perms)}
+        canAssign={can("tracking.task.assign", perms)}
+        // Mirrors the server's patch rule: a status-only change needs tracking.task.move (or edit rights); any other field needs edit rights.
+        canMove={can("tracking.task.move", perms) || can("tracking.task.edit_any", perms)}
+        canLabel={can("tracking.task.edit_any", perms)}
+        canDelete={can("tracking.task.delete", perms)}
         onClear={() => setSelected(new Set())}
         onAssign={(u) => bulk.mutate({ ids: selectedIds, patch: { assigneeId: u?.id ?? null } }, { onSuccess: () => toast.success(`Assigned ${plural(n)} to ${u?.name.split(" ")[0] ?? "nobody"}`) })}
         onMove={(s) => {

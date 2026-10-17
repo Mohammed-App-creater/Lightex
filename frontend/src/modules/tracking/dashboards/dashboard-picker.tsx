@@ -3,12 +3,12 @@
 import { Check, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { Dashboard, DashboardSummary, Project } from "@/lib/api/types";
-import { can, canChangeVisibility, canEditDashboard, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { Dashboard, DashboardSummary, Project } from "@/api/types";
+import { can, canChangeVisibility, canEditDashboard, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { DeleteDashboardDialog, NewDashboardDialog, RenameDashboardDialog } from "./dashboard-dialogs";
 import { usePendingDashboardDelete, useUpdateDashboard } from "./queries";
@@ -29,7 +29,7 @@ export function DashboardPicker({ project, dashboard, list }: { project: Project
   const archived = project.status === "archived";
   const canEdit = !archived && canEditDashboard(dashboard, perms, me.id);
   const canVisibility = !archived && canChangeVisibility(dashboard, perms, me.id);
-  const canCreate = !archived && can("dashboard.create", perms);
+  const canCreate = !archived && can("tracking.dashboard.create", perms);
   const shared = list.filter((d) => d.visibility === "shared");
   const personal = list.filter((d) => d.visibility === "personal");
   const removeLater = usePendingDashboardDelete((d) => router.push(routes.dashboard(ws.slug, project.key, d.id)));

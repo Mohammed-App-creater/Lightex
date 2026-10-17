@@ -5,24 +5,24 @@ import { Check, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Avatar, AvatarStack } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { CountUp, Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, priorityMeta } from "@/components/ui/glyphs";
-import { Kbd } from "@/components/ui/kbd";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { useActiveSprint, useProjectMembers } from "@/features/projects/queries";
-import { useSparking } from "@/features/tasks/task-bits";
-import { TaskPanelHost } from "@/features/tasks/task-panel-host";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Project, Status, Task } from "@/lib/api/types";
+import { Avatar, AvatarStack } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { CountUp, Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, priorityMeta } from "@/ui/glyphs";
+import { Kbd } from "@/ui/kbd";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { useActiveSprint, useProjectMembers } from "@/modules/tracking/projects/queries";
+import { useSparking } from "@/modules/tracking/tasks/task-bits";
+import { TaskPanelHost } from "@/modules/tracking/tasks/task-panel-host";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Project, Status, Task } from "@/api/types";
 import { daysUntil } from "@/lib/domain/progress";
 import { templateDef } from "@/lib/domain/project-templates";
 import { isTypingTarget } from "@/lib/hooks/use-hotkeys";
-import { can, useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl, replaceUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
@@ -71,7 +71,7 @@ export function HomeScreen() {
   const me = useMe();
   const pathname = usePathname();
   const search = useSearchParams();
-  const canCreate = useCan("project.create");
+  const canCreate = useCan("tracking.project.create");
   const projectsQ = useProjects(ws.slug);
   const mine = useMyTasks(ws.slug);
   const recents = useQuery({ queryKey: qk.recents(), queryFn: api.search.recents, staleTime: 10_000 });
@@ -89,7 +89,7 @@ export function HomeScreen() {
       .sort((a, b) => Number(b.key === createdKey) - Number(a.key === createdKey) || (order.get(a.id) ?? 99) - (order.get(b.id) ?? 99) || a.name.localeCompare(b.name));
   }, [projectsQ.data, recents.data, createdKey]);
   const hasProjects = projects.length > 0;
-  const showWork = hasProjects && projects.some((p) => can("task.edit_own", p.my_permissions) || can("task.edit_any", p.my_permissions) || can("task.move", p.my_permissions));
+  const showWork = hasProjects && projects.some((p) => can("tracking.task.edit_own", p.my_permissions) || can("tracking.task.edit_any", p.my_permissions) || can("tracking.task.move", p.my_permissions));
 
   const loading = projectsQ.isPending || (showWork && mine.isPending);
   const failed = projectsQ.isError ? projectsQ.error : showWork && mine.isError ? mine.error : null;
@@ -455,7 +455,7 @@ function NoAccess() {
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: qk.wsAccessRequest(ws.slug) }),
   });
-  const adminRoles = new Map(roles.filter((r) => r.scope === "workspace" && r.permissions.includes("workspace.manage_members")).map((r) => [r.id, r.name]));
+  const adminRoles = new Map(roles.filter((r) => r.scope === "workspace" && r.permissions.includes("core.workspace.manage_members")).map((r) => [r.id, r.name]));
   const admins = members.filter((m) => m.status === "active" && adminRoles.has(m.roleId)).slice(0, 4);
   // Both mutations flip the UI optimistically, so the button on screen belongs to whichever is in flight.
   const busy = request.isPending || withdraw.isPending;

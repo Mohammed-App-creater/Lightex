@@ -1,3 +1,4 @@
+import { actionEntity } from "@/lib/audit";
 import type {
   AuditChange,
   CustomField,
@@ -13,8 +14,8 @@ import type {
   TimeEntry,
   Timesheet,
   TimesheetSlice,
-} from "@/lib/api/types";
-import { FIELD_COLORS } from "@/lib/api/types";
+} from "@/api/types";
+import { FIELD_COLORS } from "@/api/types";
 import { nowISO, uid } from "../db";
 import type { CustomFieldRec, DependencyRec, MockDB, TaskRec } from "../db-types";
 import { openBlockersOf, projectMembership, projectPermissions, wsMembership } from "../derive";
@@ -44,9 +45,9 @@ const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 /* ───────── upgrade + seed ───────── */
 
 const NEW_GRANTS: Record<string, Permission[]> = {
-  project_admin: ["field.manage", "time.log", "time.delete_any"],
-  manager: ["field.manage", "time.log", "time.delete_any"],
-  project_member: ["time.log"],
+  project_admin: ["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"],
+  manager: ["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"],
+  project_member: ["tracking.time.log"],
 };
 
 /**
@@ -243,7 +244,7 @@ function audit(db: MockDB, projectId: string, actorId: string, action: string, t
     actorKind: "user",
     action,
     target,
-    entityType: action.split(".")[0],
+    entityType: actionEntity(action),
     entityKey: extra.key ?? null,
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,
@@ -266,7 +267,7 @@ export function toField(db: MockDB, f: CustomFieldRec): CustomField {
 function fieldById(ctx: Ctx, id: string) {
   const userId = requireUser(ctx);
   const f = (ctx.db.customFields ?? []).find((x) => x.id === id);
-  if (!f || !projectPermissions(ctx.db, userId, f.projectId).includes("project.view")) fail(404, "not_found", "Custom field not found.");
+  if (!f || !projectPermissions(ctx.db, userId, f.projectId).includes("tracking.project.view")) fail(404, "not_found", "Custom field not found.");
   return f;
 }
 
@@ -372,7 +373,7 @@ export function findCycle(db: MockDB, blockerId: string, blockedId: string): str
 function depTaskById(ctx: Ctx, id: string) {
   const t = ctx.db.tasks.find((x) => x.id === id);
   if (!t) fail(404, "not_found", "Task not found.");
-  requireProject(ctx, t.projectId, "project.view");
+  requireProject(ctx, t.projectId, "tracking.project.view");
   return t;
 }
 
@@ -395,7 +396,7 @@ function toTimer(db: MockDB, r: { userId: string; taskId: string; startedAt: str
 function logEntry(db: MockDB, actorId: string, t: TaskRec, minutes: number, date: string, note: string, source: TimeEntry["source"]) {
   const e: TimeEntry = { id: uid("te"), taskId: t.id, projectId: t.projectId, userId: actorId, minutes, date, note: note.trim().slice(0, 140), source, createdAt: nowISO() };
   db.timeEntries!.push(e);
-  audit(db, t.projectId, actorId, "task.time_logged", t.title, { key: t.key, data: { minutes, date, source } });
+  audit(db, t.projectId, actorId, "tracking.task.time_logged", t.title, { key: t.key, data: { minutes, date, source } });
   return e;
 }
 
@@ -406,7 +407,7 @@ function stopTimer(db: MockDB, userId: string, date: string) {
   db.timers = db.timers!.filter((x) => x.userId !== userId);
   const t = db.tasks.find((x) => x.id === r.taskId);
   if (!t || t.deletedAt) return { entry: null, reason: "deleted" as const };
-  if (!projectPermissions(db, userId, t.projectId).includes("time.log")) return { entry: null, reason: "forbidden" as const };
+  if (!projectPermissions(db, userId, t.projectId).includes("tracking.time.log")) return { entry: null, reason: "forbidden" as const };
   const minutes = Math.min(1440, Math.max(1, Math.round((Date.now() - new Date(r.startedAt).getTime()) / 60_000)));
   return { entry: logEntry(db, userId, t, minutes, date, "", "timer"), reason: "ok" as const };
 }
@@ -494,7 +495,7 @@ export function prepareTaskExtPatch(db: MockDB, t: TaskRec, body: Record<string,
       changes.push(change("Time estimate", t.timeEstimateMinutes ?? null, estimate));
       t.timeEstimateMinutes = estimate;
     }
-    if (changes.length) audit(db, t.projectId, actorId, "task.updated", t.title, { key: t.key, changes });
+    if (changes.length) audit(db, t.projectId, actorId, "tracking.task.updated", t.title, { key: t.key, changes });
   };
 }
 
@@ -502,16 +503,16 @@ export function prepareTaskExtPatch(db: MockDB, t: TaskRec, body: Record<string,
 
 export function registerExtensions() {
   /* F1–F5 custom fields */
-  route("GET", "/projects/:id/custom-fields", (ctx) => {
+  route("GET", "/tracking/projects/:id/custom-fields", (ctx) => {
     ensureExt39(ctx.db);
     const p = memberProject(ctx, ctx.params.id!);
     return fieldsOf(ctx.db, p.id).map((f) => toField(ctx.db, f));
   });
 
-  route("POST", "/projects/:id/custom-fields", (ctx) => {
+  route("POST", "/tracking/projects/:id/custom-fields", (ctx) => {
     ensureExt39(ctx.db);
     const p = memberProject(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "field.manage");
+    requireProject(ctx, p.id, "tracking.field.manage");
     const body = (ctx.body ?? {}) as Record<string, unknown>;
     const c = cleanField(ctx.db, p.id, body, null);
     const list = fieldsOf(ctx.db, p.id);
@@ -528,14 +529,14 @@ export function registerExtensions() {
       createdById: ctx.userId,
     };
     ctx.db.customFields!.push(f);
-    audit(ctx.db, p.id, ctx.userId!, "project.custom_field_created", f.name, { key: p.key, changes: [change("Type", null, f.type), change("Required", null, String(f.required))] });
+    audit(ctx.db, p.id, ctx.userId!, "tracking.project.custom_field_created", f.name, { key: p.key, changes: [change("Type", null, f.type), change("Required", null, String(f.required))] });
     return toField(ctx.db, f);
   });
 
-  route("PATCH", "/custom-fields/:fieldId", (ctx) => {
+  route("PATCH", "/tracking/custom-fields/:fieldId", (ctx) => {
     ensureExt39(ctx.db);
     const f = fieldById(ctx, ctx.params.fieldId!);
-    requireProject(ctx, f.projectId, "field.manage");
+    requireProject(ctx, f.projectId, "tracking.field.manage");
     const body = (ctx.body ?? {}) as Record<string, unknown>;
     const c = cleanField(ctx.db, f.projectId, body, f);
     const changes: AuditChange[] = [];
@@ -563,14 +564,14 @@ export function registerExtensions() {
         }
       }
     }
-    if (changes.length) audit(ctx.db, f.projectId, ctx.userId!, "project.custom_field_updated", f.name, { changes });
+    if (changes.length) audit(ctx.db, f.projectId, ctx.userId!, "tracking.project.custom_field_updated", f.name, { changes });
     return toField(ctx.db, f);
   });
 
-  route("DELETE", "/custom-fields/:fieldId", (ctx) => {
+  route("DELETE", "/tracking/custom-fields/:fieldId", (ctx) => {
     ensureExt39(ctx.db);
     const f = fieldById(ctx, ctx.params.fieldId!);
-    requireProject(ctx, f.projectId, "field.manage");
+    requireProject(ctx, f.projectId, "tracking.field.manage");
     const valuesRemoved = toField(ctx.db, f).taskCount;
     for (const t of ctx.db.tasks) {
       if (t.customFields && f.id in t.customFields) {
@@ -581,14 +582,14 @@ export function registerExtensions() {
     }
     ctx.db.customFields = ctx.db.customFields!.filter((x) => x.id !== f.id);
     fieldsOf(ctx.db, f.projectId).forEach((x, i) => (x.position = i));
-    audit(ctx.db, f.projectId, ctx.userId!, "project.custom_field_deleted", f.name, { data: { valuesRemoved } });
+    audit(ctx.db, f.projectId, ctx.userId!, "tracking.project.custom_field_deleted", f.name, { data: { valuesRemoved } });
     return undefined;
   });
 
-  route("PUT", "/projects/:id/custom-fields/order", (ctx) => {
+  route("PUT", "/tracking/projects/:id/custom-fields/order", (ctx) => {
     ensureExt39(ctx.db);
     const p = memberProject(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "field.manage");
+    requireProject(ctx, p.id, "tracking.field.manage");
     const ids = (ctx.body as { ids?: unknown })?.ids;
     const list = fieldsOf(ctx.db, p.id);
     if (!Array.isArray(ids) || ids.length !== list.length || new Set(ids).size !== ids.length || !list.every((f) => ids.includes(f.id))) {
@@ -597,23 +598,23 @@ export function registerExtensions() {
     const before = list.map((f) => f.name).join(", ");
     (ids as string[]).forEach((id, i) => (list.find((f) => f.id === id)!.position = i));
     const after = fieldsOf(ctx.db, p.id);
-    audit(ctx.db, p.id, ctx.userId!, "project.custom_fields_reordered", p.name, { key: p.key, changes: [change("Order", before, after.map((f) => f.name).join(", "))] });
+    audit(ctx.db, p.id, ctx.userId!, "tracking.project.custom_fields_reordered", p.name, { key: p.key, changes: [change("Order", before, after.map((f) => f.name).join(", "))] });
     return after.map((f) => toField(ctx.db, f));
   });
 
   /* D1–D3 dependencies */
-  route("GET", "/tasks/:id/dependencies", (ctx) => {
+  route("GET", "/tracking/tasks/:id/dependencies", (ctx) => {
     ensureExt39(ctx.db);
     const t = depTaskById(ctx, ctx.params.id!);
     return dependenciesOf(ctx.db, t.id);
   });
 
-  route("POST", "/tasks/:id/dependencies", (ctx) => {
+  route("POST", "/tracking/tasks/:id/dependencies", (ctx) => {
     ensureExt39(ctx.db);
     const db = ctx.db;
     const t = depTaskById(ctx, ctx.params.id!);
     const userId = ctx.userId!;
-    if (!canEditTask(db, userId, t)) fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "task.edit_any" });
+    if (!canEditTask(db, userId, t)) fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "tracking.task.edit_any" });
     const b = (ctx.body ?? {}) as { relation?: unknown; taskId?: unknown };
     if (b.relation !== "blocked_by" && b.relation !== "blocks") invalid({ relation: "Pick blocked by or blocks" });
     const other = db.tasks.find((x) => x.id === b.taskId);
@@ -634,13 +635,13 @@ export function registerExtensions() {
       [blocked, "blocked_by", blocker],
       [blocker, "blocks", blocked],
     ] as const) {
-      audit(db, self.projectId, userId, "task.dependency_added", self.title, { key: self.key, data: { relation: rel, otherKey: o.key, otherTitle: o.title } });
+      audit(db, self.projectId, userId, "tracking.task.dependency_added", self.title, { key: self.key, data: { relation: rel, otherKey: o.key, otherTitle: o.title } });
       logActivity(db, userId, "dependency_added", self.projectId, self, { relation: rel, otherKey: o.key, otherTitle: o.title });
     }
     return dependenciesOf(db, t.id);
   });
 
-  route("DELETE", "/tasks/:id/dependencies/:dependencyId", (ctx) => {
+  route("DELETE", "/tracking/tasks/:id/dependencies/:dependencyId", (ctx) => {
     ensureExt39(ctx.db);
     const db = ctx.db;
     const t = depTaskById(ctx, ctx.params.id!);
@@ -650,30 +651,30 @@ export function registerExtensions() {
     const blocked = db.tasks.find((x) => x.id === d.blockedId)!;
     const userId = ctx.userId!;
     if (!canEditTask(db, userId, blocker) && !canEditTask(db, userId, blocked)) {
-      fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "task.edit_any" });
+      fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "tracking.task.edit_any" });
     }
     db.dependencies = db.dependencies!.filter((x) => x.id !== d.id);
     for (const [self, rel, o] of [
       [blocked, "blocked_by", blocker],
       [blocker, "blocks", blocked],
     ] as const) {
-      audit(db, self.projectId, userId, "task.dependency_removed", self.title, { key: self.key, data: { relation: rel, otherKey: o.key, otherTitle: o.title } });
+      audit(db, self.projectId, userId, "tracking.task.dependency_removed", self.title, { key: self.key, data: { relation: rel, otherKey: o.key, otherTitle: o.title } });
       logActivity(db, userId, "dependency_removed", self.projectId, self, { relation: rel, otherKey: o.key, otherTitle: o.title });
     }
     return undefined;
   });
 
   /* E1–E3 time entries */
-  route("GET", "/tasks/:id/time-entries", (ctx) => {
+  route("GET", "/tracking/tasks/:id/time-entries", (ctx) => {
     ensureExt39(ctx.db);
     const t = depTaskById(ctx, ctx.params.id!);
     return ctx.db.timeEntries!.filter((e) => e.taskId === t.id).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
   });
 
-  route("POST", "/tasks/:id/time-entries", (ctx) => {
+  route("POST", "/tracking/tasks/:id/time-entries", (ctx) => {
     ensureExt39(ctx.db);
     const t = depTaskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "time.log");
+    requireProject(ctx, t.projectId, "tracking.time.log");
     if (t.deletedAt) fail(409, "task_deleted", "This task was deleted. Restore it to make changes.");
     const b = (ctx.body ?? {}) as { minutes?: unknown; date?: unknown; note?: unknown };
     const m = b.minutes;
@@ -684,17 +685,17 @@ export function registerExtensions() {
     return logEntry(ctx.db, ctx.userId!, t, m, date, typeof b.note === "string" ? b.note : "", "manual");
   });
 
-  route("DELETE", "/time-entries/:entryId", (ctx) => {
+  route("DELETE", "/tracking/time-entries/:entryId", (ctx) => {
     ensureExt39(ctx.db);
     const userId = requireUser(ctx);
     const e = ctx.db.timeEntries!.find((x) => x.id === ctx.params.entryId);
-    if (!e || !projectPermissions(ctx.db, userId, e.projectId).includes("project.view")) fail(404, "not_found", "Time entry not found.");
+    if (!e || !projectPermissions(ctx.db, userId, e.projectId).includes("tracking.project.view")) fail(404, "not_found", "Time entry not found.");
     const perms = projectPermissions(ctx.db, userId, e.projectId);
-    const own = e.userId === userId && perms.includes("time.log");
-    if (!own && !perms.includes("time.delete_any")) fail(403, "forbidden", "You can’t delete this time entry.", { permission: "time.delete_any" });
+    const own = e.userId === userId && perms.includes("tracking.time.log");
+    if (!own && !perms.includes("tracking.time.delete_any")) fail(403, "forbidden", "You can’t delete this time entry.", { permission: "tracking.time.delete_any" });
     ctx.db.timeEntries = ctx.db.timeEntries!.filter((x) => x.id !== e.id);
     const t = ctx.db.tasks.find((x) => x.id === e.taskId);
-    audit(ctx.db, e.projectId, userId, "task.time_entry_deleted", t?.title ?? "", {
+    audit(ctx.db, e.projectId, userId, "tracking.task.time_entry_deleted", t?.title ?? "", {
       key: t?.key,
       data: { minutes: e.minutes, date: e.date, owner: ctx.db.users.find((u) => u.id === e.userId)?.name ?? "" },
     });
@@ -702,23 +703,23 @@ export function registerExtensions() {
   });
 
   /* R1–R3 timer */
-  route("GET", "/me/timer", (ctx) => {
+  route("GET", "/tracking/me/timer", (ctx) => {
     ensureExt39(ctx.db);
     const userId = requireUser(ctx);
     const r = ctx.db.timers!.find((x) => x.userId === userId);
     if (!r) return { timer: null };
     const t = ctx.db.tasks.find((x) => x.id === r.taskId);
-    if (!t || t.deletedAt || !projectPermissions(ctx.db, userId, t.projectId).includes("project.view")) {
+    if (!t || t.deletedAt || !projectPermissions(ctx.db, userId, t.projectId).includes("tracking.project.view")) {
       ctx.db.timers = ctx.db.timers!.filter((x) => x.userId !== userId);
       return { timer: null };
     }
     return { timer: toTimer(ctx.db, r) };
   });
 
-  route("POST", "/tasks/:id/timer", (ctx) => {
+  route("POST", "/tracking/tasks/:id/timer", (ctx) => {
     ensureExt39(ctx.db);
     const t = depTaskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "time.log");
+    requireProject(ctx, t.projectId, "tracking.time.log");
     if (t.deletedAt) fail(409, "task_deleted", "This task was deleted. Restore it to make changes.");
     const userId = ctx.userId!;
     const current = ctx.db.timers!.find((x) => x.userId === userId);
@@ -734,7 +735,7 @@ export function registerExtensions() {
     return { timer: toTimer(ctx.db, r), stopped };
   });
 
-  route("POST", "/me/timer/stop", (ctx) => {
+  route("POST", "/tracking/me/timer/stop", (ctx) => {
     ensureExt39(ctx.db);
     const userId = requireUser(ctx);
     if (!ctx.db.timers!.some((x) => x.userId === userId)) fail(404, "not_found", "No timer is running.");
@@ -743,13 +744,13 @@ export function registerExtensions() {
     const note = (ctx.body as { note?: unknown } | undefined)?.note;
     const res = stopTimer(ctx.db, userId, date);
     if (res.reason === "deleted") fail(409, "task_deleted", "This task was deleted. The timer was discarded.");
-    if (res.reason === "forbidden") fail(403, "forbidden", "You can’t log time on this project any more. The timer was discarded.", { permission: "time.log" });
+    if (res.reason === "forbidden") fail(403, "forbidden", "You can’t log time on this project any more. The timer was discarded.", { permission: "tracking.time.log" });
     if (res.entry && typeof note === "string" && note.trim()) res.entry.note = note.trim().slice(0, 140);
     return { entry: res.entry };
   });
 
   /* S1 timesheet */
-  route("GET", "/workspaces/:slug/timesheet", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/timesheet", (ctx) => {
     ensureExt39(ctx.db);
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = ctx.userId!;
@@ -759,7 +760,7 @@ export function registerExtensions() {
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const projectFilter = filterValues(ctx.query, "project")[0];
     const visible = ctx.db.projects
-      .filter((p) => p.workspaceId === ws.id && projectPermissions(ctx.db, userId, p.id).includes("project.view"))
+      .filter((p) => p.workspaceId === ws.id && projectPermissions(ctx.db, userId, p.id).includes("tracking.project.view"))
       .sort((a, b) => a.name.localeCompare(b.name));
     if (projectFilter) memberProject(ctx, projectFilter);
     const scope = projectFilter ? visible.filter((p) => p.id === projectFilter) : visible;

@@ -9,8 +9,8 @@ import { liveInterval } from "./status-store";
 type Script = (o: RunOptions) => Promise<RunOutcome> | RunOutcome;
 
 const hello: RealtimeEnvelope = { v: 1, type: "hello", data: { connectionId: "c1", serverTime: "", heartbeatSec: 15, maxLifetimeSec: 300, projects: ["p1"], replayed: 0 } };
-const durable = (id: string): RealtimeEnvelope => ({ v: 1, type: "task.changed", id, projectId: "p1", actorId: "u2", data: { taskId: "t1", key: "PRJ-1", op: "updated", version: 2, fields: [] } });
-const presence: RealtimeEnvelope = { v: 1, type: "presence.updated", projectId: "p1", data: { location: { kind: "board", id: "p1" }, people: [], at: "" } };
+const durable = (id: string): RealtimeEnvelope => ({ v: 1, type: "tracking.task.changed", id, projectId: "p1", actorId: "u2", data: { taskId: "t1", key: "PRJ-1", op: "updated", version: 2, fields: [] } });
+const presence: RealtimeEnvelope = { v: 1, type: "core.presence.updated", projectId: "p1", data: { location: { kind: "board", id: "p1" }, people: [], at: "" } };
 
 const hang: Script = (o) =>
   new Promise((resolve) => {
@@ -118,7 +118,7 @@ describe("RealtimeLoop", () => {
   it("remembers the last durable id (not volatile events) and sends it on reconnect", async () => {
     const t = setup([helloThen(reconnectEnd("lifetime", 500), durable("41"), presence, durable("42"), presence), helloThen(hang)]);
     await vi.advanceTimersByTimeAsync(0);
-    expect(t.events).toEqual(["task.changed", "presence.updated", "task.changed", "presence.updated"]);
+    expect(t.events).toEqual(["tracking.task.changed", "core.presence.updated", "tracking.task.changed", "core.presence.updated"]);
     expect(t.loop.getLastEventId()).toBe("42");
     await vi.advanceTimersByTimeAsync(499);
     expect(t.source.calls).toHaveLength(1);

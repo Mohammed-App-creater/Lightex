@@ -1,6 +1,6 @@
 /* Pure helpers for project settings (board 28). */
 
-import type { Label, ProjectMember, Role, Status, StatusCategory, StatusGlyph } from "@/lib/api/types";
+import type { Label, ProjectMember, Role, Status, StatusCategory, StatusGlyph } from "@/api/types";
 
 /** Status / label colour palette (board 28 `COLORS`): tokens only, never hex. */
 export const ITEM_COLORS: { name: string; token: string }[] = [
@@ -133,7 +133,7 @@ export function labelNameError(name: string, labels: readonly Label[], selfId?: 
 /* ───────────────────────── Members ───────────────────────── */
 
 export function isAdminRole(role: Pick<Role, "permissions"> | undefined) {
-  return Boolean(role?.permissions.includes("project.manage_members"));
+  return Boolean(role?.permissions.includes("tracking.project.manage_members"));
 }
 
 /** True when `m` is the project's only member whose role can manage members (can't demote/remove). */

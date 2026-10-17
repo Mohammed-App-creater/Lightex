@@ -2,8 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
 import { apiMode } from "@/lib/env";
 import { useAuthFlow } from "./auth-flow";
 import {

@@ -1,4 +1,4 @@
-import type { Permission, ProjectPermission, RichDoc, TrashItem, TrashKind, TrashList, TrashRef } from "@/lib/api/types";
+import type { Permission, ProjectPermission, RichDoc, TrashItem, TrashKind, TrashList, TrashRef } from "@/api/types";
 import { DAY } from "@/lib/domain/progress";
 import { nowISO } from "../db";
 import type { MockDB, ProjectRec, TaskRec, TrashStore } from "../db-types";
@@ -11,12 +11,12 @@ import { fail, invalid, route, wsBySlug, type Ctx } from "../router";
  * Workspace Trash (board 29). Tasks are soft-deleted in place (TaskRec.deletedAt); comments and
  * whole projects are moved into db.trash while deleted. Everything is purged 30 days after deletion.
  *
- * Who sees what (mirrors the UI, see features/trash/lib.ts):
- *   task    → task.delete in the task's project (restore uses the same permission)
- *   comment → comment.delete_any in the project, or comment.edit_own for comments the user wrote
+ * Who sees what (mirrors the UI, see platform/trash/lib.ts):
+ *   task    → tracking.task.delete in the task's project (restore uses the same permission)
+ *   comment → tracking.comment.delete_any in the project, or tracking.comment.edit_own for comments the user wrote
  *             and deleted themselves
- *   project → project.delete in the trashed project (role at deletion time), or the workspace
- *             permission project.assign_admin (workspace owners/admins)
+ *   project → tracking.project.delete in the trashed project (role at deletion time), or the workspace
+ *             permission tracking.project.assign_admin (workspace owners/admins)
  * Users with none of these anywhere get 403 ("No access to Trash").
  */
 
@@ -107,20 +107,20 @@ function accessFor(db: MockDB, userId: string, workspaceId: string): Access {
   const live = db.projects.filter((p) => p.workspaceId === workspaceId && projectMembership(db, userId, p.id));
   const permsOf = new Map<string, ProjectPermission[]>(live.map((p) => [p.id, projectPermissions(db, userId, p.id)]));
   const has = (projectId: string, perm: ProjectPermission) => permsOf.get(projectId)?.includes(perm) ?? false;
-  const wsAdmin = wsPerms.includes("project.assign_admin");
+  const wsAdmin = wsPerms.includes("tracking.project.assign_admin");
   const trashed = (db.trash?.projects ?? []).filter((x) => x.project.workspaceId === workspaceId);
   const projectOk = (tp: TrashStore["projects"][number]) =>
-    wsAdmin || rolePerms(db, tp.members.find((m) => m.userId === userId)?.roleId).includes("project.delete");
+    wsAdmin || rolePerms(db, tp.members.find((m) => m.userId === userId)?.roleId).includes("tracking.project.delete");
   const anyPerm = (perm: ProjectPermission) => [...permsOf.values()].some((ps) => ps.includes(perm));
-  const canProjects = wsAdmin || anyPerm("project.delete") || trashed.some(projectOk);
-  const broad = anyPerm("task.delete") || anyPerm("comment.delete_any") || canProjects;
-  const any = broad || anyPerm("comment.edit_own");
+  const canProjects = wsAdmin || anyPerm("tracking.project.delete") || trashed.some(projectOk);
+  const broad = anyPerm("tracking.task.delete") || anyPerm("tracking.comment.delete_any") || canProjects;
+  const any = broad || anyPerm("tracking.comment.edit_own");
   const kinds: TrashKind[] = ["task", "comment"];
   if (canProjects) kinds.push("project");
   return {
-    task: (pid) => has(pid, "task.delete"),
+    task: (pid) => has(pid, "tracking.task.delete"),
     comment: (pid, authorId, deletedBy) =>
-      has(pid, "comment.delete_any") || (has(pid, "comment.edit_own") && authorId === userId && deletedBy === userId),
+      has(pid, "tracking.comment.delete_any") || (has(pid, "tracking.comment.edit_own") && authorId === userId && deletedBy === userId),
     project: projectOk,
     any,
     scope: broad ? "all" : "own",
@@ -254,7 +254,7 @@ function restoreOne(ctx: Ctx, wsId: string, ref: TrashRef) {
     db.projects.push(tp.project);
     db.tasks.push(...tp.tasks.filter((t) => !db.tasks.some((x) => x.id === t.id)));
     db.projectMembers.push(...tp.members);
-    audit(db, wsId, ctx.userId!, "project.restored", tp.project.name);
+    audit(db, wsId, ctx.userId!, "tracking.project.restored", tp.project.name);
   }
 }
 
@@ -267,7 +267,7 @@ function purgeOne(ctx: Ctx, wsId: string, ref: TrashRef) {
     const tp = store.projects.find((x) => x.project.id === ref.id)!;
     purgeProjectData(db, tp.project.id, tp.tasks);
     store.projects = store.projects.filter((x) => x !== tp);
-    audit(db, wsId, ctx.userId!, "project.purged", tp.project.name);
+    audit(db, wsId, ctx.userId!, "tracking.project.purged", tp.project.name);
   }
 }
 
@@ -278,7 +278,7 @@ export function registerTrash() {
     const store = trashOf(ctx.db);
     expire(ctx.db, store);
     const acc = accessFor(ctx.db, userId, ws.id);
-    if (!acc.any) fail(403, "forbidden", "Trash is for members and admins.", { permission: "task.delete" });
+    if (!acc.any) fail(403, "forbidden", "Trash is for members and admins.", { permission: "tracking.task.delete" });
     return { ws, userId, acc };
   };
 

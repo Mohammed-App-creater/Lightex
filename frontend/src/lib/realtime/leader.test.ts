@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { qk } from "@/lib/api/query-keys";
+import { qk } from "@/api/query-keys";
 import { startRealtime, type RealtimeHandle } from "./client";
 import type { RealtimeEnvelope } from "./events";
 import type { ChannelLike, LockManagerLike, TabsEnv } from "./leader";
@@ -105,7 +105,7 @@ describe("leader election across tabs", () => {
     // Reset the invalidation the first hello caused, then send one task event.
     qcA.setQueryData(qk.board("p1", "active"), { statuses: [], tasks: [], sprintId: null });
     qcB.setQueryData(qk.board("p1", "active"), { statuses: [], tasks: [], sprintId: null });
-    source.emit({ v: 1, type: "task.changed", id: "5", ws: "w", projectId: "p1", actorId: "u_other", data: { taskId: "t1", key: "PRJ-1", op: "updated", version: 3, fields: ["dueDate"] } });
+    source.emit({ v: 1, type: "tracking.task.changed", id: "5", ws: "w", projectId: "p1", actorId: "u_other", data: { taskId: "t1", key: "PRJ-1", op: "updated", version: 3, fields: ["dueDate"] } });
     await tick();
     expect(qcA.getQueryState(qk.board("p1", "active"))?.isInvalidated).toBe(true);
     expect(qcB.getQueryState(qk.board("p1", "active"))?.isInvalidated).toBe(true);

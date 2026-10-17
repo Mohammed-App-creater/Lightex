@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TrashItem } from "@/lib/api/types";
+import type { TrashItem } from "@/api/types";
 import {
   agoLabel,
   canOpenTrash,
@@ -78,8 +78,8 @@ describe("trash lib", () => {
   });
 
   it("gates access like the server", () => {
-    expect(canOpenTrash(["workspace.view"], [{ my_permissions: ["project.view"] }])).toBe(false);
-    expect(canOpenTrash(["workspace.view"], [{ my_permissions: ["project.view", "comment.edit_own"] }])).toBe(true);
-    expect(canOpenTrash(["workspace.view", "project.assign_admin"], [])).toBe(true);
+    expect(canOpenTrash(["core.workspace.view"], [{ my_permissions: ["tracking.project.view"] }])).toBe(false);
+    expect(canOpenTrash(["core.workspace.view"], [{ my_permissions: ["tracking.project.view", "tracking.comment.edit_own"] }])).toBe(true);
+    expect(canOpenTrash(["core.workspace.view", "tracking.project.assign_admin"], [])).toBe(true);
   });
 });

@@ -4,13 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { SkeletonRows } from "@/components/ui/feedback";
-import { SidePanel } from "@/components/ui/side-panel";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
+import { SkeletonRows } from "@/ui/feedback";
+import { SidePanel } from "@/ui/side-panel";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl, routes, withTaskParam } from "@/lib/routes";
 import { taskOrigin } from "./task-origin";
 

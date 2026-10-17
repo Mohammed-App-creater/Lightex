@@ -1,9 +1,9 @@
 "use client";
 
-import { Tooltip } from "@/components/ui/tooltip";
-import { DEV_ICON, DevGlyph } from "@/features/integrations/icons";
-import { prChip, type ChipVariant } from "@/features/integrations/lib/dev-lib";
-import type { TaskDevSummary } from "@/lib/api/types";
+import { Tooltip } from "@/ui/tooltip";
+import { DEV_ICON, DevGlyph } from "@/modules/tracking/integrations/icons";
+import { prChip, type ChipVariant } from "@/modules/tracking/integrations/lib/dev-lib";
+import type { TaskDevSummary } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 const TONE: Record<ChipVariant, string> = {

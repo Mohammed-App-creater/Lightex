@@ -1,10 +1,10 @@
 "use client";
 
-import { Switch } from "@/components/ui/choice";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences } from "@/lib/api/types";
+import { Switch } from "@/ui/choice";
+import type { NotificationChannel, NotificationEvent, NotificationPreferences } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { EVENTS, PREF_ROWS } from "../events";
-import { EventIcon } from "../icons";
+import { EVENTS, PREF_ROWS } from "@/platform/notifications/events";
+import { EventIcon } from "@/platform/notifications/icons";
 import { ChannelIcon } from "./icons";
 import { CHANNEL_NAME, CHANNEL_ORDER, CHANNEL_SHORT, type ColumnState } from "./model";
 

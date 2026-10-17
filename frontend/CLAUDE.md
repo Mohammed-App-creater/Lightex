@@ -45,7 +45,8 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 
 ## Architecture
 
-- **`src/app/`** — routes. Pages are thin and render a screen from `src/features/<area>/`.
+- **`src/app/`** — routes. Pages are thin and render a screen from `src/platform/<area>/` or
+  `src/modules/tracking/<area>/`. Page URLs are unchanged by the platform restructure.
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
@@ -56,12 +57,12 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Import wizard (v2, board 40): no route; `?import=new|<jobId>` on any project view (`ImportWizardHost` in the
     project shell), history in project settings `?tab=import`.
 - **Task side panel:** `?task=KEY` on any project view (`TaskPanelHost`, with a card→panel morph).
-- **`src/components/ui/`** — design-system primitives. Always reuse these:
+- **`src/ui/`** — design-system primitives. Always reuse these:
   - Button (`disabledReason`, `kbd`), Menu, Modal/Sheet/Drawer, SidePanel, Tabs/NavTabs/FilterPills, toast;
   - feedback: Skeleton, EmptyState (with `illustration`), ErrorState, ProgressBar/Ring.
-- **`src/components/shell/`** — sidebar, top bar (`TopBarActions` portal), global hotkeys, dev tools, edge screens
+- **`src/platform/shell/`** — sidebar, top bar (`TopBarActions` portal), global hotkeys, dev tools, edge screens
   (404/403/500).
-- **`src/lib/api/`** — the only place that talks to a server.
+- **`src/api/`** — the only place that talks to a server.
   - Screens call `api.<group>.<fn>` from `endpoints.ts`, with query keys from `qk` in `query-keys.ts`.
   - `getTransport()` picks `HttpTransport` (live) or `MockTransport` (mock) based on `NEXT_PUBLIC_API_MODE`.
   - Errors: `ApiError { code, message, details, status }`.
@@ -69,17 +70,32 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   `app/[workspace]/layout.tsx`) elects a leader tab (Web Locks + BroadcastChannel); the leader runs the fetch-based
   stream (`http-source.ts`, or `MockRealtimeSource` in mock mode, in-process) and every tab applies events to its
   cache (`apply-event.ts`). `useLiveInterval(ms)` is `false` while live, `ms` otherwise; use it instead of a literal
-  `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`features/presence`).
-- **`src/lib/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts`. Each handler file exports `register<Area>()`,
+  `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`platform/presence`).
+- **`src/lib/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts` (tracking routes registered as `/tracking/...`). Each handler file exports `register<Area>()`,
   which is called from `mock/transport.ts`.
   - Realtime: handlers publish events through `mockBus` (`mock/realtime.ts`); the transport emits a request's events
     only when its handler succeeds. Planning and settings routes publish from the table in `mock/publish-routes.ts`.
   - The mock enforces permissions and `version` conflicts server-side. Keep the UI's gating identical.
   - Data is cached in localStorage (`lightex-mock-db`). Bump `SCHEMA` in `seed.ts` only when the seed shape really
     changes; new collections are added as optional fields instead.
-- **`src/lib/permissions/`** — the permission catalogue, the 7 default roles, and `useCan`, `<Can>`, `can()`,
+- **`src/platform/roles/`** — the permission catalogue, the 7 default roles, and `useCan`, `<Can>`, `can()`,
   `canEditTask`.
-- **`src/features/`** — one folder per product area. Each holds its screens, queries, mutations and tests.
+- **Layout (platform Stage 1, `docs/platform-architecture.md` §11 and `docs/platform/stage1-contract.md` at the
+  repo root).** One folder per product area; each holds its screens, queries, mutations and tests.
+  - `src/platform/` — core: shell, auth, workspace, settings, members, roles (catalogue, `can`, role editor),
+    notifications, search, audit, trash, onboarding, palette, presence.
+  - `src/modules/tracking/` — the tracking module: projects, board, list, tasks, sprints, epics, goals, filters,
+    schedule, reports, dashboards, fields, dependencies, time, import, integrations, development, my-tasks,
+    project-settings. `src/modules/sales/` is an empty placeholder (Stage 3).
+  - `src/registry/` — the module registry (key, name, sidebar nav items). The sidebar renders module links from it;
+    add a module's nav there, not in `sidebar.tsx`.
+  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` should not grow
+    new imports of `modules/` (existing ones are Stage 2 work).
+- **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
+  (everything project-related); catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
+  (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
+  `core.<entity>.<verb>` (stream control events `hello` / `reset` / `reconnect` stay bare); notification
+  preference keys are `tracking.task.assigned` and so on. `actionEntity()` in `src/lib/audit.ts` strips the prefix.
 
 ## Rules that must not be broken
 
@@ -91,7 +107,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Live mode: access token in memory only, refresh token in an httpOnly cookie. On a 401, refresh once and retry once.
     Never put tokens in web storage.
   - Mock mode: the session is a user id in `lightex-mock-session`. It is not a token.
-- **Mutations:** optimistic, with rollback and a toast (`src/features/tasks/mutations.ts`, `src/lib/api/optimistic.ts`).
+- **Mutations:** optimistic, with rollback and a toast (`src/modules/tracking/tasks/mutations.ts`, `src/api/optimistic.ts`).
   Board moves send `version`; a 409 shows "Someone else changed this card".
 - **Freshness:** No WebSockets. One SSE stream (`src/lib/realtime/`) invalidates queries while live; otherwise
   refetch on window focus and poll the board and inbox every 30s while visible. SSE is the agreed exception (board 33);
@@ -121,10 +137,10 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     with `#connect=<attempt>.<token>` on `/[ws]/settings/integrations`; the screen strips the fragment before the
     confirm call. In mock mode `authorizeUrl` is `#mock-authorize=<provider>.<attempt>` and the design's
     "Authorize Lightex" dialog stands in for the provider. Task-key matching and branch names live in
-    `src/features/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
+    `src/modules/tracking/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
     text; keys are highlighted with React parts, never innerHTML.
   - Notification channels (board 38): `/[ws]/settings/notifications` has Channels, the 6 × 5 preference matrix and
-    quiet hours (`src/features/notifications/channels/`). Pure logic (phone numbers with shared
+    quiet hours (`src/platform/notifications/channels/`). Pure logic (phone numbers with shared
     `phone-vectors.json`, quiet hours, the matrix / row model, the Telegram and SMS state machines, OTP editing,
     push flows) is unit-tested there. Push uses the static `public/sw.js` (scope `/`, no fetch listener; header rule
     in `next.config.ts`) behind a `PushPlatform` (`push.ts`: browser, mock and `fakePushPlatform`). The VAPID key comes

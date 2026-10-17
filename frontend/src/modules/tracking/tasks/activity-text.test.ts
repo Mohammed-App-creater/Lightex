@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { ActivityEntry, AuditEntry } from "@/lib/api/types";
+import type { ActivityEntry, AuditEntry } from "@/api/types";
 import { auditActionKind } from "@/lib/audit";
-import { DEFAULT_ROLES } from "@/lib/permissions/catalogue";
+import { DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { activityText } from "./activity-text";
 
 /* Board 39 vocabulary: audit kinds, activity verbs and the new default-role grants. */
@@ -11,14 +11,14 @@ const act = (verb: ActivityEntry["verb"], data: ActivityEntry["data"]): Activity
 
 describe("board 39 vocabulary", () => {
   it("maps the new audit actions to kinds", () => {
-    expect(auditActionKind(row("project.custom_field_created"))).toBe("created");
-    expect(auditActionKind(row("project.custom_field_deleted"))).toBe("deleted");
-    expect(auditActionKind(row("task.time_entry_deleted"))).toBe("deleted");
-    expect(auditActionKind(row("project.custom_field_updated"))).toBe("updated");
-    expect(auditActionKind(row("project.custom_fields_reordered"))).toBe("updated");
-    expect(auditActionKind(row("task.dependency_added"))).toBe("updated");
-    expect(auditActionKind(row("task.dependency_removed"))).toBe("updated");
-    expect(auditActionKind(row("task.time_logged"))).toBe("updated");
+    expect(auditActionKind(row("tracking.project.custom_field_created"))).toBe("created");
+    expect(auditActionKind(row("tracking.project.custom_field_deleted"))).toBe("deleted");
+    expect(auditActionKind(row("tracking.task.time_entry_deleted"))).toBe("deleted");
+    expect(auditActionKind(row("tracking.project.custom_field_updated"))).toBe("updated");
+    expect(auditActionKind(row("tracking.project.custom_fields_reordered"))).toBe("updated");
+    expect(auditActionKind(row("tracking.task.dependency_added"))).toBe("updated");
+    expect(auditActionKind(row("tracking.task.dependency_removed"))).toBe("updated");
+    expect(auditActionKind(row("tracking.task.time_logged"))).toBe("updated");
   });
 
   it("writes the dependency activity lines", () => {
@@ -27,15 +27,15 @@ describe("board 39 vocabulary", () => {
     expect(activityText(act("dependency_removed", { relation: "blocks", otherKey: "PRJ-48" }))).toBe("removed the dependency on PRJ-48");
   });
 
-  it("grants field.manage, time.log and time.delete_any per §3.2", () => {
-    const grants = Object.fromEntries(DEFAULT_ROLES.map((r) => [r.key, ["field.manage", "time.log", "time.delete_any"].filter((p) => (r.permissions as string[]).includes(p))]));
+  it("grants tracking.field.manage, tracking.time.log and tracking.time.delete_any per §3.2", () => {
+    const grants = Object.fromEntries(DEFAULT_ROLES.map((r) => [r.key, ["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"].filter((p) => (r.permissions as string[]).includes(p))]));
     expect(grants).toEqual({
       owner: [],
       admin: [],
       member: [],
-      project_admin: ["field.manage", "time.log", "time.delete_any"],
-      manager: ["field.manage", "time.log", "time.delete_any"],
-      project_member: ["time.log"],
+      project_admin: ["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"],
+      manager: ["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"],
+      project_member: ["tracking.time.log"],
       viewer: [],
     });
   });

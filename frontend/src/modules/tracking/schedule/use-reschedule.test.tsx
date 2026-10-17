@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useToasts } from "@/components/ui/toast";
-import { setTransport } from "@/lib/api/client";
-import { ApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { RequestOptions, Transport } from "@/lib/api/transport";
-import type { Task } from "@/lib/api/types";
+import { useToasts } from "@/ui/toast";
+import { setTransport } from "@/api/client";
+import { ApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { RequestOptions, Transport } from "@/api/transport";
+import type { Task } from "@/api/types";
 import { BURST_MS, useReschedule } from "./use-reschedule";
 
 /* Board 32 §6.6: optimistic reschedule, ordered commits with the fresh version, rollback, Undo window. */

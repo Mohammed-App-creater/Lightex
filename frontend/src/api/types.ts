@@ -13,50 +13,53 @@ export type ISODateTime = string;
 /* ───────────────────────── Permissions ───────────────────────── */
 
 export const WORKSPACE_PERMISSIONS = [
-  "workspace.view",
-  "workspace.update",
-  "workspace.delete",
-  "workspace.manage_members",
-  "workspace.manage_roles",
-  "project.create",
-  "project.assign_admin",
+  "core.workspace.view",
+  "core.workspace.update",
+  "core.workspace.delete",
+  "core.workspace.manage_members",
+  "core.roles.manage",
+  "tracking.project.create",
+  "tracking.project.assign_admin",
   /* Board 37 (v2): connect GitHub / GitLab, choose repositories, disconnect. */
-  "integration.manage",
-  "audit.view",
+  "tracking.integration.manage",
+  "core.audit.view",
+  /* Stage 1 (platform): no endpoints or UI yet (Stages 3 and 4). */
+  "core.modules.manage",
+  "core.teams.manage",
 ] as const;
 
 export const PROJECT_PERMISSIONS = [
-  "project.view",
-  "project.update",
-  "project.archive",
-  "project.delete",
-  "project.manage_members",
-  "objective.manage",
-  "milestone.manage",
-  "epic.manage",
-  "sprint.manage",
-  "status.manage",
-  "field.manage",
-  "task.create",
-  "task.edit_any",
-  "task.edit_own",
-  "task.delete",
-  "task.assign",
-  "task.move",
-  "project.import",
+  "tracking.project.view",
+  "tracking.project.update",
+  "tracking.project.archive",
+  "tracking.project.delete",
+  "tracking.project.manage_members",
+  "tracking.objective.manage",
+  "tracking.milestone.manage",
+  "tracking.epic.manage",
+  "tracking.sprint.manage",
+  "tracking.status.manage",
+  "tracking.field.manage",
+  "tracking.task.create",
+  "tracking.task.edit_any",
+  "tracking.task.edit_own",
+  "tracking.task.delete",
+  "tracking.task.assign",
+  "tracking.task.move",
+  "tracking.project.import",
   /* Board 37 (v2): create branches, link and unlink PRs, commits and branches. */
-  "development.link",
-  "time.log",
-  "time.delete_any",
-  "comment.create",
-  "comment.edit_own",
-  "comment.delete_any",
-  "attachment.upload",
-  "attachment.delete_any",
+  "tracking.development.link",
+  "tracking.time.log",
+  "tracking.time.delete_any",
+  "tracking.comment.create",
+  "tracking.comment.edit_own",
+  "tracking.comment.delete_any",
+  "tracking.attachment.upload",
+  "tracking.attachment.delete_any",
   /* Board 33 (v2): dashboards. */
-  "dashboard.create",
-  "dashboard.manage",
-  "report.view",
+  "tracking.dashboard.create",
+  "tracking.dashboard.manage",
+  "tracking.report.view",
 ] as const;
 
 export type WorkspacePermission = (typeof WORKSPACE_PERMISSIONS)[number];
@@ -66,8 +69,12 @@ export type RoleScope = "workspace" | "project";
 
 export type PermissionGroup = "Tasks" | "Planning" | "Collaboration" | "Reports" | "Administration";
 
+/** Who owns a permission (Stage 1 contract §1). Independent of `scope`. */
+export type PermissionModule = "core" | "tracking";
+
 export interface PermissionInfo {
   key: Permission;
+  module: PermissionModule;
   scope: RoleScope;
   group: PermissionGroup;
   label: string;
@@ -108,7 +115,7 @@ export interface Workspace {
   memberCount: number;
   myRoleId: ID;
   my_permissions: WorkspacePermission[];
-  /** Board 38 (additive, optional so older payloads still parse). PATCH needs `workspace.update`. */
+  /** Board 38 (additive, optional so older payloads still parse). PATCH needs `core.workspace.update`. */
   notificationPolicy?: { sms: boolean };
 }
 
@@ -485,9 +492,9 @@ export type ActivityVerb =
   | "member_added"
   | "dependency_added"
   | "dependency_removed"
-  /** Board 40: `task.imported` (task feed) and `project.import_completed` (project / workspace feeds). */
+  /** Board 40: `tracking.task.imported` (task feed) and `tracking.project.import_completed` (project / workspace feeds). */
   | "imported"
-  /* Board 37: `task.dev_linked` (PR/MR), `task.dev_branch_created`, `task.dev_pr_state` → merged. */
+  /* Board 37: `tracking.task.dev_linked` (PR/MR), `tracking.task.dev_branch_created`, `tracking.task.dev_pr_state` → merged. */
   | "dev_linked"
   | "dev_branch_created"
   | "dev_pr_merged";
@@ -541,7 +548,13 @@ export interface Notification {
   readAt: ISODateTime | null;
 }
 
-export type NotificationEvent = "assigned" | "mentioned" | "status_change" | "comment" | "due_soon" | "sprint_started";
+export type NotificationEvent =
+  | "tracking.task.assigned"
+  | "tracking.comment.mentioned"
+  | "tracking.task.status_changed"
+  | "tracking.comment.created"
+  | "tracking.task.due_soon"
+  | "tracking.sprint.started";
 /** Board 38 (v2): the channels that leave the app. */
 export type ExternalChannel = "telegram" | "sms" | "push";
 /** Widened from v1 (`in_app` | `email`) by board 38. */
@@ -665,7 +678,7 @@ export interface ChannelTestResult {
 export interface AuditEntry {
   id: ID;
   actorId: ID;
-  /** "<entity>.<verb>", e.g. "task.status_changed", "member.invited". */
+  /** "<entity>.<verb>", e.g. "tracking.task.status_changed", "core.member.invited". */
   action: string;
   /** Human-readable entity name at the time of the event (task title, email, role name…). */
   target: string;

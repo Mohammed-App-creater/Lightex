@@ -3,8 +3,8 @@
  * client-side CSV export. No React in here so everything is unit-tested in lib.test.ts.
  */
 
-import type { ReportKpis, ReportRange } from "@/lib/api/endpoints";
-import type { BurndownPoint, CycleBin, ProgressRow, ThroughputPoint, VelocityPoint } from "@/lib/api/types";
+import type { ReportKpis, ReportRange } from "@/api/endpoints";
+import type { BurndownPoint, CycleBin, ProgressRow, ThroughputPoint, VelocityPoint } from "@/api/types";
 
 /* ───────────── axis ───────────── */
 

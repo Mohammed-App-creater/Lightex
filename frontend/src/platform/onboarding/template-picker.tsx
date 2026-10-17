@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import type { ProjectTemplate } from "@/lib/api/types";
+import type { ProjectTemplate } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 export const TEMPLATES: { value: ProjectTemplate; label: string }[] = [

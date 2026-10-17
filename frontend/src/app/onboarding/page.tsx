@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AuthGate } from "@/components/shell/app-shell";
-import { Onboarding } from "@/features/onboarding/onboarding";
+import { AuthGate } from "@/platform/shell/app-shell";
+import { Onboarding } from "@/platform/onboarding/onboarding";
 
 export const metadata: Metadata = { title: "Set up your workspace" };
 

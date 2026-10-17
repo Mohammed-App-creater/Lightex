@@ -2,15 +2,15 @@
 
 import { ArrowLeft, Check, Plus, Target } from "lucide-react";
 import { motion } from "motion/react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { useOpenTask } from "@/features/goals/parts";
-import { useProjectMembers } from "@/features/projects/queries";
-import { errorMessage } from "@/lib/api/errors";
-import type { Sprint, Task } from "@/lib/api/types";
-import { useCan } from "@/lib/permissions/can";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
+import { useOpenTask } from "@/modules/tracking/goals/parts";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { errorMessage } from "@/api/errors";
+import type { Sprint, Task } from "@/api/types";
+import { useCan } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { dateRange, shortDate } from "@/lib/utils/dates";
 import { SPRINT_COLUMNS, addedMidSprint, glyphLookup, sumPts, sprintWhen } from "./sprint-model";
@@ -18,7 +18,7 @@ import { useSprintTasks } from "./sprint-review";
 
 /** Sprint board (board 26 "Sprint board"): read-only columns for one sprint; cards open the task panel. */
 export function SprintBoard({ sprint, onBack, onComplete }: { sprint: Sprint; onBack: () => void; onComplete: () => void }) {
-  const canSprint = useCan("sprint.manage");
+  const canSprint = useCan("tracking.sprint.manage");
   const q = useSprintTasks(sprint.projectId, sprint.id);
   const members = useProjectMembers(sprint.projectId);
   const people = new Map((members.data ?? []).map((m) => [m.userId, m.user]));

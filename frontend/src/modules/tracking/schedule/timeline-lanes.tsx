@@ -3,7 +3,7 @@
 import { Flag, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { forwardRef, type ReactNode } from "react";
-import type { Milestone, Sprint, TimelineZoom } from "@/lib/api/types";
+import type { Milestone, Sprint, TimelineZoom } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { barGeometry, dayCenter, fmtDay, overlaps, type Tick, type Window } from "./schedule-lib";
 

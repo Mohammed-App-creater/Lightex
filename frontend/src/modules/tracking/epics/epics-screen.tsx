@@ -5,16 +5,16 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { pushUrl } from "@/lib/routes";
 import { Suspense, useCallback, useMemo, useState } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta, type GlyphKind, type PriorityLevel } from "@/components/ui/glyphs";
-import { useProjectTasks } from "@/features/goals/queries";
-import { useOpenTask } from "@/features/goals/parts";
-import { useEpics, useMilestones, useProjectMembers, useStatuses } from "@/features/projects/queries";
-import { errorMessage } from "@/lib/api/errors";
-import type { Epic, Milestone, Task, User } from "@/lib/api/types";
-import { useCan, useCurrentProject } from "@/lib/permissions/can";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta, type GlyphKind, type PriorityLevel } from "@/ui/glyphs";
+import { useProjectTasks } from "@/modules/tracking/goals/queries";
+import { useOpenTask } from "@/modules/tracking/goals/parts";
+import { useEpics, useMilestones, useProjectMembers, useStatuses } from "@/modules/tracking/projects/queries";
+import { errorMessage } from "@/api/errors";
+import type { Epic, Milestone, Task, User } from "@/api/types";
+import { useCan, useCurrentProject } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { shortDate } from "@/lib/utils/dates";
 import { AddTasksPicker } from "./add-tasks-picker";
@@ -36,7 +36,7 @@ export function EpicsScreen() {
 
 function EpicsInner() {
   const project = useCurrentProject()!;
-  const canManage = useCan("epic.manage");
+  const canManage = useCan("tracking.epic.manage");
   const epicsQ = useEpics(project.id);
   const tasksQ = useProjectTasks(project.id);
   const statusesQ = useStatuses(project.id);
@@ -421,7 +421,7 @@ function EpicDetail({
   onRestore: () => void;
 }) {
   const project = useCurrentProject()!;
-  const canEditTasks = useCan("task.edit_any");
+  const canEditTasks = useCan("tracking.task.edit_any");
   const canAssign = canManage && canEditTasks;
   const assign = useAssignEpic(project.id);
   const openTask = useOpenTask();

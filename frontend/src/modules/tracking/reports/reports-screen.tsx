@@ -4,14 +4,14 @@ import { Lock } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { CountUp, EmptyState, Skeleton } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { useProjects } from "@/features/workspace/queries";
-import { isApiError } from "@/lib/api/errors";
-import type { Project, Workspace } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { CountUp, EmptyState, Skeleton } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { useProjects } from "@/platform/workspace/queries";
+import { isApiError } from "@/api/errors";
+import type { Project, Workspace } from "@/api/types";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
-import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl, routes } from "@/lib/routes";
 import { BurndownCard, CycleTimeCard, ThroughputCard, VelocityCard } from "./charts";
 import { ExportMenu, ProjectSelect, RangeSelect } from "./controls";
@@ -33,7 +33,7 @@ import { useReportQueries, type ReportQueries } from "./queries";
 export function ReportsScreen() {
   const project = useCurrentProject();
   const ws = useCurrentWorkspace();
-  const allowed = useCan("report.view");
+  const allowed = useCan("tracking.report.view");
   if (!project || !ws) return null;
   if (!allowed) return <NoAccess ws={ws} project={project} />;
   return <ReportsBody ws={ws} project={project} />;
@@ -78,7 +78,7 @@ function ReportsBody({ ws, project }: { ws: Workspace; project: Project }) {
   const mobile = useIsMobile();
   const projectsQ = useProjects(ws.slug);
   const projects = useMemo(
-    () => (projectsQ.data ?? []).filter((p) => p.status === "active" && can("report.view", p.my_permissions)),
+    () => (projectsQ.data ?? []).filter((p) => p.status === "active" && can("tracking.report.view", p.my_permissions)),
     [projectsQ.data],
   );
   const q = useReportQueries(project.id, range);

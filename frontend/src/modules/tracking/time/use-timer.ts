@@ -2,11 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { RunningTimer, TimeEntry } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { RunningTimer, TimeEntry } from "@/api/types";
 import { todayISO } from "@/lib/utils/dates";
 import { formatMinutes } from "./duration";
 

@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { DateChip, DatePicker } from "@/components/ui/date-picker";
-import { Skeleton } from "@/components/ui/feedback";
-import { Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
-import { useProjectMembers } from "@/features/projects/queries";
-import type { CustomField, CustomFieldValue, TaskDetail, TaskPatch } from "@/lib/api/types";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Avatar } from "@/ui/avatar";
+import { DateChip, DatePicker } from "@/ui/date-picker";
+import { Skeleton } from "@/ui/feedback";
+import { Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import type { CustomField, CustomFieldValue, TaskDetail, TaskPatch } from "@/api/types";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
-import { PresenceField } from "@/features/presence/presence-ui";
+import { PresenceField } from "@/platform/presence/presence-ui";
 import { cn } from "@/lib/utils/cn";
 import { todayISO } from "@/lib/utils/dates";
 import { displayValue, hasValue, TEXT_MAX, validateValue, visibleRows } from "./field-lib";
@@ -27,7 +27,7 @@ export function TaskCustomFields({ task, canEdit, revealed, onPatch }: { task: T
   const fieldsQ = useCustomFields(task.projectId);
   const { data: members = [] } = useProjectMembers(task.projectId);
   const memberMap = new Map(members.map((m) => [m.userId, m.user]));
-  const canManage = can("field.manage", task.project.my_permissions);
+  const canManage = can("tracking.field.manage", task.project.my_permissions);
   const hasAnyValue = Object.keys(task.customFields ?? {}).length > 0;
 
   const header = (

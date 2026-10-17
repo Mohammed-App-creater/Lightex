@@ -1,10 +1,16 @@
-import type { AuditEntry } from "@/lib/api/types";
+import type { AuditEntry } from "@/api/types";
 
 /*
  * Audit vocabulary shared by the audit screen and the mock backend (board 31).
- * Actions on the wire are "<entity>.<verb>" (e.g. "task.status_changed"); the UI groups them into
- * eight action kinds and eight entity types for filtering.
+ * Actions on the wire are "<module>.<entity>.<verb>" (e.g. "tracking.task.status_changed",
+ * "core.member.invited"); the UI groups them into eight action kinds and eight entity types for filtering.
  */
+
+/** The entity part of an action: "tracking.task.status_changed" → "task". */
+export function actionEntity(action: string): string {
+  const parts = action.split(".");
+  return (parts[0] === "core" || parts[0] === "tracking" ? parts[1] : parts[0]) ?? "";
+}
 
 export const AUDIT_ACTION_KINDS = ["created", "updated", "status", "assigned", "commented", "deleted", "role", "invited"] as const;
 export type AuditActionKind = (typeof AUDIT_ACTION_KINDS)[number];
@@ -21,7 +27,7 @@ export const AUDIT_RANGES = [
 export type AuditRange = (typeof AUDIT_RANGES)[number]["id"];
 
 export function auditEntity(e: Pick<AuditEntry, "action" | "entityType">): AuditEntityType {
-  const t = e.entityType ?? e.action.split(".")[0];
+  const t = e.entityType ?? actionEntity(e.action);
   return (AUDIT_ENTITY_TYPES as readonly string[]).includes(t ?? "") ? (t as AuditEntityType) : "workspace";
 }
 
@@ -44,7 +50,7 @@ export function auditActionKind(e: Pick<AuditEntry, "action" | "entityType">): A
       return "commented";
     case "created":
       return auditEntity(e) === "comment" ? "commented" : "created";
-    // Board 40: task.imported → created; project.import_started / import_completed fall through to "updated".
+    // Board 40: tracking.task.imported → created; project.import_started / import_completed fall through to "updated".
     case "imported":
       return "created";
     default:

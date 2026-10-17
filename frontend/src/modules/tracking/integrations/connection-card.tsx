@@ -2,15 +2,15 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Menu, MenuCheckboxItem, MenuContent, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { Spinner } from "@/components/ui/spinner";
-import { toast } from "@/components/ui/toast";
-import { useProjects } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Integration, IntegrationsOverview, Project, Repository } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Menu, MenuCheckboxItem, MenuContent, MenuLabel, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { Spinner } from "@/ui/spinner";
+import { toast } from "@/ui/toast";
+import { useProjects } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Integration, IntegrationsOverview, Project, Repository } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ago } from "@/lib/utils/dates";
 import { DEV_ICON, DevGlyph, ProviderLogo } from "./icons";

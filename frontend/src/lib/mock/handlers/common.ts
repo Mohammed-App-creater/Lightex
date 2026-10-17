@@ -1,4 +1,4 @@
-import type { ActivityVerb, NotificationEvent, NotificationType } from "@/lib/api/types";
+import type { ActivityVerb, NotificationEvent, NotificationType } from "@/api/types";
 import { nowISO, uid } from "../db";
 import type { MockDB, TaskRec } from "../db-types";
 import { publishInbox } from "../realtime";
@@ -28,12 +28,12 @@ export function logActivity(
 
 /** Preference row per type; access requests have none (they can't be switched off). */
 const EVENT_FOR: Record<NotificationType, NotificationEvent | null> = {
-  assigned: "assigned",
-  mention: "mentioned",
-  status: "status_change",
-  comment: "comment",
-  due: "due_soon",
-  sprint: "sprint_started",
+  assigned: "tracking.task.assigned",
+  mention: "tracking.comment.mentioned",
+  status: "tracking.task.status_changed",
+  comment: "tracking.comment.created",
+  due: "tracking.task.due_soon",
+  sprint: "tracking.sprint.started",
   access: null,
   import: null,
 };

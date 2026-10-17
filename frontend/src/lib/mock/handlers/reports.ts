@@ -1,4 +1,4 @@
-import type { BurndownPoint, CycleBin, ProgressRow, ThroughputPoint, VelocityPoint } from "@/lib/api/types";
+import type { BurndownPoint, CycleBin, ProgressRow, ThroughputPoint, VelocityPoint } from "@/api/types";
 import { DAY, isDoneStatus, parseDate, startOfToday } from "@/lib/domain/progress";
 import type { MockDB } from "../db-types";
 import { liveTasks, statusesOf, toMilestone, toObjective } from "../derive";
@@ -57,11 +57,11 @@ function completedSprintCount(db: MockDB, projectId: string, key: string) {
 export function registerReports() {
   const guard = (ctx: Ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "report.view");
+    requireProject(ctx, p.id, "tracking.report.view");
     return p;
   };
 
-  route("GET", "/projects/:id/reports/kpis", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/kpis", (ctx) => {
     const p = guard(ctx);
     const statuses = statusesOf(ctx.db, p.id);
     const tasks = liveTasks(ctx.db, p.id);
@@ -92,7 +92,7 @@ export function registerReports() {
     };
   });
 
-  route("GET", "/projects/:id/reports/burndown", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/burndown", (ctx) => {
     const p = guard(ctx);
     const sprintId = String(ctx.query.filter?.sprint ?? "");
     const sprint = (sprintId && ctx.db.sprints.find((s) => s.id === sprintId)) || activeSprint(ctx.db, p.id);
@@ -118,7 +118,7 @@ export function registerReports() {
     return { sprint: { id: sprint.id, name: sprint.name, startDate: sprint.startDate, endDate: sprint.endDate }, points };
   });
 
-  route("GET", "/projects/:id/reports/velocity", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/velocity", (ctx) => {
     const p = guard(ctx);
     const range = rangeOf(ctx);
     const statuses = statusesOf(ctx.db, p.id);
@@ -148,7 +148,7 @@ export function registerReports() {
     return { points: out, insufficient: out.length < 3, completedSprints: completedSprintCount(ctx.db, p.id, p.key) };
   });
 
-  route("GET", "/projects/:id/reports/cycle-time", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/cycle-time", (ctx) => {
     const p = guard(ctx);
     const range = rangeOf(ctx);
     const labels = ["<1d", "1–2d", "2–3d", "3–5d", "5–8d", "8d+"];
@@ -178,7 +178,7 @@ export function registerReports() {
     return { bins, total, medianDays: median, insufficient: total < 10 };
   });
 
-  route("GET", "/projects/:id/reports/throughput", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/throughput", (ctx) => {
     const p = guard(ctx);
     const range = rangeOf(ctx);
     const weeks = RANGE_WEEKS[range];
@@ -203,7 +203,7 @@ export function registerReports() {
     return { points, insufficient: points.reduce((a, b) => a + b.done, 0) < 5 };
   });
 
-  route("GET", "/projects/:id/reports/progress", (ctx) => {
+  route("GET", "/tracking/projects/:id/reports/progress", (ctx) => {
     const p = guard(ctx);
     const rows: ProgressRow[] = [];
     ctx.db.objectives

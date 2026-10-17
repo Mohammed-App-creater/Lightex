@@ -9,9 +9,9 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { Wordmark } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api/endpoints";
+import { Wordmark } from "@/ui/brand/logo";
+import { Button } from "@/ui/button";
+import { api } from "@/api/endpoints";
 import { apiMode } from "@/lib/env";
 import { cn } from "@/lib/utils/cn";
 import { AuthStyles, authStylesClasses as s } from "./auth-styles";

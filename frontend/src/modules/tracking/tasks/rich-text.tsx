@@ -13,9 +13,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import type { RichDoc, RichNode, User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import type { RichDoc, RichNode, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /* ─────────────────────────── Read-only renderer ─────────────────────────── */

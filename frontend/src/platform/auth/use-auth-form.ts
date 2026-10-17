@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef } from "react";
 import { useForm, type FieldValues, type Path, type Resolver, type UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
-import { errorMessage, isApiError } from "@/lib/api/errors";
+import { errorMessage, isApiError } from "@/api/errors";
 
 /**
  * Board 21 §2.6 validation timing: an error shows on blur only when the field has a value

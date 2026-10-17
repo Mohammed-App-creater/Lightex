@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { CheckState, Integration, TaskDevSummary } from "@/lib/api/types";
+import type { CheckState, Integration, TaskDevSummary } from "@/api/types";
 import { BRANCH_ERRORS, suggestBranch, validateBranch } from "./branch-name";
 import { aggregateChecks, checksAria, connectErrorCopy, devCountLabel, formatDuration, hashHue, integrationMeta, parseConnectFragment, prChip } from "./dev-lib";
 import vectors from "./dev-vectors.json";

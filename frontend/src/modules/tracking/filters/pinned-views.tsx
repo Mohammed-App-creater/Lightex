@@ -4,11 +4,11 @@ import { ChevronDown, GripVertical, Pencil, Pin, PinOff, Trash2, Users } from "l
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Tooltip } from "@/components/ui/tooltip";
-import { toast } from "@/components/ui/toast";
-import { useSession } from "@/features/auth/session";
-import { useProjects } from "@/features/workspace/queries";
-import type { SavedView } from "@/lib/api/types";
+import { Tooltip } from "@/ui/tooltip";
+import { toast } from "@/ui/toast";
+import { useSession } from "@/platform/auth/session";
+import { useProjects } from "@/platform/workspace/queries";
+import type { SavedView } from "@/api/types";
 import { routes, useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { withRules } from "./filter-model";

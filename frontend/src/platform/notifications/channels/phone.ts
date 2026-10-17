@@ -1,4 +1,4 @@
-import type { SmsCountry } from "@/lib/api/types";
+import type { SmsCountry } from "@/api/types";
 
 /*
  * Phone numbers for SMS (board 38, spec §5.6). Pure: the SMS dialog formats with these, and the mock

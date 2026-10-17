@@ -1,5 +1,5 @@
-import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, TaskType, Priority } from "@/lib/api/types";
-import { DEFAULT_ROLES } from "@/lib/permissions/catalogue";
+import type { Label, NotificationPreferences, RichDoc, Status, StatusGlyph, TaskType, Priority } from "@/api/types";
+import { DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { keysBetween } from "@/lib/utils/fractional-index";
 import { ensureExt39 } from "./handlers/extensions";
 import { ensureExt40 } from "./handlers/imports";
@@ -7,7 +7,7 @@ import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
 import { ensureExt38 } from "./handlers/channels";
-import { defaultPreferences } from "@/features/notifications/channels/model";
+import { defaultPreferences } from "@/platform/notifications/channels/model";
 import type {
   AttachmentRec,
   MockDB,
@@ -18,7 +18,8 @@ import type {
   WsMemberRec,
 } from "./db-types";
 
-export const SCHEMA = 3;
+/** 4: Stage 1 namespaced permission codes, event types, audit actions and preference keys. */
+export const SCHEMA = 4;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -166,16 +167,16 @@ export function createSeed(): MockDB {
     scope: "project",
     isSystem: false,
     permissions: [
-      "project.view",
-      "sprint.manage",
-      "milestone.manage",
-      "task.create",
-      "task.edit_any",
-      "task.edit_own",
-      "task.move",
-      "comment.create",
-      "comment.edit_own",
-      "report.view",
+      "tracking.project.view",
+      "tracking.sprint.manage",
+      "tracking.milestone.manage",
+      "tracking.task.create",
+      "tracking.task.edit_any",
+      "tracking.task.edit_own",
+      "tracking.task.move",
+      "tracking.comment.create",
+      "tracking.comment.edit_own",
+      "tracking.report.view",
     ],
   };
   db.roles.push(custom);
@@ -699,9 +700,9 @@ export function createSeed(): MockDB {
   act("a11", RC, "status_changed", 9, 200, { to: "In review" }, "p_inf");
 
   db.audit.push(
-    { id: "au1", workspaceId: "ws_platform", actorId: AK, action: "role.updated", target: "Release captain", createdAt: ago(60 * 30) },
-    { id: "au2", workspaceId: "ws_platform", actorId: JL, action: "member.invited", target: "avery@contractor.io", createdAt: ago(60 * 24 * 4) },
-    { id: "au3", workspaceId: "ws_platform", actorId: AK, action: "project.created", target: "Infra", createdAt: ago(60 * 24 * 20) },
+    { id: "au1", workspaceId: "ws_platform", actorId: AK, action: "core.role.updated", target: "Release captain", createdAt: ago(60 * 30) },
+    { id: "au2", workspaceId: "ws_platform", actorId: JL, action: "core.member.invited", target: "avery@contractor.io", createdAt: ago(60 * 24 * 4) },
+    { id: "au3", workspaceId: "ws_platform", actorId: AK, action: "tracking.project.created", target: "Infra", createdAt: ago(60 * 24 * 20) },
   );
 
   db.recents.push(
@@ -737,11 +738,11 @@ export function createSeed(): MockDB {
   ensureExt39(db);
   // Board 32 (v2): PRJ start dates, epic dates and one extra dependency (after board 39's).
   ensureExt32(db);
-  // Board 40: import jobs (lazy collections) and project.import on cached roles.
+  // Board 40: import jobs (lazy collections) and tracking.project.import on cached roles.
   ensureExt40(db);
-  // Board 33 (v2): dashboard.create / dashboard.manage on system roles and the PRJ dashboards.
+  // Board 33 (v2): tracking.dashboard.create / tracking.dashboard.manage on system roles and the PRJ dashboards.
   ensureExt33(db);
-  // Board 37 (v2): integration.manage / development.link, PRJ-41 + PRJ-29, the GitHub connection and its PRs.
+  // Board 37 (v2): tracking.integration.manage / tracking.development.link, PRJ-41 + PRJ-29, the GitHub connection and its PRs.
   ensureExt37(db);
   // Board 38 (v2): u_alex's Telegram + push device, the channel preference keys and quiet hours.
   ensureExt38(db);

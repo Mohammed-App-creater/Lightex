@@ -1,5 +1,5 @@
-import type { Permission, PermissionGroup, PermissionInfo, Role, RoleScope, WorkspaceMember } from "@/lib/api/types";
-import { PERMISSION_GROUP_ORDER } from "@/lib/permissions/catalogue";
+import type { Permission, PermissionGroup, PermissionInfo, Role, RoleScope, WorkspaceMember } from "@/api/types";
+import { PERMISSION_GROUP_ORDER } from "@/platform/roles/catalogue";
 
 /* ───────────────────────── Invite email chips (board 18 A.6) ───────────────────────── */
 
@@ -74,7 +74,7 @@ export function sendLabel(validCount: number) {
  * the only system workspace role that can delete the workspace. Never by name.
  */
 export function isOwnerRole(role: Pick<Role, "scope" | "isSystem" | "permissions">) {
-  return role.scope === "workspace" && role.isSystem && role.permissions.includes("workspace.delete");
+  return role.scope === "workspace" && role.isSystem && role.permissions.includes("core.workspace.delete");
 }
 
 export function rolesFor(roles: Role[], scope: RoleScope) {
@@ -98,7 +98,7 @@ export function defaultRole(roles: Role[], scope: RoleScope): Role | undefined {
 /** The system "Project Admin" role: the project system role that can manage members and delete. */
 export function projectAdminRole(roles: Role[]): Role | undefined {
   return rolesFor(roles, "project")
-    .filter((r) => r.isSystem && r.permissions.includes("project.manage_members"))
+    .filter((r) => r.isSystem && r.permissions.includes("tracking.project.manage_members"))
     .sort((a, b) => b.permissions.length - a.permissions.length)[0];
 }
 

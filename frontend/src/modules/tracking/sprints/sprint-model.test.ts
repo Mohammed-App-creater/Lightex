@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Sprint, Task } from "@/lib/api/types";
+import type { Sprint, Task } from "@/api/types";
 import { allState, completionPlan, contributors, defaultKeep, groupSprints, partitionCarry, reviewStats, sprintWhen } from "./sprint-model";
 
 const NOW = new Date(2026, 9, 7, 10, 30); // Oct 7 2026

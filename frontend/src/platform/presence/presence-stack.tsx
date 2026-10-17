@@ -1,8 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { initialsOf } from "@/components/ui/avatar";
-import type { PresencePerson, User } from "@/lib/api/types";
+import { initialsOf } from "@/ui/avatar";
+import type { PresencePerson, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { groupLabel, personLabel } from "./presence-lib";
 

@@ -1,13 +1,13 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { CustomField } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Modal } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { CustomField } from "@/api/types";
 import { tasksText } from "./field-lib";
 
 /** Delete confirm (board 39): Cancel has focus; the danger button starts the 5 s pending delete. */

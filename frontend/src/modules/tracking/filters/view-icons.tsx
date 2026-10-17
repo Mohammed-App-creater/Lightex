@@ -1,5 +1,5 @@
 import { Calendar, Filter, Flag, Star, UserRound, Zap, type LucideIcon } from "lucide-react";
-import type { ViewIcon } from "@/lib/api/types";
+import type { ViewIcon } from "@/api/types";
 
 export const VIEW_ICONS: { id: ViewIcon; name: string; Icon: LucideIcon }[] = [
   { id: "filter", name: "Filter", Icon: Filter },

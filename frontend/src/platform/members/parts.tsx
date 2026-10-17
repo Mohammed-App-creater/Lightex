@@ -2,8 +2,8 @@
 
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/components/ui/menu";
-import type { Role } from "@/lib/api/types";
+import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
+import type { Role } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { emailInitials } from "./lib";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import type { Task } from "@/lib/api/types";
+import type { Task } from "@/api/types";
 import { spanOf, type Window } from "./schedule-lib";
 import { buildArrows, type TlRow } from "./timeline-model";
 import { usePreviews } from "./use-reschedule";

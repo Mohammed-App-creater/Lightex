@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { THEMES } from "@/app/providers";
-import { toast } from "@/components/ui/toast";
-import { useProjects } from "@/features/workspace/queries";
+import { toast } from "@/ui/toast";
+import { useProjects } from "@/platform/workspace/queries";
 import { useHotkeys } from "@/lib/hooks/use-hotkeys";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
 import { shell } from "./shell-state";
 
@@ -39,13 +39,13 @@ export function GlobalHotkeys() {
     "mod+b": () => shell.toggleCollapsed(),
     "[": () => shell.toggleCollapsed(),
     "?": () => shell.setShortcuts(true),
-    "mod+,": () => router.push(routes.settings(ws.slug, can("workspace.update", ws.my_permissions) ? "general" : "profile")),
+    "mod+,": () => router.push(routes.settings(ws.slug, can("core.workspace.update", ws.my_permissions) ? "general" : "profile")),
     c: () => {
-      if (!projects.some((p) => can("task.create", p.my_permissions))) {
+      if (!projects.some((p) => can("tracking.task.create", p.my_permissions))) {
         toast.info("Your role can’t create tasks in any project");
         return;
       }
-      shell.openCreateTask(current && can("task.create", current.my_permissions) ? { projectId: current.id } : {});
+      shell.openCreateTask(current && can("tracking.task.create", current.my_permissions) ? { projectId: current.id } : {});
     },
     "mod+shift+l": () => cycleTheme(theme, setTheme),
     "g b": go("board"),

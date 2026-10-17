@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import vectors from "@/features/schedule/span-vectors.json";
-import type { ApiError } from "@/lib/api/errors";
-import type { Epic, Paginated, Task } from "@/lib/api/types";
+import vectors from "@/modules/tracking/schedule/span-vectors.json";
+import type { ApiError } from "@/api/errors";
+import type { Epic, Paginated, Task } from "@/api/types";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
 import { checkTaskDates, ensureExt32, scheduleFilter } from "./handlers/schedule";
@@ -24,7 +24,7 @@ async function rejects(p: Promise<unknown>) {
 }
 const rec = (n: number) => getDB().tasks.find((x) => x.id === `p_prj-t${n}`)!;
 const list = (filter: Record<string, string | string[]>, extra: Record<string, string | number> = {}) =>
-  req<Paginated<Task>>("GET", "/projects/p_prj/tasks", undefined, { filter, limit: 500, ...extra });
+  req<Paginated<Task>>("GET", "/tracking/projects/p_prj/tasks", undefined, { filter, limit: 500, ...extra });
 
 beforeEach(() => {
   resetDB();
@@ -81,7 +81,7 @@ describe("range filter (L1)", () => {
     const r = await list({ from: D("2026-09-01"), to: D("2026-11-30"), assignee: "u_sam" });
     expect(r.data.length).toBeGreaterThan(0);
     expect(r.data.every((x) => x.assigneeId === "u_sam")).toBe(true);
-    const paged = await req<Paginated<Task>>("GET", "/projects/p_prj/tasks", undefined, { filter: { from: D("2026-09-01"), to: D("2026-11-30") }, sort: "startDate", limit: 3 });
+    const paged = await req<Paginated<Task>>("GET", "/tracking/projects/p_prj/tasks", undefined, { filter: { from: D("2026-09-01"), to: D("2026-11-30") }, sort: "startDate", limit: 3 });
     expect(paged.data).toHaveLength(3);
     expect(paged.nextCursor).toBe("3");
   });
@@ -98,7 +98,7 @@ describe("range filter (L1)", () => {
   });
 
   it("excludes deleted tasks", async () => {
-    await req("DELETE", `/tasks/${rec(34).id}`);
+    await req("DELETE", `/tracking/tasks/${rec(34).id}`);
     const r = await list({ from: D("2026-10-01"), to: D("2026-10-31") });
     expect(r.data.map((x) => x.key)).not.toContain("PRJ-34");
   });
@@ -108,17 +108,17 @@ describe("reschedule validation (T1–T3)", () => {
   it("moves both dates, resizes each edge and bumps the version once", async () => {
     const t34 = rec(34);
     const v = t34.version;
-    const moved = await req<Task>("PATCH", `/tasks/${t34.id}`, { startDate: D("2026-10-08"), dueDate: D("2026-10-12"), version: v });
+    const moved = await req<Task>("PATCH", `/tracking/tasks/${t34.id}`, { startDate: D("2026-10-08"), dueDate: D("2026-10-12"), version: v });
     expect([moved.startDate, moved.dueDate, moved.version]).toEqual([D("2026-10-08"), D("2026-10-12"), v + 1]);
-    const left = await req<Task>("PATCH", `/tasks/${t34.id}`, { startDate: D("2026-10-03"), version: v + 1 });
+    const left = await req<Task>("PATCH", `/tracking/tasks/${t34.id}`, { startDate: D("2026-10-03"), version: v + 1 });
     expect([left.startDate, left.dueDate]).toEqual([D("2026-10-03"), D("2026-10-12")]);
-    const cleared = await req<Task>("PATCH", `/tasks/${t34.id}`, { startDate: null, version: v + 2 });
+    const cleared = await req<Task>("PATCH", `/tracking/tasks/${t34.id}`, { startDate: null, version: v + 2 });
     expect(cleared.startDate).toBeNull();
   });
 
   it("checks format, then order on the resulting pair, keyed by the field that was sent", async () => {
     const t34 = rec(34);
-    const fields = async (body: Record<string, unknown>) => (await rejects(req("PATCH", `/tasks/${t34.id}`, { ...body, version: t34.version }))).details?.fields;
+    const fields = async (body: Record<string, unknown>) => (await rejects(req("PATCH", `/tracking/tasks/${t34.id}`, { ...body, version: t34.version }))).details?.fields;
     expect(await fields({ startDate: "10/08/2026" })).toEqual({ startDate: "Pick a date" });
     expect(await fields({ dueDate: "2026-02-30" })).toEqual({ dueDate: "Pick a date" });
     expect(await fields({ startDate: D("2026-10-11") })).toEqual({ startDate: "Start date must be on or before the due date" });
@@ -130,63 +130,63 @@ describe("reschedule validation (T1–T3)", () => {
 
   it("checks the version first and enforces the edit rule", async () => {
     const t34 = rec(34);
-    const stale = await rejects(req("PATCH", `/tasks/${t34.id}`, { startDate: D("2026-10-07"), version: t34.version - 1 }));
+    const stale = await rejects(req("PATCH", `/tracking/tasks/${t34.id}`, { startDate: D("2026-10-07"), version: t34.version - 1 }));
     expect([stale.status, stale.code]).toEqual([409, "version_conflict"]);
     expect((stale.details?.current as Task).startDate).toBe(D("2026-10-06"));
     as("u_sam"); // Member: edits own tasks only
-    await expect(req("PATCH", `/tasks/${t34.id}`, { startDate: D("2026-10-07"), version: t34.version })).resolves.toBeTruthy();
+    await expect(req("PATCH", `/tracking/tasks/${t34.id}`, { startDate: D("2026-10-07"), version: t34.version })).resolves.toBeTruthy();
     const other = rec(42);
-    const denied = await rejects(req("PATCH", `/tasks/${other.id}`, { startDate: D("2026-10-02"), version: other.version }));
-    expect([denied.status, denied.details?.permission]).toEqual([403, "task.edit_any"]);
+    const denied = await rejects(req("PATCH", `/tracking/tasks/${other.id}`, { startDate: D("2026-10-02"), version: other.version }));
+    expect([denied.status, denied.details?.permission]).toEqual([403, "tracking.task.edit_any"]);
     as("u_taylor"); // Viewer
-    const viewer = await rejects(req("PATCH", `/tasks/${rec(58).id}`, { dueDate: D("2026-10-18"), version: rec(58).version }));
+    const viewer = await rejects(req("PATCH", `/tracking/tasks/${rec(58).id}`, { dueDate: D("2026-10-18"), version: rec(58).version }));
     expect(viewer.status).toBe(403);
   });
 
   it("create accepts and validates startDate", async () => {
-    const ok = await req<Task>("POST", "/projects/p_prj/tasks", { title: "Spike", startDate: "2026-10-12", dueDate: "2026-10-14" });
+    const ok = await req<Task>("POST", "/tracking/projects/p_prj/tasks", { title: "Spike", startDate: "2026-10-12", dueDate: "2026-10-14" });
     expect([ok.startDate, ok.dueDate]).toEqual(["2026-10-12", "2026-10-14"]);
-    const bad = await rejects(req("POST", "/projects/p_prj/tasks", { title: "Spike", startDate: "2026-10-15", dueDate: "2026-10-14" }));
+    const bad = await rejects(req("POST", "/tracking/projects/p_prj/tasks", { title: "Spike", startDate: "2026-10-15", dueDate: "2026-10-14" }));
     expect(bad.details?.fields).toEqual({ startDate: "Start date must be on or before the due date" });
   });
 
   it("bulk refuses startDate and a due date before a selected start (all or nothing)", async () => {
     const ids = [rec(42).id, rec(34).id];
-    const start = await rejects(req("POST", "/projects/p_prj/tasks/bulk", { ids, patch: { startDate: "2026-10-01" } }));
+    const start = await rejects(req("POST", "/tracking/projects/p_prj/tasks/bulk", { ids, patch: { startDate: "2026-10-01" } }));
     expect(start.details?.fields).toEqual({ "patch.startDate": "This field can’t be bulk-edited" });
-    const early = await rejects(req("POST", "/projects/p_prj/tasks/bulk", { ids, patch: { dueDate: D("2026-10-04") } }));
+    const early = await rejects(req("POST", "/tracking/projects/p_prj/tasks/bulk", { ids, patch: { dueDate: D("2026-10-04") } }));
     expect(early.details?.fields).toEqual({ "patch.dueDate": "PRJ-34 starts after this date" });
     expect(rec(42).dueDate).toBe(D("2026-10-21"));
-    const cleared = await req<Task[]>("POST", "/projects/p_prj/tasks/bulk", { ids, patch: { dueDate: null } });
+    const cleared = await req<Task[]>("POST", "/tracking/projects/p_prj/tasks/bulk", { ids, patch: { dueDate: null } });
     expect(cleared.every((x) => x.dueDate === null && x.startDate)).toBe(true);
   });
 });
 
 describe("epic dates (P1, P2)", () => {
   it("returns, sets, clears and validates both-or-neither", async () => {
-    const epics = await req<Epic[]>("GET", "/projects/p_prj/epics");
+    const epics = await req<Epic[]>("GET", "/tracking/projects/p_prj/epics");
     const sprint = epics.find((e) => e.id === "ep_sprint")!;
     expect([sprint.startDate, sprint.dueDate]).toEqual([D("2026-09-01"), D("2026-10-30")]);
     expect(epics.find((e) => e.id === "ep_legacy")!.startDate).toBeNull();
 
-    const resized = await req<Epic>("PATCH", "/epics/ep_sprint", { startDate: D("2026-09-01"), dueDate: D("2026-11-11") });
+    const resized = await req<Epic>("PATCH", "/tracking/epics/ep_sprint", { startDate: D("2026-09-01"), dueDate: D("2026-11-11") });
     expect(resized.dueDate).toBe(D("2026-11-11"));
-    const one = await rejects(req("PATCH", "/epics/ep_legacy", { startDate: "2026-10-01" }));
+    const one = await rejects(req("PATCH", "/tracking/epics/ep_legacy", { startDate: "2026-10-01" }));
     expect(one.details?.fields).toEqual({ startDate: "Set both dates or neither" });
-    const reversed = await rejects(req("PATCH", "/epics/ep_sprint", { startDate: "2026-11-01", dueDate: "2026-10-01" }));
+    const reversed = await rejects(req("PATCH", "/tracking/epics/ep_sprint", { startDate: "2026-11-01", dueDate: "2026-10-01" }));
     expect(reversed.details?.fields).toEqual({ dueDate: "Target date must be on or after the start date" });
-    const fmt = await rejects(req("PATCH", "/epics/ep_sprint", { dueDate: "soon" }));
+    const fmt = await rejects(req("PATCH", "/tracking/epics/ep_sprint", { dueDate: "soon" }));
     expect(fmt.details?.fields).toEqual({ dueDate: "Pick a date" });
-    const cleared = await req<Epic>("PATCH", "/epics/ep_sprint", { startDate: null, dueDate: null });
+    const cleared = await req<Epic>("PATCH", "/tracking/epics/ep_sprint", { startDate: null, dueDate: null });
     expect([cleared.startDate, cleared.dueDate]).toEqual([null, null]);
-    const created = await req<Epic>("POST", "/projects/p_prj/epics", { name: "Timeline", startDate: "2026-10-01", dueDate: "2026-10-31" });
+    const created = await req<Epic>("POST", "/tracking/projects/p_prj/epics", { name: "Timeline", startDate: "2026-10-01", dueDate: "2026-10-31" });
     expect([created.startDate, created.dueDate]).toEqual(["2026-10-01", "2026-10-31"]);
   });
 
-  it("needs epic.manage", async () => {
+  it("needs tracking.epic.manage", async () => {
     as("u_sam");
-    const denied = await rejects(req("PATCH", "/epics/ep_sprint", { startDate: "2026-09-01", dueDate: "2026-11-01" }));
-    expect([denied.status, denied.details?.permission]).toEqual([403, "epic.manage"]);
+    const denied = await rejects(req("PATCH", "/tracking/epics/ep_sprint", { startDate: "2026-09-01", dueDate: "2026-11-01" }));
+    expect([denied.status, denied.details?.permission]).toEqual([403, "tracking.epic.manage"]);
   });
 });
 

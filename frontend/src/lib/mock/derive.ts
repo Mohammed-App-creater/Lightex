@@ -11,8 +11,8 @@ import type {
   User,
   Workspace,
   WorkspacePermission,
-} from "@/lib/api/types";
-import { PROJECT_PERMISSIONS, WORKSPACE_PERMISSIONS } from "@/lib/api/types";
+} from "@/api/types";
+import { PROJECT_PERMISSIONS, WORKSPACE_PERMISSIONS } from "@/api/types";
 import { expectedPercent, isAtRisk, isDoneStatus, progressOf } from "@/lib/domain/progress";
 import type {
   EpicRec,

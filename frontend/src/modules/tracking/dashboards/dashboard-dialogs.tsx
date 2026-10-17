@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Radio } from "@/components/ui/choice";
-import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { Dashboard, DashboardTemplate, DashboardVisibility, Project } from "@/lib/api/types";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { Button } from "@/ui/button";
+import { Radio } from "@/ui/choice";
+import { Input } from "@/ui/input";
+import { Modal } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { Dashboard, DashboardTemplate, DashboardVisibility, Project } from "@/api/types";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { useCreateDashboard, useUpdateDashboard } from "./queries";
 

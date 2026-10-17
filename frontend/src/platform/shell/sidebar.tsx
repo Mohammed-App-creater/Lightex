@@ -2,37 +2,29 @@
 
 import { motion } from "motion/react";
 import {
-  BarChart3,
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
-  CircleCheck,
   CircleHelp,
-  Columns3,
-  Flag,
   Inbox,
-  ListTodo,
   Monitor,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  RefreshCcw,
   Search,
   Settings,
   Sun,
-  Target,
   Users,
   X,
-  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useMemo, useState, type ReactNode } from "react";
-import { AppIcon } from "@/components/brand/logo";
-import { Avatar, ProjectBadge } from "@/components/ui/avatar";
-import { Kbd } from "@/components/ui/kbd";
+import { AppIcon } from "@/ui/brand/logo";
+import { Avatar, ProjectBadge } from "@/ui/avatar";
+import { Kbd } from "@/ui/kbd";
 import {
   Menu,
   MenuContent,
@@ -44,38 +36,25 @@ import {
   MenuSubContent,
   MenuSubTrigger,
   MenuTrigger,
-} from "@/components/ui/menu";
-import { ProgressRing } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { Tooltip } from "@/components/ui/tooltip";
-import { useSession } from "@/features/auth/session";
-import { useActiveSprint } from "@/features/projects/queries";
-import { useProjects, useRoles, useUnreadCount, useWorkspaces, useMyTasks } from "@/features/workspace/queries";
-import type { Project, Workspace } from "@/lib/api/types";
-import { can, useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+} from "@/ui/menu";
+import { ProgressRing } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { Tooltip } from "@/ui/tooltip";
+import { useSession } from "@/platform/auth/session";
+import { useActiveSprint } from "@/modules/tracking/projects/queries";
+import { useProjects, useRoles, useUnreadCount, useWorkspaces, useMyTasks } from "@/platform/workspace/queries";
+import type { Project, Workspace } from "@/api/types";
+import { can, useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { daysUntil } from "@/lib/domain/progress";
-import { routes, useRouteInfo, type ProjectView } from "@/lib/routes";
+import { routes, useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { useModKey } from "@/lib/hooks/use-platform";
-import { PinnedViews } from "@/features/filters/pinned-views";
+import { PinnedViews } from "@/modules/tracking/filters/pinned-views";
+import { moduleNavItems, projectNavItems } from "@/registry";
 import { shell } from "./shell-state";
 
-const SUB_ITEMS: { view: ProjectView; label: string; icon: ReactNode; gate?: (perms: string[]) => boolean }[] = [
-  { view: "board", label: "Board", icon: <Columns3 size={16} strokeWidth={1.6} aria-hidden /> },
-  { view: "backlog", label: "Backlog", icon: <ListTodo size={16} strokeWidth={1.6} aria-hidden /> },
-  {
-    view: "sprints",
-    label: "Sprints",
-    icon: <RefreshCcw size={16} strokeWidth={1.6} aria-hidden />,
-    // People who plan or move work see sprints; read-only viewers don't (board 13).
-    gate: (p) => can("sprint.manage", p) || can("task.move", p),
-  },
-  { view: "objectives", label: "Objectives", icon: <Target size={16} strokeWidth={1.6} aria-hidden /> },
-  { view: "milestones", label: "Milestones", icon: <Flag size={16} strokeWidth={1.6} aria-hidden /> },
-  { view: "reports", label: "Reports", icon: <BarChart3 size={16} strokeWidth={1.6} aria-hidden />, gate: (p) => can("report.view", p) },
-];
-
-export const subItemsFor = (perms: string[]) => SUB_ITEMS.filter((s) => !s.gate || s.gate(perms));
+/** Project links from the module registry that this project's permissions allow. */
+export const subItemsFor = (perms: string[]) => projectNavItems().filter((s) => !s.gate || s.gate(perms));
 
 const itemBase =
   "relative flex h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 text-[13px] font-medium text-fg-2 transition-colors duration-[var(--dur-fast)] ease-out hover:bg-hover hover:text-fg max-[1023px]:h-[42px]";
@@ -167,7 +146,7 @@ function WorkspaceMenu({ current, rail, children }: { current: Workspace; rail?:
           ))}
         </MenuRadioGroup>
         <MenuSeparator />
-        {can("workspace.update", current.my_permissions) && (
+        {can("core.workspace.update", current.my_permissions) && (
           <MenuItem icon={<Settings size={14} aria-hidden />} onSelect={() => router.push(routes.settings(current.slug, "general"))}>
             Workspace settings
           </MenuItem>
@@ -253,9 +232,9 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
   const { data: unread = 0 } = useUnreadCount(ws.id);
   const { data: myTasks = [] } = useMyTasks(ws.slug);
   const { data: roles = [] } = useRoles(ws.slug);
-  const canCreateProject = useCan("project.create");
-  const canManageMembers = useCan("workspace.manage_members");
-  const canCreateTask = projects.some((p) => can("task.create", p.my_permissions));
+  const canCreateProject = useCan("tracking.project.create");
+  const canManageMembers = useCan("core.workspace.manage_members");
+  const canCreateTask = projects.some((p) => can("tracking.task.create", p.my_permissions));
   const [pinnedOpen, setPinnedOpen] = useState(true);
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [openKey, setOpenKey] = useState<string | null>(route.projectKey);
@@ -299,12 +278,11 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           <Inbox size={16} strokeWidth={1.6} aria-hidden />
           {unread > 0 && <span aria-hidden className="absolute right-2 top-[7px] size-[7px] rounded-full bg-accent-t shadow-[0_0_0_2px_var(--surface)]" />}
         </RailLink>
-        <RailLink href={routes.myTasks(ws.slug)} label="My tasks" keys={["G", "T"]} active={route.page === "my-tasks"}>
-          <CircleCheck size={16} strokeWidth={1.6} aria-hidden />
-        </RailLink>
-        <RailLink href={routes.timesheet(ws.slug)} label="Timesheet" active={route.page === "timesheet"}>
-          <Clock size={16} strokeWidth={1.6} aria-hidden />
-        </RailLink>
+        {moduleNavItems().map((item) => (
+          <RailLink key={item.id} href={item.href(ws.slug)} label={item.label} keys={item.keys} active={route.page === item.page}>
+            <item.icon size={16} strokeWidth={1.6} aria-hidden />
+          </RailLink>
+        ))}
         <span aria-hidden className="my-1.5 h-px w-7 bg-line" />
         {projects.slice(0, 6).map((p) => (
           <RailLink key={p.id} href={routes.project(ws.slug, p.key)} label={p.name} active={route.projectKey === p.key}>
@@ -379,7 +357,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           type="button"
           onClick={() => {
             nav();
-            shell.openCreateTask(activeProject && can("task.create", activeProject.my_permissions) ? { projectId: activeProject.id } : {});
+            shell.openCreateTask(activeProject && can("tracking.task.create", activeProject.my_permissions) ? { projectId: activeProject.id } : {});
           }}
           className="mx-2.5 mb-1 mt-2 flex h-8 items-center gap-2 rounded-md border border-line-2 bg-raised pl-2.5 pr-2 text-[13px] font-medium transition-[background-color,border-color,transform] duration-[var(--dur-fast)] hover:border-control hover:bg-hover active:scale-[.98] max-[1023px]:h-11"
         >
@@ -404,22 +382,18 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
             ) : null
           }
         />
-        <NavItem
-          href={routes.myTasks(ws.slug)}
-          icon={<CircleCheck size={16} strokeWidth={1.6} aria-hidden />}
-          label="My tasks"
-          active={route.page === "my-tasks"}
-          onNavigate={nav}
-          trailing={<span className="font-mono text-[11px] font-medium text-fg-3">{openMine.length}</span>}
-        />
-        {/* Board 39 (v2): every workspace member; data is limited to projects they can see. */}
-        <NavItem
-          href={routes.timesheet(ws.slug)}
-          icon={<Clock size={16} strokeWidth={1.6} aria-hidden />}
-          label="Timesheet"
-          active={route.page === "timesheet"}
-          onNavigate={nav}
-        />
+        {/* Module links come from the registry (src/registry). */}
+        {moduleNavItems().map((item) => (
+          <NavItem
+            key={item.id}
+            href={item.href(ws.slug)}
+            icon={<item.icon size={16} strokeWidth={1.6} aria-hidden />}
+            label={item.label}
+            active={route.page === item.page}
+            onNavigate={nav}
+            trailing={item.id === "my-tasks" ? <span className="font-mono text-[11px] font-medium text-fg-3">{openMine.length}</span> : undefined}
+          />
+        ))}
 
         {/* Saved views pinned by me (board 30): Manage / Done, Alt+↑↓ reorder. */}
         <PinnedViews open={pinnedOpen} onToggle={() => setPinnedOpen((o) => !o)} onNavigate={nav} />
@@ -513,7 +487,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
                                   on && "text-fg [&_svg]:text-accent-t",
                                 )}
                               >
-                                {s.icon}
+                                <s.icon size={16} strokeWidth={1.6} aria-hidden />
                                 {s.label}
                               </Link>
                             </li>
@@ -543,7 +517,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
               />
             )}
             <NavItem
-              href={routes.settings(ws.slug, can("workspace.update", ws.my_permissions) ? "general" : "profile")}
+              href={routes.settings(ws.slug, can("core.workspace.update", ws.my_permissions) ? "general" : "profile")}
               icon={<Settings size={16} strokeWidth={1.6} aria-hidden />}
               label="Settings"
               active={route.page === "settings" && route.section !== "members" && route.section !== "roles"}

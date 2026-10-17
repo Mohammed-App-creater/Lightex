@@ -1,5 +1,5 @@
-import { holds, windowEnd } from "@/features/notifications/channels/quiet";
-import type { ExternalChannel, NotificationEvent, QuietHours } from "@/lib/api/types";
+import { holds, windowEnd } from "@/platform/notifications/channels/quiet";
+import type { ExternalChannel, NotificationEvent, QuietHours } from "@/api/types";
 import { uid } from "./db";
 import type { ChannelDeliveryRec, MockDB } from "./db-types";
 

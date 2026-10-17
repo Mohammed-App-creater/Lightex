@@ -2,10 +2,10 @@
 
 import { Check, ChevronRight, Copy } from "lucide-react";
 import { useState } from "react";
-import { Avatar, hueFrom } from "@/components/ui/avatar";
-import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta, type GlyphKind, type PriorityLevel } from "@/components/ui/glyphs";
-import { toast } from "@/components/ui/toast";
-import type { AuditChange, AuditEntry, User } from "@/lib/api/types";
+import { Avatar, hueFrom } from "@/ui/avatar";
+import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta, type GlyphKind, type PriorityLevel } from "@/ui/glyphs";
+import { toast } from "@/ui/toast";
+import type { AuditChange, AuditEntry, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ACTION_META, AUDIT_ICON, ENTITY_META, auditTime, describe, isWordDiff, wordDiff } from "./lib";
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, glyphColor, priorityMeta } from "@/components/ui/glyphs";
-import { useCustomFields } from "@/features/fields/queries";
-import { useProjectMembers, useStatuses } from "@/features/projects/queries";
-import type { ImportColumnMapping, ImportField, ImportJob, ImportRowPreview, ImportTaskType, ImportTimeUnit, ImportValue, Project, Status, User } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, glyphColor, priorityMeta } from "@/ui/glyphs";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { useProjectMembers, useStatuses } from "@/modules/tracking/projects/queries";
+import type { ImportColumnMapping, ImportField, ImportJob, ImportRowPreview, ImportTaskType, ImportTimeUnit, ImportValue, Project, Status, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { shortDate } from "@/lib/utils/dates";
 import { IMPORT_FIELD_LABELS, fieldOptions, fieldValue, typeOptions } from "./import-lib";
@@ -55,7 +55,7 @@ export function StepMap({ job, project, me, local, update, wide }: { job: Import
   const validation = job.validation;
   const statuses = statusesQ.data ?? [];
   const members = (membersQ.data ?? []).map((m) => m.user);
-  const canAssign = perms.includes("task.assign");
+  const canAssign = perms.includes("tracking.task.assign");
   const people = canAssign ? members : members.filter((u) => u.id === me.id);
 
   const counts = new Map<string, number>();

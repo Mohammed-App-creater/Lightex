@@ -19,7 +19,7 @@ import type {
   CycleBin,
   ThroughputPoint,
   VelocityPoint,
-} from "@/lib/api/types";
+} from "@/api/types";
 import {
   ACTIVE_BAR_CLASS,
   BarsIcon,

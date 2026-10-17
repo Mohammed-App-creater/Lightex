@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isConflict } from "@/lib/api/errors";
-import { commitTask, insertTask, patchTasks, restore, snapshotTasks } from "@/lib/api/optimistic";
-import { qk } from "@/lib/api/query-keys";
-import type { Status, Task, TaskCreate, TaskMove, TaskPatch } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage, isConflict } from "@/api/errors";
+import { commitTask, insertTask, patchTasks, restore, snapshotTasks } from "@/api/optimistic";
+import { qk } from "@/api/query-keys";
+import type { Status, Task, TaskCreate, TaskMove, TaskPatch } from "@/api/types";
 
 /*
  * Task mutations. "Speed is the brand": the UI changes at 0ms; on failure the cache rolls back

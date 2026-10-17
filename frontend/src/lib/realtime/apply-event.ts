@@ -1,6 +1,6 @@
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
-import { findTask, patchTasks } from "@/lib/api/optimistic";
-import { qk } from "@/lib/api/query-keys";
+import { findTask, patchTasks } from "@/api/optimistic";
+import { qk } from "@/api/query-keys";
 import type {
   AttachmentChangedEvent,
   CommentChangedEvent,
@@ -185,45 +185,45 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
       case "reset":
       case "reconnect":
         return; // control events: the loop handles them
-      case "task.changed":
+      case "tracking.task.changed":
         return onTask(ev as TaskChangedEvent);
-      case "tasks.bulk_changed":
+      case "tracking.tasks.bulk_changed":
         if (ev.projectId) {
           if (isRemote(ev)) remoteMarks.set(`p:${ev.projectId}`, { actorId: ev.actorId!, fields: [] });
           invalidate(qk.scope(ev.projectId), qk.views(ctx.slug), ["task", ctx.slug], qk.myTasks(ctx.slug));
         }
         return;
-      case "comment.changed": {
+      case "tracking.comment.changed": {
         const d = (ev as CommentChangedEvent).data;
         invalidate(qk.comments(d.taskId), qk.taskActivity(d.taskId), qk.task(ctx.slug, d.key));
         if (ev.projectId) invalidate(qk.activity(ev.projectId));
         return;
       }
-      case "attachment.changed": {
+      case "tracking.attachment.changed": {
         const d = (ev as AttachmentChangedEvent).data;
         invalidate(qk.attachments(d.taskId), qk.task(ctx.slug, d.key));
         return;
       }
-      case "project.changed":
+      case "tracking.project.changed":
         return onProject(ev as ProjectChangedEvent);
-      case "dashboard.changed":
+      case "tracking.dashboard.changed":
         return onDashboard(ev as DashboardChangedEvent);
-      case "inbox.changed":
+      case "core.inbox.changed":
         return onInbox(ev as InboxChangedEvent);
-      case "access.changed":
+      case "core.access.changed":
         invalidate(qk.workspace(ctx.slug), qk.projects(ctx.slug), ["project", ctx.slug], qk.me());
         return;
-      case "presence.updated":
+      case "core.presence.updated":
         return onPresence(ev as PresenceUpdatedEvent);
-      case "integration.changed":
+      case "tracking.integration.changed":
         // Board 37: the settings page, devEnabled on projects, and every open Development section.
         invalidate(qk.integrations(ctx.slug), qk.projects(ctx.slug), ["project", ctx.slug], ["t"], ["integration", (ev as IntegrationChangedEvent).data.integrationId]);
         return;
-      case "channels.changed":
+      case "core.channels.changed":
         // Board 38: the channel rows / matrix columns, and an open Telegram dialog polls its link at once.
         invalidate(qk.channels(), ["notification-channels", "telegram-link"]);
         return;
-      case "import.progress":
+      case "tracking.import.progress":
         return; // reserved (board 40 keeps polling)
       default:
         if (process.env.NODE_ENV !== "production" && !warnedUnknown.has(ev.type)) {
@@ -236,7 +236,7 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
   return {
     apply(ev: RealtimeEnvelope) {
       const pid = ev.projectId;
-      if (pid && (paused.get(pid) ?? 0) > 0 && ev.type !== "presence.updated") {
+      if (pid && (paused.get(pid) ?? 0) > 0 && ev.type !== "core.presence.updated") {
         queued.set(pid, [...(queued.get(pid) ?? []), ev]);
         return;
       }

@@ -81,7 +81,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     file: "due-soon.html",
     label: "Due soon",
     subject: "{{task_key}} is due {{due_relative}}",
-    trigger: "Preference event “Due soon” (due_soon · email): assignee, task due within 24 hours, not done.",
+    trigger: "Preference event “Due soon” (tracking.task.due_soon · email): assignee, task due within 24 hours, not done.",
     sample: {
       ...COMMON,
       task_key: "PRJ-51",
@@ -99,7 +99,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     file: "sprint-started.html",
     label: "Sprint started",
     subject: "{{sprint_name}} has started",
-    trigger: "Preference event “Sprint started” (sprint_started · email): every project member.",
+    trigger: "Preference event “Sprint started” (tracking.sprint.started · email): every project member.",
     sample: {
       ...COMMON,
       sprint_name: "Sprint 14",
@@ -118,7 +118,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     label: "Sprint completed",
     subject: "{{sprint_name}} is complete",
     trigger:
-      "Sprint completed. No preference row exists for it yet; until one is added it follows “Sprint started” (sprint_started · email). Requested event: sprint_completed.",
+      "Sprint completed. No preference row exists for it yet; until one is added it follows “Sprint started” (tracking.sprint.started · email). Requested event: sprint_completed.",
     sample: {
       ...COMMON,
       sprint_name: "Sprint 13",

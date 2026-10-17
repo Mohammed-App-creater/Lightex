@@ -4,10 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Filter, MoreHorizontal, Plus, Search, TriangleAlert, UserPlus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/feedback";
-import { Input } from "@/components/ui/input";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/feedback";
+import { Input } from "@/ui/input";
 import {
   Menu,
   MenuContent,
@@ -19,18 +19,18 @@ import {
   MenuSubContent,
   MenuSubTrigger,
   MenuTrigger,
-} from "@/components/ui/menu";
-import { ConfirmDialog } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { SettingsPage } from "@/features/settings/settings-shell";
-import { useRoles, useWsMembers } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Invite, Role, WorkspaceMember } from "@/lib/api/types";
+} from "@/ui/menu";
+import { ConfirmDialog } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { SettingsPage } from "@/platform/settings/settings-shell";
+import { useRoles, useWsMembers } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Invite, Role, WorkspaceMember } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { InviteDialog } from "./invite-dialog";
 import { assignableRoles, defaultRole, filterMembers, isOwnerRole, lastActiveLabel, monthDay, rolesFor } from "./lib";
@@ -45,7 +45,7 @@ export function MembersScreen() {
   const ws = useCurrentWorkspace()!;
   const me = useMe();
   const qc = useQueryClient();
-  const canManage = useCan("workspace.manage_members");
+  const canManage = useCan("core.workspace.manage_members");
   const mobile = useIsMobile();
   const members = useWsMembers(ws.slug);
   const roles = useRoles(ws.slug);

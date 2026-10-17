@@ -1,6 +1,6 @@
-import { api } from "@/lib/api/endpoints";
-import { isApiError } from "@/lib/api/errors";
-import type { PushDevice, PushSubscriptionInput } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { isApiError } from "@/api/errors";
+import type { PushDevice, PushSubscriptionInput } from "@/api/types";
 import { apiMode } from "@/lib/env";
 import { browserTimeZone } from "./quiet";
 

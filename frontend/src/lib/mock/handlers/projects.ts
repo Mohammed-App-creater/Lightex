@@ -1,4 +1,4 @@
-import type { ProjectAccessInfo, ProjectSummary, ProjectTemplate, Status } from "@/lib/api/types";
+import type { ProjectAccessInfo, ProjectSummary, ProjectTemplate, Status } from "@/api/types";
 import { DAY, isDoneStatus } from "@/lib/domain/progress";
 import { TEMPLATE_IDS, templateDef } from "@/lib/domain/project-templates";
 import { nowISO, uid } from "../db";
@@ -39,7 +39,7 @@ const STATUS_DEFS: Pick<Status, "glyph" | "name" | "category">[] = [
 ];
 
 export function accessInfo(db: MockDB, p: ProjectRec, userId: string): ProjectAccessInfo {
-  const adminRoleIds = db.roles.filter((r) => r.scope === "project" && r.permissions.includes("project.manage_members")).map((r) => r.id);
+  const adminRoleIds = db.roles.filter((r) => r.scope === "project" && r.permissions.includes("tracking.project.manage_members")).map((r) => r.id);
   const admins = db.projectMembers
     .filter((m) => m.projectId === p.id && adminRoleIds.includes(m.roleId))
     .map((m) => db.users.find((u) => u.id === m.userId)!)
@@ -54,21 +54,21 @@ export function accessInfo(db: MockDB, p: ProjectRec, userId: string): ProjectAc
   };
 }
 
-/** 409 when `userId` is the project's only member holding project.manage_members (board 28 "only admin"). */
+/** 409 when `userId` is the project's only member holding tracking.project.manage_members (board 28 "only admin"). */
 function lastAdminGuard(db: MockDB, projectId: string, userId: string) {
-  const adminRoles = new Set(db.roles.filter((r) => r.permissions.includes("project.manage_members")).map((r) => r.id));
+  const adminRoles = new Set(db.roles.filter((r) => r.permissions.includes("tracking.project.manage_members")).map((r) => r.id));
   const admins = db.projectMembers.filter((m) => m.projectId === projectId && adminRoles.has(m.roleId));
   if (admins.length === 1 && admins[0]!.userId === userId) fail(409, "last_admin", "A project needs at least one admin.");
 }
 
 /** Member-only project lookup used by every project-scoped route. */
 export function memberProject(ctx: Ctx, projectId: string) {
-  requireProject(ctx, projectId, "project.view");
+  requireProject(ctx, projectId, "tracking.project.view");
   return projectById(ctx, projectId);
 }
 
 export function registerProjects() {
-  route("GET", "/workspaces/:slug/projects", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/projects", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = ctx.userId!;
     const includeArchived = ctx.query.filter?.status === "archived" || ctx.query.filter?.status === "all";
@@ -79,14 +79,14 @@ export function registerProjects() {
   });
 
   /** Lightweight directory: every project in the workspace (for "assign admin" and 403 context). */
-  route("GET", "/workspaces/:slug/project-directory", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/project-directory", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     return ctx.db.projects
       .filter((p) => p.workspaceId === ws.id)
       .map((p) => ({ ...accessInfo(ctx.db, p, ctx.userId!), isMember: Boolean(projectMembership(ctx.db, ctx.userId!, p.id)), status: p.status }));
   });
 
-  route("GET", "/workspaces/:slug/projects/:key", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/projects/:key", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const p = ctx.db.projects.find((x) => x.workspaceId === ws.id && x.key.toLowerCase() === ctx.params.key!.toLowerCase());
     if (!p) fail(404, "not_found", "Project not found.");
@@ -96,9 +96,9 @@ export function registerProjects() {
     return toProject(ctx.db, p, ctx.userId!);
   });
 
-  route("POST", "/workspaces/:slug/projects", (ctx) => {
+  route("POST", "/tracking/workspaces/:slug/projects", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "project.create");
+    requireWs(ctx, ws.id, "tracking.project.create");
     const name = (str(ctx.body, "name") ?? "").trim();
     const key = (str(ctx.body, "key") ?? "").trim().toUpperCase();
     const template = (str(ctx.body, "template") ?? "kanban") as ProjectTemplate;
@@ -128,13 +128,13 @@ export function registerProjects() {
       ctx.db.labels.push({ id: `${p.id}-lb-${n}`, projectId: p.id, name: n!, color: c! }),
     );
     ctx.db.projectMembers.push({ projectId: p.id, userId: ctx.userId!, roleId: `${ws.id}-role-project_admin`, addedAt: nowISO() });
-    audit(ctx.db, ws.id, ctx.userId!, "project.created", p.name);
+    audit(ctx.db, ws.id, ctx.userId!, "tracking.project.created", p.name);
     return toProject(ctx.db, p, ctx.userId!);
   });
 
-  route("PATCH", "/projects/:id", (ctx) => {
+  route("PATCH", "/tracking/projects/:id", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.update");
+    requireProject(ctx, p.id, "tracking.project.update");
     const name = str(ctx.body, "name");
     const description = str(ctx.body, "description");
     const key = str(ctx.body, "key");
@@ -155,21 +155,21 @@ export function registerProjects() {
     return toProject(ctx.db, p, ctx.userId!);
   });
 
-  route("POST", "/projects/:id/archive", (ctx) => {
+  route("POST", "/tracking/projects/:id/archive", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.archive");
+    requireProject(ctx, p.id, "tracking.project.archive");
     p.status = "archived";
     return toProject(ctx.db, p, ctx.userId!);
   });
-  route("POST", "/projects/:id/unarchive", (ctx) => {
+  route("POST", "/tracking/projects/:id/unarchive", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.archive");
+    requireProject(ctx, p.id, "tracking.project.archive");
     p.status = "active";
     return toProject(ctx.db, p, ctx.userId!);
   });
-  route("DELETE", "/projects/:id", (ctx) => {
+  route("DELETE", "/tracking/projects/:id", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.delete");
+    requireProject(ctx, p.id, "tracking.project.delete");
     if (str(ctx.body, "confirm") !== p.key) invalid({ confirm: `Type ${p.key} to confirm` });
     trashProject(ctx.db, p, ctx.userId); // board 29: restorable from the Trash for 30 days
     ctx.db.projects = ctx.db.projects.filter((x) => x.id !== p.id);
@@ -179,7 +179,7 @@ export function registerProjects() {
   });
 
   /* members */
-  route("GET", "/projects/:id/members", (ctx) => {
+  route("GET", "/tracking/projects/:id/members", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return ctx.db.projectMembers
       .filter((m) => m.projectId === p.id)
@@ -187,19 +187,19 @@ export function registerProjects() {
       .sort((a, b) => a.user.name.localeCompare(b.user.name));
   });
 
-  route("POST", "/projects/:id/members", (ctx) => {
+  route("POST", "/tracking/projects/:id/members", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
     const userId = str(ctx.body, "userId")!;
     const roleId = str(ctx.body, "roleId")!;
     const role = ctx.db.roles.find((r) => r.id === roleId && r.scope === "project" && r.workspaceId === p.workspaceId);
     if (!role) invalid({ roleId: "Pick a project role" });
     // Workspace admins may assign a project admin without being project members themselves
-    // (project.assign_admin). Everything else requires project.manage_members.
-    const isAdminRole = role.permissions.includes("project.manage_members");
-    if (isAdminRole && hasWs(ctx, p.workspaceId, "project.assign_admin")) {
+    // (tracking.project.assign_admin). Everything else requires tracking.project.manage_members.
+    const isAdminRole = role.permissions.includes("tracking.project.manage_members");
+    if (isAdminRole && hasWs(ctx, p.workspaceId, "tracking.project.assign_admin")) {
       /* allowed */
     } else {
-      requireProject(ctx, p.id, "project.manage_members");
+      requireProject(ctx, p.id, "tracking.project.manage_members");
     }
     if (!wsMembership(ctx.db, userId, p.workspaceId)) invalid({ userId: "Only workspace members can join projects" });
     const existing = projectMembership(ctx.db, userId, p.id);
@@ -210,29 +210,29 @@ export function registerProjects() {
     return { projectId: p.id, userId, roleId: role.id, addedAt: nowISO(), user: toUser(ctx.db.users.find((u) => u.id === userId)!) };
   });
 
-  route("PATCH", "/projects/:id/members/:userId", (ctx) => {
+  route("PATCH", "/tracking/projects/:id/members/:userId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.manage_members");
+    requireProject(ctx, p.id, "tracking.project.manage_members");
     const m = projectMembership(ctx.db, ctx.params.userId!, p.id);
     if (!m) fail(404, "not_found", "Member not found.");
     const roleId = str(ctx.body, "roleId");
     const role = ctx.db.roles.find((r) => r.id === roleId && r.scope === "project" && r.workspaceId === p.workspaceId);
     if (!role) invalid({ roleId: "Pick a project role" });
-    if (!role.permissions.includes("project.manage_members")) lastAdminGuard(ctx.db, p.id, m.userId);
+    if (!role.permissions.includes("tracking.project.manage_members")) lastAdminGuard(ctx.db, p.id, m.userId);
     m.roleId = role.id;
     return { ...m, user: toUser(ctx.db.users.find((u) => u.id === m.userId)!) };
   });
 
-  route("DELETE", "/projects/:id/members/:userId", (ctx) => {
+  route("DELETE", "/tracking/projects/:id/members/:userId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.manage_members");
+    requireProject(ctx, p.id, "tracking.project.manage_members");
     lastAdminGuard(ctx.db, p.id, ctx.params.userId!);
     ctx.db.projectMembers = ctx.db.projectMembers.filter((m) => !(m.projectId === p.id && m.userId === ctx.params.userId));
     return undefined;
   });
 
   /* access requests */
-  route("POST", "/projects/:id/access-requests", (ctx) => {
+  route("POST", "/tracking/projects/:id/access-requests", (ctx) => {
     const userId = requireUser(ctx);
     const p = projectById(ctx, ctx.params.id!);
     if (!wsMembership(ctx.db, userId, p.workspaceId)) fail(404, "not_found", "Project not found.");
@@ -248,38 +248,38 @@ export function registerProjects() {
     }
     return req;
   });
-  route("DELETE", "/projects/:id/access-requests/mine", (ctx) => {
+  route("DELETE", "/tracking/projects/:id/access-requests/mine", (ctx) => {
     const userId = requireUser(ctx);
     ctx.db.accessRequests
       .filter((r) => r.projectId === ctx.params.id && r.userId === userId && r.status === "pending")
       .forEach((r) => (r.status = "withdrawn"));
     return undefined;
   });
-  route("POST", "/projects/:id/access-requests/:requestId/deny", (ctx) => {
+  route("POST", "/tracking/projects/:id/access-requests/:requestId/deny", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.manage_members");
+    requireProject(ctx, p.id, "tracking.project.manage_members");
     const req = ctx.db.accessRequests.find((r) => r.projectId === p.id && r.id === ctx.params.requestId);
     if (!req) fail(404, "not_found", "Request not found.");
     if (req.status === "pending") req.status = "denied";
     return req;
   });
-  route("GET", "/projects/:id/access-requests", (ctx) => {
+  route("GET", "/tracking/projects/:id/access-requests", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.manage_members");
+    requireProject(ctx, p.id, "tracking.project.manage_members");
     return ctx.db.accessRequests
       .filter((r) => r.projectId === p.id && r.status === "pending")
       .map((r) => ({ ...r, user: toUser(ctx.db.users.find((u) => u.id === r.userId)!) }));
   });
 
   /* statuses, labels */
-  route("GET", "/projects/:id/statuses", (ctx) => {
+  route("GET", "/tracking/projects/:id/statuses", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const live = liveTasks(ctx.db, p.id);
     return statusesOf(ctx.db, p.id).map((s) => ({ ...s, taskCount: live.filter((t) => t.statusId === s.id).length }));
   });
-  route("POST", "/projects/:id/statuses", (ctx) => {
+  route("POST", "/tracking/projects/:id/statuses", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "status.manage");
+    requireProject(ctx, p.id, "tracking.status.manage");
     const name = (str(ctx.body, "name") ?? "").trim();
     if (!name) invalid({ name: "Name the status" });
     const category = (str(ctx.body, "category") ?? "in_progress") as Status["category"];
@@ -295,9 +295,9 @@ export function registerProjects() {
     ctx.db.statuses.push(s);
     return s;
   });
-  route("PATCH", "/projects/:id/statuses/:statusId", (ctx) => {
+  route("PATCH", "/tracking/projects/:id/statuses/:statusId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "status.manage");
+    requireProject(ctx, p.id, "tracking.status.manage");
     const s = ctx.db.statuses.find((x) => x.id === ctx.params.statusId && x.projectId === p.id);
     if (!s) fail(404, "not_found", "Status not found.");
     const name = str(ctx.body, "name");
@@ -315,9 +315,9 @@ export function registerProjects() {
     }
     return s;
   });
-  route("DELETE", "/projects/:id/statuses/:statusId", (ctx) => {
+  route("DELETE", "/tracking/projects/:id/statuses/:statusId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "status.manage");
+    requireProject(ctx, p.id, "tracking.status.manage");
     const s = ctx.db.statuses.find((x) => x.id === ctx.params.statusId && x.projectId === p.id);
     if (!s) fail(404, "not_found", "Status not found.");
     if (statusesOf(ctx.db, p.id).filter((x) => x.category === s.category).length < 2)
@@ -337,17 +337,17 @@ export function registerProjects() {
     statusesOf(ctx.db, p.id).forEach((x, i) => (x.position = i));
     return undefined;
   });
-  route("GET", "/projects/:id/labels", (ctx) => {
+  route("GET", "/tracking/projects/:id/labels", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const live = liveTasks(ctx.db, p.id);
     return ctx.db.labels
       .filter((l) => l.projectId === p.id)
       .map((l) => ({ ...l, taskCount: live.filter((t) => t.labelIds.includes(l.id)).length }));
   });
-  /* Board 28: label rename / recolor / delete (project.update). */
-  route("PATCH", "/projects/:id/labels/:labelId", (ctx) => {
+  /* Board 28: label rename / recolor / delete (tracking.project.update). */
+  route("PATCH", "/tracking/projects/:id/labels/:labelId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.update");
+    requireProject(ctx, p.id, "tracking.project.update");
     const l = ctx.db.labels.find((x) => x.id === ctx.params.labelId && x.projectId === p.id);
     if (!l) fail(404, "not_found", "Label not found.");
     const name = str(ctx.body, "name");
@@ -361,9 +361,9 @@ export function registerProjects() {
     if (color !== undefined && /^var\(--[a-z0-9-]+\)$/.test(color)) l.color = color;
     return l;
   });
-  route("DELETE", "/projects/:id/labels/:labelId", (ctx) => {
+  route("DELETE", "/tracking/projects/:id/labels/:labelId", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "project.update");
+    requireProject(ctx, p.id, "tracking.project.update");
     const id = ctx.params.labelId!;
     ctx.db.labels = ctx.db.labels.filter((x) => !(x.id === id && x.projectId === p.id));
     ctx.db.tasks
@@ -374,9 +374,9 @@ export function registerProjects() {
       });
     return undefined;
   });
-  route("POST", "/projects/:id/labels", (ctx) => {
+  route("POST", "/tracking/projects/:id/labels", (ctx) => {
     const p = projectById(ctx, ctx.params.id!);
-    requireProject(ctx, p.id, "task.create");
+    requireProject(ctx, p.id, "tracking.task.create");
     const name = (str(ctx.body, "name") ?? "").trim().toLowerCase().slice(0, 24);
     if (!name) invalid({ name: "Name the label" });
     const existing = ctx.db.labels.find((l) => l.projectId === p.id && l.name === name);
@@ -387,12 +387,12 @@ export function registerProjects() {
   });
 
   /* activity + summary */
-  route("GET", "/projects/:id/activity", (ctx) => {
+  route("GET", "/tracking/projects/:id/activity", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     return paginate(ctx.db.activity.filter((a) => a.projectId === p.id), ctx.query, 20);
   });
 
-  route("GET", "/projects/:id/summary", (ctx): ProjectSummary => {
+  route("GET", "/tracking/projects/:id/summary", (ctx): ProjectSummary => {
     const p = memberProject(ctx, ctx.params.id!);
     const statuses = statusesOf(ctx.db, p.id);
     const tasks = liveTasks(ctx.db, p.id);
@@ -410,14 +410,14 @@ export function registerProjects() {
     };
   });
 
-  route("GET", "/projects/:id/active-sprint", (ctx) => {
+  route("GET", "/tracking/projects/:id/active-sprint", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const s = ctx.db.sprints.find((x) => x.projectId === p.id && x.state === "active");
     return s ? toSprint(ctx.db, s) : null;
   });
 }
 
-function hasWs(ctx: Ctx, workspaceId: string, perm: "project.assign_admin") {
+function hasWs(ctx: Ctx, workspaceId: string, perm: "tracking.project.assign_admin") {
   try {
     requireWs(ctx, workspaceId, perm);
     return true;

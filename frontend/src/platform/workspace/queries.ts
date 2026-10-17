@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
 import { useLiveInterval } from "@/lib/realtime/status-store";
 
 /**

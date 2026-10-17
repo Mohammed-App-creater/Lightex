@@ -1,5 +1,5 @@
-import { ApiError } from "@/lib/api/errors";
-import { parseQueryString, buildQueryString, type RequestOptions, type Transport } from "@/lib/api/transport";
+import { ApiError } from "@/api/errors";
+import { parseQueryString, buildQueryString, type RequestOptions, type Transport } from "@/api/transport";
 import { getDB, mockSession, persist } from "./db";
 import { mockControls } from "./controls";
 import { registerAuth } from "./handlers/auth";

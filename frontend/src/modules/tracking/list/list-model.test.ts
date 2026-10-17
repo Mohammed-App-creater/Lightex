@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Status, Task } from "@/lib/api/types";
+import type { Status, Task } from "@/api/types";
 import { clampWidth, groupTasks, labelSlots, sortTasks, type Ctx } from "./list-model";
 
 const statuses: Status[] = [

@@ -1,4 +1,4 @@
-import type { ImportColumnMapping, ImportField, ImportPreset } from "@/lib/api/types";
+import type { ImportColumnMapping, ImportField, ImportPreset } from "@/api/types";
 
 /*
  * Board 40 mock: header → field synonyms and preset detection (§4.7). Shared vectors:

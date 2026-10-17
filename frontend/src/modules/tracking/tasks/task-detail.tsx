@@ -4,24 +4,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, Maximize2, Minimize2, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { ErrorGlyph, StatusGlyph } from "@/components/ui/glyphs";
-import { Skeleton } from "@/components/ui/feedback";
-import { InlineEditText } from "@/components/ui/inline-edit";
-import { Kbd } from "@/components/ui/kbd";
-import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { Tooltip } from "@/components/ui/tooltip";
-import { useMe } from "@/features/auth/session";
-import { useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isNotFound, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Status, Task, TaskDetail, TaskPatch } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { ErrorGlyph, StatusGlyph } from "@/ui/glyphs";
+import { Skeleton } from "@/ui/feedback";
+import { InlineEditText } from "@/ui/inline-edit";
+import { Kbd } from "@/ui/kbd";
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { Tooltip } from "@/ui/tooltip";
+import { useMe } from "@/platform/auth/session";
+import { useProjectMembers, useSprints, useStatuses } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isNotFound, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Status, Task, TaskDetail, TaskPatch } from "@/api/types";
 import { isTypingTarget } from "@/lib/hooks/use-hotkeys";
-import { can, canEditTask, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, canEditTask, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { useCreateTask, useDeleteTask, useUpdateTask } from "./mutations";
@@ -29,18 +29,18 @@ import { DescriptionEditor, RichView } from "./rich-text";
 import { TaskAttachments } from "./task-attachments";
 import { TaskConversation } from "./task-comments";
 import { AddProperty, CF_FORCE, TaskChips, TaskFields, TaskLabels, TaskPlanning } from "./task-properties";
-import { TaskDependencies } from "@/features/dependencies/task-dependencies";
-import { TaskCustomFields } from "@/features/fields/task-custom-fields";
-import { TaskTime } from "@/features/time/task-time";
-import { DevelopmentSection } from "@/features/development/development-section";
+import { TaskDependencies } from "@/modules/tracking/dependencies/task-dependencies";
+import { TaskCustomFields } from "@/modules/tracking/fields/task-custom-fields";
+import { TaskTime } from "@/modules/tracking/time/task-time";
+import { DevelopmentSection } from "@/modules/tracking/development/development-section";
 import { triggerSpark } from "./task-origin";
 import { useSparking } from "./task-bits";
-import { liveUpdateToast } from "@/features/presence/live-toast";
-import { canonicalField, editingLabel, editors, fieldFlags, firstName, peopleAt, typingLabel } from "@/features/presence/presence-lib";
-import { PresenceStack } from "@/features/presence/presence-stack";
-import { EditingPill, FieldFlagProvider, PresenceField } from "@/features/presence/presence-ui";
-import { useEditingField } from "@/features/presence/use-editing-field";
-import { usePresence, useRoster } from "@/features/presence/use-presence";
+import { liveUpdateToast } from "@/platform/presence/live-toast";
+import { canonicalField, editingLabel, editors, fieldFlags, firstName, peopleAt, typingLabel } from "@/platform/presence/presence-lib";
+import { PresenceStack } from "@/platform/presence/presence-stack";
+import { EditingPill, FieldFlagProvider, PresenceField } from "@/platform/presence/presence-ui";
+import { useEditingField } from "@/platform/presence/use-editing-field";
+import { usePresence, useRoster } from "@/platform/presence/use-presence";
 import { fieldLabel } from "@/lib/realtime/apply-event";
 import { claimLiveToast, remoteMarks, type RemoteMark } from "@/lib/realtime/remote";
 import { onScreen } from "@/lib/realtime/screen-registry";
@@ -123,10 +123,10 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
   const perms = task.project.my_permissions;
   const deleted = Boolean(task.deletedAt);
   const canEdit = canEditTask(task, perms, me.id) && !deleted;
-  const canStatus = (canEdit || can("task.move", perms)) && !deleted;
-  const canAssign = canEdit && can("task.assign", perms);
-  const canDelete = can("task.delete", perms);
-  const canCreate = can("task.create", perms);
+  const canStatus = (canEdit || can("tracking.task.move", perms)) && !deleted;
+  const canAssign = canEdit && can("tracking.task.assign", perms);
+  const canDelete = can("tracking.task.delete", perms);
+  const canCreate = can("tracking.task.create", perms);
   const status = statuses.find((s) => s.id === task.statusId);
   const isDone = status?.category === "done" && status.glyph === "done";
   const spark = useSparking(task.id);
@@ -197,7 +197,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
           statusId: task.statusId,
           priority: task.priority,
           type: task.type,
-          assigneeId: can("task.assign", perms) ? task.assigneeId : null,
+          assigneeId: can("tracking.task.assign", perms) ? task.assigneeId : null,
           sprintId: openSprintId,
           parentId: task.parentId,
           epicId: task.epicId,
@@ -352,7 +352,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
             </FieldFlagProvider>
             {!canEdit && !deleted && (
               <p className="m-0 flex w-fit items-center gap-2 rounded-md bg-raised px-2.5 py-2 text-[12px] text-fg-2">
-                <Eye size={14} aria-hidden /> {can("task.edit_own", perms) ? "You can only edit tasks you reported or are assigned." : "View only"}
+                <Eye size={14} aria-hidden /> {can("tracking.task.edit_own", perms) ? "You can only edit tasks you reported or are assigned." : "View only"}
               </p>
             )}
           </div>
@@ -443,7 +443,7 @@ function Detail({ task, mode, onClose, onToggleFull }: { task: TaskDetail; mode:
             <TaskDependencies task={task} canEdit={canEdit} wide={full} />
             <TaskTime task={task} canEdit={canEdit} deleted={deleted} forceEstimate={forced.has("timeEstimate")} onPatch={patch} />
             <Subtasks task={task} statuses={statuses} canCreate={canAddSub} sprintId={openSprintId} adding={addingSub} onAddingChange={setAddingSub} />
-            <TaskAttachments task={task} canUpload={can("attachment.upload", perms)} deleted={deleted} />
+            <TaskAttachments task={task} canUpload={can("tracking.attachment.upload", perms)} deleted={deleted} />
             <TaskConversation
               task={task}
               deleted={deleted}
@@ -544,7 +544,7 @@ function Subtasks({
       </div>
       <ul className="m-0 flex list-none flex-col p-0">
         {task.subtasks.map((s) => {
-          const canToggle = canEditTask(s, perms, me.id) || can("task.move", perms);
+          const canToggle = canEditTask(s, perms, me.id) || can("tracking.task.move", perms);
           const assignee = members.find((m) => m.userId === s.assigneeId)?.user;
           const d = isDone(s);
           return (

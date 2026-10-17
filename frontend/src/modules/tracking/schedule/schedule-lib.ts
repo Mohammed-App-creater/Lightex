@@ -1,4 +1,4 @@
-import type { CalendarMode, ISODate, StatusGlyph, Task, TimelineGroup, TimelineZoom } from "@/lib/api/types";
+import type { CalendarMode, ISODate, StatusGlyph, Task, TimelineGroup, TimelineZoom } from "@/api/types";
 
 /*
  * Board 32 (timeline & calendar): pure date maths, geometry and URL state. No React.

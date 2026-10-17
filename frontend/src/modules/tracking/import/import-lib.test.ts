@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { ActivityEntry, AuditEntry, ImportJob, Notification, ProjectPermission } from "@/lib/api/types";
-import { PROJECT_PERMISSIONS } from "@/lib/api/types";
+import type { ActivityEntry, AuditEntry, ImportJob, Notification, ProjectPermission } from "@/api/types";
+import { PROJECT_PERMISSIONS } from "@/api/types";
 import { auditActionKind } from "@/lib/audit";
-import { DEFAULT_ROLES, PERMISSION_CATALOGUE } from "@/lib/permissions/catalogue";
-import { lineParts, verbText } from "@/features/notifications/events";
-import { activityText } from "@/features/tasks/activity-text";
+import { DEFAULT_ROLES, PERMISSION_CATALOGUE } from "@/platform/roles/catalogue";
+import { lineParts, verbText } from "@/platform/notifications/events";
+import { activityText } from "@/modules/tracking/tasks/activity-text";
 import {
   analysisErrorMeta,
   canImport,
@@ -102,8 +102,8 @@ describe("summary helpers", () => {
     expect(formatKeyRange({ first: "PRJ-61", last: "PRJ-61" })).toBe("PRJ-61");
     expect(formatKeyRange(null)).toBe("");
     const creates = { labels: ["api", "ux"], epics: ["Checkout"], options: [{ customFieldId: "f", names: ["Arc"] }] };
-    expect(createsLine(creates, ["task.create"])).toBe("Creates 2 labels, 1 epic");
-    expect(createsLine(creates, ["field.manage"])).toBe("Creates 2 labels, 1 epic, 1 option");
+    expect(createsLine(creates, ["tracking.task.create"])).toBe("Creates 2 labels, 1 epic");
+    expect(createsLine(creates, ["tracking.field.manage"])).toBe("Creates 2 labels, 1 epic, 1 option");
     expect(createsLine({ labels: [], epics: [], options: [] }, [])).toBeNull();
   });
   it("presetNote", () => {
@@ -115,13 +115,13 @@ describe("summary helpers", () => {
 });
 
 describe("gating", () => {
-  it("canImport needs project.import and task.create; entry points also need an active project", () => {
-    expect(canImport(["project.import", "task.create"])).toBe(true);
-    expect(canImport(["project.import"])).toBe(false);
-    expect(canImport(["task.create"])).toBe(false);
+  it("canImport needs tracking.project.import and tracking.task.create; entry points also need an active project", () => {
+    expect(canImport(["tracking.project.import", "tracking.task.create"])).toBe(true);
+    expect(canImport(["tracking.project.import"])).toBe(false);
+    expect(canImport(["tracking.task.create"])).toBe(false);
     expect(canImport(undefined)).toBe(false);
-    expect(canImportInto({ status: "archived", my_permissions: ["project.import", "task.create"] })).toBe(false);
-    expect(canImportInto({ status: "active", my_permissions: ["project.import", "task.create"] })).toBe(true);
+    expect(canImportInto({ status: "archived", my_permissions: ["tracking.project.import", "tracking.task.create"] })).toBe(false);
+    expect(canImportInto({ status: "active", my_permissions: ["tracking.project.import", "tracking.task.create"] })).toBe(true);
   });
   it("fieldOptions: the design's eight, More fields, Custom fields, Don’t import", () => {
     const g = fieldOptions([{ id: "cf1", name: "Browser" }]);
@@ -131,23 +131,23 @@ describe("gating", () => {
     expect(g[3]!.options).toEqual([{ value: "skip", label: "Don’t import" }]);
     expect(fieldOptions([]).map((x) => x.label)).toEqual([null, "More fields", null]);
   });
-  it("typeOptions offer Epic only with epic.manage", () => {
-    expect(typeOptions(["task.create"]).map((o) => o.value)).toEqual(["feature", "bug", "chore", "spike"]);
-    expect(typeOptions(["epic.manage"]).map((o) => o.value)).toContain("epic");
+  it("typeOptions offer Epic only with tracking.epic.manage", () => {
+    expect(typeOptions(["tracking.task.create"]).map((o) => o.value)).toEqual(["feature", "bug", "chore", "spike"]);
+    expect(typeOptions(["tracking.epic.manage"]).map((o) => o.value)).toContain("epic");
   });
 });
 
 describe("permissions catalogue and default roles (§3)", () => {
-  it("places project.import after task.move and in the Tasks group", () => {
-    const i = PROJECT_PERMISSIONS.indexOf("project.import");
-    expect(PROJECT_PERMISSIONS[i - 1]).toBe("task.move");
-    // Board 37 (§4.3) puts development.link between project.import and time.log.
-    expect(PROJECT_PERMISSIONS[i + 1]).toBe("development.link");
-    expect(PROJECT_PERMISSIONS[i + 2]).toBe("time.log");
-    expect(PERMISSION_CATALOGUE.find((p) => p.key === "project.import")).toMatchObject({ group: "Tasks", label: "Import tasks", scope: "project" });
+  it("places tracking.project.import after tracking.task.move and in the Tasks group", () => {
+    const i = PROJECT_PERMISSIONS.indexOf("tracking.project.import");
+    expect(PROJECT_PERMISSIONS[i - 1]).toBe("tracking.task.move");
+    // Board 37 (§4.3) puts tracking.development.link between tracking.project.import and tracking.time.log.
+    expect(PROJECT_PERMISSIONS[i + 1]).toBe("tracking.development.link");
+    expect(PROJECT_PERMISSIONS[i + 2]).toBe("tracking.time.log");
+    expect(PERMISSION_CATALOGUE.find((p) => p.key === "tracking.project.import")).toMatchObject({ group: "Tasks", label: "Import tasks", scope: "project" });
   });
   it("grants it to Project Admin, Manager and Member, not Viewer", () => {
-    const holds = (key: string) => (DEFAULT_ROLES.find((r) => r.key === key)!.permissions as ProjectPermission[]).includes("project.import");
+    const holds = (key: string) => (DEFAULT_ROLES.find((r) => r.key === key)!.permissions as ProjectPermission[]).includes("tracking.project.import");
     expect(["project_admin", "manager", "project_member", "viewer"].map(holds)).toEqual([true, true, true, false]);
     // Workspace roles never carry project keys.
     expect(["owner", "admin", "member"].map(holds)).toEqual([false, false, false]);
@@ -163,9 +163,9 @@ describe("activity, audit and inbox vocabulary", () => {
   });
   it("auditActionKind", () => {
     const row = (action: string): AuditEntry => ({ id: "a", actorId: "u", action, target: "T", createdAt: "" });
-    expect(auditActionKind(row("task.imported"))).toBe("created");
-    expect(auditActionKind(row("project.import_started"))).toBe("updated");
-    expect(auditActionKind(row("project.import_completed"))).toBe("updated");
+    expect(auditActionKind(row("tracking.task.imported"))).toBe("created");
+    expect(auditActionKind(row("tracking.project.import_started"))).toBe("updated");
+    expect(auditActionKind(row("tracking.project.import_completed"))).toBe("updated");
   });
   it("inbox row text for import", () => {
     const n = { id: "n", type: "import", actorId: null, projectId: "p", projectName: "Platform Rebuild", taskId: null, taskKey: null, taskTitle: null, createdAt: "", readAt: null } as const;

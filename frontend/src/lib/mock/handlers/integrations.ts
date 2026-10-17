@@ -1,5 +1,6 @@
-import { suggestBranch, validateBranch } from "@/features/integrations/lib/branch-name";
-import { aggregateChecks, PROVIDER_NAME } from "@/features/integrations/lib/dev-lib";
+import { actionEntity } from "@/lib/audit";
+import { suggestBranch, validateBranch } from "@/modules/tracking/integrations/lib/branch-name";
+import { aggregateChecks, PROVIDER_NAME } from "@/modules/tracking/integrations/lib/dev-lib";
 import type {
   ActivityEntry,
   AuditChange,
@@ -21,7 +22,7 @@ import type {
   RepoVisibility,
   Repository,
   TaskDevelopment,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { getDB, nowISO, persist, uid } from "../db";
 import type { ConnectAttemptRec, DevLinkRec, DevRuleRec, IntegrationRec, MockDB, ProjectRec, RepositoryRec, TaskRec } from "../db-types";
 import { activeReposFor, linkItem, orderPrs, repoApplies, visibleLinks } from "../dev-derive";
@@ -34,7 +35,7 @@ import { applyStatusSideEffects, lastPosition } from "./tasks";
 /*
  * Board 37 mock backend (docs/v2/37-integrations-github-gitlab.md §5): G1–G13, D1–D4, A1–A2, with the
  * fake provider of §7.8 (the design's eight repositories), the same validation copy, status codes and
- * permission checks (`integration.manage` from the workspace role, `development.link` / `status.manage`
+ * permission checks (`tracking.integration.manage` from the workspace role, `tracking.development.link` / `tracking.status.manage`
  * from the project role), the §7.10 automations made by a system actor, and the dev-pill simulators.
  *
  * The provider round-trip is in-page: `authorizeUrl` is `/<ws>/settings/integrations#mock-authorize=…`,
@@ -94,8 +95,8 @@ const ERROR_MESSAGE = (provider: Provider, code: IntegrationErrorCode) => {
 
 /* ───────── upgrade + seed ───────── */
 
-const WS_GRANTS: Record<string, Permission[]> = { owner: ["integration.manage"], admin: ["integration.manage"] };
-const PRJ_GRANTS: Record<string, Permission[]> = { project_admin: ["development.link"], manager: ["development.link"], project_member: ["development.link"] };
+const WS_GRANTS: Record<string, Permission[]> = { owner: ["tracking.integration.manage"], admin: ["tracking.integration.manage"] };
+const PRJ_GRANTS: Record<string, Permission[]> = { project_admin: ["tracking.development.link"], manager: ["tracking.development.link"], project_member: ["tracking.development.link"] };
 
 /**
  * Runs once per database (marker `ext37`): from createSeed(), when a cached database loads, and on
@@ -114,14 +115,14 @@ export function ensureExt37(db: MockDB) {
     if (!r.isSystem || !r.key) continue;
     for (const p of WS_GRANTS[r.key] ?? []) {
       if (r.permissions.includes(p)) continue;
-      const at = r.permissions.indexOf("audit.view");
+      const at = r.permissions.indexOf("core.audit.view");
       if (at >= 0) r.permissions.splice(at, 0, p);
       else r.permissions.push(p);
     }
     for (const p of PRJ_GRANTS[r.key] ?? []) {
       if (r.permissions.includes(p)) continue;
-      const at = r.permissions.indexOf("project.import");
-      const after = at >= 0 ? at : r.permissions.indexOf("task.move");
+      const at = r.permissions.indexOf("tracking.project.import");
+      const after = at >= 0 ? at : r.permissions.indexOf("tracking.task.move");
       if (after >= 0) r.permissions.splice(after + 1, 0, p);
       else r.permissions.push(p);
     }
@@ -352,13 +353,13 @@ function toRepository(integ: IntegrationRec, r: RepositoryRec): Repository {
 }
 
 function isManager(db: MockDB, userId: string, workspaceId: string) {
-  return wsPermissions(db, userId, workspaceId).includes("integration.manage");
+  return wsPermissions(db, userId, workspaceId).includes("tracking.integration.manage");
 }
 
 export function toIntegration(db: MockDB, integ: IntegrationRec, userId: string): Integration {
   settle(db, integ);
   const manager = isManager(db, userId, integ.workspaceId);
-  const viewable = new Set(db.projects.filter((p) => p.workspaceId === integ.workspaceId && projectPermissions(db, userId, p.id).includes("project.view")).map((p) => p.id));
+  const viewable = new Set(db.projects.filter((p) => p.workspaceId === integ.workspaceId && projectPermissions(db, userId, p.id).includes("tracking.project.view")).map((p) => p.id));
   const repos = db
     .repositories!.filter((r) => r.integrationId === integ.id)
     .filter((r) => manager || r.allProjects || r.projectIds.some((p) => viewable.has(p)))
@@ -406,7 +407,7 @@ function loadIntegration(ctx: Ctx, id: string, manage: boolean) {
   ensureExt37(ctx.db);
   const integ = ctx.db.integrations!.find((i) => i.id === id && i.status !== "pending");
   if (!integ || !wsMembership(ctx.db, userId, integ.workspaceId)) fail(404, "not_found", "Integration not found.");
-  if (manage) requireWs(ctx, integ.workspaceId, "integration.manage");
+  if (manage) requireWs(ctx, integ.workspaceId, "tracking.integration.manage");
   return integ;
 }
 
@@ -415,7 +416,7 @@ function wsMember(db: MockDB, workspaceId: string, userId: string) {
 }
 
 export function publishIntegration(db: MockDB, actorId: string | null, integ: Pick<IntegrationRec, "id" | "workspaceId">, op: "connected" | "updated" | "synced" | "error" | "disconnected") {
-  mockBus.publish("integration.changed", { workspaceId: integ.workspaceId, projectId: null, actorId, data: { integrationId: integ.id, op } });
+  mockBus.publish("tracking.integration.changed", { workspaceId: integ.workspaceId, projectId: null, actorId, data: { integrationId: integ.id, op } });
 }
 
 function publishDev(db: MockDB, actorId: string | null, t: TaskRec) {
@@ -444,7 +445,7 @@ function auditRow(db: MockDB, a: AuditInput) {
     action: a.action,
     target: a.target,
     createdAt: nowISO(),
-    entityType: a.action.split(".")[0],
+    entityType: actionEntity(a.action),
     entityKey: a.entityKey ?? null,
     source: a.source ?? "web",
     requestId: null,
@@ -609,13 +610,13 @@ function taskOf(ctx: Ctx, idOrKey: string) {
   if (!t) fail(404, "not_found", "Task not found.");
   const project = ctx.db.projects.find((p) => p.id === t.projectId)!;
   if (!projectPermissions(ctx.db, userId, project.id).length) fail(403, "project_membership_required", "You’re not a member of this project.");
-  requireProject(ctx, project.id, "project.view");
+  requireProject(ctx, project.id, "tracking.project.view");
   return { t, project, userId };
 }
 
 function requireLink(ctx: Ctx, project: ProjectRec) {
-  requireProject(ctx, project.id, "development.link");
-  if (project.status === "archived") fail(403, "forbidden", "This project is archived. Development links are read-only.", { permission: "development.link" });
+  requireProject(ctx, project.id, "tracking.development.link");
+  if (project.status === "archived") fail(403, "forbidden", "This project is archived. Development links are read-only.", { permission: "tracking.development.link" });
 }
 
 export function taskDevelopment(db: MockDB, t: TaskRec): TaskDevelopment {
@@ -720,7 +721,7 @@ export function applyAutomation(db: MockDB, integ: Pick<IntegrationRec, "id" | "
     actorId: integ.id,
     actorKind: "integration",
     actorName: name,
-    action: "task.status_changed",
+    action: "tracking.task.status_changed",
     target: t.title,
     entityKey: t.key,
     source: "webhook",
@@ -736,26 +737,26 @@ export function applyAutomation(db: MockDB, integ: Pick<IntegrationRec, "id" | "
 
 export function registerIntegrations() {
   /* G1 */
-  route("GET", "/workspaces/:slug/integrations", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/integrations", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     ensureExt37(ctx.db);
     return { providers: providersInfo(), integrations: listed(ctx.db, ws.id).map((i) => toIntegration(ctx.db, i, ctx.userId!)) };
   });
 
   /* G2 */
-  route("POST", "/workspaces/:slug/integrations/github/connect", (ctx) => {
+  route("POST", "/tracking/workspaces/:slug/integrations/github/connect", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     ensureExt37(ctx.db);
-    requireWs(ctx, ws.id, "integration.manage");
+    requireWs(ctx, ws.id, "tracking.integration.manage");
     if (!mockProviderConfig.github) fail(503, "integrations_unavailable", "GitHub isn’t set up on this server.");
     return startAttempt(ctx.db, ws.slug, ws.id, ctx.userId!, "github", "connect", null);
   });
 
   /* G3 */
-  route("POST", "/workspaces/:slug/integrations/gitlab/connect", (ctx) => {
+  route("POST", "/tracking/workspaces/:slug/integrations/gitlab/connect", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     ensureExt37(ctx.db);
-    requireWs(ctx, ws.id, "integration.manage");
+    requireWs(ctx, ws.id, "tracking.integration.manage");
     const method = str(ctx.body, "method");
     if (method === "oauth") {
       if (!mockProviderConfig.gitlabOauth) fail(503, "integrations_unavailable", "GitLab.com sign-in isn’t set up on this server. Use an access token.");
@@ -766,13 +767,13 @@ export function registerIntegrations() {
     const dup = ctx.db.integrations!.find((i) => i.workspaceId === ws.id && i.provider === "gitlab" && i.baseUrl === baseUrl && i.accountExternalId === ext && i.status !== "pending");
     if (dup) fail(409, "integration_exists", "This GitLab account is already connected. Reconnect it instead.", { integrationId: dup.id });
     const rec = newIntegration(ctx.db, { workspaceId: ws.id, userId: ctx.userId! }, "gitlab_token", baseUrl, ext.startsWith("bot_other") ? "other-bot" : "lightex-bot", "bot", ext, "active");
-    auditRow(ctx.db, { workspaceId: ws.id, actorId: ctx.userId!, action: "integration.connected", target: integTarget(rec), changes: [change("Auth", null, "gitlab_token")] });
+    auditRow(ctx.db, { workspaceId: ws.id, actorId: ctx.userId!, action: "tracking.integration.connected", target: integTarget(rec), changes: [change("Auth", null, "gitlab_token")] });
     publishIntegration(ctx.db, ctx.userId, rec, "connected");
     return toIntegration(ctx.db, rec, ctx.userId!);
   });
 
   /* G6 */
-  route("POST", "/workspaces/:slug/integrations/confirm", (ctx) => {
+  route("POST", "/tracking/workspaces/:slug/integrations/confirm", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     ensureExt37(ctx.db);
     const userId = ctx.userId!;
@@ -801,16 +802,16 @@ export function registerIntegrations() {
       integ.connectedAt = nowISO();
       integ.connectedBy = userId;
     }
-    auditRow(ctx.db, { workspaceId: ws.id, actorId: userId, action: a.mode === "reconnect" ? "integration.reconnected" : "integration.connected", target: integTarget(integ), changes: [change("Auth", null, integ.authKind)] });
+    auditRow(ctx.db, { workspaceId: ws.id, actorId: userId, action: a.mode === "reconnect" ? "tracking.integration.reconnected" : "tracking.integration.connected", target: integTarget(integ), changes: [change("Auth", null, integ.authKind)] });
     publishIntegration(ctx.db, userId, integ, a.mode === "reconnect" ? "updated" : "connected");
     return toIntegration(ctx.db, integ, userId);
   });
 
   /* G7 */
-  route("GET", "/integrations/:id", (ctx) => toIntegration(ctx.db, loadIntegration(ctx, ctx.params.id!, false), ctx.userId!));
+  route("GET", "/tracking/integrations/:id", (ctx) => toIntegration(ctx.db, loadIntegration(ctx, ctx.params.id!, false), ctx.userId!));
 
   /* G8 */
-  route("GET", "/integrations/:id/available-repositories", async (ctx) => {
+  route("GET", "/tracking/integrations/:id/available-repositories", async (ctx) => {
     const integ = loadIntegration(ctx, ctx.params.id!, true);
     if (integ.status === "error") fail(409, "integration_error", "Reconnect this integration first.", { code: integ.error?.code });
     const list = availableFor(ctx.db, integ, typeof ctx.query.q === "string" ? ctx.query.q : "");
@@ -819,7 +820,7 @@ export function registerIntegrations() {
   });
 
   /* G9 */
-  route("PUT", "/integrations/:id/repositories", (ctx) => {
+  route("PUT", "/tracking/integrations/:id/repositories", (ctx) => {
     const db = ctx.db;
     const integ = loadIntegration(ctx, ctx.params.id!, true);
     if (integ.status === "error") fail(409, "integration_error", "Reconnect this integration first.", { code: integ.error?.code });
@@ -871,14 +872,14 @@ export function registerIntegrations() {
       removed.push(r.fullPath);
     }
     if (added.length) scheduleSettle(integ, fakeTiming.backfillMs);
-    auditRow(db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "integration.repositories_updated", target: integTarget(integ), changes: [change("Added", null, added.join(", ") || null), change("Removed", removed.join(", ") || null, null)] });
+    auditRow(db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "tracking.integration.repositories_updated", target: integTarget(integ), changes: [change("Added", null, added.join(", ") || null), change("Removed", removed.join(", ") || null, null)] });
     publishIntegration(db, ctx.userId, integ, "updated");
     for (const p of db.projects.filter((x) => x.workspaceId === integ.workspaceId)) publishProject(db, ctx.userId, p.id, ["development"]);
     return toIntegration(db, integ, ctx.userId!);
   });
 
   /* G10 */
-  route("PATCH", "/repositories/:id", (ctx) => {
+  route("PATCH", "/tracking/repositories/:id", (ctx) => {
     const userId = requireUser(ctx);
     ensureExt37(ctx.db);
     const r = ctx.db.repositories!.find((x) => x.id === ctx.params.id);
@@ -891,14 +892,14 @@ export function registerIntegrations() {
     r.projectIds = [...new Set(pids as string[])];
     r.allProjects = r.projectIds.length === 0;
     const after = r.allProjects ? "All projects" : r.projectIds.map((id) => ctx.db.projects.find((p) => p.id === id)?.key).join(", ");
-    auditRow(ctx.db, { workspaceId: r.workspaceId, actorId: userId, action: "integration.repository_scoped", target: r.fullPath, changes: [change("Projects", before, after)] });
+    auditRow(ctx.db, { workspaceId: r.workspaceId, actorId: userId, action: "tracking.integration.repository_scoped", target: r.fullPath, changes: [change("Projects", before, after)] });
     publishIntegration(ctx.db, userId, integ, "updated");
     for (const p of ctx.db.projects.filter((x) => x.workspaceId === r.workspaceId)) publishProject(ctx.db, userId, p.id, ["development"]);
     return toRepository(integ, r);
   });
 
   /* G11 */
-  route("POST", "/integrations/:id/sync", (ctx) => {
+  route("POST", "/tracking/integrations/:id/sync", (ctx) => {
     const integ = loadIntegration(ctx, ctx.params.id!, true);
     if (integ.status === "error") fail(409, "integration_error", "Reconnect this integration first.", { code: integ.error?.code });
     const now = Date.now();
@@ -913,13 +914,13 @@ export function registerIntegrations() {
       r.syncUntil = integ.syncUntil;
     }
     scheduleSettle(integ);
-    auditRow(ctx.db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "integration.sync_requested", target: integTarget(integ) });
+    auditRow(ctx.db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "tracking.integration.sync_requested", target: integTarget(integ) });
     publishIntegration(ctx.db, ctx.userId, integ, "updated");
     return toIntegration(ctx.db, integ, ctx.userId!);
   });
 
   /* G12 */
-  route("POST", "/integrations/:id/reconnect", (ctx) => {
+  route("POST", "/tracking/integrations/:id/reconnect", (ctx) => {
     const integ = loadIntegration(ctx, ctx.params.id!, true);
     const ws = ctx.db.workspaces.find((w) => w.id === integ.workspaceId)!;
     if (integ.authKind === "gitlab_token") {
@@ -931,7 +932,7 @@ export function registerIntegrations() {
       integ.tokenExpiresAt = new Date(Date.now() + 90 * 86_400_000).toISOString();
       integ.syncUntil = new Date(Date.now() + fakeTiming.syncMs).toISOString();
       scheduleSettle(integ);
-      auditRow(ctx.db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "integration.reconnected", target: integTarget(integ) });
+      auditRow(ctx.db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "tracking.integration.reconnected", target: integTarget(integ) });
       publishIntegration(ctx.db, ctx.userId, integ, "updated");
       return toIntegration(ctx.db, integ, ctx.userId!);
     }
@@ -939,7 +940,7 @@ export function registerIntegrations() {
   });
 
   /* G13 */
-  route("DELETE", "/integrations/:id", (ctx) => {
+  route("DELETE", "/tracking/integrations/:id", (ctx) => {
     const db = ctx.db;
     const integ = loadIntegration(ctx, ctx.params.id!, true);
     const repos = db.repositories!.filter((r) => r.integrationId === integ.id);
@@ -948,20 +949,20 @@ export function registerIntegrations() {
     db.repositories = db.repositories!.filter((r) => !ids.has(r.id));
     db.integrations = db.integrations!.filter((i) => i.id !== integ.id);
     db.connectAttempts = db.connectAttempts!.filter((a) => a.integrationId !== integ.id);
-    auditRow(db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "integration.disconnected", target: integTarget(integ), changes: [change("Repositories", String(repos.length), null)] });
+    auditRow(db, { workspaceId: integ.workspaceId, actorId: ctx.userId!, action: "tracking.integration.disconnected", target: integTarget(integ), changes: [change("Repositories", String(repos.length), null)] });
     publishIntegration(db, ctx.userId, integ, "disconnected");
     for (const p of db.projects.filter((x) => x.workspaceId === integ.workspaceId)) publishProject(db, ctx.userId, p.id, ["development"]);
     return undefined;
   });
 
   /* D1 */
-  route("GET", "/tasks/:id/development", (ctx) => {
+  route("GET", "/tracking/tasks/:id/development", (ctx) => {
     const { t } = taskOf(ctx, ctx.params.id!);
     return taskDevelopment(ctx.db, t);
   });
 
   /* D2 */
-  route("POST", "/tasks/:id/development/links", (ctx) => {
+  route("POST", "/tracking/tasks/:id/development/links", (ctx) => {
     const db = ctx.db;
     const { t, project, userId } = taskOf(ctx, ctx.params.id!);
     requireLink(ctx, project);
@@ -1040,7 +1041,7 @@ export function registerIntegrations() {
     const rec = addLink(db, t.id, repo, item, userId);
     if (item.kind !== "commit") {
       const ref = item.kind === "pull_request" ? (item as DevPullRequest).ref : (item as DevBranch).name;
-      auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "task.dev_linked", target: t.title, entityKey: t.key, changes: [change(item.kind === "pull_request" ? "Pull request" : "Branch", null, `${ref} · ${repo.fullPath}`)] });
+      auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "tracking.task.dev_linked", target: t.title, entityKey: t.key, changes: [change(item.kind === "pull_request" ? "Pull request" : "Branch", null, `${ref} · ${repo.fullPath}`)] });
       if (item.kind === "pull_request") activity(db, { actorId: userId, actorKind: "user", verb: "dev_linked", projectId: t.projectId, taskId: t.id, taskKey: t.key, taskTitle: t.title, data: { ref, provider: integ.provider, repo: repo.fullPath } });
     }
     publishDev(db, userId, t);
@@ -1048,7 +1049,7 @@ export function registerIntegrations() {
   });
 
   /* D3 */
-  route("DELETE", "/tasks/:id/development/links/:linkId", (ctx) => {
+  route("DELETE", "/tracking/tasks/:id/development/links/:linkId", (ctx) => {
     const db = ctx.db;
     const { t, project, userId } = taskOf(ctx, ctx.params.id!);
     requireLink(ctx, project);
@@ -1057,13 +1058,13 @@ export function registerIntegrations() {
     if (l.item.linkSource === "manual") db.devLinks = db.devLinks!.filter((x) => x.id !== l.id);
     else l.suppressed = true;
     const ref = l.item.kind === "pull_request" ? l.item.ref : l.item.kind === "branch" ? l.item.name : l.item.shortSha;
-    auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "task.dev_unlinked", target: t.title, entityKey: t.key, changes: [change(l.item.kind === "pull_request" ? "Pull request" : l.item.kind === "branch" ? "Branch" : "Commit", `${ref} · ${l.item.repoFullPath}`, null)] });
+    auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "tracking.task.dev_unlinked", target: t.title, entityKey: t.key, changes: [change(l.item.kind === "pull_request" ? "Pull request" : l.item.kind === "branch" ? "Branch" : "Commit", `${ref} · ${l.item.repoFullPath}`, null)] });
     publishDev(db, userId, t);
     return undefined;
   });
 
   /* D4 */
-  route("POST", "/tasks/:id/development/branches", (ctx) => {
+  route("POST", "/tracking/tasks/:id/development/branches", (ctx) => {
     const db = ctx.db;
     const { t, project, userId } = taskOf(ctx, ctx.params.id!);
     requireLink(ctx, project);
@@ -1091,7 +1092,7 @@ export function registerIntegrations() {
       } as Omit<DevBranch, "id" | "repository" | "repoFullPath">,
       userId,
     );
-    auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "task.dev_branch_created", target: t.title, entityKey: t.key, changes: [change("Branch", null, `${name} · ${repo.fullPath}`)] });
+    auditRow(db, { workspaceId: project.workspaceId, actorId: userId, action: "tracking.task.dev_branch_created", target: t.title, entityKey: t.key, changes: [change("Branch", null, `${name} · ${repo.fullPath}`)] });
     activity(db, { actorId: userId, actorKind: "user", verb: "dev_branch_created", projectId: t.projectId, taskId: t.id, taskKey: t.key, taskTitle: t.title, data: { branch: name, repo: repo.fullPath } });
     applyAutomation(db, integ, "branch_created", t);
     publishDev(db, userId, t);
@@ -1099,24 +1100,24 @@ export function registerIntegrations() {
   });
 
   /* A1 */
-  route("GET", "/projects/:id/dev-automation", (ctx) => {
+  route("GET", "/tracking/projects/:id/dev-automation", (ctx) => {
     requireUser(ctx);
     ensureExt37(ctx.db);
     const p = ctx.db.projects.find((x) => x.id === ctx.params.id);
     if (!p) fail(404, "not_found", "Project not found.");
-    requireProject(ctx, p.id, "project.view");
+    requireProject(ctx, p.id, "tracking.project.view");
     return rulesOf(ctx.db, p.id);
   });
 
   /* A2 */
-  route("PUT", "/projects/:id/dev-automation", (ctx) => {
+  route("PUT", "/tracking/projects/:id/dev-automation", (ctx) => {
     const userId = requireUser(ctx);
     ensureExt37(ctx.db);
     const db = ctx.db;
     const p = db.projects.find((x) => x.id === ctx.params.id);
     if (!p) fail(404, "not_found", "Project not found.");
-    requireProject(ctx, p.id, "status.manage");
-    if (p.status === "archived") fail(403, "forbidden", "This project is archived.", { permission: "status.manage" });
+    requireProject(ctx, p.id, "tracking.status.manage");
+    if (p.status === "archived") fail(403, "forbidden", "This project is archived.", { permission: "tracking.status.manage" });
     const body = ctx.body as DevAutomationRule[] | null;
     const order: DevTrigger[] = ["branch_created", "pr_opened", "pr_merged"];
     if (!Array.isArray(body) || body.length !== 3 || order.some((tr, i) => body[i]?.trigger !== tr)) invalid({ rules: "Send all three triggers, in order." });
@@ -1138,7 +1139,7 @@ export function registerIntegrations() {
       const rec: DevRuleRec = { projectId: p.id, trigger: r.trigger, enabled: Boolean(r.enabled), statusId: r.statusId ?? null, updatedBy: userId };
       db.devRules = db.devRules!.filter((x) => !(x.projectId === p.id && x.trigger === r.trigger)).concat(rec);
     });
-    auditRow(db, { workspaceId: p.workspaceId, actorId: userId, action: "project.dev_automation_updated", target: p.name, entityKey: p.key, changes });
+    auditRow(db, { workspaceId: p.workspaceId, actorId: userId, action: "tracking.project.dev_automation_updated", target: p.name, entityKey: p.key, changes });
     publishProject(db, userId, p.id, ["development"]);
     return rulesOf(db, p.id);
   });
@@ -1203,7 +1204,7 @@ export function simulateOpenPr(taskKey: string | null): string {
   repo.openPullRequests += 1;
   const name = PROVIDER_NAME[integ.provider];
   activity(db, { actorId: null, actorName: name, actorKind: "integration", verb: "dev_linked", projectId: t.projectId, taskId: t.id, taskKey: t.key, taskTitle: t.title, data: { ref, provider: integ.provider, repo: repo.fullPath } });
-  auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: name, action: "task.dev_linked", target: t.title, entityKey: t.key, source: "webhook", changes: [change("Pull request", null, `${ref} · ${repo.fullPath}`)] });
+  auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: name, action: "tracking.task.dev_linked", target: t.title, entityKey: t.key, source: "webhook", changes: [change("Pull request", null, `${ref} · ${repo.fullPath}`)] });
   applyAutomation(db, integ, "pr_opened", t, ref);
   done(db, t);
   return `${name} opened ${ref} on ${t.key}`;
@@ -1233,7 +1234,7 @@ export function simulateMergePr(taskKey: string | null): string {
     const task = db.tasks.find((x) => x.id === r.taskId);
     if (!task) continue;
     activity(db, { actorId: null, actorName: name, actorKind: "integration", verb: "dev_pr_merged", projectId: task.projectId, taskId: task.id, taskKey: task.key, taskTitle: task.title, data: { ref: pr.ref, provider: integ.provider, repo: pr.repoFullPath } });
-    auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: name, action: "task.dev_pr_state", target: task.title, entityKey: task.key, source: "webhook", changes: [change(`PR ${pr.ref}`, pr.state, "merged")] });
+    auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: name, action: "tracking.task.dev_pr_state", target: task.title, entityKey: task.key, source: "webhook", changes: [change(`PR ${pr.ref}`, pr.state, "merged")] });
     if (!r.suppressed) applyAutomation(db, integ, "pr_merged", task, pr.ref);
     if (task.id !== t.id) publishDev(db, null, task);
   }
@@ -1267,7 +1268,7 @@ export function simulateExpireToken(workspaceSlug: string | null): string {
   if (!integ) return "No active connection in this workspace";
   integ.status = "error";
   integ.error = { code: "token_expired", message: ERROR_MESSAGE(integ.provider, "token_expired"), since: nowISO() };
-  auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: PROVIDER_NAME[integ.provider], action: "integration.error", target: integTarget(integ), source: "webhook", changes: [change("Error", null, "token_expired")] });
+  auditRow(db, { workspaceId: integ.workspaceId, actorId: integ.id, actorKind: "integration", actorName: PROVIDER_NAME[integ.provider], action: "tracking.integration.error", target: integTarget(integ), source: "webhook", changes: [change("Error", null, "token_expired")] });
   publishIntegration(db, null, integ, "error");
   for (const p of db.projects.filter((x) => x.workspaceId === integ.workspaceId)) publishProject(db, null, p.id, ["development"]);
   persist();

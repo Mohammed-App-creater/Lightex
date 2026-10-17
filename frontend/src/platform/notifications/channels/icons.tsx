@@ -1,4 +1,4 @@
-import type { NotificationChannel } from "@/lib/api/types";
+import type { NotificationChannel } from "@/api/types";
 
 /* Board 38 glyphs, drawn from the design's paths (16 viewBox, round caps). */
 

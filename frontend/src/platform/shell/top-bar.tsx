@@ -4,10 +4,10 @@ import { Menu as MenuIcon, Search } from "lucide-react";
 import Link from "next/link";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ProjectBadge } from "@/components/ui/avatar";
-import { Kbd } from "@/components/ui/kbd";
-import { useProjects } from "@/features/workspace/queries";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { ProjectBadge } from "@/ui/avatar";
+import { Kbd } from "@/ui/kbd";
+import { useProjects } from "@/platform/workspace/queries";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo } from "@/lib/routes";
 import { shell } from "./shell-state";
 

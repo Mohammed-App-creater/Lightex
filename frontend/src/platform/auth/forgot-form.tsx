@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
+import { Button } from "@/ui/button";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
 import { authStyles, AuthBanner, AuthCard, AuthField, AuthFooter, AuthInput, AuthLink, DoneTile, SubmitButton } from "./auth-ui";
 import { useAuthForm } from "./use-auth-form";
 import { forgotSchema, type ForgotValues } from "./validation";

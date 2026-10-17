@@ -1,4 +1,4 @@
-import type { ID, ISODateTime, PresenceLocation, PresencePerson } from "@/lib/api/types";
+import type { ID, ISODateTime, PresenceLocation, PresencePerson } from "@/api/types";
 
 /*
  * Realtime protocol version 1 (docs/v2/33-dashboards-presence.md §2.4). Every SSE `data:` line is
@@ -46,29 +46,29 @@ export type ResetEvent = RealtimeEnvelope<"reset", { reason: "unknown_cursor" | 
 export type ReconnectReason = "lifetime" | "token_expiry" | "access_changed" | "shutdown";
 export type ReconnectEvent = RealtimeEnvelope<"reconnect", { reason: ReconnectReason; retryMs: number }>;
 export type TaskChangedEvent = RealtimeEnvelope<
-  "task.changed",
+  "tracking.task.changed",
   { taskId: ID; key: string; op: TaskOp; version: number | null; fields: string[] }
 >;
-export type TasksBulkChangedEvent = RealtimeEnvelope<"tasks.bulk_changed", { taskIds: ID[] | null; op: TaskOp }>;
+export type TasksBulkChangedEvent = RealtimeEnvelope<"tracking.tasks.bulk_changed", { taskIds: ID[] | null; op: TaskOp }>;
 export type CommentChangedEvent = RealtimeEnvelope<
-  "comment.changed",
+  "tracking.comment.changed",
   { taskId: ID; key: string; commentId: ID; op: "created" | "updated" | "deleted" }
 >;
-export type AttachmentChangedEvent = RealtimeEnvelope<"attachment.changed", { taskId: ID; key: string; op: "created" | "deleted" }>;
-export type ProjectChangedEvent = RealtimeEnvelope<"project.changed", { areas: ProjectArea[] }>;
+export type AttachmentChangedEvent = RealtimeEnvelope<"tracking.attachment.changed", { taskId: ID; key: string; op: "created" | "deleted" }>;
+export type ProjectChangedEvent = RealtimeEnvelope<"tracking.project.changed", { areas: ProjectArea[] }>;
 export type DashboardChangedEvent = RealtimeEnvelope<
-  "dashboard.changed",
+  "tracking.dashboard.changed",
   { dashboardId: ID; op: "created" | "updated" | "layout" | "deleted"; version: number | null }
 >;
-export type InboxChangedEvent = RealtimeEnvelope<"inbox.changed", { unread: number }>;
-export type AccessChangedEvent = RealtimeEnvelope<"access.changed", { projectId: ID | null }>;
+export type InboxChangedEvent = RealtimeEnvelope<"core.inbox.changed", { unread: number }>;
+export type AccessChangedEvent = RealtimeEnvelope<"core.access.changed", { projectId: ID | null }>;
 export type PresenceUpdatedEvent = RealtimeEnvelope<
-  "presence.updated",
+  "core.presence.updated",
   { location: PresenceLocation; people: PresencePerson[]; at: ISODateTime }
 >;
 /** Board 37: a workspace connection changed. Delivered to every member of the workspace (projectId null). */
 export type IntegrationChangedEvent = RealtimeEnvelope<
-  "integration.changed",
+  "tracking.integration.changed",
   { integrationId: ID; op: "connected" | "updated" | "synced" | "error" | "disconnected" }
 >;
 /**
@@ -76,11 +76,11 @@ export type IntegrationChangedEvent = RealtimeEnvelope<
  * expired). User-targeted (only the owner receives it), durable.
  */
 export type ChannelsChangedEvent = RealtimeEnvelope<
-  "channels.changed",
+  "core.channels.changed",
   { channel: "telegram" | "sms" | "push"; op: "linked" | "disconnected" | "status" }
 >;
 /** Reserved for board 40; not emitted in this release (useImportJob keeps polling). */
-export type ImportProgressEvent = RealtimeEnvelope<"import.progress", { jobId: ID; status: string; progress: unknown }>;
+export type ImportProgressEvent = RealtimeEnvelope<"tracking.import.progress", { jobId: ID; status: string; progress: unknown }>;
 
 export type RealtimeEvent =
   | HelloEvent
@@ -102,16 +102,16 @@ export type RealtimeEvent =
 export type RealtimeEventType = RealtimeEvent["type"];
 
 export const DURABLE_TYPES: readonly RealtimeEventType[] = [
-  "task.changed",
-  "tasks.bulk_changed",
-  "comment.changed",
-  "attachment.changed",
-  "project.changed",
-  "dashboard.changed",
-  "inbox.changed",
-  "access.changed",
-  "integration.changed",
-  "channels.changed",
+  "tracking.task.changed",
+  "tracking.tasks.bulk_changed",
+  "tracking.comment.changed",
+  "tracking.attachment.changed",
+  "tracking.project.changed",
+  "tracking.dashboard.changed",
+  "core.inbox.changed",
+  "core.access.changed",
+  "tracking.integration.changed",
+  "core.channels.changed",
 ];
 
 /** Parses one `data:` payload. Returns null for anything that isn't a v1 envelope (ignored, never thrown). */

@@ -3,12 +3,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AppLoader } from "@/components/brand/app-loader";
-import { Wordmark } from "@/components/brand/logo";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
+import { AppLoader } from "@/ui/brand/app-loader";
+import { Wordmark } from "@/ui/brand/logo";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import type { User, Workspace } from "@/lib/api/types";
+import type { User, Workspace } from "@/api/types";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { AuthStyles, authStylesClasses as s } from "./auth-styles";

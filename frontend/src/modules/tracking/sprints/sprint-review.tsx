@@ -5,18 +5,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, ListTodo, Play, RefreshCcw, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useId, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { toast } from "@/components/ui/toast";
-import { useProjectMembers } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { BurndownPoint, Sprint, Task } from "@/lib/api/types";
-import { useCan } from "@/lib/permissions/can";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { StatusGlyph } from "@/ui/glyphs";
+import { toast } from "@/ui/toast";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { BurndownPoint, Sprint, Task } from "@/api/types";
+import { useCan } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { dateRange, shortDate } from "@/lib/utils/dates";
 import {
@@ -66,7 +66,7 @@ export function CompleteSprintDialog({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [result, setResult] = useState<Result | null>(null);
   const [startNext, setStartNext] = useState(false);
-  const canSprint = useCan("sprint.manage");
+  const canSprint = useCan("tracking.sprint.manage");
   const titleId = useId();
   const qc = useQueryClient();
   const data = useSprintTasks(sprint.projectId, sprint.id, open && step !== 3);
@@ -279,7 +279,7 @@ function Count({ children }: { children: ReactNode }) {
 }
 
 function ReviewStep({ sprint, stats, glyphOf }: { sprint: Sprint; stats: Stats; glyphOf: ReturnType<typeof glyphLookup> }) {
-  const canReport = useCan("report.view");
+  const canReport = useCan("tracking.report.view");
   const members = useProjectMembers(sprint.projectId);
   const people = new Map((members.data ?? []).map((m) => [m.userId, m.user]));
   const ctr = contributors(stats.done);

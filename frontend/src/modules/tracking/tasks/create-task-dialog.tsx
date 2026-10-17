@@ -4,23 +4,23 @@ import * as D from "@radix-ui/react-dialog";
 import { Calendar, ChevronRight, Flag, Hexagon, RefreshCcw, Tag, Timer, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Avatar, ProjectBadge, UnassignedAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/choice";
-import { DateChip, DatePicker } from "@/components/ui/date-picker";
-import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Textarea } from "@/components/ui/input";
-import { Menu, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { shell, useShell, type CreateTaskDefaults } from "@/components/shell/shell-state";
-import { useMe } from "@/features/auth/session";
-import { epicSwatch } from "@/features/epics/epic-model";
-import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
-import { useProjects } from "@/features/workspace/queries";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { Priority, RichDoc } from "@/lib/api/types";
+import { Avatar, ProjectBadge, UnassignedAvatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Switch } from "@/ui/choice";
+import { DateChip, DatePicker } from "@/ui/date-picker";
+import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
+import { Textarea } from "@/ui/input";
+import { Menu, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { shell, useShell, type CreateTaskDefaults } from "@/platform/shell/shell-state";
+import { useMe } from "@/platform/auth/session";
+import { epicSwatch } from "@/modules/tracking/epics/epic-model";
+import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/modules/tracking/projects/queries";
+import { useProjects } from "@/platform/workspace/queries";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { Priority, RichDoc } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
@@ -62,7 +62,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const route = useRouteInfo();
   const mobile = useIsMobile();
   const { data: projects = [], isPending: projectsPending } = useProjects(ws.slug);
-  const allowed = useMemo(() => projects.filter((p) => can("task.create", p.my_permissions) && p.status !== "archived"), [projects]);
+  const allowed = useMemo(() => projects.filter((p) => can("tracking.task.create", p.my_permissions) && p.status !== "archived"), [projects]);
   const initialProject = defaults.projectId ?? allowed.find((p) => p.key === route.projectKey)?.id ?? allowed[0]?.id ?? "";
 
   const blank = (projectId: string): Draft => ({
@@ -96,7 +96,7 @@ function Inner({ defaults }: { defaults: CreateTaskDefaults }) {
   const { data: milestones = [] } = useMilestones(d.projectId || undefined);
   const { data: epics = [] } = useEpics(d.projectId || undefined);
   const { data: labels = [] } = useLabels(d.projectId || undefined);
-  const canAssign = can("task.assign", project?.my_permissions);
+  const canAssign = can("tracking.task.assign", project?.my_permissions);
   const create = useCreateTask();
   const active = sprints.find((s) => s.state === "active");
 

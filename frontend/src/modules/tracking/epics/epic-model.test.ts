@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Epic, Task } from "@/lib/api/types";
+import type { Epic, Task } from "@/api/types";
 import { EPIC_PALETTE, epicStats, nearestPaletteHue, pickable, splitEpics, validateEpicName } from "./epic-model";
 
 const G = { d: "done", c: "canceled", p: "progress", r: "review", t: "todo", b: "backlog" } as const;

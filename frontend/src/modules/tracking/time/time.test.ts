@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Timesheet } from "@/lib/api/types";
+import type { Timesheet } from "@/api/types";
 import { checkEntry, checkEstimate, checkLogDate, formatClock, formatHours, formatMinutes, logHint, parseDuration } from "./duration";
 import { canExport, cellText, csvName, heat, shiftWeek, timesheetCsv, weekLabel, weekStart } from "./timesheet-lib";
 
@@ -80,8 +80,8 @@ describe("timesheet lib", () => {
     weekStart: "2026-10-05",
     days: ["2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11"],
     projects: [
-      { id: "p1", key: "PRJ", name: "Platform", hue: 1, my_permissions: ["project.view", "report.view"] },
-      { id: "p2", key: "INF", name: "Infra", hue: 2, my_permissions: ["project.view"] },
+      { id: "p1", key: "PRJ", name: "Platform", hue: 1, my_permissions: ["tracking.project.view", "tracking.report.view"] },
+      { id: "p2", key: "INF", name: "Infra", hue: 2, my_permissions: ["tracking.project.view"] },
     ],
     rows: [
       {
@@ -109,7 +109,7 @@ describe("timesheet lib", () => {
     expect(timesheetCsv(evil, "2026-10-07").split("\n")[1]).toBe(`"'=HYPERLINK(""x"",""y"")",6.5,0,2,,,,,8.5`);
   });
 
-  it("gates export on report.view", () => {
+  it("gates export on tracking.report.view", () => {
     expect(canExport(ts, null)).toBe(true);
     expect(canExport(ts, "p1")).toBe(true);
     expect(canExport(ts, "p2")).toBe(false);

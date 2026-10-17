@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ApiError } from "@/lib/api/errors";
+import { ApiError } from "@/api/errors";
 import type {
   AuditPage,
   AvailableRepository,
@@ -16,7 +16,7 @@ import type {
   TaskDetail,
   TaskDevelopment,
   Workspace,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB, setDB } from "./db";
 import {
@@ -72,16 +72,16 @@ beforeEach(() => {
 afterEach(() => unsub());
 
 const GH = "int_gh_platform";
-const overview = () => req<IntegrationsOverview>("GET", "/workspaces/platform/integrations");
-const dev = (key: string) => req<TaskDevelopment>("GET", `/tasks/${key}/development`);
-const task = (key: string) => req<TaskDetail>("GET", `/workspaces/platform/tasks/${key}`);
+const overview = () => req<IntegrationsOverview>("GET", "/tracking/workspaces/platform/integrations");
+const dev = (key: string) => req<TaskDevelopment>("GET", `/tracking/tasks/${key}/development`);
+const task = (key: string) => req<TaskDetail>("GET", `/tracking/workspaces/platform/tasks/${key}`);
 
 /** Runs G2/G3 → the fake consent page → G6 like the screen does. */
 async function connect(provider: "github" | "gitlab") {
   const { authorizeUrl } =
     provider === "github"
-      ? await req<{ authorizeUrl: string }>("POST", "/workspaces/platform/integrations/github/connect", {})
-      : await req<{ authorizeUrl: string }>("POST", "/workspaces/platform/integrations/gitlab/connect", { method: "oauth" });
+      ? await req<{ authorizeUrl: string }>("POST", "/tracking/workspaces/platform/integrations/github/connect", {})
+      : await req<{ authorizeUrl: string }>("POST", "/tracking/workspaces/platform/integrations/gitlab/connect", { method: "oauth" });
   const attempt = authorizeUrl.split(`#mock-authorize=${provider}.`)[1]!;
   const frag = fakeAuthorize(attempt);
   const [a, token] = frag.replace("#connect=", "").split(".");
@@ -113,7 +113,7 @@ describe("seed + upgrade (§9.8)", () => {
     delete old.devLinks;
     delete old.devRules;
     delete old.connectAttempts;
-    for (const r of old.roles) r.permissions = r.permissions.filter((p) => p !== "integration.manage" && p !== "development.link");
+    for (const r of old.roles) r.permissions = r.permissions.filter((p) => p !== "tracking.integration.manage" && p !== "tracking.development.link");
     old.tasks = old.tasks.filter((x) => x.key !== "PRJ-41" && x.key !== "PRJ-29");
     const custom = old.roles.find((r) => !r.isSystem)!;
     const customBefore = [...custom.permissions];
@@ -122,11 +122,11 @@ describe("seed + upgrade (§9.8)", () => {
     const db = getDB();
     expect(db.ext37).toBe(true);
     const owner = db.roles.find((r) => r.key === "owner" && r.workspaceId === "ws_platform")!;
-    expect(owner.permissions.slice(-2)).toEqual(["integration.manage", "audit.view"]);
+    expect(owner.permissions.slice(-4)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage"]);
     const member = db.roles.find((r) => r.key === "project_member" && r.workspaceId === "ws_platform")!;
-    expect(member.permissions.indexOf("development.link")).toBe(member.permissions.indexOf("project.import") + 1);
-    expect(db.roles.find((r) => r.key === "viewer" && r.workspaceId === "ws_platform")!.permissions).not.toContain("development.link");
-    expect(db.roles.find((r) => r.key === "member" && r.workspaceId === "ws_platform")!.permissions).not.toContain("integration.manage");
+    expect(member.permissions.indexOf("tracking.development.link")).toBe(member.permissions.indexOf("tracking.project.import") + 1);
+    expect(db.roles.find((r) => r.key === "viewer" && r.workspaceId === "ws_platform")!.permissions).not.toContain("tracking.development.link");
+    expect(db.roles.find((r) => r.key === "member" && r.workspaceId === "ws_platform")!.permissions).not.toContain("tracking.integration.manage");
     expect(db.roles.find((r) => r.id === custom.id)!.permissions).toEqual(customBefore);
     expect(db.integrations).toHaveLength(1);
     expect(db.tasks.filter((x) => x.key === "PRJ-41")).toHaveLength(1);
@@ -138,12 +138,12 @@ describe("seed + upgrade (§9.8)", () => {
 
   it("my_permissions follow §4.3 for Sam and the workspace order for Alex", async () => {
     as("u_sam");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    expect(p.my_permissions).toEqual(["project.view", "task.create", "task.edit_own", "task.assign", "task.move", "project.import", "development.link", "time.log", "comment.create", "comment.edit_own", "attachment.upload", "dashboard.create", "report.view"]);
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    expect(p.my_permissions).toEqual(["tracking.project.view", "tracking.task.create", "tracking.task.edit_own", "tracking.task.assign", "tracking.task.move", "tracking.project.import", "tracking.development.link", "tracking.time.log", "tracking.comment.create", "tracking.comment.edit_own", "tracking.attachment.upload", "tracking.dashboard.create", "tracking.report.view"]);
     expect(p.devEnabled).toBe(true);
     as("u_alex");
     const w = await req<Workspace>("GET", "/workspaces/platform");
-    expect(w.my_permissions.slice(-2)).toEqual(["integration.manage", "audit.view"]);
+    expect(w.my_permissions.slice(-4)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage"]);
   });
 });
 
@@ -188,7 +188,7 @@ describe("Task.dev and D1 (§5.6, §5.7)", () => {
   });
 
   it("the board payload carries Task.dev", async () => {
-    const board = await req<{ columns: { tasks: Task[] }[] } | Paginated<Task>>("GET", "/projects/p_prj/tasks", undefined, { limit: 200 });
+    const board = await req<{ columns: { tasks: Task[] }[] } | Paginated<Task>>("GET", "/tracking/projects/p_prj/tasks", undefined, { limit: 200 });
     const list = "data" in board ? board.data : board.columns.flatMap((c) => c.tasks);
     expect(list.find((x) => x.key === "PRJ-42")!.dev!.pr!.ref).toBe("#214");
     expect(list.every((x) => "dev" in x)).toBe(true);
@@ -214,7 +214,7 @@ describe("Task.dev and D1 (§5.6, §5.7)", () => {
 describe("G1 visibility for non-managers (§5.2)", () => {
   it("hides manageUrl and repositories scoped to projects the caller can't view", async () => {
     const r = getDB().repositories!.find((x) => x.name === "mobile-app")!;
-    await req<Repository>("PATCH", `/repositories/${r.id}`, { projectIds: ["p_inf"] });
+    await req<Repository>("PATCH", `/tracking/repositories/${r.id}`, { projectIds: ["p_inf"] });
     as("u_taylor"); // PRJ / MOB viewer, not on INF
     const o = await overview();
     expect(o.integrations[0]!.manageUrl).toBeNull();
@@ -235,31 +235,31 @@ describe("connect / confirm (§5.3, §9.6)", () => {
     expect(authorizeUrl).toBe(`/platform/settings/integrations#mock-authorize=github.${attempt}`);
     expect(frag).toMatch(/^#connect=ca_[^.]+\.[a-z0-9]+$/);
     expect((await overview()).integrations).toHaveLength(1);
-    const i = await req<Integration>("POST", "/workspaces/platform/integrations/confirm", { attempt, token });
+    const i = await req<Integration>("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt, token });
     expect(i).toMatchObject({ provider: "github", status: "active", account: { login: "alexkim", kind: "user" }, repositories: [] });
     expect((await overview()).integrations.map((x) => x.account.login)).toEqual(["platform-team", "alexkim"]);
-    expect(events.some((e) => e.type === "integration.changed" && (e.data as { op: string }).op === "connected")).toBe(true);
-    expect(getDB().audit[0]).toMatchObject({ action: "integration.connected", actorId: "u_alex", source: "web" });
+    expect(events.some((e) => e.type === "tracking.integration.changed" && (e.data as { op: string }).op === "connected")).toBe(true);
+    expect(getDB().audit[0]).toMatchObject({ action: "tracking.integration.connected", actorId: "u_alex", source: "web" });
     // Single use.
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/confirm", { attempt, token }))).status).toBe(404);
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt, token }))).status).toBe(404);
   });
 
   it("G6 answers 404 for a wrong token, another user, a lost permission or an expired attempt", async () => {
     const a = await connect("gitlab");
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: "nope" }))).status).toBe(404);
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: "nope" }))).status).toBe(404);
     as("u_jordan"); // also a manager, but not the attempt's user
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token }))).status).toBe(404);
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token }))).status).toBe(404);
     as("u_alex");
     getDB().connectAttempts!.find((x) => x.id === a.attempt)!.expiresAt = new Date(Date.now() - 1000).toISOString();
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token }))).status).toBe(404);
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token }))).status).toBe(404);
     const b = await connect("gitlab");
     const owner = getDB().roles.find((r) => r.key === "owner" && r.workspaceId === "ws_platform")!;
-    owner.permissions = owner.permissions.filter((p) => p !== "integration.manage");
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/confirm", { attempt: b.attempt, token: b.token }))).status).toBe(404);
+    owner.permissions = owner.permissions.filter((p) => p !== "tracking.integration.manage");
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: b.attempt, token: b.token }))).status).toBe(404);
   });
 
   it("Cancel on the consent page answers #connect_error=<provider>_cancelled; a stale attempt state_invalid", async () => {
-    const { authorizeUrl } = await req<{ authorizeUrl: string }>("POST", "/workspaces/platform/integrations/github/connect", {});
+    const { authorizeUrl } = await req<{ authorizeUrl: string }>("POST", "/tracking/workspaces/platform/integrations/github/connect", {});
     const attempt = authorizeUrl.split(".").pop()!;
     expect(fakeAuthorize(attempt, { deny: true })).toBe("#connect_error=github_cancelled");
     expect(fakeAuthorize(attempt)).toBe("#connect_error=state_invalid");
@@ -267,12 +267,12 @@ describe("connect / confirm (§5.3, §9.6)", () => {
 
   it("GitLab OAuth connects akim on gitlab.com", async () => {
     const a = await connect("gitlab");
-    const i = await req<Integration>("POST", "/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token });
+    const i = await req<Integration>("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token });
     expect(i).toMatchObject({ provider: "gitlab", authKind: "gitlab_oauth", baseUrl: "https://gitlab.com", account: { login: "akim" } });
   });
 
   it("G3 token mode: field errors, success (201, no repositories) and 409 integration_exists", async () => {
-    const tok = (baseUrl: string, token: string) => req<Integration>("POST", "/workspaces/platform/integrations/gitlab/connect", { method: "token", baseUrl, token });
+    const tok = (baseUrl: string, token: string) => req<Integration>("POST", "/tracking/workspaces/platform/integrations/gitlab/connect", { method: "token", baseUrl, token });
     const field = async (p: Promise<unknown>) => ((await rejects(p)).details as { fields: Record<string, string> }).fields;
     expect(await field(tok("http://gitlab.example.com", "fake-token"))).toEqual({ baseUrl: "Use an https:// address." });
     expect(await field(tok("https://10.0.0.5", "fake-token"))).toEqual({ baseUrl: "This address isn’t allowed." });
@@ -288,38 +288,38 @@ describe("connect / confirm (§5.3, §9.6)", () => {
     expect(dup).toMatchObject({ status: 409, code: "integration_exists", details: { integrationId: i.id } });
   });
 
-  it("G2 / G3 need integration.manage (403 with details.permission); an unconfigured GitHub is 503", async () => {
+  it("G2 / G3 need tracking.integration.manage (403 with details.permission); an unconfigured GitHub is 503", async () => {
     as("u_sam");
-    expect(await rejects(req("POST", "/workspaces/platform/integrations/github/connect", {}))).toMatchObject({ status: 403, details: { permission: "integration.manage" } });
-    expect((await rejects(req("POST", "/workspaces/platform/integrations/gitlab/connect", { method: "oauth" }))).status).toBe(403);
+    expect(await rejects(req("POST", "/tracking/workspaces/platform/integrations/github/connect", {}))).toMatchObject({ status: 403, details: { permission: "tracking.integration.manage" } });
+    expect((await rejects(req("POST", "/tracking/workspaces/platform/integrations/gitlab/connect", { method: "oauth" }))).status).toBe(403);
     as("u_casey"); // workspace Admin without project access still manages integrations
-    expect((await req<{ authorizeUrl: string }>("POST", "/workspaces/platform/integrations/github/connect", {})).authorizeUrl).toContain("#mock-authorize=github.");
+    expect((await req<{ authorizeUrl: string }>("POST", "/tracking/workspaces/platform/integrations/github/connect", {})).authorizeUrl).toContain("#mock-authorize=github.");
     mockProviderConfig.github = false;
-    expect(await rejects(req("POST", "/workspaces/platform/integrations/github/connect", {}))).toMatchObject({ status: 503, code: "integrations_unavailable" });
+    expect(await rejects(req("POST", "/tracking/workspaces/platform/integrations/github/connect", {}))).toMatchObject({ status: 503, code: "integrations_unavailable" });
     expect((await overview()).providers[0]!.available).toBe(false);
   });
 
   it("G12 reconnect: GitHub → authorize URL, confirm clears the error; GitLab token needs the same user", async () => {
     setIntegrationError(getDB(), GH, "installation_suspended");
     expect((await overview()).integrations[0]!.repositories.every((r) => r.syncState === "paused")).toBe(true);
-    const { authorizeUrl } = await req<{ authorizeUrl: string }>("POST", `/integrations/${GH}/reconnect`, {});
+    const { authorizeUrl } = await req<{ authorizeUrl: string }>("POST", `/tracking/integrations/${GH}/reconnect`, {});
     const frag = fakeAuthorize(authorizeUrl.split(".").pop()!);
     const [attempt, token] = frag.replace("#connect=", "").split(".");
-    const i = await req<Integration>("POST", "/workspaces/platform/integrations/confirm", { attempt, token });
+    const i = await req<Integration>("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt, token });
     expect(i).toMatchObject({ id: GH, status: "active", error: null });
-    expect(getDB().audit[0]!.action).toBe("integration.reconnected");
+    expect(getDB().audit[0]!.action).toBe("tracking.integration.reconnected");
 
-    const gl = await req<Integration>("POST", "/workspaces/platform/integrations/gitlab/connect", { method: "token", baseUrl: "https://gitlab.example.com", token: "fake-token" });
+    const gl = await req<Integration>("POST", "/tracking/workspaces/platform/integrations/gitlab/connect", { method: "token", baseUrl: "https://gitlab.example.com", token: "fake-token" });
     setIntegrationError(getDB(), gl.id, "token_expired");
-    const other = await rejects(req("POST", `/integrations/${gl.id}/reconnect`, { token: "fake-other" }));
+    const other = await rejects(req("POST", `/tracking/integrations/${gl.id}/reconnect`, { token: "fake-other" }));
     expect((other.details as { fields: Record<string, string> }).fields).toEqual({ token: "This token belongs to a different GitLab user." });
-    expect(await req<Integration>("POST", `/integrations/${gl.id}/reconnect`, { token: "fake-token" })).toMatchObject({ status: "active", error: null });
+    expect(await req<Integration>("POST", `/tracking/integrations/${gl.id}/reconnect`, { token: "fake-token" })).toMatchObject({ status: "active", error: null });
   });
 });
 
 describe("repositories, sync and disconnect (§5.4)", () => {
   it("G8 lists the eight fixtures by owner with tracked flags; 409 while in error; managers only", async () => {
-    const list = await req<AvailableRepository[]>("GET", `/integrations/${GH}/available-repositories`);
+    const list = await req<AvailableRepository[]>("GET", `/tracking/integrations/${GH}/available-repositories`);
     expect(list.map((r) => r.fullPath)).toEqual([
       "alexkim/dotfiles",
       "alexkim/reflow-bench",
@@ -331,26 +331,26 @@ describe("repositories, sync and disconnect (§5.4)", () => {
       "platform-team/web",
     ]);
     expect(list.filter((r) => r.tracked).map((r) => r.name)).toEqual(["api", "board-engine", "mobile-app", "web"]);
-    expect((await req<AvailableRepository[]>("GET", `/integrations/${GH}/available-repositories`, undefined, { q: "WEB" })).map((r) => r.name)).toEqual(["web"]);
+    expect((await req<AvailableRepository[]>("GET", `/tracking/integrations/${GH}/available-repositories`, undefined, { q: "WEB" })).map((r) => r.name)).toEqual(["web"]);
     as("u_sam");
-    expect((await rejects(req("GET", `/integrations/${GH}/available-repositories`))).status).toBe(403);
+    expect((await rejects(req("GET", `/tracking/integrations/${GH}/available-repositories`))).status).toBe(403);
     as("u_alex");
     setIntegrationError(getDB(), GH, "token_expired");
-    expect(await rejects(req("GET", `/integrations/${GH}/available-repositories`))).toMatchObject({ status: 409, code: "integration_error", details: { code: "token_expired" } });
+    expect(await rejects(req("GET", `/tracking/integrations/${GH}/available-repositories`))).toMatchObject({ status: 409, code: "integration_error", details: { code: "token_expired" } });
   });
 
   it("a second GitHub account sees repositories tracked by the first as trackedElsewhere and can't take them", async () => {
     const a = await connect("github");
-    const second = await req<Integration>("POST", "/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token });
-    const list = await req<AvailableRepository[]>("GET", `/integrations/${second.id}/available-repositories`);
+    const second = await req<Integration>("POST", "/tracking/workspaces/platform/integrations/confirm", { attempt: a.attempt, token: a.token });
+    const list = await req<AvailableRepository[]>("GET", `/tracking/integrations/${second.id}/available-repositories`);
     expect(list.filter((r) => r.trackedElsewhere).map((r) => r.name)).toEqual(["api", "board-engine", "mobile-app", "web"]);
     const web = list.find((r) => r.name === "web")!;
-    const err = await rejects(req("PUT", `/integrations/${second.id}/repositories`, { repositories: [{ externalId: web.externalId }] }));
+    const err = await rejects(req("PUT", `/tracking/integrations/${second.id}/repositories`, { repositories: [{ externalId: web.externalId }] }));
     expect((err.details as { fields: Record<string, string> }).fields).toEqual({ "repositories.0.externalId": "Already connected through another account." });
   });
 
   it("G9: 1–200, unknown ids and unknown projects are 422; the set is complete; scopes are kept when sent", async () => {
-    const put = (repositories: unknown) => req<Integration>("PUT", `/integrations/${GH}/repositories`, { repositories });
+    const put = (repositories: unknown) => req<Integration>("PUT", `/tracking/integrations/${GH}/repositories`, { repositories });
     const f = async (p: Promise<unknown>) => ((await rejects(p)).details as { fields: Record<string, string> }).fields;
     expect(await f(put([]))).toEqual({ repositories: "Choose at least one repository." });
     expect(await f(put(Array.from({ length: 201 }, () => ({ externalId: "712004001" }))))).toEqual({ repositories: "Up to 200 repositories." });
@@ -363,7 +363,7 @@ describe("repositories, sync and disconnect (§5.4)", () => {
       ["web", true, [], "idle"],
     ]);
     expect(next.syncing).toBe(true);
-    expect(getDB().audit[0]).toMatchObject({ action: "integration.repositories_updated" });
+    expect(getDB().audit[0]).toMatchObject({ action: "tracking.integration.repositories_updated" });
     // Removed repos: links stay, repository becomes null (PRJ-29's #187 lived in board-engine).
     const d29 = await dev("PRJ-29");
     expect(d29.pullRequests[0]).toMatchObject({ repository: null, repoFullPath: "platform-team/board-engine" });
@@ -374,42 +374,42 @@ describe("repositories, sync and disconnect (§5.4)", () => {
 
   it("G10 scopes a repository; INF-only infra repos don't enable PRJ", async () => {
     const web = getDB().repositories!.find((r) => r.name === "web")!;
-    const r = await req<Repository>("PATCH", `/repositories/${web.id}`, { projectIds: ["p_inf"] });
+    const r = await req<Repository>("PATCH", `/tracking/repositories/${web.id}`, { projectIds: ["p_inf"] });
     expect(r).toMatchObject({ allProjects: false, projectIds: ["p_inf"] });
-    expect(getDB().audit[0]!.action).toBe("integration.repository_scoped");
-    expect(events.some((e) => e.type === "project.changed" && (e.data as { areas: string[] }).areas.includes("development"))).toBe(true);
-    expect((await req<Repository>("PATCH", `/repositories/${web.id}`, { projectIds: [] })).allProjects).toBe(true);
+    expect(getDB().audit[0]!.action).toBe("tracking.integration.repository_scoped");
+    expect(events.some((e) => e.type === "tracking.project.changed" && (e.data as { areas: string[] }).areas.includes("development"))).toBe(true);
+    expect((await req<Repository>("PATCH", `/tracking/repositories/${web.id}`, { projectIds: [] })).allProjects).toBe(true);
     as("u_jordan");
-    expect((await req<Repository>("PATCH", `/repositories/${web.id}`, { projectIds: ["p_prj"] })).projectIds).toEqual(["p_prj"]);
+    expect((await req<Repository>("PATCH", `/tracking/repositories/${web.id}`, { projectIds: ["p_prj"] })).projectIds).toEqual(["p_prj"]);
     as("u_sam");
-    expect((await rejects(req("PATCH", `/repositories/${web.id}`, { projectIds: [] }))).status).toBe(403);
+    expect((await rejects(req("PATCH", `/tracking/repositories/${web.id}`, { projectIds: [] }))).status).toBe(403);
   });
 
   it("G11: 202 syncing, then 429 sync_throttled within 2 minutes; 409 while in error", async () => {
-    const s = await req<Integration>("POST", `/integrations/${GH}/sync`, {});
+    const s = await req<Integration>("POST", `/tracking/integrations/${GH}/sync`, {});
     expect(s.syncing).toBe(true);
     expect(s.nextSyncAt).not.toBeNull();
-    const again = await rejects(req("POST", `/integrations/${GH}/sync`, {}));
+    const again = await rejects(req("POST", `/tracking/integrations/${GH}/sync`, {}));
     expect(again).toMatchObject({ status: 429, code: "sync_throttled" });
     expect((again.details as { nextSyncAt: string }).nextSyncAt).toBe(s.nextSyncAt);
     getDB().integrations![0]!.syncRequestedAt = null;
     setIntegrationError(getDB(), GH, "token_expired");
-    expect((await rejects(req("POST", `/integrations/${GH}/sync`, {}))).code).toBe("integration_error");
+    expect((await rejects(req("POST", `/tracking/integrations/${GH}/sync`, {}))).code).toBe("integration_error");
   });
 
   it("G13: 204, links stay with repository null, devEnabled goes false, the event reaches everyone", async () => {
-    await req("DELETE", `/integrations/${GH}`);
+    await req("DELETE", `/tracking/integrations/${GH}`);
     expect((await overview()).integrations).toEqual([]);
     const d = await dev("PRJ-42");
     expect(d.enabled).toBe(false);
     expect(d.pullRequests).toHaveLength(4);
     expect(d.pullRequests.every((p) => p.repository === null)).toBe(true);
-    expect((await req<Project>("GET", "/workspaces/platform/projects/PRJ")).devEnabled).toBe(false);
+    expect((await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ")).devEnabled).toBe(false);
     expect((await task("PRJ-42")).dev!.prCount).toBe(4);
-    const ev = events.find((e) => e.type === "integration.changed");
+    const ev = events.find((e) => e.type === "tracking.integration.changed");
     expect(ev).toMatchObject({ projectId: null, data: { integrationId: GH, op: "disconnected" } });
     as("u_taylor");
-    expect((await rejects(req("DELETE", `/integrations/${GH}`))).status).toBe(404);
+    expect((await rejects(req("DELETE", `/tracking/integrations/${GH}`))).status).toBe(404);
   });
 });
 
@@ -421,7 +421,7 @@ describe("D2–D4 (§5.6)", () => {
     expect(parseDevUrl("https://gitlab.com/group/sub/proj/-/merge_requests/12/diffs", ["https://gitlab.com"])).toMatchObject({ fullPath: "group/sub/proj", kind: "pull_request", ref: "12" });
     expect(parseDevUrl("https://example.com/x", [])).toBeNull();
 
-    const link = (url: string, key = "PRJ-58") => req<DevItem>("POST", `/tasks/${key}/development/links`, { url });
+    const link = (url: string, key = "PRJ-58") => req<DevItem>("POST", `/tracking/tasks/${key}/development/links`, { url });
     const f = async (p: Promise<unknown>) => ((await rejects(p)).details as { fields: Record<string, string> }).fields;
     expect(await f(link("https://github.com/platform-team/infra-terraform/pull/3"))).toEqual({ url: "Connect this repository first." });
     expect(await f(link("not a url"))).toEqual({ url: "Paste a link to a pull request, merge request, commit or branch." });
@@ -433,15 +433,15 @@ describe("D2–D4 (§5.6)", () => {
   });
 
   it("links a known PR manually, re-link is idempotent, unlink deletes manual links", async () => {
-    const pr = await req<DevItem>("POST", "/tasks/PRJ-58/development/links", { url: "https://github.com/platform-team/web/pull/214" });
+    const pr = await req<DevItem>("POST", "/tracking/tasks/PRJ-58/development/links", { url: "https://github.com/platform-team/web/pull/214" });
     expect(pr).toMatchObject({ kind: "pull_request", ref: "#214", linkSource: "manual", repository: { fullPath: "platform-team/web" } });
-    const again = await req<DevItem>("POST", "/tasks/PRJ-58/development/links", { url: "https://github.com/platform-team/web/pull/214" });
+    const again = await req<DevItem>("POST", "/tracking/tasks/PRJ-58/development/links", { url: "https://github.com/platform-team/web/pull/214" });
     expect(again.id).toBe(pr.id);
     expect((await task("PRJ-58")).dev!.prCount).toBe(1);
-    expect(getDB().audit[0]!.action).toBe("task.dev_linked");
+    expect(getDB().audit[0]!.action).toBe("tracking.task.dev_linked");
     expect(getDB().activity[0]).toMatchObject({ verb: "dev_linked", actorId: "u_alex", data: { ref: "#214" } });
-    expect(events.some((e) => e.type === "task.changed" && (e.data as { fields: string[]; version: number | null }).fields.includes("development") && (e.data as { version: unknown }).version === null)).toBe(true);
-    await req("DELETE", `/tasks/PRJ-58/development/links/${pr.id}`);
+    expect(events.some((e) => e.type === "tracking.task.changed" && (e.data as { fields: string[]; version: number | null }).fields.includes("development") && (e.data as { version: unknown }).version === null)).toBe(true);
+    await req("DELETE", `/tracking/tasks/PRJ-58/development/links/${pr.id}`);
     expect(getDB().devLinks!.some((l) => l.id === pr.id)).toBe(false);
     expect((await task("PRJ-58")).dev).toBeNull();
   });
@@ -449,20 +449,20 @@ describe("D2–D4 (§5.6)", () => {
   it("unlinking an auto link suppresses it; D2 re-link lifts the suppression", async () => {
     const d = await dev("PRJ-42");
     const p190 = d.pullRequests.find((p) => p.ref === "#190")!;
-    await req("DELETE", `/tasks/PRJ-42/development/links/${p190.id}`);
+    await req("DELETE", `/tracking/tasks/PRJ-42/development/links/${p190.id}`);
     expect(getDB().devLinks!.find((l) => l.id === p190.id)!.suppressed).toBe(true);
     expect((await dev("PRJ-42")).pullRequests).toHaveLength(3);
-    const back = await req<DevItem>("POST", "/tasks/PRJ-42/development/links", { url: p190.url });
+    const back = await req<DevItem>("POST", "/tracking/tasks/PRJ-42/development/links", { url: p190.url });
     expect(back.id).toBe(p190.id);
     expect((await dev("PRJ-42")).pullRequests).toHaveLength(4);
     // A link id of another task is 404.
     const other = (await dev("PRJ-41")).pullRequests[0]!;
-    expect((await rejects(req("DELETE", `/tasks/PRJ-42/development/links/${other.id}`))).status).toBe(404);
+    expect((await rejects(req("DELETE", `/tracking/tasks/PRJ-42/development/links/${other.id}`))).status).toBe(404);
   });
 
   it("D4 creates a branch, validates names, 409 on an existing branch, respects canCreateBranch", async () => {
     const web = getDB().repositories!.find((r) => r.name === "web")!;
-    const create = (name: string, repositoryId = web.id) => req<DevBranch>("POST", "/tasks/PRJ-58/development/branches", { repositoryId, name });
+    const create = (name: string, repositoryId = web.id) => req<DevBranch>("POST", "/tracking/tasks/PRJ-58/development/branches", { repositoryId, name });
     const f = async (p: Promise<unknown>) => ((await rejects(p)).details as { fields: Record<string, string> }).fields;
     expect(await f(create("a..b"))).toEqual({ name: "Branch names can’t contain '..'." });
     expect(await f(create("a b"))).toEqual({ name: "Use letters, numbers, - _ . / only." });
@@ -470,7 +470,7 @@ describe("D2–D4 (§5.6)", () => {
     expect(await f(create("prj-58-x", "repo_nope"))).toHaveProperty("repositoryId");
     const b = await create("prj-58-invoice-pdf-redesign");
     expect(b).toMatchObject({ kind: "branch", name: "prj-58-invoice-pdf-redesign", aheadBy: 0, linkSource: "created", state: "active" });
-    expect(getDB().audit[0]!.action).toBe("task.dev_branch_created");
+    expect(getDB().audit[0]!.action).toBe("tracking.task.dev_branch_created");
     expect(getDB().activity.find((a) => a.verb === "dev_branch_created")).toMatchObject({ data: { branch: "prj-58-invoice-pdf-redesign" } });
     expect(await rejects(create("prj-58-invoice-pdf-redesign"))).toMatchObject({ status: 409, code: "branch_exists", message: "That branch already exists in platform-team/web." });
     expect((await rejects(create("main"))).code).toBe("branch_exists");
@@ -482,23 +482,23 @@ describe("D2–D4 (§5.6)", () => {
   it("permissions per seeded user: Sam links, Taylor (Viewer) and Casey (not on PRJ) can't; archived projects are read-only", async () => {
     const url = "https://github.com/platform-team/web/pull/221";
     as("u_sam");
-    expect((await req<DevItem>("POST", "/tasks/PRJ-58/development/links", { url })).kind).toBe("pull_request");
+    expect((await req<DevItem>("POST", "/tracking/tasks/PRJ-58/development/links", { url })).kind).toBe("pull_request");
     as("u_taylor");
-    expect(await rejects(req("POST", "/tasks/PRJ-58/development/links", { url }))).toMatchObject({ status: 403, details: { permission: "development.link" } });
-    expect((await rejects(req("POST", "/tasks/PRJ-58/development/branches", { repositoryId: "x", name: "y" }))).status).toBe(403);
+    expect(await rejects(req("POST", "/tracking/tasks/PRJ-58/development/links", { url }))).toMatchObject({ status: 403, details: { permission: "tracking.development.link" } });
+    expect((await rejects(req("POST", "/tracking/tasks/PRJ-58/development/branches", { repositoryId: "x", name: "y" }))).status).toBe(403);
     as("u_casey");
-    expect((await rejects(req("POST", "/tasks/PRJ-58/development/links", { url }))).status).toBe(403);
+    expect((await rejects(req("POST", "/tracking/tasks/PRJ-58/development/links", { url }))).status).toBe(403);
     as("u_jordan");
-    expect((await req<DevBranch>("POST", "/tasks/PRJ-58/development/branches", { repositoryId: getDB().repositories!.find((r) => r.name === "api")!.id, name: "prj-58-jordan" })).name).toBe("prj-58-jordan");
+    expect((await req<DevBranch>("POST", "/tracking/tasks/PRJ-58/development/branches", { repositoryId: getDB().repositories!.find((r) => r.name === "api")!.id, name: "prj-58-jordan" })).name).toBe("prj-58-jordan");
     as("u_alex");
     getDB().projects.find((p) => p.id === "p_prj")!.status = "archived";
-    expect((await rejects(req("POST", "/tasks/PRJ-58/development/links", { url }))).status).toBe(403);
+    expect((await rejects(req("POST", "/tracking/tasks/PRJ-58/development/links", { url }))).status).toBe(403);
   });
 });
 
 describe("automation rules A1 / A2 and §7.10", () => {
-  const rules = (pid = "p_prj") => req<DevAutomationRule[]>("GET", `/projects/${pid}/dev-automation`);
-  const put = (body: DevAutomationRule[], pid = "p_prj") => req<DevAutomationRule[]>("PUT", `/projects/${pid}/dev-automation`, body);
+  const rules = (pid = "p_prj") => req<DevAutomationRule[]>("GET", `/tracking/projects/${pid}/dev-automation`);
+  const put = (body: DevAutomationRule[], pid = "p_prj") => req<DevAutomationRule[]>("PUT", `/tracking/projects/${pid}/dev-automation`, body);
 
   it("A1 lists all three triggers in order; PRJ's seed turns pr_merged → Done on, MOB has all off", async () => {
     expect(await rules()).toEqual([
@@ -509,7 +509,7 @@ describe("automation rules A1 / A2 and §7.10", () => {
     expect((await rules("p_mob")).every((r) => !r.enabled)).toBe(true);
   });
 
-  it("A2 validates statuses (done-only for merges) and needs status.manage", async () => {
+  it("A2 validates statuses (done-only for merges) and needs tracking.status.manage", async () => {
     const f = async (p: Promise<unknown>) => ((await rejects(p)).details as { fields: Record<string, string> }).fields;
     const base: DevAutomationRule[] = [
       { trigger: "branch_created", enabled: true, statusId: null },
@@ -524,10 +524,10 @@ describe("automation rules A1 / A2 and §7.10", () => {
       { trigger: "pr_merged", enabled: true, statusId: "p_prj-st-done" },
     ]);
     expect(ok.map((r) => r.enabled)).toEqual([true, true, true]);
-    expect(getDB().audit[0]!.action).toBe("project.dev_automation_updated");
-    expect(events.some((e) => e.type === "project.changed" && (e.data as { areas: string[] }).areas.includes("development"))).toBe(true);
+    expect(getDB().audit[0]!.action).toBe("tracking.project.dev_automation_updated");
+    expect(events.some((e) => e.type === "tracking.project.changed" && (e.data as { areas: string[] }).areas.includes("development"))).toBe(true);
     as("u_sam");
-    expect(await rejects(put(ok))).toMatchObject({ status: 403, details: { permission: "status.manage" } });
+    expect(await rejects(put(ok))).toMatchObject({ status: 403, details: { permission: "tracking.status.manage" } });
     expect((await rules()).length).toBe(3);
   });
 
@@ -545,13 +545,13 @@ describe("automation rules A1 / A2 and §7.10", () => {
       ["dev_pr_merged", null, "integration", "GitHub"],
     ]);
     const audit = await req<AuditPage>("GET", "/workspaces/platform/audit", undefined, { limit: 50 });
-    const row = audit.data.find((a) => a.action === "task.status_changed" && a.entityKey === "PRJ-41")!;
+    const row = audit.data.find((a) => a.action === "tracking.task.status_changed" && a.entityKey === "PRJ-41")!;
     expect(row).toMatchObject({ actorId: GH, actorKind: "integration", actorName: "GitHub", source: "webhook" });
     as("u_riley"); // assignee
     const inbox = await req<Paginated<Notification>>("GET", "/notifications", undefined, { filter: { tab: "all" } });
     const n = inbox.data.find((x) => x.taskKey === "PRJ-41" && x.type === "status")!;
     expect(n).toMatchObject({ actorId: null, payload: { via: "github", toStatus: "Done" } });
-    expect(events.some((e) => e.type === "task.changed" && (e.data as { fields: string[] }).fields.includes("statusId") && e.actorId === null)).toBe(true);
+    expect(events.some((e) => e.type === "tracking.task.changed" && (e.data as { fields: string[] }).fields.includes("statusId") && e.actorId === null)).toBe(true);
     expect((await task("PRJ-41")).dev!.pr).toMatchObject({ state: "merged" });
   });
 
@@ -582,7 +582,7 @@ describe("automation rules A1 / A2 and §7.10", () => {
     expect(getDB().tasks.find((x) => x.key === "PRJ-48")!.statusId).toBe("p_prj-st-progress");
     // PRJ-58 is to-do: creating a branch moves it to In progress (actor: the integration).
     const web = getDB().repositories!.find((r) => r.name === "web")!;
-    await req<DevBranch>("POST", "/tasks/PRJ-58/development/branches", { repositoryId: web.id, name: "prj-58-go" });
+    await req<DevBranch>("POST", "/tracking/tasks/PRJ-58/development/branches", { repositoryId: web.id, name: "prj-58-go" });
     expect(getDB().tasks.find((x) => x.key === "PRJ-58")!.statusId).toBe("p_prj-st-progress");
     // Archived: no automation.
     getDB().projects.find((p) => p.id === "p_prj")!.status = "archived";
@@ -597,7 +597,7 @@ describe("automation rules A1 / A2 and §7.10", () => {
     expect(simulateExpireToken("platform")).toBe("GitHub token expired");
     const o = await overview();
     expect(o.integrations[0]).toMatchObject({ status: "error", error: { code: "token_expired" } });
-    expect((await req<Project>("GET", "/workspaces/platform/projects/PRJ")).devEnabled).toBe(false);
+    expect((await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ")).devEnabled).toBe(false);
     expect(simulateOpenPr(null)).toBe("Open a task first (?task=KEY).");
   });
 });
@@ -610,10 +610,10 @@ describe("realtime (§8.4)", () => {
     const done = new MockRealtimeSource().run({ slug: "platform", lastEventId: null, signal: ac.signal, onEvent: (e) => got.push(e), onActivity: () => undefined });
     await new Promise((r) => setTimeout(r, 5));
     as("u_alex");
-    await req<Integration>("POST", `/integrations/${GH}/sync`, {});
+    await req<Integration>("POST", `/tracking/integrations/${GH}/sync`, {});
     await new Promise((r) => setTimeout(r, 5));
-    expect(got.map((e) => e.type)).toContain("integration.changed");
-    expect(got.map((e) => e.type)).not.toContain("task.changed");
+    expect(got.map((e) => e.type)).toContain("tracking.integration.changed");
+    expect(got.map((e) => e.type)).not.toContain("tracking.task.changed");
     ac.abort();
     await done;
   });

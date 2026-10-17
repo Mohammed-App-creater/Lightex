@@ -1,16 +1,16 @@
 "use client";
 
-import { Avatar } from "@/components/ui/avatar";
-import { firstName } from "@/features/presence/presence-lib";
-import { activityActorName, activityText } from "@/features/tasks/activity-text";
-import { ActorAvatar } from "@/features/audit/audit-parts";
-import type { ActivityEntry } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { firstName } from "@/platform/presence/presence-lib";
+import { activityActorName, activityText } from "@/modules/tracking/tasks/activity-text";
+import { ActorAvatar } from "@/platform/audit/audit-parts";
+import type { ActivityEntry } from "@/api/types";
 import { useIsLive } from "@/lib/realtime/status-store";
 import { cn } from "@/lib/utils/cn";
 import { ago } from "@/lib/utils/dates";
-import { useActivityWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLoading } from "../widget-frame";
+import { useActivityWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
 import { useWho, type WidgetProps } from "./common";
 
 const KEY = "\u0000";

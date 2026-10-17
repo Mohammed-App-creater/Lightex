@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { appIconSvg, svgDataUri } from "@/components/brand/icon-svg";
+import { appIconSvg, svgDataUri } from "@/ui/brand/icon-svg";
 
 /* 512px rounded app icon for the web manifest ("any" purpose), board 35. */
 

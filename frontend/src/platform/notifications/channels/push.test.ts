@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/api/errors";
-import type { PushDevice, PushSubscriptionInput } from "@/lib/api/types";
+import { ApiError } from "@/api/errors";
+import type { PushDevice, PushSubscriptionInput } from "@/api/types";
 import { bytesToUrlB64, checkAgain, enablePush, fakePushPlatform, logoutPush, syncPush, turnOffPush, urlB64ToUint8Array } from "./push";
 
 /* Board 38 §8.6: the push flows over a scripted platform, and public/sw.js's handlers. */

@@ -1,4 +1,4 @@
-import type { QuietHours } from "@/lib/api/types";
+import type { QuietHours } from "@/api/types";
 
 /*
  * Quiet hours (board 38, spec §6.6). Pure. The card draws with segments / summary / tzLabel; the mock's

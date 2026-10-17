@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonRows } from "@/components/ui/feedback";
+import { Skeleton, SkeletonRows } from "@/ui/feedback";
 
 /**
  * Shown inside the workspace shell while a page (home, inbox, my tasks, a project…) is still

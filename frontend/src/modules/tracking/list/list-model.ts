@@ -1,5 +1,5 @@
-import { cfSortValue } from "@/features/fields/field-lib";
-import type { CustomField, Epic, Label, Milestone, Sprint, Status, Task, User } from "@/lib/api/types";
+import { cfSortValue } from "@/modules/tracking/fields/field-lib";
+import type { CustomField, Epic, Label, Milestone, Sprint, Status, Task, User } from "@/api/types";
 
 /* Pure list-view logic (board 15): columns, grouping, sorting, filtering. Unit-tested. */
 

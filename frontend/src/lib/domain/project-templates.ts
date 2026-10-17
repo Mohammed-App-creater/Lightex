@@ -1,4 +1,4 @@
-import type { ProjectTemplate, Status } from "@/lib/api/types";
+import type { ProjectTemplate, Status } from "@/api/types";
 
 /*
  * Project workflow templates (board 24 "4 templates"). Shared by the New project dialog (preview)

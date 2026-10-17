@@ -1,5 +1,5 @@
-import { cleanRulesFor, completeRules, matchAll, parseRule, serializeRule } from "@/features/filters/filter-model";
-import type { FilterRule, SavedView, ViewIcon } from "@/lib/api/types";
+import { cleanRulesFor, completeRules, matchAll, parseRule, serializeRule } from "@/modules/tracking/filters/filter-model";
+import type { FilterRule, SavedView, ViewIcon } from "@/api/types";
 import { todayISO } from "@/lib/utils/dates";
 import { nowISO, uid } from "../db";
 import type { MockDB, SavedViewRec } from "../db-types";
@@ -9,7 +9,7 @@ import { fail, invalid, requireUser, route, wsBySlug, type Ctx } from "../router
 /*
  * Saved views + per-user sidebar pins (board 30). REQUESTED API ADDITION:
  *   GET    /workspaces/:slug/views          views I can see (mine + project-shared), with my pins and counts
- *   POST   /workspaces/:slug/views          create (project.view; "project" visibility needs task.create)
+ *   POST   /workspaces/:slug/views          create (tracking.project.view; "project" visibility needs tracking.task.create)
  *   PATCH  /views/:id                       owner edits name/icon/filters/visibility; anyone who sees it can (un)pin
  *   DELETE /views/:id                       owner only
  *   PUT    /workspaces/:slug/views/order    my pin order
@@ -33,8 +33,8 @@ export function store(db: MockDB) {
 function seedViews(db: MockDB) {
   for (const m of db.wsMembers) {
     const project =
-      db.projects.find((p) => p.workspaceId === m.workspaceId && p.status === "active" && p.key === "PRJ" && projectPermissions(db, m.userId, p.id).includes("project.view")) ??
-      db.projects.find((p) => p.workspaceId === m.workspaceId && p.status === "active" && projectPermissions(db, m.userId, p.id).includes("project.view"));
+      db.projects.find((p) => p.workspaceId === m.workspaceId && p.status === "active" && p.key === "PRJ" && projectPermissions(db, m.userId, p.id).includes("tracking.project.view")) ??
+      db.projects.find((p) => p.workspaceId === m.workspaceId && p.status === "active" && projectPermissions(db, m.userId, p.id).includes("tracking.project.view"));
     if (!project) continue;
     const doneIds = db.statuses.filter((s) => s.projectId === project.id && s.category === "done").map((s) => s.id);
     const bug = db.labels.find((l) => l.projectId === project.id && l.name.toLowerCase() === "bug");
@@ -52,7 +52,7 @@ function seedViews(db: MockDB) {
 }
 
 function visibleTo(db: MockDB, userId: string, v: SavedViewRec) {
-  if (!projectPermissions(db, userId, v.projectId).includes("project.view")) return false;
+  if (!projectPermissions(db, userId, v.projectId).includes("tracking.project.view")) return false;
   return v.ownerId === userId || v.visibility === "project";
 }
 
@@ -117,21 +117,21 @@ function setPinned(db: MockDB, userId: string, viewId: string, pinned: boolean) 
 }
 
 export function registerViews() {
-  route("GET", "/workspaces/:slug/views", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/views", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     return listFor(ctx.db, ctx.userId!, ws.id);
   });
 
-  route("POST", "/workspaces/:slug/views", (ctx) => {
+  route("POST", "/tracking/workspaces/:slug/views", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = ctx.userId!;
     const b = (ctx.body ?? {}) as Partial<SavedView>;
     const project = ctx.db.projects.find((p) => p.id === b.projectId && p.workspaceId === ws.id);
     if (!project) invalid({ projectId: "Unknown project" });
     const perms = projectPermissions(ctx.db, userId, project.id);
-    if (!perms.includes("project.view")) fail(403, "forbidden", "You’re not a member of this project.", { permission: "project.view" });
+    if (!perms.includes("tracking.project.view")) fail(403, "forbidden", "You’re not a member of this project.", { permission: "tracking.project.view" });
     const visibility = b.visibility === "project" ? "project" : "me";
-    if (visibility === "project" && !perms.includes("task.create")) fail(403, "forbidden", "Your role can’t share views with the project.", { permission: "task.create" });
+    if (visibility === "project" && !perms.includes("tracking.task.create")) fail(403, "forbidden", "Your role can’t share views with the project.", { permission: "tracking.task.create" });
     const name = cleanName(b.name);
     if (nameTaken(ctx.db, userId, ws.id, name)) invalid({ name: "A view with this name exists" });
     const filters = cleanFilters(b.filters, ctx.db, project.id);
@@ -153,7 +153,7 @@ export function registerViews() {
     return toView(ctx.db, userId, rec);
   });
 
-  route("PATCH", "/views/:id", (ctx) => {
+  route("PATCH", "/tracking/views/:id", (ctx) => {
     const v = viewById(ctx, ctx.params.id!);
     const userId = ctx.userId!;
     const b = (ctx.body ?? {}) as Partial<SavedView>;
@@ -172,15 +172,15 @@ export function registerViews() {
     }
     if ("visibility" in b) {
       const vis = b.visibility === "project" ? "project" : "me";
-      if (vis === "project" && !projectPermissions(ctx.db, userId, v.projectId).includes("task.create"))
-        fail(403, "forbidden", "Your role can’t share views with the project.", { permission: "task.create" });
+      if (vis === "project" && !projectPermissions(ctx.db, userId, v.projectId).includes("tracking.task.create"))
+        fail(403, "forbidden", "Your role can’t share views with the project.", { permission: "tracking.task.create" });
       v.visibility = vis;
     }
     if (typeof b.pinned === "boolean") setPinned(ctx.db, userId, v.id, b.pinned);
     return toView(ctx.db, userId, v);
   });
 
-  route("DELETE", "/views/:id", (ctx) => {
+  route("DELETE", "/tracking/views/:id", (ctx) => {
     const v = viewById(ctx, ctx.params.id!);
     if (v.ownerId !== ctx.userId) fail(403, "forbidden", "Only the person who saved this view can delete it.");
     const s = store(ctx.db);
@@ -189,7 +189,7 @@ export function registerViews() {
     return undefined;
   });
 
-  route("PUT", "/workspaces/:slug/views/order", (ctx) => {
+  route("PUT", "/tracking/workspaces/:slug/views/order", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const userId = ctx.userId!;
     const ids = (ctx.body as { ids?: unknown })?.ids;

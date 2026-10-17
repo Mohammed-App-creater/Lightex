@@ -1,4 +1,4 @@
-import type { ProjectPermission, WidgetConfigMap, WidgetType } from "@/lib/api/types";
+import type { ProjectPermission, WidgetConfigMap, WidgetType } from "@/api/types";
 
 /*
  * Board 33 widget catalogue (spec §1.3, §3.3), shared by the UI and the mock backend. Values come
@@ -35,12 +35,12 @@ export const STACK_HEIGHT: Record<WidgetType, number> = { burndown: 236, my_task
 
 /** The permission a viewer needs to see a widget; without it the widget isn't rendered and packing skips it. */
 export const WIDGET_NEEDS: Record<WidgetType, ProjectPermission> = {
-  burndown: "report.view",
-  my_tasks: "project.view",
-  objectives: "report.view",
-  workload: "report.view",
-  velocity: "report.view",
-  activity: "project.view",
+  burndown: "tracking.report.view",
+  my_tasks: "tracking.project.view",
+  objectives: "tracking.report.view",
+  workload: "tracking.report.view",
+  velocity: "tracking.report.view",
+  activity: "tracking.project.view",
 };
 
 export function defaultConfig<T extends WidgetType>(type: T): WidgetConfigMap[T] {
@@ -64,7 +64,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 /**
  * First-fit packing, a port of the design's pack(): for each widget in order, the first row, then
  * the first column, where a w × h box fits without overlap on a 12-column grid. Widths above 12
- * are clamped. Shared vectors: src/features/dashboards/pack-vectors.json.
+ * are clamped. Shared vectors: src/modules/tracking/dashboards/pack-vectors.json.
  */
 export function pack(items: readonly PackItem[], cols = COLS): Rect[] {
   const occ: boolean[][] = [];

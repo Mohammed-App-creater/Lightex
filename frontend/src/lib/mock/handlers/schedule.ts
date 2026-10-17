@@ -1,4 +1,4 @@
-import type { ListQuery } from "@/lib/api/transport";
+import type { ListQuery } from "@/api/transport";
 import type { MockDB, TaskRec } from "../db-types";
 import { filterValues, invalid } from "../router";
 

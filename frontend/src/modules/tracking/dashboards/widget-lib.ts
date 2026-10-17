@@ -1,5 +1,5 @@
-import type { BurndownPoint, ProgressRow, Status, Task, WorkloadReport, WorkloadRow } from "@/lib/api/types";
-import { shortDate } from "@/features/reports/lib";
+import type { BurndownPoint, ProgressRow, Status, Task, WorkloadReport, WorkloadRow } from "@/api/types";
+import { shortDate } from "@/modules/tracking/reports/lib";
 
 /*
  * Widget data helpers (spec §1.3). Pure; unit-tested in dashboards.test.ts.

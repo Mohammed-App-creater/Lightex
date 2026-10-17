@@ -1,5 +1,5 @@
-import type { ImportColumnType, ImportDateOrder, ImportTimeUnit } from "@/lib/api/types";
-import { parseDuration } from "@/features/time/duration";
+import type { ImportColumnType, ImportDateOrder, ImportTimeUnit } from "@/api/types";
+import { parseDuration } from "@/modules/tracking/time/duration";
 
 /*
  * Board 40 mock: value conversion (§4.7 "Dates", "Numbers", "Durations"). Shared vectors:

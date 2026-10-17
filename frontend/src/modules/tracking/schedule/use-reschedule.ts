@@ -2,13 +2,13 @@
 
 import { useMutation, useMutationState, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { createElement, useSyncExternalStore, type ReactNode } from "react";
-import { toast } from "@/components/ui/toast";
-import { conflictToast } from "@/features/tasks/mutations";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError, isConflict } from "@/lib/api/errors";
-import { commitTask, mapTasksIn, patchTasks, restore, snapshotTasks, type Snapshot } from "@/lib/api/optimistic";
-import { qk } from "@/lib/api/query-keys";
-import type { Epic, Task, TaskPatch } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { conflictToast } from "@/modules/tracking/tasks/mutations";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError, isConflict } from "@/api/errors";
+import { commitTask, mapTasksIn, patchTasks, restore, snapshotTasks, type Snapshot } from "@/api/optimistic";
+import { qk } from "@/api/query-keys";
+import type { Epic, Task, TaskPatch } from "@/api/types";
 import { createStore } from "@/lib/utils/store";
 import { changedDates, sameDates, type Dates, type DragMode } from "./schedule-lib";
 

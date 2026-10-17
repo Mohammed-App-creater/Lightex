@@ -3,12 +3,12 @@
 import * as DM from "@radix-ui/react-dropdown-menu";
 import { Check } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { Kbd } from "@/components/ui/kbd";
-import { Menu, MenuContent, MenuLabel, MenuTrigger } from "@/components/ui/menu";
-import { Sheet } from "@/components/ui/modal";
-import { useSparking } from "@/features/tasks/task-bits";
-import type { Status, Task } from "@/lib/api/types";
+import { StatusGlyph } from "@/ui/glyphs";
+import { Kbd } from "@/ui/kbd";
+import { Menu, MenuContent, MenuLabel, MenuTrigger } from "@/ui/menu";
+import { Sheet } from "@/ui/modal";
+import { useSparking } from "@/modules/tracking/tasks/task-bits";
+import type { Status, Task } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils/cn";
 

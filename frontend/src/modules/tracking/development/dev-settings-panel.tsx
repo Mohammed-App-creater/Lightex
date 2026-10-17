@@ -3,21 +3,21 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
-import { Switch } from "@/components/ui/choice";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { Select } from "@/components/ui/select";
-import { toast } from "@/components/ui/toast";
-import { DEV_ICON, DevGlyph } from "@/features/integrations/icons";
-import { PROVIDER_NAME } from "@/features/integrations/lib/dev-lib";
-import { useIntegrations } from "@/features/integrations/queries";
-import { useStatuses } from "@/features/projects/queries";
-import { SaveBar, type SaveState } from "@/features/settings/save-bar";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { DevAutomationRule, DevTrigger, Project } from "@/lib/api/types";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Switch } from "@/ui/choice";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { StatusGlyph } from "@/ui/glyphs";
+import { Select } from "@/ui/select";
+import { toast } from "@/ui/toast";
+import { DEV_ICON, DevGlyph } from "@/modules/tracking/integrations/icons";
+import { PROVIDER_NAME } from "@/modules/tracking/integrations/lib/dev-lib";
+import { useIntegrations } from "@/modules/tracking/integrations/queries";
+import { useStatuses } from "@/modules/tracking/projects/queries";
+import { SaveBar, type SaveState } from "@/platform/settings/save-bar";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { DevAutomationRule, DevTrigger, Project } from "@/api/types";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 
 const TRIGGER_TEXT: Record<DevTrigger, string> = {
@@ -39,7 +39,7 @@ export function sameRules(a: DevAutomationRule[], b: DevAutomationRule[]) {
 /**
  * Project settings → Development (§9.5, §11 #11): the repositories that apply to this project
  * (read-only; managers get a link to workspace settings) and the three automation rules, editable
- * with `status.manage` (otherwise the tab shows the ReadOnlyNote). pr_merged lists done-category
+ * with `tracking.status.manage` (otherwise the tab shows the ReadOnlyNote). pr_merged lists done-category
  * statuses only.
  */
 export function DevelopmentSettingsPanel({ project, canEdit }: { project: Project; canEdit: boolean }) {
@@ -97,7 +97,7 @@ export function DevelopmentSettingsPanel({ project, canEdit }: { project: Projec
           </h2>
           <span className="font-mono text-[11px] text-fg-3">{repos.length}</span>
           <span className="flex-1" />
-          {can("integration.manage", ws.my_permissions) && (
+          {can("tracking.integration.manage", ws.my_permissions) && (
             <Link href={routes.settings(ws.slug, "integrations")} className="text-[12px] font-medium text-accent-t underline-offset-2 hover:underline">
               Manage in workspace settings
             </Link>

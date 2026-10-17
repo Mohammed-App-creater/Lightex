@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { patchTasks, restore, snapshotTasks } from "@/lib/api/optimistic";
-import { qk } from "@/lib/api/query-keys";
-import type { Epic, EpicWrite } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { patchTasks, restore, snapshotTasks } from "@/api/optimistic";
+import { qk } from "@/api/query-keys";
+import type { Epic, EpicWrite } from "@/api/types";
 
 /** Create or update an epic. Field errors (422) are rethrown for the form to show. */
 export function useSaveEpic(projectId: string) {

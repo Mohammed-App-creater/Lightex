@@ -2,12 +2,12 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import { useCopy } from "@/features/integrations/queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { TelegramLink } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { toast } from "@/ui/toast";
+import { useCopy } from "@/modules/tracking/integrations/queries";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { TelegramLink } from "@/api/types";
 import { apiMode } from "@/lib/env";
 import { cn } from "@/lib/utils/cn";
 import { ChannelDialog } from "./channel-dialog";

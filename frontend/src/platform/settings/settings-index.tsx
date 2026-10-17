@@ -2,15 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Skeleton } from "@/components/ui/feedback";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Skeleton } from "@/ui/feedback";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 
 /** /settings → General for people who can edit the workspace, Profile for everyone else. */
 export function SettingsIndex() {
   const ws = useCurrentWorkspace()!;
   const router = useRouter();
-  const target = routes.settings(ws.slug, can("workspace.update", ws.my_permissions) ? "general" : "profile");
+  const target = routes.settings(ws.slug, can("core.workspace.update", ws.my_permissions) ? "general" : "profile");
   useEffect(() => router.replace(target), [router, target]);
   return (
     <div aria-busy="true" aria-label="Loading settings" className="mx-auto flex max-w-[880px] flex-col gap-4 px-10 pt-7">

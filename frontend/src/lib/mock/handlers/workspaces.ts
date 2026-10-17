@@ -1,5 +1,6 @@
-import type { SearchResult, WorkspaceMember } from "@/lib/api/types";
-import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/lib/permissions/catalogue";
+import { actionEntity } from "@/lib/audit";
+import type { SearchResult, WorkspaceMember } from "@/api/types";
+import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/platform/roles/catalogue";
 import { nowISO, uid } from "../db";
 import type { MockDB, RoleRec } from "../db-types";
 import { projectMembership, toProject, toRole, toTask, toUser, toWorkspace, wsMembership } from "../derive";
@@ -28,7 +29,7 @@ export function audit(db: MockDB, workspaceId: string, actorId: string, action: 
     action,
     target,
     createdAt: nowISO(),
-    entityType: action.split(".")[0],
+    entityType: actionEntity(action),
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,
   });
@@ -74,7 +75,7 @@ export function registerWorkspaces() {
     ctx.db.workspaces.push(ws);
     seedRoles(ctx.db, ws.id);
     ctx.db.wsMembers.push({ workspaceId: ws.id, userId, roleId: `${ws.id}-role-owner`, status: "active", joinedAt: nowISO(), lastActiveAt: nowISO() });
-    audit(ctx.db, ws.id, userId, "workspace.created", ws.name);
+    audit(ctx.db, ws.id, userId, "core.workspace.created", ws.name);
     return toWorkspace(ctx.db, ws, userId);
   });
 
@@ -82,7 +83,7 @@ export function registerWorkspaces() {
 
   route("PATCH", "/workspaces/:slug", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.update");
+    requireWs(ctx, ws.id, "core.workspace.update");
     const name = str(ctx.body, "name");
     const slug = str(ctx.body, "slug");
     const policy = (ctx.body as { notificationPolicy?: { sms?: unknown } } | null)?.notificationPolicy;
@@ -101,7 +102,7 @@ export function registerWorkspaces() {
     const sms = policy?.sms as boolean | undefined;
     const before = ws.smsEnabled !== false;
     if (sms !== undefined) ws.smsEnabled = sms;
-    audit(ctx.db, ws.id, ctx.userId!, "workspace.updated", ws.name);
+    audit(ctx.db, ws.id, ctx.userId!, "core.workspace.updated", ws.name);
     if (sms !== undefined && sms !== before) {
       ctx.db.audit[0]!.changes = [{ field: "smsNotifications", kind: "value", before: String(before), after: String(sms) }];
     }
@@ -110,7 +111,7 @@ export function registerWorkspaces() {
 
   route("DELETE", "/workspaces/:slug", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.delete");
+    requireWs(ctx, ws.id, "core.workspace.delete");
     if (str(ctx.body, "confirm") !== ws.slug) invalid({ confirm: `Type ${ws.slug} to confirm` });
     ws.deletedAt = nowISO();
     return undefined;
@@ -139,7 +140,7 @@ export function registerWorkspaces() {
 
   route("PATCH", "/workspaces/:slug/members/:userId", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     const m = ctx.db.wsMembers.find((x) => x.workspaceId === ws.id && x.userId === ctx.params.userId);
     if (!m) fail(404, "not_found", "Member not found.");
     const roleId = str(ctx.body, "roleId");
@@ -148,13 +149,13 @@ export function registerWorkspaces() {
     if (!role) invalid({ roleId: "Pick a workspace role" });
     if (role.key === "owner" || current?.key === "owner") fail(403, "forbidden", "The owner role can’t be assigned or changed.");
     m.roleId = role.id;
-    audit(ctx.db, ws.id, ctx.userId!, "member.role_changed", `${m.userId} → ${role.name}`);
+    audit(ctx.db, ws.id, ctx.userId!, "core.member.role_changed", `${m.userId} → ${role.name}`);
     return toMember(ctx.db, m);
   });
 
   route("DELETE", "/workspaces/:slug/members/:userId", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     const m = ctx.db.wsMembers.find((x) => x.workspaceId === ws.id && x.userId === ctx.params.userId);
     if (!m) fail(404, "not_found", "Member not found.");
     if (ctx.db.roles.find((r) => r.id === m.roleId)?.key === "owner") fail(403, "forbidden", "The owner can’t be removed.");
@@ -162,20 +163,20 @@ export function registerWorkspaces() {
     ctx.db.wsMembers = ctx.db.wsMembers.filter((x) => x !== m);
     const projectIds = ctx.db.projects.filter((p) => p.workspaceId === ws.id).map((p) => p.id);
     ctx.db.projectMembers = ctx.db.projectMembers.filter((pm) => !(pm.userId === m.userId && projectIds.includes(pm.projectId)));
-    audit(ctx.db, ws.id, ctx.userId!, "member.removed", m.userId);
+    audit(ctx.db, ws.id, ctx.userId!, "core.member.removed", m.userId);
     return undefined;
   });
 
   /* invites */
   route("GET", "/workspaces/:slug/invites", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     return ctx.db.invites.filter((i) => i.workspaceId === ws.id && i.status === "pending").map((i) => toInvite(ctx.db, i));
   });
 
   route("POST", "/workspaces/:slug/invites", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     const emails = ((ctx.body as { emails?: unknown })?.emails ?? []) as string[];
     const roleId = str(ctx.body, "roleId");
     const role = ctx.db.roles.find((r) => r.id === roleId && r.workspaceId === ws.id && r.scope === "workspace");
@@ -202,13 +203,13 @@ export function registerWorkspaces() {
       ctx.db.invites.push(inv);
       created.push(toInvite(ctx.db, inv));
     }
-    audit(ctx.db, ws.id, ctx.userId!, "member.invited", emails.join(", "));
+    audit(ctx.db, ws.id, ctx.userId!, "core.member.invited", emails.join(", "));
     return created;
   });
 
   route("DELETE", "/workspaces/:slug/invites/:id", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     const inv = ctx.db.invites.find((i) => i.id === ctx.params.id && i.workspaceId === ws.id);
     if (!inv) fail(404, "not_found", "Invite not found.");
     inv.status = "revoked";
@@ -217,7 +218,7 @@ export function registerWorkspaces() {
 
   route("POST", "/workspaces/:slug/invites/:id/resend", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_members");
+    requireWs(ctx, ws.id, "core.workspace.manage_members");
     const inv = ctx.db.invites.find((i) => i.id === ctx.params.id && i.workspaceId === ws.id);
     if (!inv) fail(404, "not_found", "Invite not found.");
     inv.expiresAt = new Date(Date.now() + 7 * 86_400_000).toISOString();
@@ -237,7 +238,7 @@ export function registerWorkspaces() {
 
   route("POST", "/workspaces/:slug/roles", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "workspace.manage_roles");
+    requireWs(ctx, ws.id, "core.roles.manage");
     const body = ctx.body as Partial<RoleRec>;
     const name = (body.name ?? "").trim();
     const scope = body.scope === "project" ? "project" : "workspace";
@@ -256,7 +257,7 @@ export function registerWorkspaces() {
       permissions: (body.permissions ?? []).filter((p) => allowed.includes(p)),
     };
     ctx.db.roles.push(role);
-    audit(ctx.db, ws.id, ctx.userId!, "role.created", role.name);
+    audit(ctx.db, ws.id, ctx.userId!, "core.role.created", role.name);
     return toRole(ctx.db, role);
   });
 
@@ -276,7 +277,7 @@ export function registerWorkspaces() {
       const allowed = PERMISSION_CATALOGUE.filter((p) => p.scope === role.scope).map((p) => p.key);
       role.permissions = body.permissions.filter((p) => allowed.includes(p));
     }
-    audit(ctx.db, role.workspaceId, ctx.userId!, "role.updated", role.name);
+    audit(ctx.db, role.workspaceId, ctx.userId!, "core.role.updated", role.name);
     return toRole(ctx.db, role);
   });
 
@@ -293,21 +294,21 @@ export function registerWorkspaces() {
       ctx.db.projectMembers.forEach((m) => m.roleId === role.id && (m.roleId = target.id));
     }
     ctx.db.roles = ctx.db.roles.filter((r) => r.id !== role.id);
-    audit(ctx.db, role.workspaceId, ctx.userId!, "role.deleted", role.name);
+    audit(ctx.db, role.workspaceId, ctx.userId!, "core.role.deleted", role.name);
     return undefined;
   });
 
   /* audit, activity, my tasks, search */
   route("GET", "/workspaces/:slug/audit", (ctx) => auditList(ctx));
 
-  route("GET", "/workspaces/:slug/activity", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/activity", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const ids = visibleProjectIds(ctx.db, ctx.userId!, ws.id);
     const list = ctx.db.activity.filter((a) => ids.includes(a.projectId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return paginate(list, ctx.query, 20);
   });
 
-  route("GET", "/workspaces/:slug/tasks", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/tasks", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const ids = visibleProjectIds(ctx.db, ctx.userId!, ws.id);
     const assignee = filterValues(ctx.query, "assignee").map((a) => (a === "me" ? ctx.userId! : a));
@@ -326,7 +327,7 @@ function roleForManage(ctx: Ctx) {
   requireUser(ctx);
   const role = ctx.db.roles.find((r) => r.id === ctx.params.id);
   if (!role) fail(404, "not_found", "Role not found.");
-  requireWs(ctx, role.workspaceId, "workspace.manage_roles");
+  requireWs(ctx, role.workspaceId, "core.roles.manage");
   return role;
 }
 

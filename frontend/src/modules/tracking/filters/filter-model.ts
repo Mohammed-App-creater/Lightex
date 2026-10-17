@@ -1,4 +1,4 @@
-import type { BaseFilterField, CustomField, CustomFieldType, FilterField, FilterOp, FilterRule, Task } from "@/lib/api/types";
+import type { BaseFilterField, CustomField, CustomFieldType, FilterField, FilterOp, FilterRule, Task } from "@/api/types";
 import { addDaysISO } from "@/lib/utils/dates";
 
 /*

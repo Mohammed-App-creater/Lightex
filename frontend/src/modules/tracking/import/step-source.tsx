@@ -2,10 +2,10 @@
 
 import { ChevronDown } from "lucide-react";
 import { useId, useRef, type KeyboardEvent } from "react";
-import { ProjectBadge } from "@/components/ui/avatar";
-import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/components/ui/menu";
-import { Tooltip } from "@/components/ui/tooltip";
-import type { ImportSource, Project } from "@/lib/api/types";
+import { ProjectBadge } from "@/ui/avatar";
+import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
+import { Tooltip } from "@/ui/tooltip";
+import type { ImportSource, Project } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { Section, SourceGlyph } from "./parts";
 

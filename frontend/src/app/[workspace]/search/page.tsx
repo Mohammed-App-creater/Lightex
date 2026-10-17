@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchScreen } from "@/features/workspace/search-screen";
+import { SearchScreen } from "@/platform/search/search-screen";
 
 export default function SearchPage() {
   return <SearchScreen />;

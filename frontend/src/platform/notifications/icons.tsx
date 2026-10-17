@@ -1,4 +1,4 @@
-import type { NotificationType } from "@/lib/api/types";
+import type { NotificationType } from "@/api/types";
 import { EVENTS } from "./events";
 
 /* Icons drawn from the design board paths (16 viewBox, round caps). */

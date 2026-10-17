@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { isApiError } from "@/lib/api/errors";
+import { Button } from "@/ui/button";
+import { isApiError } from "@/api/errors";
 
 /**
  * Full-area error for the personal screens (boards 24/25): triangle, "Couldn’t load …",

@@ -3,8 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
 import { pushUrl } from "@/lib/routes";
 import { getPushPlatform, syncPush } from "./push";
 

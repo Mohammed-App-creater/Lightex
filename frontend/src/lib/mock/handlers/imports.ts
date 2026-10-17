@@ -1,4 +1,5 @@
-import { canImport } from "@/features/import/import-lib";
+import { actionEntity } from "@/lib/audit";
+import { canImport } from "@/modules/tracking/import/import-lib";
 import type {
   ImportColumnMapping,
   ImportField,
@@ -14,7 +15,7 @@ import type {
   Permission,
   RichDoc,
   RichNode,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { keyBetween } from "@/lib/utils/fractional-index";
 import { getDB, nowISO, persist, uid } from "../db";
 import type { ImportJobRec, ImportRowRec, MockDB, ProjectRec, TaskRec } from "../db-types";
@@ -57,12 +58,12 @@ const reports = new Map<string, string>();
 
 /* ───────── upgrade ───────── */
 
-const GRANT_AFTER = "task.move";
+const GRANT_AFTER = "tracking.task.move";
 const ROLES_WITH_IMPORT = new Set(["project_admin", "manager", "project_member"]);
 
 /**
  * Runs once per database (marker `ext40`): from createSeed(), when a cached database loads, and on
- * the first import route. Adds project.import to cached **system** roles by key (§3.2); custom
+ * the first import route. Adds tracking.project.import to cached **system** roles by key (§3.2); custom
  * roles are untouched.
  */
 export function ensureExt40(db: MockDB) {
@@ -71,10 +72,10 @@ export function ensureExt40(db: MockDB) {
   if (db.ext40) return;
   db.ext40 = true;
   for (const r of db.roles) {
-    if (!r.isSystem || !r.key || !ROLES_WITH_IMPORT.has(r.key) || r.permissions.includes("project.import")) continue;
+    if (!r.isSystem || !r.key || !ROLES_WITH_IMPORT.has(r.key) || r.permissions.includes("tracking.project.import")) continue;
     const at = r.permissions.indexOf(GRANT_AFTER as Permission);
-    if (at >= 0) r.permissions.splice(at + 1, 0, "project.import");
-    else r.permissions.push("project.import");
+    if (at >= 0) r.permissions.splice(at + 1, 0, "tracking.project.import");
+    else r.permissions.push("tracking.project.import");
   }
 }
 
@@ -108,17 +109,17 @@ function toSummary(rec: ImportJobRec): ImportJobSummary {
 
 /* ───────── guards ───────── */
 
-/** can_import: project.import and task.create, on an active project. The first missing code is reported. */
+/** can_import: tracking.project.import and tracking.task.create, on an active project. The first missing code is reported. */
 function requireImport(ctx: Ctx, p: ProjectRec) {
   const perms = projectPermissions(ctx.db, ctx.userId!, p.id);
-  if (p.status === "archived") fail(403, "forbidden", "This project is archived. Unarchive it to import tasks.", { permission: "project.import" });
-  for (const code of ["project.import", "task.create"] as const) {
+  if (p.status === "archived") fail(403, "forbidden", "This project is archived. Unarchive it to import tasks.", { permission: "tracking.project.import" });
+  for (const code of ["tracking.project.import", "tracking.task.create"] as const) {
     if (!perms.includes(code)) fail(403, "forbidden", "You don’t have permission to import tasks into this project.", { permission: code });
   }
   return perms;
 }
 
-/** Job → project → membership (404 / 403 like v1) → project.import. */
+/** Job → project → membership (404 / 403 like v1) → tracking.project.import. */
 function loadJob(ctx: Ctx, id: string): { rec: ImportJobRec; project: ProjectRec } {
   const userId = requireUser(ctx);
   ensureExt40(ctx.db);
@@ -126,8 +127,8 @@ function loadJob(ctx: Ctx, id: string): { rec: ImportJobRec; project: ProjectRec
   const project = rec && ctx.db.projects.find((p) => p.id === rec.projectId);
   if (!rec || !project || !wsMembership(ctx.db, userId, project.workspaceId)) fail(404, "not_found", "Import not found.");
   if (!projectMembership(ctx.db, userId, project.id)) fail(403, "project_membership_required", "You’re not a member of this project.");
-  if (!projectPermissions(ctx.db, userId, project.id).includes("project.import")) {
-    fail(403, "forbidden", "You don’t have permission to see this project’s imports.", { permission: "project.import" });
+  if (!projectPermissions(ctx.db, userId, project.id).includes("tracking.project.import")) {
+    fail(403, "forbidden", "You don’t have permission to see this project’s imports.", { permission: "tracking.project.import" });
   }
   checkFile(rec, project);
   return { rec, project };
@@ -272,13 +273,13 @@ function checkMapping(db: MockDB, rec: ImportJobRec, project: ProjectRec, body: 
   for (const [k, v] of Object.entries(body.types ?? {})) {
     if (v === null) continue;
     if (!TYPES.includes(v)) errors[`types.${k}`] = "Pick feature, bug, chore, spike or epic";
-    else if (v === "epic" && !perms.includes("epic.manage")) errors[`types.${k}`] = "You can’t create epics in this project";
+    else if (v === "epic" && !perms.includes("tracking.epic.manage")) errors[`types.${k}`] = "You can’t create epics in this project";
   }
   const memberIds = new Set(db.projectMembers.filter((m) => m.projectId === project.id).map((m) => m.userId));
   for (const [k, v] of Object.entries(body.people ?? {})) {
     if (v === null) continue;
     if (!memberIds.has(v)) errors[`people.${k}`] = "Pick someone on this project";
-    else if (v !== userId && !perms.includes("task.assign")) errors[`people.${k}`] = "You can only assign tasks to yourself";
+    else if (v !== userId && !perms.includes("tracking.task.assign")) errors[`people.${k}`] = "You can only assign tasks to yourself";
   }
   if (Object.keys(errors).length) fail(422, "validation_failed", "Some fields need fixing.", { fields: errors });
   return out;
@@ -288,7 +289,7 @@ function checkMapping(db: MockDB, rec: ImportJobRec, project: ProjectRec, body: 
 
 export function registerImports() {
   /* I1 */
-  route("POST", "/projects/:id/imports", (ctx) => {
+  route("POST", "/tracking/projects/:id/imports", (ctx) => {
     ensureExt40(ctx.db);
     const p = memberProject(ctx, ctx.params.id!);
     requireImport(ctx, p);
@@ -345,7 +346,7 @@ export function registerImports() {
   });
 
   /* I2 */
-  route("POST", "/imports/:id/analyze", async (ctx) => {
+  route("POST", "/tracking/imports/:id/analyze", async (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     requireCreator(ctx, rec, project);
     if (rec.status === "ready") return toJob(rec);
@@ -373,10 +374,10 @@ export function registerImports() {
   });
 
   /* I3 */
-  route("GET", "/imports/:id", (ctx) => toJob(loadJob(ctx, ctx.params.id!).rec));
+  route("GET", "/tracking/imports/:id", (ctx) => toJob(loadJob(ctx, ctx.params.id!).rec));
 
   /* I4 */
-  route("PUT", "/imports/:id/mapping", (ctx) => {
+  route("PUT", "/tracking/imports/:id/mapping", (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     requireCreator(ctx, rec, project);
     if (rec.status !== "ready") stateError(rec);
@@ -392,7 +393,7 @@ export function registerImports() {
   });
 
   /* I5 */
-  route("GET", "/imports/:id/rows", (ctx) => {
+  route("GET", "/tracking/imports/:id/rows", (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     const outcome = filterValues(ctx.query, "outcome")[0] ?? "all";
     const limit = Math.min(Math.max(Number(ctx.query.limit) || 20, 1), 100);
@@ -436,7 +437,7 @@ export function registerImports() {
   });
 
   /* I6 */
-  route("POST", "/imports/:id/start", (ctx) => {
+  route("POST", "/tracking/imports/:id/start", (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     requireCreator(ctx, rec, project);
     if (rec.status === "queued" || rec.status === "running") return toJob(rec);
@@ -460,16 +461,16 @@ export function registerImports() {
     rec.expiresAt = null;
     rec.progress ??= { phase: "preparing", total, processed: 0, imported: 0, epics: 0, skipped: 0, warnings: 0, recent: [] };
     rec.phase ??= "preparing";
-    if (!rec.setup?.done) recordAudit(ctx.db, rec, project, "project.import_started", rec.file.name, null);
+    if (!rec.setup?.done) recordAudit(ctx.db, rec, project, "tracking.project.import_started", rec.file.name, null);
     schedule(rec.id);
     return toJob(rec);
   });
 
   /* I7 */
-  route("POST", "/imports/:id/cancel", (ctx) => {
+  route("POST", "/tracking/imports/:id/cancel", (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     const perms = projectPermissions(ctx.db, ctx.userId!, project.id);
-    if (rec.createdById !== ctx.userId && !perms.includes("project.update")) fail(403, "forbidden", "Only the person who started this import can stop it.", { permission: "project.update" });
+    if (rec.createdById !== ctx.userId && !perms.includes("tracking.project.update")) fail(403, "forbidden", "Only the person who started this import can stop it.", { permission: "tracking.project.update" });
     if (rec.status === "completed" || rec.status === "canceled") stateError(rec);
     if (rec.status === "running") {
       rec.cancelRequested = true;
@@ -489,7 +490,7 @@ export function registerImports() {
   });
 
   /* I8 */
-  route("GET", "/imports/:id/error-report", (ctx) => {
+  route("GET", "/tracking/imports/:id/error-report", (ctx) => {
     const { rec, project } = loadJob(ctx, ctx.params.id!);
     const terminal = rec.status === "completed" || rec.status === "canceled" || rec.status === "failed";
     const csv = reports.get(rec.id) ?? rec.reportCsv;
@@ -506,7 +507,7 @@ export function registerImports() {
   });
 
   /* I9 */
-  route("GET", "/projects/:id/imports", (ctx) => {
+  route("GET", "/tracking/projects/:id/imports", (ctx) => {
     ensureExt40(ctx.db);
     const p = memberProject(ctx, ctx.params.id!);
     requireImport(ctx, p);
@@ -650,7 +651,7 @@ function prepare(db: MockDB, rec: ImportJobRec, project: ProjectRec, plan: PlanR
       const id = uid("lb");
       db.labels.push({ id, projectId: project.id, name, color: "var(--text-3)" });
       setup.labels[name] = id;
-      recordAudit(db, rec, project, "label.created", name, null);
+      recordAudit(db, rec, project, "tracking.label.created", name, null);
     }
   }
   const epicFor = (name: string, dates: { startDate: string | null; dueDate: string | null } | null) => {
@@ -669,7 +670,7 @@ function prepare(db: MockDB, rec: ImportJobRec, project: ProjectRec, plan: PlanR
       startDate: dates?.startDate ?? null,
       dueDate: dates?.dueDate ?? null,
     });
-    recordAudit(db, rec, project, "epic.created", name, null);
+    recordAudit(db, rec, project, "tracking.epic.created", name, null);
     return id;
   };
   for (const r of plan.rows) {
@@ -677,7 +678,7 @@ function prepare(db: MockDB, rec: ImportJobRec, project: ProjectRec, plan: PlanR
   }
   for (const r of plan.rows) {
     if (r.outcome !== "task" || r.epicRow !== null || r.epicId || !r.epicName) continue;
-    if (!project || !projectPermissions(db, creator, project.id).includes("epic.manage")) continue;
+    if (!project || !projectPermissions(db, creator, project.id).includes("tracking.epic.manage")) continue;
     setup.epics[`name:${r.epicName.toLowerCase()}`] ??= epicFor(r.epicName, null);
   }
   for (const { customFieldId, names } of plan.validation.creates.options) {
@@ -692,7 +693,7 @@ function prepare(db: MockDB, rec: ImportJobRec, project: ProjectRec, plan: PlanR
       }
       setup.options[customFieldId][name.toLowerCase()] = opt.id;
     }
-    recordAudit(db, rec, project, "project.custom_field_updated", f.name, null);
+    recordAudit(db, rec, project, "tracking.project.custom_field_updated", f.name, null);
   }
   // Reserve a contiguous block of task numbers.
   const tasks = plan.rows.filter((r) => r.outcome === "task").length;
@@ -788,7 +789,7 @@ function importRow(db: MockDB, rec: ImportJobRec, project: ProjectRec, r: PlanRe
   progress.warnings += base.issues.filter((i) => i.severity === "warning").length;
   pushRecent(rec, { row: r.row, outcome: "task", key: t.key, title: t.title, reason: null });
   const glyph = statuses.find((s) => s.id === statusId)?.glyph ?? "todo";
-  recordAudit(db, rec, project, "task.imported", t.title, t.key, [
+  recordAudit(db, rec, project, "tracking.task.imported", t.title, t.key, [
     { field: "Title", kind: "text", before: null, after: t.title },
     { field: "Status", kind: "status", before: null, after: glyph },
   ]);
@@ -900,7 +901,7 @@ function finishJob(db: MockDB, rec: ImportJobRec, project: ProjectRec, status: "
   rec.finishedAt = nowISO();
   rec.expiresAt = new Date(Date.now() + 30 * DAY).toISOString();
   clearTimer(rec.id);
-  recordAudit(db, rec, project, "project.import_completed", rec.file.name, null);
+  recordAudit(db, rec, project, "tracking.project.import_completed", rec.file.name, null);
   logActivity(db, rec.createdById, "imported", project.id, null, { imported: rec.result.imported, fileName: rec.file.name, status });
   notifyFinished(db, rec, project);
   // Board 33: one tasks.bulk_changed ("many") at the end of an import (spec §6.2).
@@ -925,7 +926,7 @@ function failJob(db: MockDB, rec: ImportJobRec, project: ProjectRec | undefined,
   rec.expiresAt = new Date(Date.now() + 30 * DAY).toISOString();
   clearTimer(rec.id);
   if (project) {
-    recordAudit(db, rec, project, "project.import_completed", rec.file.name, null);
+    recordAudit(db, rec, project, "tracking.project.import_completed", rec.file.name, null);
     notifyFinished(db, rec, project);
     if (rec.result?.imported) publishBulk(db, rec.createdById, project.id, null, "created");
   }
@@ -962,8 +963,8 @@ function recordAudit(db: MockDB, rec: ImportJobRec, project: ProjectRec, action:
     action,
     target,
     createdAt: nowISO(),
-    entityType: action.split(".")[0],
-    entityKey: key ?? (action.startsWith("project.") ? project.key : null),
+    entityType: actionEntity(action),
+    entityKey: key ?? (action.startsWith("tracking.project.") ? project.key : null),
     source: "import",
     requestId: rec.requestId || null,
     changes,

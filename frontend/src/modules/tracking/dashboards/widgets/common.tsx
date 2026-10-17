@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { TipCard, type TipRow } from "@/features/reports/chart-kit";
-import { useProjectMembers } from "@/features/projects/queries";
-import type { Project, User } from "@/lib/api/types";
+import { TipCard, type TipRow } from "@/modules/tracking/reports/chart-kit";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import type { Project, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /* Shared bits of the bar-list widgets (design `.hb` rows) and the people lookup for toasts. */

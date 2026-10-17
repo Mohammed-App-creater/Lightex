@@ -2,11 +2,11 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useReducer, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { SmsCountry } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { SmsCountry } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ChannelDialog } from "./channel-dialog";
 import { Glyph, SparkCheck, Spin } from "./icons";

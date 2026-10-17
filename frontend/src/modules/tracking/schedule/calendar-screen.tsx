@@ -3,17 +3,17 @@
 import { Plus } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { shell } from "@/components/shell/shell-state";
-import { TopBarActions } from "@/components/shell/top-bar";
-import { Button } from "@/components/ui/button";
-import { useMe } from "@/features/auth/session";
-import { applyFilters, completeRules } from "@/features/filters/filter-model";
-import { useFilterOptions, useUrlFilters } from "@/features/filters/use-filters";
-import { useEpics, useProjectMembers, useStatuses } from "@/features/projects/queries";
-import { rememberOrigin } from "@/features/tasks/task-origin";
-import type { CalendarMode, ISODate, Task } from "@/lib/api/types";
+import { shell } from "@/platform/shell/shell-state";
+import { TopBarActions } from "@/platform/shell/top-bar";
+import { Button } from "@/ui/button";
+import { useMe } from "@/platform/auth/session";
+import { applyFilters, completeRules } from "@/modules/tracking/filters/filter-model";
+import { useFilterOptions, useUrlFilters } from "@/modules/tracking/filters/use-filters";
+import { useEpics, useProjectMembers, useStatuses } from "@/modules/tracking/projects/queries";
+import { rememberOrigin } from "@/modules/tracking/tasks/task-origin";
+import type { CalendarMode, ISODate, Task } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, canEditTask, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl, replaceUrl, routes, withTaskParam } from "@/lib/routes";
 import { todayISO } from "@/lib/utils/dates";
 import { Agenda } from "./agenda";
@@ -57,7 +57,7 @@ export function CalendarScreen() {
   const mobile = useIsMobile();
   const today = todayISO();
   const perms = project.my_permissions;
-  const canCreate = can("task.create", perms);
+  const canCreate = can("tracking.task.create", perms);
   const trayOpen = params.tray && !mobile;
 
   const anchor = params.at ?? today;

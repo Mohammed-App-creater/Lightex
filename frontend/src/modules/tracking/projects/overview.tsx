@@ -5,24 +5,24 @@ import { Target, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { Avatar, AvatarStack } from "@/components/ui/avatar";
-import { CopyKey } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Panel } from "@/components/ui/card";
-import { CountUp, ErrorState, ProgressBar, ProgressRing, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { shell } from "@/components/shell/shell-state";
-import { canImportInto } from "@/features/import/import-lib";
-import { ImportCsvButton } from "@/features/import/import-wizard-host";
-import { activityActorName, activityText } from "@/features/tasks/activity-text";
-import { ActorAvatar } from "@/features/audit/audit-parts";
+import { Avatar, AvatarStack } from "@/ui/avatar";
+import { CopyKey } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Panel } from "@/ui/card";
+import { CountUp, ErrorState, ProgressBar, ProgressRing, Skeleton } from "@/ui/feedback";
+import { StatusGlyph } from "@/ui/glyphs";
+import { shell } from "@/platform/shell/shell-state";
+import { canImportInto } from "@/modules/tracking/import/import-lib";
+import { ImportCsvButton } from "@/modules/tracking/import/import-wizard-host";
+import { activityActorName, activityText } from "@/modules/tracking/tasks/activity-text";
+import { ActorAvatar } from "@/platform/audit/audit-parts";
 import { useEpics, useMilestones, useObjectives, useProjectMembers, useSprints, useStatuses } from "./queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { BurndownPoint, Milestone, Project, Status, Task } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { BurndownPoint, Milestone, Project, Status, Task } from "@/api/types";
 import { daysUntil, isDoneStatus } from "@/lib/domain/progress";
 import { useIsTouch } from "@/lib/hooks/use-media-query";
-import { can, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { can, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, agoOrDate, shortDate, todayISO } from "@/lib/utils/dates";
@@ -75,14 +75,14 @@ function Header({ project }: { project: Project }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <AvatarStack people={members.map((m) => ({ id: m.userId, name: m.user.name, hue: m.user.hue }))} max={4} size={28} />
-        {can("project.manage_members", project.my_permissions) && (
+        {can("tracking.project.manage_members", project.my_permissions) && (
           <Button size="sm" asChild>
             <Link href={`${routes.project(ws.slug, project.key, "settings")}?tab=members`}>
               <UserPlus size={13} aria-hidden /> Invite
             </Link>
           </Button>
         )}
-        {can("task.create", project.my_permissions) && (
+        {can("tracking.task.create", project.my_permissions) && (
           <Button size="sm" variant="primary" kbd="C" onClick={() => shell.openCreateTask({ projectId: project.id })}>
             New task
           </Button>
@@ -166,7 +166,7 @@ function ObjectivesPanel({ project }: { project: Project }) {
   const ws = useCurrentWorkspace()!;
   const { data: objectives = [], isPending } = useObjectives(project.id);
   const { data: members = [] } = useProjectMembers(project.id);
-  const canManage = can("objective.manage", project.my_permissions);
+  const canManage = can("tracking.objective.manage", project.my_permissions);
   return (
     <Panel
       title={
@@ -219,7 +219,7 @@ function ObjectivesPanel({ project }: { project: Project }) {
 
 function MilestonesPanel({ project, milestones }: { project: Project; milestones: Milestone[] }) {
   const ws = useCurrentWorkspace()!;
-  const canManage = can("milestone.manage", project.my_permissions);
+  const canManage = can("tracking.milestone.manage", project.my_permissions);
   const scale = useMemo(() => {
     if (!milestones.length) return null;
     const starts = milestones.map((m) => m.startDate).sort();
@@ -342,7 +342,7 @@ function SprintPanel({ project, sprintId }: { project: Project; sprintId: string
   const ws = useCurrentWorkspace()!;
   const { data: sprints = [] } = useSprints(project.id);
   const sprint = sprints.find((s) => s.id === sprintId);
-  const canReport = can("report.view", project.my_permissions);
+  const canReport = can("tracking.report.view", project.my_permissions);
   const burndown = useQuery({
     queryKey: qk.reports(project.id, "burndown", sprintId),
     queryFn: () => api.reports.burndown(project.id, sprintId),
@@ -355,7 +355,7 @@ function SprintPanel({ project, sprintId }: { project: Project; sprintId: string
         <div className="flex flex-col gap-2">
           <b className="font-semibold">No active sprint</b>
           <span className="text-[13px] text-fg-2">{planned ? `${planned.name} is planned.` : "Add tasks first."}</span>
-          {can("sprint.manage", project.my_permissions) && (
+          {can("tracking.sprint.manage", project.my_permissions) && (
             <Button size="sm" className="w-fit" asChild>
               <Link href={routes.project(ws.slug, project.key, "sprints")}>Start sprint</Link>
             </Button>
@@ -550,9 +550,9 @@ function SetupChecklist({
   const perms = project.my_permissions;
   const steps = [
     { id: "create", title: "Create the project", desc: `${project.name} · key ${project.key}`, done: true },
-    { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", allowed: can("project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}?tab=members`) },
-    { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", allowed: can("objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
-    { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", allowed: can("milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
+    { id: "invite", title: "Invite your team", desc: "Members can create and edit", done: members > 1, cta: "Invite", allowed: can("tracking.project.manage_members", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "settings")}?tab=members`) },
+    { id: "objective", title: "Add an objective", desc: "What does success look like?", done: objectives > 0, cta: "Add objective", allowed: can("tracking.objective.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "objectives")}?new=1`) },
+    { id: "milestone", title: "Plan a milestone", desc: "A dated checkpoint", done: milestones > 0, cta: "Add milestone", allowed: can("tracking.milestone.manage", perms), run: () => router.push(`${routes.project(ws.slug, project.key, "milestones")}?new=1`) },
     {
       id: "tasks",
       title: "Create your first tasks",
@@ -561,11 +561,11 @@ function SetupChecklist({
       done: tasks > 0,
       cta: "New task",
       kbd: "C",
-      allowed: can("task.create", perms),
+      allowed: can("tracking.task.create", perms),
       run: () => shell.openCreateTask({ projectId: project.id }),
       extra: <ImportCsvButton project={project} variant="secondary" size="sm" className="max-[760px]:w-full" />,
     },
-    { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", allowed: can("sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
+    { id: "sprint", title: "Start a sprint", desc: "Plan the next 1–2 weeks", done: sprintStarted, cta: "Start sprint", allowed: can("tracking.sprint.manage", perms), run: () => router.push(routes.project(ws.slug, project.key, "sprints")) },
   ];
   const doneCount = steps.filter((s) => s.done).length;
   const canDoAny = steps.some((s) => !s.done && s.allowed);

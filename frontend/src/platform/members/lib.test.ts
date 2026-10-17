@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Permission, Role } from "@/lib/api/types";
-import { PERMISSION_CATALOGUE } from "@/lib/permissions/catalogue";
+import type { Permission, Role } from "@/api/types";
+import { PERMISSION_CATALOGUE } from "@/platform/roles/catalogue";
 import {
   addChips,
   assignableRoles,
@@ -74,15 +74,15 @@ describe("permission matrix", () => {
     expect([...changedKeys(["a"], ["b"])].sort()).toEqual(["a", "b"]);
   });
   it("counts toggles plus name and description changes", () => {
-    const saved = { name: "QA lead", description: "x", permissions: ["task.create"] as Permission[] };
+    const saved = { name: "QA lead", description: "x", permissions: ["tracking.task.create"] as Permission[] };
     expect(changeCount(saved, { ...saved })).toBe(0);
-    expect(changeCount(saved, { ...saved, permissions: ["sprint.manage"] })).toBe(2);
+    expect(changeCount(saved, { ...saved, permissions: ["tracking.sprint.manage"] })).toBe(2);
     expect(changeCount(saved, { ...saved, name: "QA", description: "y" })).toBe(2);
     expect(changeCount(saved, { ...saved, name: " QA lead " })).toBe(0);
   });
   it("toggles idempotently", () => {
-    expect(togglePermission(["task.create"], "task.create", true)).toEqual(["task.create"]);
-    expect(togglePermission(["task.create"], "task.create", false)).toEqual([]);
+    expect(togglePermission(["tracking.task.create"], "tracking.task.create", true)).toEqual(["tracking.task.create"]);
+    expect(togglePermission(["tracking.task.create"], "tracking.task.create", false)).toEqual([]);
   });
   it("groups the catalogue in design order", () => {
     const groups = groupCatalogue(PERMISSION_CATALOGUE, "project").map((g) => g.group);
@@ -91,12 +91,12 @@ describe("permission matrix", () => {
 });
 
 describe("roles", () => {
-  const owner = role("owner", "workspace", true, ["workspace.view", "workspace.delete"]);
-  const admin = role("admin", "workspace", true, ["workspace.view", "workspace.update", "workspace.manage_members"]);
-  const member = role("member", "workspace", true, ["workspace.view"]);
-  const padmin = role("padmin", "project", true, ["project.view", "project.manage_members", "project.delete", "task.create"]);
-  const pmember = role("pmember", "project", true, ["project.view", "task.create"]);
-  const viewer = role("viewer", "project", true, ["project.view"]);
+  const owner = role("owner", "workspace", true, ["core.workspace.view", "core.workspace.delete"]);
+  const admin = role("admin", "workspace", true, ["core.workspace.view", "core.workspace.update", "core.workspace.manage_members"]);
+  const member = role("member", "workspace", true, ["core.workspace.view"]);
+  const padmin = role("padmin", "project", true, ["tracking.project.view", "tracking.project.manage_members", "tracking.project.delete", "tracking.task.create"]);
+  const pmember = role("pmember", "project", true, ["tracking.project.view", "tracking.task.create"]);
+  const viewer = role("viewer", "project", true, ["tracking.project.view"]);
   const all = [owner, admin, member, padmin, pmember, viewer];
 
   it("never offers Owner", () => {

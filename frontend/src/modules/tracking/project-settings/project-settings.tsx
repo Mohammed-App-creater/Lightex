@@ -5,21 +5,21 @@ import { Archive, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { TabPanel, Tabs } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/toast";
-import { CustomFieldsPanel } from "@/features/fields/custom-fields-settings";
-import { useCustomFields } from "@/features/fields/queries";
-import { ImportHistoryPanel } from "@/features/import/import-history";
-import { DevelopmentSettingsPanel } from "@/features/development/dev-settings-panel";
-import { canImport } from "@/features/import/import-lib";
-import { useLabels, useProjectMembers } from "@/features/projects/queries";
-import { useRoles } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Project } from "@/lib/api/types";
-import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Button } from "@/ui/button";
+import { TabPanel, Tabs } from "@/ui/tabs";
+import { toast } from "@/ui/toast";
+import { CustomFieldsPanel } from "@/modules/tracking/fields/custom-fields-settings";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { ImportHistoryPanel } from "@/modules/tracking/import/import-history";
+import { DevelopmentSettingsPanel } from "@/modules/tracking/development/dev-settings-panel";
+import { canImport } from "@/modules/tracking/import/import-lib";
+import { useLabels, useProjectMembers } from "@/modules/tracking/projects/queries";
+import { useRoles } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Project } from "@/api/types";
+import { can, useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl, routes } from "@/lib/routes";
 import { GeneralPanel } from "./project-general";
 import { LabelsPanel } from "./project-labels";
@@ -34,9 +34,9 @@ const TAB_LABEL: Record<Tab, string> = { general: "General", workflow: "Workflow
 
 /**
  * Project settings (board 28): General / Workflow / Labels / Custom fields (board 39) / Members tabs. Each tab edits only
- * when the user holds its permission (project.update, status.manage, project.update,
- * project.manage_members); otherwise it renders read-only with the reason. Archive / delete
- * (project.archive / project.delete) live in General's danger zone; delete moves to the Trash.
+ * when the user holds its permission (tracking.project.update, tracking.status.manage, tracking.project.update,
+ * tracking.project.manage_members); otherwise it renders read-only with the reason. Archive / delete
+ * (tracking.project.archive / tracking.project.delete) live in General's danger zone; delete moves to the Trash.
  */
 export function ProjectSettingsScreen() {
   return (
@@ -61,7 +61,7 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   // Board 40: the Import tab (last) only for people who may import; someone who can only import
   // (a project Member) lands on it.
   const importer = canImport(project.my_permissions);
-  const v1Settings = can("project.update", project.my_permissions) || can("project.manage_members", project.my_permissions) || can("status.manage", project.my_permissions);
+  const v1Settings = can("tracking.project.update", project.my_permissions) || can("tracking.project.manage_members", project.my_permissions) || can("tracking.status.manage", project.my_permissions);
   // Board 37: the Development tab only when a connected repository applies to the project (devEnabled).
   const tabs = TABS.filter((t) => (t !== "import" || importer) && (t !== "development" || project.devEnabled));
   const tabParam = params.get("tab") as Tab | null;
@@ -75,12 +75,12 @@ function SettingsTabs({ project, onDeleted }: { project: Project; onDeleted: () 
   };
 
   const archived = project.status === "archived";
-  const canUpdate = useCan("project.update");
-  const canStatuses = useCan("status.manage");
-  const canMembers = useCan("project.manage_members");
-  const canFields = useCan("field.manage");
-  const canArchive = useCan("project.archive");
-  const canDelete = useCan("project.delete");
+  const canUpdate = useCan("tracking.project.update");
+  const canStatuses = useCan("tracking.status.manage");
+  const canMembers = useCan("tracking.project.manage_members");
+  const canFields = useCan("tracking.field.manage");
+  const canArchive = useCan("tracking.project.archive");
+  const canDelete = useCan("tracking.project.delete");
   const edit: Record<Tab, boolean> = {
     general: canUpdate && !archived,
     workflow: canStatuses && !archived,

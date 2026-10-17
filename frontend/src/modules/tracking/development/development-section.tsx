@@ -3,24 +3,24 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { Field, Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { CopyGlyph, DEV_ICON, DevGlyph, KeyText } from "@/features/integrations/icons";
-import { checksAria, CHECK_LABEL, devCountLabel, formatDuration, hashHue, PR_STATE_LABEL, PROVIDER_NAME } from "@/features/integrations/lib/dev-lib";
-import { highlightKeys } from "@/features/integrations/lib/key-match";
-import { useCopy, useProjectKeys } from "@/features/integrations/queries";
-import { useProjectMembers } from "@/features/projects/queries";
-import { useProjects } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { CheckState, DevAuthor, DevBranch, DevCommit, DevItem, DevPullRequest, TaskDetail, TaskDevelopment } from "@/lib/api/types";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/ui/menu";
+import { Field, Input } from "@/ui/input";
+import { Modal } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { CopyGlyph, DEV_ICON, DevGlyph, KeyText } from "@/modules/tracking/integrations/icons";
+import { checksAria, CHECK_LABEL, devCountLabel, formatDuration, hashHue, PR_STATE_LABEL, PROVIDER_NAME } from "@/modules/tracking/integrations/lib/dev-lib";
+import { highlightKeys } from "@/modules/tracking/integrations/lib/key-match";
+import { useCopy, useProjectKeys } from "@/modules/tracking/integrations/queries";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { useProjects } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { CheckState, DevAuthor, DevBranch, DevCommit, DevItem, DevPullRequest, TaskDetail, TaskDevelopment } from "@/api/types";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { useLiveInterval } from "@/lib/realtime/status-store";
 import { cn } from "@/lib/utils/cn";
 import { ago } from "@/lib/utils/dates";
@@ -37,7 +37,7 @@ const CHECK_TONE: Record<CheckState, string> = { passing: "text-ok", failing: "t
 /**
  * Task panel "Development" (board 37 §9.5), above Description. Renders when the project has a
  * connected repository or the task already has links. Viewers see everything without the controls
- * (`development.link` gates Create branch, Link… and Unlink).
+ * (`tracking.development.link` gates Create branch, Link… and Unlink).
  */
 export function DevelopmentSection({ task }: { task: TaskDetail }) {
   const ws = useCurrentWorkspace()!;
@@ -54,7 +54,7 @@ function Section({ task, archived }: { task: TaskDetail; archived: boolean }) {
   const keys = useProjectKeys(ws.slug);
   const prefixes = keys.length ? keys : [task.key.split("-")[0]!];
   const deleted = Boolean(task.deletedAt);
-  const canLink = can("development.link", task.project.my_permissions) && !deleted && !archived;
+  const canLink = can("tracking.development.link", task.project.my_permissions) && !deleted && !archived;
   // Without the stream: refetch on focus, and every 30 s while visible if any check is running.
   const poll = useLiveInterval(30_000);
   const q = useQuery({

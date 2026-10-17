@@ -64,26 +64,26 @@ const fmt = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(m
 async function main() {
   console.log(`Target ${base}  users=${users}  duration=${durationMs / 1000}s  think=${thinkMs / 1000}s`);
   const token = await signIn();
-  const project = await getJson(`/workspaces/${slug}/projects/${key}`, token);
+  const project = await getJson(`/tracking/workspaces/${slug}/projects/${key}`, token);
   const ws = await getJson(`/workspaces/${slug}`, token);
   const pid = project.id;
   const page = [
     ["auth/me", "/auth/me"],
     ["workspace", `/workspaces/${slug}`],
-    ["projects", `/workspaces/${slug}/projects`],
-    ["project", `/workspaces/${slug}/projects/${key}`],
+    ["projects", `/tracking/workspaces/${slug}/projects`],
+    ["project", `/tracking/workspaces/${slug}/projects/${key}`],
     ["unread-count", `/notifications/unread-count?filter[workspace]=${ws.id}`],
-    ["my-tasks", `/workspaces/${slug}/tasks?filter[assignee]=me&limit=200`],
-    ["tasks", `/projects/${pid}/tasks?limit=500`],
-    ["statuses", `/projects/${pid}/statuses`],
-    ["members", `/projects/${pid}/members`],
-    ["objectives", `/projects/${pid}/objectives`],
-    ["milestones", `/projects/${pid}/milestones`],
-    ["epics", `/projects/${pid}/epics`],
-    ["sprints", `/projects/${pid}/sprints`],
-    ["active-sprint", `/projects/${pid}/active-sprint`],
-    ["activity", `/projects/${pid}/activity?limit=20`],
-    ["board", `/projects/${pid}/board?filter[sprint]=active`],
+    ["my-tasks", `/tracking/workspaces/${slug}/tasks?filter[assignee]=me&limit=200`],
+    ["tasks", `/tracking/projects/${pid}/tasks?limit=500`],
+    ["statuses", `/tracking/projects/${pid}/statuses`],
+    ["members", `/tracking/projects/${pid}/members`],
+    ["objectives", `/tracking/projects/${pid}/objectives`],
+    ["milestones", `/tracking/projects/${pid}/milestones`],
+    ["epics", `/tracking/projects/${pid}/epics`],
+    ["sprints", `/tracking/projects/${pid}/sprints`],
+    ["active-sprint", `/tracking/projects/${pid}/active-sprint`],
+    ["activity", `/tracking/projects/${pid}/activity?limit=20`],
+    ["board", `/tracking/projects/${pid}/board?filter[sprint]=active`],
   ];
 
   const end = Date.now() + durationMs;

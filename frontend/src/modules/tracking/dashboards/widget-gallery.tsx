@@ -2,8 +2,8 @@
 
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
-import { DialogClose, DialogShell, Sheet } from "@/components/ui/modal";
-import type { WidgetType } from "@/lib/api/types";
+import { DialogClose, DialogShell, Sheet } from "@/ui/modal";
+import type { WidgetType } from "@/api/types";
 import { DEFAULT_SIZE, WIDGET_NAME, WIDGET_TYPES } from "@/lib/domain/dashboards";
 import { cn } from "@/lib/utils/cn";
 

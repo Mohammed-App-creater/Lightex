@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitScale, nextZoom, prevZoom } from "@/features/tasks/attachment-viewer";
+import { fitScale, nextZoom, prevZoom } from "@/modules/tracking/tasks/attachment-viewer";
 import { filterShortcuts, parseSpec } from "./shortcuts-dialog";
 
 describe("shortcut sheet", () => {

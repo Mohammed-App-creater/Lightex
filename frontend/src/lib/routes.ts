@@ -82,3 +82,6 @@ export function pushUrl(url: string) {
 export function replaceUrl(url: string) {
   window.history.replaceState(null, "", url);
 }
+
+/** What `useRouteInfo()` returns. */
+export type RouteInfo = ReturnType<typeof useRouteInfo>;

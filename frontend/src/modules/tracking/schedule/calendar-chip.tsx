@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta } from "@/components/ui/glyphs";
-import type { ISODate, Status, Task, User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta } from "@/ui/glyphs";
+import type { ISODate, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { calendarKey, fmtDay } from "./schedule-lib";
 import { useBarDrag } from "./use-bar-drag";

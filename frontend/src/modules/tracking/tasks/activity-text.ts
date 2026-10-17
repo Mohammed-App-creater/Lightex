@@ -1,4 +1,4 @@
-import type { ActivityEntry } from "@/lib/api/types";
+import type { ActivityEntry } from "@/api/types";
 
 /*
  * Plain-text form of an activity entry. Kept free of React and Tiptap so the project overview

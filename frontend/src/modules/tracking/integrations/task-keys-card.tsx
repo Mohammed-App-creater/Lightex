@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
-import { useMyTasks } from "@/features/workspace/queries";
-import type { Task } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
+import { useMyTasks } from "@/platform/workspace/queries";
+import type { Task } from "@/api/types";
 import { CopyGlyph, DEV_ICON, DevGlyph, KeyText } from "./icons";
 import { suggestBranch } from "./lib/branch-name";
 import { highlightKeys } from "./lib/key-match";

@@ -2,9 +2,9 @@
 
 import { ChevronRight } from "lucide-react";
 import type { CSSProperties } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import type { Status, Task } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { StatusGlyph } from "@/ui/glyphs";
+import type { Status, Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { datesForSpan, fillPercent, fmtDay, spanDays, spanOf, type DragMode, type Span, type Window } from "./schedule-lib";
 import { TimelineBar } from "./timeline-bar";

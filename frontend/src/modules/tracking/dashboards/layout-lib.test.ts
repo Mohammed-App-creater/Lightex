@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { DashboardWidget, ProgressRow, Status, Task, WidgetType } from "@/lib/api/types";
+import type { DashboardWidget, ProgressRow, Status, Task, WidgetType } from "@/api/types";
 import vectors from "./pack-vectors.json";
 import { clampSize, hitIndex, layoutEquals, newWidget, pack, reorder, rowUnit, rowsFor, toDraft, toInput } from "./layout-lib";
 import { behind, burndownAria, changedKeys, dueSoon, myTaskRows, objectiveRows, overCapacity, toggleTargets, velocityAvg, workloadMeta, workloadValue } from "./widget-lib";
@@ -16,10 +16,13 @@ describe("pack (shared vectors, spec §8.3)", () => {
 
   it("is the same file as the backend copy when both exist", () => {
     // Vitest runs from frontend/.
-    const here = resolve(process.cwd(), "src/features/dashboards/pack-vectors.json");
-    const backend = resolve(process.cwd(), "../backend/apps/dashboards/tests/pack_vectors.json");
+    const here = resolve(process.cwd(), "src/modules/tracking/dashboards/pack-vectors.json");
+    // The backend moves its apps under modules/tracking in platform Stage 1; accept either location.
+    const backend = ["../backend/modules/tracking/dashboards/tests/pack_vectors.json", "../backend/apps/dashboards/tests/pack_vectors.json"]
+      .map((p) => resolve(process.cwd(), p))
+      .find((p) => existsSync(p));
     expect(existsSync(here)).toBe(true);
-    if (!existsSync(backend)) return; // the backend copy lands with the backend's board 33 work
+    if (!backend) return; // the backend copy lands with the backend's board 33 work
     const hash = (p: string) => createHash("sha256").update(readFileSync(p, "utf8").replace(/\r\n/g, "\n")).digest("hex");
     expect(hash(backend)).toBe(hash(here));
   });

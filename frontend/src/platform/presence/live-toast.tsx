@@ -1,7 +1,7 @@
 "use client";
 
-import { toast } from "@/components/ui/toast";
-import type { User } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import type { User } from "@/api/types";
 import { firstName } from "./presence-lib";
 import { LiveAvatar } from "./presence-stack";
 

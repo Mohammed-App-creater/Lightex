@@ -3,16 +3,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { useProjectMembers } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Attachment, TaskDetail } from "@/lib/api/types";
-import { uploadAttachment } from "@/lib/api/uploads";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Attachment, TaskDetail } from "@/api/types";
+import { uploadAttachment } from "@/api/uploads";
 import { ACCEPT_ATTR, MAX_FILES_PER_DROP, formatBytes, isRasterImage, validateUpload } from "@/lib/files";
-import { can } from "@/lib/permissions/can";
+import { can } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { AttachmentViewer, ExtBadge } from "./attachment-viewer";
 
@@ -30,7 +30,7 @@ export function TaskAttachments({ task, canUpload, deleted }: { task: TaskDetail
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const canDeleteAny = can("attachment.delete_any", task.project.my_permissions);
+  const canDeleteAny = can("tracking.attachment.delete_any", task.project.my_permissions);
 
   const { data: members = [] } = useProjectMembers(task.projectId);
   const users = useMemo(() => new Map(members.map((m) => [m.userId, m.user])), [members]);

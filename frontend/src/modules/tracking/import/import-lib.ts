@@ -6,7 +6,7 @@ import type {
   ImportStatus,
   ImportValidation,
   Project,
-} from "@/lib/api/types";
+} from "@/api/types";
 
 /*
  * Board 40 import wizard: pure helpers (unit-tested in import-lib.test.ts). No React, no parser:
@@ -38,9 +38,9 @@ export const IMPORT_FIELD_LABELS: Record<ImportField, string> = {
   skip: "Don’t import",
 };
 
-/** `project.import` and `task.create` (§3.1); nothing is inferred from role names. */
+/** `tracking.project.import` and `tracking.task.create` (§3.1); nothing is inferred from role names. */
 export function canImport(perms: readonly string[] | null | undefined): boolean {
-  return Boolean(perms?.includes("project.import") && perms.includes("task.create"));
+  return Boolean(perms?.includes("tracking.project.import") && perms.includes("tracking.task.create"));
 }
 
 /** Entry points also need an active project (archived projects are read-only). */
@@ -173,7 +173,7 @@ export function fieldOptions(customFields: Pick<CustomField, "id" | "name">[]): 
   return groups;
 }
 
-/** Type values a mapping may pick: Feature, Bug, Chore, Spike, and Epic only with `epic.manage`. */
+/** Type values a mapping may pick: Feature, Bug, Chore, Spike, and Epic only with `tracking.epic.manage`. */
 export function typeOptions(perms: readonly string[]): FieldOption[] {
   const base = [
     { value: "feature", label: "Feature" },
@@ -181,7 +181,7 @@ export function typeOptions(perms: readonly string[]): FieldOption[] {
     { value: "chore", label: "Chore" },
     { value: "spike", label: "Spike" },
   ];
-  return perms.includes("epic.manage") ? [...base, { value: "epic", label: "Epic" }] : base;
+  return perms.includes("tracking.epic.manage") ? [...base, { value: "epic", label: "Epic" }] : base;
 }
 
 /** "PRJ-61 → PRJ-104" (one key when first = last). */
@@ -195,14 +195,14 @@ export function skipSummary(reasons: ImportValidation["skipReasons"]): string {
   return reasons.map((r) => `${r.count} × ${r.reason.charAt(0).toLowerCase()}${r.reason.slice(1)}`).join(" · ");
 }
 
-/** "Creates 2 labels, 1 epic" (+ options with field.manage); null when nothing is created. */
+/** "Creates 2 labels, 1 epic" (+ options with tracking.field.manage); null when nothing is created. */
 export function createsLine(creates: ImportValidation["creates"], perms: readonly string[]): string | null {
   const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
   const parts: string[] = [];
   if (creates.labels.length) parts.push(n(creates.labels.length, "label", "labels"));
   if (creates.epics.length) parts.push(n(creates.epics.length, "epic", "epics"));
   const options = creates.options.reduce((a, o) => a + o.names.length, 0);
-  if (options && perms.includes("field.manage")) parts.push(n(options, "option", "options"));
+  if (options && perms.includes("tracking.field.manage")) parts.push(n(options, "option", "options"));
   return parts.length ? `Creates ${parts.join(", ")}` : null;
 }
 

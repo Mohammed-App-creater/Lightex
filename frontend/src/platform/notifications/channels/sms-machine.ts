@@ -1,5 +1,5 @@
-import { isApiError } from "@/lib/api/errors";
-import type { SmsConnection, SmsVerification } from "@/lib/api/types";
+import { isApiError } from "@/api/errors";
+import type { SmsConnection, SmsVerification } from "@/api/types";
 import { retryTime } from "./telegram-machine";
 
 /*

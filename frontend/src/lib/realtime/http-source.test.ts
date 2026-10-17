@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { tokenStore } from "@/lib/api/session";
+import { tokenStore } from "@/api/session";
 import type { RealtimeEnvelope } from "./events";
 import { HttpRealtimeSource, classify } from "./http-source";
 
@@ -22,7 +22,7 @@ afterEach(() => tokenStore.set(null));
 describe("HttpRealtimeSource", () => {
   it("opens GET /workspaces/:slug/stream?v=1 with Accept, Bearer and Last-Event-ID, and parses the stream", async () => {
     tokenStore.set("tok-1");
-    const fetchFn = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => sse('event: hello\ndata: {"v":1,"type":"hello","data":{}}\n\nid: 9\nevent: task.changed\ndata: {"v":1,"type":"task.changed","id":"9","data":{}}\n\n'));
+    const fetchFn = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => sse('event: hello\ndata: {"v":1,"type":"hello","data":{}}\n\nid: 9\nevent: task.changed\ndata: {"v":1,"type":"tracking.task.changed","id":"9","data":{}}\n\n'));
     const src = new HttpRealtimeSource("https://api.test", fetchFn as typeof fetch, async () => true);
     const r = run(src, "8");
     await expect(r.p).resolves.toEqual({ kind: "ended" });
@@ -30,7 +30,7 @@ describe("HttpRealtimeSource", () => {
     expect(url).toBe("https://api.test/api/v1/workspaces/platform/stream?v=1");
     expect(init?.headers).toEqual({ Accept: "text/event-stream", Authorization: "Bearer tok-1", "Last-Event-ID": "8" });
     expect(init?.credentials).toBe("include");
-    expect(r.events.map((e) => e.type)).toEqual(["hello", "task.changed"]);
+    expect(r.events.map((e) => e.type)).toEqual(["hello", "tracking.task.changed"]);
   });
 
   it("refreshes first when there is no access token in memory", async () => {

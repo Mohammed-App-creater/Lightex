@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { ApiError } from "@/lib/api/errors";
-import type { CustomField, Project, RunningTimer, SavedView, Task, TaskDependencies, TaskDetail, TimeEntry, Timesheet } from "@/lib/api/types";
+import type { ApiError } from "@/api/errors";
+import type { CustomField, Project, RunningTimer, SavedView, Task, TaskDependencies, TaskDetail, TimeEntry, Timesheet } from "@/api/types";
 import { addDaysISO, todayISO } from "@/lib/utils/dates";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB, setDB } from "./db";
@@ -23,7 +23,7 @@ async function rejects(p: Promise<unknown>) {
   throw new Error("expected rejection");
 }
 const task = (n: number) => getDB().tasks.find((x) => x.id === `p_prj-t${n}`)!;
-const detail = (key: string) => req<TaskDetail>("GET", `/workspaces/platform/tasks/${key}`);
+const detail = (key: string) => req<TaskDetail>("GET", `/tracking/workspaces/platform/tasks/${key}`);
 
 beforeEach(() => {
   resetDB();
@@ -41,8 +41,8 @@ describe("seed and upgrade", () => {
     expect(d.customFields["p_prj-cf-accounts"]).toBe(1240);
     expect(d.dependencies.blockedBy.map((x) => x.task.key)).toEqual(["PRJ-48", "PRJ-40"]);
     expect(d.dependencies.blocks.map((x) => x.task.key)).toEqual(["PRJ-47", "PRJ-68"]);
-    const project = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    expect(project.my_permissions).toEqual(expect.arrayContaining(["field.manage", "time.log", "time.delete_any"]));
+    const project = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    expect(project.my_permissions).toEqual(expect.arrayContaining(["tracking.field.manage", "tracking.time.log", "tracking.time.delete_any"]));
   });
 
   it("upgrades a v1-cached database exactly once (roles, seed, Blocked view)", () => {
@@ -60,12 +60,12 @@ describe("seed and upgrade", () => {
       delete x.timeEstimateMinutes;
     });
     const member = db.roles.find((r) => r.key === "project_member" && r.workspaceId === "ws_platform")!;
-    member.permissions = member.permissions.filter((p) => p !== "time.log");
+    member.permissions = member.permissions.filter((p) => p !== "tracking.time.log");
     const custom = db.roles.find((r) => r.id === "ws_platform-role-release")!;
     const customBefore = [...custom.permissions];
 
     ensureExt39(db);
-    expect(member.permissions).toContain("time.log");
+    expect(member.permissions).toContain("tracking.time.log");
     expect(custom.permissions).toEqual(customBefore);
     expect(db.customFields).toHaveLength(5);
     expect(db.dependencies).toHaveLength(5);
@@ -83,17 +83,17 @@ describe("seed and upgrade", () => {
 describe("custom fields (F1–F5, T1)", () => {
   it("lists, creates, validates, edits, reorders and deletes", async () => {
     as("u_alex");
-    const list = await req<CustomField[]>("GET", "/projects/p_prj/custom-fields");
+    const list = await req<CustomField[]>("GET", "/tracking/projects/p_prj/custom-fields");
     expect(list.map((f) => f.name)).toEqual(["Browser", "Found in", "Accounts affected", "QA sign-off", "QA owner"]);
     expect(list[0]!.taskCount).toBe(4);
 
-    const bad = await rejects(req("POST", "/projects/p_prj/custom-fields", { name: "browser", type: "select", options: [{ name: " ", color: "var(--low)" }] }));
+    const bad = await rejects(req("POST", "/tracking/projects/p_prj/custom-fields", { name: "browser", type: "select", options: [{ name: " ", color: "var(--low)" }] }));
     expect(bad.status).toBe(422);
     expect(bad.details?.fields).toEqual({ name: "A field with this name exists", options: "Add at least one option" });
-    const badType = await rejects(req("POST", "/projects/p_prj/custom-fields", { name: "X", type: "color" }));
+    const badType = await rejects(req("POST", "/tracking/projects/p_prj/custom-fields", { name: "X", type: "color" }));
     expect((badType.details?.fields as Record<string, string>).type).toBe("Pick text, number, select, date or person");
 
-    const env = await req<CustomField>("POST", "/projects/p_prj/custom-fields", {
+    const env = await req<CustomField>("POST", "/tracking/projects/p_prj/custom-fields", {
       name: "Environment",
       type: "select",
       options: [
@@ -106,38 +106,38 @@ describe("custom fields (F1–F5, T1)", () => {
     expect(env.options.map((o) => o.name)).toEqual(["Production", "Staging"]);
     expect(env.taskCount).toBe(0);
 
-    const typeChange = await rejects(req("PATCH", `/custom-fields/${env.id}`, { type: "text" }));
+    const typeChange = await rejects(req("PATCH", `/tracking/custom-fields/${env.id}`, { type: "text" }));
     expect((typeChange.details?.fields as Record<string, string>).type).toBe("A field’s type can’t be changed");
 
     // Value on a task, then removing its option clears it.
     const t48 = await detail("PRJ-48");
-    await req<Task>("PATCH", `/tasks/${t48.id}`, { customFields: { [env.id]: env.options[1]!.id }, version: t48.version });
-    expect((await req<CustomField[]>("GET", "/projects/p_prj/custom-fields")).find((f) => f.id === env.id)!.taskCount).toBe(1);
-    const edited = await req<CustomField>("PATCH", `/custom-fields/${env.id}`, { name: "Env", options: [{ id: env.options[0]!.id, name: "Prod", color: "var(--danger)" }, { name: "Preview", color: "var(--low)" }] });
+    await req<Task>("PATCH", `/tracking/tasks/${t48.id}`, { customFields: { [env.id]: env.options[1]!.id }, version: t48.version });
+    expect((await req<CustomField[]>("GET", "/tracking/projects/p_prj/custom-fields")).find((f) => f.id === env.id)!.taskCount).toBe(1);
+    const edited = await req<CustomField>("PATCH", `/tracking/custom-fields/${env.id}`, { name: "Env", options: [{ id: env.options[0]!.id, name: "Prod", color: "var(--danger)" }, { name: "Preview", color: "var(--low)" }] });
     expect(edited.name).toBe("Env");
     expect(edited.options.map((o) => o.name)).toEqual(["Prod", "Preview"]);
     expect(edited.taskCount).toBe(0);
     expect(task(48).customFields?.[env.id]).toBeUndefined();
 
-    const ids = (await req<CustomField[]>("GET", "/projects/p_prj/custom-fields")).map((f) => f.id);
-    expect((await rejects(req("PUT", "/projects/p_prj/custom-fields/order", { ids: ids.slice(1) }))).details?.fields).toEqual({ ids: "Send every field once" });
-    const reordered = await req<CustomField[]>("PUT", "/projects/p_prj/custom-fields/order", { ids: [...ids].reverse() });
+    const ids = (await req<CustomField[]>("GET", "/tracking/projects/p_prj/custom-fields")).map((f) => f.id);
+    expect((await rejects(req("PUT", "/tracking/projects/p_prj/custom-fields/order", { ids: ids.slice(1) }))).details?.fields).toEqual({ ids: "Send every field once" });
+    const reordered = await req<CustomField[]>("PUT", "/tracking/projects/p_prj/custom-fields/order", { ids: [...ids].reverse() });
     expect(reordered[0]!.id).toBe(env.id);
 
-    await req("DELETE", "/custom-fields/p_prj-cf-browser");
-    const after = await req<CustomField[]>("GET", "/projects/p_prj/custom-fields");
+    await req("DELETE", "/tracking/custom-fields/p_prj-cf-browser");
+    const after = await req<CustomField[]>("GET", "/tracking/projects/p_prj/custom-fields");
     expect(after.map((f) => f.position)).toEqual([0, 1, 2, 3, 4]);
     expect(task(42).customFields?.["p_prj-cf-browser"]).toBeUndefined();
-    expect(getDB().audit.some((a) => a.action === "project.custom_field_deleted")).toBe(true);
+    expect(getDB().audit.some((a) => a.action === "tracking.project.custom_field_deleted")).toBe(true);
   });
 
-  it("gates field management on field.manage", async () => {
+  it("gates field management on tracking.field.manage", async () => {
     for (const u of ["u_sam", "u_taylor"]) {
       as(u);
-      expect((await req<CustomField[]>("GET", "/projects/p_prj/custom-fields")).length).toBe(5);
-      const e = await rejects(req("POST", "/projects/p_prj/custom-fields", { name: "Nope", type: "text" }));
+      expect((await req<CustomField[]>("GET", "/tracking/projects/p_prj/custom-fields")).length).toBe(5);
+      const e = await rejects(req("POST", "/tracking/projects/p_prj/custom-fields", { name: "Nope", type: "text" }));
       expect(e.status).toBe(403);
-      expect(e.details?.permission).toBe("field.manage");
+      expect(e.details?.permission).toBe("tracking.field.manage");
     }
   });
 
@@ -145,7 +145,7 @@ describe("custom fields (F1–F5, T1)", () => {
     as("u_alex");
     const d = await detail("PRJ-42");
     const e = await rejects(
-      req("PATCH", `/tasks/${d.id}`, {
+      req("PATCH", `/tracking/tasks/${d.id}`, {
         customFields: { "p_prj-cf-found": "", "p_prj-cf-accounts": -1, "p_prj-cf-browser": "nope", "p_prj-cf-qasignoff": "2026-13-40", "p_prj-cf-qaowner": "u_casey", gone: "x" },
         version: d.version,
       }),
@@ -158,21 +158,21 @@ describe("custom fields (F1–F5, T1)", () => {
       "customFields.p_prj-cf-qaowner": "Pick someone on this project",
       "customFields.gone": "This field was deleted",
     });
-    expect((await rejects(req("PATCH", `/tasks/${d.id}`, { customFields: [], version: d.version }))).details?.fields).toEqual({ customFields: "Send an object of field ids" });
-    expect((await rejects(req("PATCH", `/tasks/${d.id}`, { timeEstimateMinutes: 70_000, version: d.version }))).details?.fields).toEqual({ timeEstimateMinutes: "Estimate is 1 minute to 1000 hours" });
+    expect((await rejects(req("PATCH", `/tracking/tasks/${d.id}`, { customFields: [], version: d.version }))).details?.fields).toEqual({ customFields: "Send an object of field ids" });
+    expect((await rejects(req("PATCH", `/tracking/tasks/${d.id}`, { timeEstimateMinutes: 70_000, version: d.version }))).details?.fields).toEqual({ timeEstimateMinutes: "Estimate is 1 minute to 1000 hours" });
 
-    const next = await req<Task>("PATCH", `/tasks/${d.id}`, { customFields: { "p_prj-cf-accounts": 12.346, "p_prj-cf-qaowner": null }, timeEstimateMinutes: 0, version: d.version });
+    const next = await req<Task>("PATCH", `/tracking/tasks/${d.id}`, { customFields: { "p_prj-cf-accounts": 12.346, "p_prj-cf-qaowner": null }, timeEstimateMinutes: 0, version: d.version });
     expect(next.version).toBe(d.version + 1);
     expect(next.customFields).toEqual({ "p_prj-cf-browser": "p_prj-cf-browser-safari", "p_prj-cf-found": "v2.3.1", "p_prj-cf-accounts": 12.35 });
     expect(next.timeEstimateMinutes).toBeNull();
-    expect((await rejects(req("PATCH", `/tasks/${d.id}`, { customFields: {}, version: d.version }))).status).toBe(409);
-    expect((await rejects(req("POST", "/projects/p_prj/tasks/bulk", { ids: [d.id], patch: { customFields: {} } }))).details?.fields).toEqual({ customFields: "This field can’t be bulk-edited" });
+    expect((await rejects(req("PATCH", `/tracking/tasks/${d.id}`, { customFields: {}, version: d.version }))).status).toBe(409);
+    expect((await rejects(req("POST", "/tracking/projects/p_prj/tasks/bulk", { ids: [d.id], patch: { customFields: {} } }))).details?.fields).toEqual({ customFields: "This field can’t be bulk-edited" });
   });
 
-  it("does not let task.move alone change values", async () => {
+  it("does not let tracking.task.move alone change values", async () => {
     as("u_sam"); // Member: edit_own only; PRJ-42 is Alex's.
     const d = await detail("PRJ-42");
-    expect((await rejects(req("PATCH", `/tasks/${d.id}`, { customFields: { "p_prj-cf-found": "x" }, version: d.version }))).status).toBe(403);
+    expect((await rejects(req("PATCH", `/tracking/tasks/${d.id}`, { customFields: { "p_prj-cf-found": "x" }, version: d.version }))).status).toBe(403);
   });
 });
 
@@ -180,7 +180,7 @@ describe("dependencies (D1–D3)", () => {
   it("adds both relations, refuses self, sub-task, duplicates and cycles with the loop path", async () => {
     as("u_alex");
     const d = await detail("PRJ-42");
-    const add = (taskId: string, relation: string, other: string) => req<TaskDependencies>("POST", `/tasks/${taskId}/dependencies`, { relation, taskId: other });
+    const add = (taskId: string, relation: string, other: string) => req<TaskDependencies>("POST", `/tracking/tasks/${taskId}/dependencies`, { relation, taskId: other });
     expect((await rejects(add(d.id, "blocked_by", d.id))).details?.fields).toEqual({ taskId: "A task can’t depend on itself" });
     expect((await rejects(add(d.id, "blocks", "p_prj-t43"))).details?.fields).toEqual({ taskId: "A task and its sub-task can’t depend on each other" });
     expect((await rejects(add(d.id, "blocks", "p_mob-t12"))).details?.fields).toEqual({ taskId: "Pick a task from this project" });
@@ -202,36 +202,36 @@ describe("dependencies (D1–D3)", () => {
     const res = await add(d.id, "blocks", "p_prj-t50");
     expect(res.blocks.map((x) => x.task.key)).toEqual(["PRJ-47", "PRJ-68", "PRJ-50"]);
     expect((await detail("PRJ-50")).isBlocked).toBe(true);
-    expect(getDB().audit.filter((a) => a.action === "task.dependency_added")).toHaveLength(2);
+    expect(getDB().audit.filter((a) => a.action === "tracking.task.dependency_added")).toHaveLength(2);
     const v = (await detail("PRJ-50")).version;
 
     const row = res.blocks.find((x) => x.task.key === "PRJ-50")!;
-    await req("DELETE", `/tasks/p_prj-t50/dependencies/${row.id}`);
+    await req("DELETE", `/tracking/tasks/p_prj-t50/dependencies/${row.id}`);
     const after = await detail("PRJ-50");
     expect(after.isBlocked).toBe(false);
     expect(after.version).toBe(v); // no version bump
-    expect((await rejects(req("DELETE", `/tasks/p_prj-t50/dependencies/${row.id}`))).status).toBe(404);
+    expect((await rejects(req("DELETE", `/tracking/tasks/p_prj-t50/dependencies/${row.id}`))).status).toBe(404);
   });
 
   it("closes a blocker when it is done and ignores deleted tasks", async () => {
     as("u_alex");
     const b = await detail("PRJ-48");
-    await req("PATCH", `/tasks/${b.id}`, { statusId: "p_prj-st-done", version: b.version });
+    await req("PATCH", `/tracking/tasks/${b.id}`, { statusId: "p_prj-st-done", version: b.version });
     expect((await detail("PRJ-42")).isBlocked).toBe(false);
-    await req("DELETE", "/tasks/p_prj-t57");
+    await req("DELETE", "/tracking/tasks/p_prj-t57");
     expect((await detail("PRJ-58")).isBlocked).toBe(false);
-    expect((await req<TaskDependencies>("GET", "/tasks/p_prj-t58/dependencies")).blockedBy).toHaveLength(0);
-    const list = await req<{ data: Task[] }>("GET", "/projects/p_prj/tasks", undefined, { filter: { blocked: "true" } });
+    expect((await req<TaskDependencies>("GET", "/tracking/tasks/p_prj-t58/dependencies")).blockedBy).toHaveLength(0);
+    const list = await req<{ data: Task[] }>("GET", "/tracking/projects/p_prj/tasks", undefined, { filter: { blocked: "true" } });
     expect(list.data.map((x) => x.key).sort()).toEqual(["PRJ-47", "PRJ-52", "PRJ-68"]); // PRJ-52: board 32 seed (PRJ-50 blocks it)
-    expect((await rejects(req("GET", "/projects/p_prj/tasks", undefined, { filter: { blocked: "maybe" } }))).details?.fields).toEqual({ "filter[blocked]": "Use true or false" });
+    expect((await rejects(req("GET", "/tracking/projects/p_prj/tasks", undefined, { filter: { blocked: "maybe" } }))).details?.fields).toEqual({ "filter[blocked]": "Use true or false" });
   });
 
   it("needs edit rights on the task (viewer and edit_own are refused)", async () => {
     as("u_taylor");
-    expect((await rejects(req("POST", "/tasks/p_prj-t50/dependencies", { relation: "blocks", taskId: "p_prj-t51" }))).status).toBe(403);
+    expect((await rejects(req("POST", "/tracking/tasks/p_prj-t50/dependencies", { relation: "blocks", taskId: "p_prj-t51" }))).status).toBe(403);
     as("u_sam"); // reporter/assignee of PRJ-51 only
-    expect((await rejects(req("POST", "/tasks/p_prj-t50/dependencies", { relation: "blocks", taskId: "p_prj-t51" }))).status).toBe(403);
-    const ok = await req<TaskDependencies>("POST", "/tasks/p_prj-t51/dependencies", { relation: "blocked_by", taskId: "p_prj-t50" });
+    expect((await rejects(req("POST", "/tracking/tasks/p_prj-t50/dependencies", { relation: "blocks", taskId: "p_prj-t51" }))).status).toBe(403);
+    const ok = await req<TaskDependencies>("POST", "/tracking/tasks/p_prj-t51/dependencies", { relation: "blocked_by", taskId: "p_prj-t50" });
     expect(ok.isBlocked).toBe(true);
   });
 });
@@ -241,7 +241,7 @@ describe("time (E1–E3, R1–R3)", () => {
 
   it("logs, validates, lists and deletes entries by permission", async () => {
     as("u_sam");
-    const log = (body: unknown) => req<TimeEntry>("POST", "/tasks/p_prj-t51/time-entries", body);
+    const log = (body: unknown) => req<TimeEntry>("POST", "/tracking/tasks/p_prj-t51/time-entries", body);
     expect((await rejects(log({ minutes: 1.5, date: today }))).details?.fields).toEqual({ minutes: "Enter a duration" });
     expect((await rejects(log({ minutes: 0, date: today }))).details?.fields).toEqual({ minutes: "Duration must be over 0" });
     expect((await rejects(log({ minutes: 1441, date: today }))).details?.fields).toEqual({ minutes: "Max 24h per entry" });
@@ -254,52 +254,52 @@ describe("time (E1–E3, R1–R3)", () => {
     expect((await detail("PRJ-51")).loggedMinutes).toBeGreaterThanOrEqual(90);
 
     // Sam can't delete Alex's entry; Jordan (Manager) can.
-    expect((await rejects(req("DELETE", "/time-entries/te_seed_1"))).details?.permission).toBe("time.delete_any");
-    await req("DELETE", `/time-entries/${e.id}`);
+    expect((await rejects(req("DELETE", "/tracking/time-entries/te_seed_1"))).details?.permission).toBe("tracking.time.delete_any");
+    await req("DELETE", `/tracking/time-entries/${e.id}`);
     as("u_taylor");
     expect((await rejects(log({ minutes: 30, date: today }))).status).toBe(403);
     as("u_jordan");
-    await req("DELETE", "/time-entries/te_seed_1");
-    const list = await req<TimeEntry[]>("GET", "/tasks/p_prj-t42/time-entries");
+    await req("DELETE", "/tracking/time-entries/te_seed_1");
+    const list = await req<TimeEntry[]>("GET", "/tracking/tasks/p_prj-t42/time-entries");
     expect(list.map((x) => x.id)).toEqual(["te_seed_3", "te_seed_2"]);
   });
 
   it("starts, switches (logging the previous one) and stops the single per-user timer", async () => {
     as("u_alex");
-    expect((await req<{ timer: RunningTimer | null }>("GET", "/me/timer")).timer).toBeNull();
-    expect((await rejects(req("POST", "/me/timer/stop", { date: today }))).status).toBe(404);
-    const a = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tasks/p_prj-t48/timer", { date: today });
+    expect((await req<{ timer: RunningTimer | null }>("GET", "/tracking/me/timer")).timer).toBeNull();
+    expect((await rejects(req("POST", "/tracking/me/timer/stop", { date: today }))).status).toBe(404);
+    const a = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tracking/tasks/p_prj-t48/timer", { date: today });
     expect(a.timer.taskKey).toBe("PRJ-48");
     expect(a.stopped).toBeNull();
-    const again = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tasks/p_prj-t48/timer", { date: today });
+    const again = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tracking/tasks/p_prj-t48/timer", { date: today });
     expect(again.timer.startedAt).toBe(a.timer.startedAt);
 
     getDB().timers![0]!.startedAt = new Date(Date.now() - 12 * 60_000).toISOString();
-    const sw = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tasks/p_prj-t54/timer", { date: today });
+    const sw = await req<{ timer: RunningTimer; stopped: TimeEntry | null }>("POST", "/tracking/tasks/p_prj-t54/timer", { date: today });
     expect(sw.timer.taskKey).toBe("PRJ-54");
     expect(sw.stopped).toMatchObject({ taskId: "p_prj-t48", minutes: 12, source: "timer" });
 
     getDB().timers![0]!.startedAt = new Date(Date.now() - 20_000).toISOString();
-    const stop = await req<{ entry: TimeEntry }>("POST", "/me/timer/stop", { date: today });
+    const stop = await req<{ entry: TimeEntry }>("POST", "/tracking/me/timer/stop", { date: today });
     expect(stop.entry.minutes).toBe(1);
-    expect((await req<{ timer: RunningTimer | null }>("GET", "/me/timer")).timer).toBeNull();
+    expect((await req<{ timer: RunningTimer | null }>("GET", "/tracking/me/timer")).timer).toBeNull();
   });
 
-  it("discards a timer when the task is deleted or time.log is lost", async () => {
+  it("discards a timer when the task is deleted or tracking.time.log is lost", async () => {
     as("u_alex");
-    await req("POST", "/tasks/p_prj-t54/timer", { date: today });
-    await req("DELETE", "/tasks/p_prj-t54");
-    const e = await rejects(req("POST", "/me/timer/stop", { date: today }));
+    await req("POST", "/tracking/tasks/p_prj-t54/timer", { date: today });
+    await req("DELETE", "/tracking/tasks/p_prj-t54");
+    const e = await rejects(req("POST", "/tracking/me/timer/stop", { date: today }));
     expect(e.code).toBe("task_deleted");
     expect(getDB().timers).toHaveLength(0);
 
     as("u_sam");
-    await req("POST", "/tasks/p_prj-t51/timer", { date: today });
+    await req("POST", "/tracking/tasks/p_prj-t51/timer", { date: today });
     const role = getDB().roles.find((r) => r.key === "project_member" && r.workspaceId === "ws_platform")!;
-    role.permissions = role.permissions.filter((p) => p !== "time.log");
-    const f = await rejects(req("POST", "/me/timer/stop", { date: today }));
+    role.permissions = role.permissions.filter((p) => p !== "tracking.time.log");
+    const f = await rejects(req("POST", "/tracking/me/timer/stop", { date: today }));
     expect(f.status).toBe(403);
-    expect(f.details?.permission).toBe("time.log");
+    expect(f.details?.permission).toBe("tracking.time.log");
     expect(getDB().timers).toHaveLength(0);
   });
 });
@@ -309,7 +309,7 @@ describe("timesheet (S1)", () => {
     expect(weekStartOf("2026-10-11")).toBe("2026-10-05"); // Sunday
     expect(weekStartOf("2026-11-01")).toBe("2026-10-26"); // across a month boundary
     as("u_alex");
-    const ts = await req<Timesheet>("GET", "/workspaces/platform/timesheet", undefined, { filter: { week: todayISO() } });
+    const ts = await req<Timesheet>("GET", "/tracking/workspaces/platform/timesheet", undefined, { filter: { week: todayISO() } });
     expect(ts.days).toHaveLength(7);
     expect(ts.weekStart).toBe(ts.days[0]);
     expect(ts.rows.length).toBeGreaterThan(0);
@@ -319,20 +319,20 @@ describe("timesheet (S1)", () => {
     const slices = ts.rows.flatMap((r) => r.cells.flatMap((c) => c.breakdown));
     expect(slices.every((s) => s.taskId === null)).toBe(true);
 
-    const one = await req<Timesheet>("GET", "/workspaces/platform/timesheet", undefined, { filter: { week: todayISO(), project: "p_prj" } });
+    const one = await req<Timesheet>("GET", "/tracking/workspaces/platform/timesheet", undefined, { filter: { week: todayISO(), project: "p_prj" } });
     expect(one.rows.flatMap((r) => r.cells.flatMap((c) => c.breakdown)).every((s) => s.taskId !== null && s.projectId === "p_prj")).toBe(true);
     for (const r of one.rows) for (const c of r.cells) expect(c.minutes).toBeGreaterThanOrEqual(c.breakdown.reduce((a, s) => a + s.minutes, 0));
 
-    expect((await rejects(req("GET", "/workspaces/platform/timesheet", undefined, { filter: { week: "x" } }))).details?.fields).toEqual({ "filter[week]": "Pick a date" });
+    expect((await rejects(req("GET", "/tracking/workspaces/platform/timesheet", undefined, { filter: { week: "x" } }))).details?.fields).toEqual({ "filter[week]": "Pick a date" });
     as("u_taylor");
-    expect((await rejects(req("GET", "/workspaces/platform/timesheet", undefined, { filter: { project: "p_inf" } }))).status).toBe(403);
+    expect((await rejects(req("GET", "/tracking/workspaces/platform/timesheet", undefined, { filter: { project: "p_inf" } }))).status).toBe(403);
   });
 });
 
 describe("saved views count on derived fields", () => {
   it("counts blocked and custom-field rules, ignoring rules on deleted fields", async () => {
     as("u_alex");
-    const v = await req<SavedView>("POST", "/workspaces/platform/views", {
+    const v = await req<SavedView>("POST", "/tracking/workspaces/platform/views", {
       projectId: "p_prj",
       name: "Safari bugs",
       filters: [
@@ -343,8 +343,8 @@ describe("saved views count on derived fields", () => {
     });
     expect(v.filters).toHaveLength(2);
     expect(v.count).toBe(1);
-    await req("DELETE", "/custom-fields/p_prj-cf-accounts");
-    const list = await req<SavedView[]>("GET", "/workspaces/platform/views");
+    await req("DELETE", "/tracking/custom-fields/p_prj-cf-accounts");
+    const list = await req<SavedView[]>("GET", "/tracking/workspaces/platform/views");
     expect(list.find((x) => x.id === v.id)!.count).toBe(2);
   });
 });

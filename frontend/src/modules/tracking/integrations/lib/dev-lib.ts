@@ -1,4 +1,4 @@
-import type { CheckState, DevPullRequest, Integration, IntegrationErrorCode, Provider, TaskDevSummary } from "@/lib/api/types";
+import type { CheckState, DevPullRequest, Integration, IntegrationErrorCode, Provider, TaskDevSummary } from "@/api/types";
 import { ago, shortDate } from "@/lib/utils/dates";
 
 /*

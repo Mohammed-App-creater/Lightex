@@ -3,8 +3,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Eye } from "lucide-react";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import type { User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import type { User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { colorName, ITEM_COLORS } from "./project-lib";
 

@@ -2,14 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Toaster } from "@/components/ui/toast";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { setTransport } from "@/lib/api/client";
-import type { NotificationChannel, Workspace } from "@/lib/api/types";
+import { Toaster } from "@/ui/toast";
+import { TooltipProvider } from "@/ui/tooltip";
+import { setTransport } from "@/api/client";
+import type { NotificationChannel, Workspace } from "@/api/types";
 import { mockControls } from "@/lib/mock/controls";
 import { getDB, mockSession, resetDB } from "@/lib/mock/db";
 import { MockTransport } from "@/lib/mock/transport";
-import { WorkspaceScope } from "@/lib/permissions/can";
+import { WorkspaceScope } from "@/platform/roles/can";
 import { columnStates, defaultPreferences, pushView, type ColumnState } from "./channels/model";
 import { PreferencesMatrix } from "./channels/preferences-matrix";
 import { fakePushPlatform, setPushPlatform } from "./channels/push";
@@ -19,7 +19,7 @@ import { NotificationPreferencesPage } from "./preferences";
 /* Board 38 components (§9.2): the matrix, the page (channels, admin row, quiet hours), SMS / Telegram / push flows, Send test. */
 
 const me = { current: { id: "u_alex", email: "alex@team.dev", name: "Alex Kim" } };
-vi.mock("@/features/auth/session", () => ({ useMe: () => me.current }));
+vi.mock("@/platform/auth/session", () => ({ useMe: () => me.current }));
 // next/dynamic doesn't resolve under jsdom: the same code split through React.lazy.
 vi.mock("@/lib/hooks/lazy-with-preload", async () => {
   const React = await import("react");
@@ -94,7 +94,7 @@ describe("PreferencesMatrix", () => {
     await userEvent.click(dead);
     expect(onToggle).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("switch", { name: "New comment, Email" }));
-    expect(onToggle).toHaveBeenCalledWith("comment", "email", true);
+    expect(onToggle).toHaveBeenCalledWith("tracking.comment.created", "email", true);
     await userEvent.click(screen.getByRole("button", { name: "Connect Telegram" }));
     expect(onConnect).toHaveBeenCalledWith("telegram");
     expect(screen.getByText("Off by admin")).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe("Notifications page", () => {
     expect(screen.queryByText("Coming soon")).toBeNull();
   });
 
-  it("has no admin row without workspace.update (u_sam) and shows Off by admin when the policy is off", async () => {
+  it("has no admin row without core.workspace.update (u_sam) and shows Off by admin when the policy is off", async () => {
     getDB().workspaces.find((w) => w.slug === "platform")!.smsEnabled = false;
     await mount("u_sam");
     expect(screen.queryByText(/SMS for/)).toBeNull();
@@ -153,7 +153,7 @@ describe("Notifications page", () => {
     await userEvent.click(screen.getByRole("switch", { name: "New comment, Telegram" }));
     expect(screen.getByText("Saving")).toBeInTheDocument();
     await screen.findByText("Saved", undefined, { timeout: 3000 });
-    expect(getDB().prefs.find((p) => p.userId === "u_alex")!.prefs.events.comment.telegram).toBe(false);
+    expect(getDB().prefs.find((p) => p.userId === "u_alex")!.prefs.events["tracking.comment.created"].telegram).toBe(false);
     await userEvent.click(screen.getByRole("button", { name: "Saturday" }));
     await userEvent.click(screen.getByRole("button", { name: "Sunday" }));
     expect(screen.getByTestId("quiet-summary")).toHaveTextContent("Mon–Fri");

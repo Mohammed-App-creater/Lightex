@@ -1,5 +1,5 @@
-import type { Notification, NotificationEvent, NotificationType, StatusGlyph } from "@/lib/api/types";
-import { importNotificationText } from "@/features/import/import-lib";
+import type { Notification, NotificationEvent, NotificationType, StatusGlyph } from "@/api/types";
+import { importNotificationText } from "@/modules/tracking/import/import-lib";
 import { ago, addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 
 /*
@@ -70,12 +70,12 @@ export const EVENTS: Record<NotificationType, EventMeta> = {
 
 /** Preferences matrix rows, in design order, mapped to the inbox type that carries the icon. */
 export const PREF_ROWS: { event: NotificationEvent; type: NotificationType }[] = [
-  { event: "assigned", type: "assigned" },
-  { event: "mentioned", type: "mention" },
-  { event: "status_change", type: "status" },
-  { event: "comment", type: "comment" },
-  { event: "due_soon", type: "due" },
-  { event: "sprint_started", type: "sprint" },
+  { event: "tracking.task.assigned", type: "assigned" },
+  { event: "tracking.comment.mentioned", type: "mention" },
+  { event: "tracking.task.status_changed", type: "status" },
+  { event: "tracking.comment.created", type: "comment" },
+  { event: "tracking.task.due_soon", type: "due" },
+  { event: "tracking.sprint.started", type: "sprint" },
 ];
 
 /** Is this a system notification (no actor, rendered with a rounded-square tile)? */

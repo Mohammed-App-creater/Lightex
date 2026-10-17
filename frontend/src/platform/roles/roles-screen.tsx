@@ -4,24 +4,24 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Copy, Lock, Plus, Trash2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AvatarStack } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/choice";
-import { Skeleton } from "@/components/ui/feedback";
-import { Modal } from "@/components/ui/modal";
-import { Select } from "@/components/ui/select";
-import { Segmented } from "@/components/ui/choice";
-import { toast } from "@/components/ui/toast";
-import { SaveBar } from "@/features/settings/save-bar";
-import { SettingsPage } from "@/features/settings/settings-shell";
-import { useLeaveGuard } from "@/features/settings/use-leave-guard";
-import { useRoles, useWsMembers } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Permission, PermissionInfo, Role, RoleScope } from "@/lib/api/types";
+import { AvatarStack } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Switch } from "@/ui/choice";
+import { Skeleton } from "@/ui/feedback";
+import { Modal } from "@/ui/modal";
+import { Select } from "@/ui/select";
+import { Segmented } from "@/ui/choice";
+import { toast } from "@/ui/toast";
+import { SaveBar } from "@/platform/settings/save-bar";
+import { SettingsPage } from "@/platform/settings/settings-shell";
+import { useLeaveGuard } from "@/platform/settings/use-leave-guard";
+import { useRoles, useWsMembers } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Permission, PermissionInfo, Role, RoleScope } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -36,8 +36,8 @@ import {
   togglePermission,
   uniqueName,
   type RoleDraft,
-} from "./lib";
-import { StateBox, Tag } from "./parts";
+} from "@/platform/members/lib";
+import { StateBox, Tag } from "@/platform/members/parts";
 
 const toDraft = (r: Role): RoleDraft => ({ name: r.name, description: r.description, permissions: [...r.permissions] });
 
@@ -45,7 +45,7 @@ const toDraft = (r: Role): RoleDraft => ({ name: r.name, description: r.descript
 export function RolesScreen() {
   const ws = useCurrentWorkspace()!;
   const qc = useQueryClient();
-  const canManage = useCan("workspace.manage_roles");
+  const canManage = useCan("core.roles.manage");
   const mobile = useIsMobile();
   const roles = useRoles(ws.slug);
   const members = useWsMembers(ws.slug);
@@ -77,7 +77,7 @@ export function RolesScreen() {
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
   // People whose role grants role management (from the role's permissions, never its name).
   const roleAdmins = (members.data ?? []).filter(
-    (m) => m.status === "active" && roles.data?.find((r) => r.id === m.roleId)?.permissions.includes("workspace.manage_roles"),
+    (m) => m.status === "active" && roles.data?.find((r) => r.id === m.roleId)?.permissions.includes("core.roles.manage"),
   );
   const refresh = () => qc.invalidateQueries({ queryKey: qk.roles(ws.slug) });
 

@@ -2,14 +2,14 @@
 
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
-import { CopyGlyph, DEV_ICON, DevGlyph } from "@/features/integrations/icons";
-import { BRANCH_MAX, validateBranch } from "@/features/integrations/lib/branch-name";
-import { useCopy } from "@/features/integrations/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import type { DevBranch, DevRepositoryOption } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Kbd } from "@/ui/kbd";
+import { CopyGlyph, DEV_ICON, DevGlyph } from "@/modules/tracking/integrations/icons";
+import { BRANCH_MAX, validateBranch } from "@/modules/tracking/integrations/lib/branch-name";
+import { useCopy } from "@/modules/tracking/integrations/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import type { DevBranch, DevRepositoryOption } from "@/api/types";
 
 /**
  * The design's "Create branch" popover (§9.5): name prefilled with the suggestion and validated with

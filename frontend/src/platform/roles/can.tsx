@@ -9,18 +9,18 @@ import type {
   Task,
   Workspace,
   WorkspacePermission,
-} from "@/lib/api/types";
-import { PROJECT_PERMISSIONS } from "@/lib/api/types";
+} from "@/api/types";
+import { PROJECT_PERMISSIONS } from "@/api/types";
 
 /*
  * Permission layer. Driven ONLY by `my_permissions` from the workspace / project payloads,
  * never by role names. Workspace and project scopes are separate: a workspace Owner with no
  * project membership has no project permissions.
  *
- *   useCan("task.create")                    → current project scope (from <ProjectScope>)
- *   useCan("project.create")                 → current workspace scope
- *   useCan("task.delete", { project })       → an explicit project
- *   <Can permission="task.delete">…</Can>    → hidden means not rendered
+ *   useCan("tracking.task.create")                    → current project scope (from <ProjectScope>)
+ *   useCan("tracking.project.create")                 → current workspace scope
+ *   useCan("tracking.task.delete", { project })       → an explicit project
+ *   <Can permission="tracking.task.delete">…</Can>    → hidden means not rendered
  */
 
 const WorkspaceCtx = createContext<Workspace | null>(null);
@@ -82,8 +82,8 @@ export function canEditTask(
   perms: readonly string[] | undefined,
   userId: string | undefined,
 ) {
-  if (can("task.edit_any", perms)) return true;
-  return can("task.edit_own", perms) && !!userId && (task.assigneeId === userId || task.reporterId === userId);
+  if (can("tracking.task.edit_any", perms)) return true;
+  return can("tracking.task.edit_own", perms) && !!userId && (task.assigneeId === userId || task.reporterId === userId);
 }
 
 /*
@@ -92,14 +92,14 @@ export function canEditTask(
  */
 type DashboardRef = Pick<Dashboard, "ownerId" | "visibility">;
 
-/** Owner with dashboard.create, or a shared dashboard with dashboard.manage. */
+/** Owner with tracking.dashboard.create, or a shared dashboard with tracking.dashboard.manage. */
 export function canEditDashboard(d: DashboardRef, perms: readonly string[] | undefined, meId: string | undefined) {
-  return (!!meId && d.ownerId === meId && can("dashboard.create", perms)) || (d.visibility === "shared" && can("dashboard.manage", perms));
+  return (!!meId && d.ownerId === meId && can("tracking.dashboard.create", perms)) || (d.visibility === "shared" && can("tracking.dashboard.manage", perms));
 }
 
-/** Only the owner (holding dashboard.create) can switch shared ↔ personal. */
+/** Only the owner (holding tracking.dashboard.create) can switch shared ↔ personal. */
 export function canChangeVisibility(d: DashboardRef, perms: readonly string[] | undefined, meId: string | undefined) {
-  return !!meId && d.ownerId === meId && can("dashboard.create", perms);
+  return !!meId && d.ownerId === meId && can("tracking.dashboard.create", perms);
 }
 
 export function Can({

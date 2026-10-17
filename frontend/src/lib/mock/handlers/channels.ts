@@ -1,8 +1,8 @@
-import { withDefaults } from "@/features/notifications/channels/model";
-import { SMS_COUNTRY_RULES, countryRule, validateNational } from "@/features/notifications/channels/phone";
-import { getPushPlatform, urlB64ToUint8Array } from "@/features/notifications/channels/push";
-import { isKnownTimeZone } from "@/features/notifications/channels/quiet";
-import { endpointHash } from "@/features/notifications/channels/sha256";
+import { withDefaults } from "@/platform/notifications/channels/model";
+import { SMS_COUNTRY_RULES, countryRule, validateNational } from "@/platform/notifications/channels/phone";
+import { getPushPlatform, urlB64ToUint8Array } from "@/platform/notifications/channels/push";
+import { isKnownTimeZone } from "@/platform/notifications/channels/quiet";
+import { endpointHash } from "@/platform/notifications/channels/sha256";
 import type {
   ChannelTestResult,
   NotificationChannels,
@@ -12,7 +12,7 @@ import type {
   TelegramConnection,
   TelegramLink,
   TestableChannel,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { mockControls } from "../controls";
 import { getDB, nowISO, persist, uid } from "../db";
 import type { ChannelConnectionRec, MockDB, PushDeviceRec, SmsVerificationRec, TelegramLinkRec } from "../db-types";
@@ -121,10 +121,10 @@ function toLink(db: MockDB, l: TelegramLinkRec): TelegramLink {
   };
 }
 
-/** `channels.changed` to the owner, in every workspace they belong to (user-targeted, durable). */
+/** `core.channels.changed` to the owner, in every workspace they belong to (user-targeted, durable). */
 export function publishChannels(db: MockDB, userId: string, channel: "telegram" | "sms" | "push", op: "linked" | "disconnected" | "status") {
   for (const m of db.wsMembers.filter((x) => x.userId === userId)) {
-    mockBus.publish("channels.changed", { workspaceId: m.workspaceId, userId, actorId: null, data: { channel, op } });
+    mockBus.publish("core.channels.changed", { workspaceId: m.workspaceId, userId, actorId: null, data: { channel, op } });
   }
 }
 

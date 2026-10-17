@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Status } from "@/lib/api/types";
+import type { Status } from "@/api/types";
 import { daysLabel, expectedPercent, isAtRisk, progressOf } from "./progress";
 
 const statuses: Status[] = [

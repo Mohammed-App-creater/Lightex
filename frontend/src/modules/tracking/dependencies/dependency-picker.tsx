@@ -4,11 +4,11 @@ import * as Popover from "@radix-ui/react-popover";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
 import { useEffect, useId, useState, type KeyboardEvent } from "react";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { useStatuses } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { Task } from "@/lib/api/types";
+import { StatusGlyph } from "@/ui/glyphs";
+import { useStatuses } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 const SHOWN = 6;

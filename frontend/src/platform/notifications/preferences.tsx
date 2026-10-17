@@ -2,17 +2,17 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Segmented } from "@/components/ui/choice";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { useWorkspace } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences, PushDevice, QuietHours, TestableChannel, Workspace } from "@/lib/api/types";
+import { Segmented } from "@/ui/choice";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { useWorkspace } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { NotificationChannel, NotificationEvent, NotificationPreferences, PushDevice, QuietHours, TestableChannel, Workspace } from "@/api/types";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
-import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { ChannelsSection } from "./channels/channels-section";
 import { CheckIcon } from "./icons";
 import { CHANNEL_NAME, columnStates, previewFor, testErrorCopy, toggleCell, withDefaults, type PreviewChannel } from "./channels/model";
@@ -41,7 +41,7 @@ export function NotificationPreferencesPage() {
   // The workspace query (not only the scope's snapshot), so the optimistic SMS policy shows at once.
   const wsQ = useWorkspace(scope?.slug ?? "");
   const ws = wsQ.data ?? scope;
-  const canPolicy = useCan("workspace.update", "workspace");
+  const canPolicy = useCan("core.workspace.update", "workspace");
   const qc = useQueryClient();
   const prefsQ = usePrefs();
   const channelsQ = useChannels();

@@ -1,7 +1,7 @@
 import { QueryClient, type QueryKey } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it } from "vitest";
-import { qk } from "@/lib/api/query-keys";
-import type { Task } from "@/lib/api/types";
+import { qk } from "@/api/query-keys";
+import type { Task } from "@/api/types";
 import { createEventApplier, fieldLabel } from "./apply-event";
 import type { RealtimeEnvelope } from "./events";
 import { remoteMarks } from "./remote";
@@ -57,10 +57,10 @@ beforeEach(() => {
 describe("applyEvent", () => {
   it("task.changed: invalidates the task's views, batched until the frame flush", () => {
     const a = applier();
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 4, fields: ["dueDate"] }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 4, fields: ["dueDate"] }));
     expect(invalid(qk.board(P, "active"))).toBe(false);
     expect(flushes).toHaveLength(1);
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 5, fields: [] }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 5, fields: [] }));
     expect(flushes).toHaveLength(1); // one batch per frame
     flush();
     for (const key of [qk.board(P, "active"), qk.task(SLUG, "PRJ-1"), qk.taskList(P), qk.myProjectTasks(P), qk.reports(P, "burndown"), qk.activity(P), qk.views(SLUG)]) {
@@ -71,14 +71,14 @@ describe("applyEvent", () => {
 
   it("task.changed: skips its own echo / an already fresh version", () => {
     const a = applier();
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 3, fields: [] }, { actorId: "u_me" }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 3, fields: [] }, { actorId: "u_me" }));
     flush();
     expect(invalid(qk.board(P, "active"))).toBe(false);
   });
 
   it("task.changed by someone else on the open task leaves a mark for the toast (PRJ-1 · Due)", () => {
     const a = applier();
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 9, fields: ["dueDate"] }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: 9, fields: ["dueDate"] }));
     expect(remoteMarks.get("t:t1")).toMatchObject({ actorId: "u_riley", fields: ["dueDate"] });
     expect(remoteMarks.get(`p:${P}`)).not.toBeNull();
     expect(fieldLabel("dueDate")).toBe("Due");
@@ -86,13 +86,13 @@ describe("applyEvent", () => {
 
   it("task.changed deleted: removes the card at once", () => {
     const a = applier();
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "deleted", version: null, fields: [] }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "deleted", version: null, fields: [] }));
     expect((qc.getQueryData(qk.board(P, "active")) as { tasks: Task[] }).tasks).toHaveLength(0);
   });
 
   it("tasks.bulk_changed: invalidates the project scope and views", () => {
     const a = applier();
-    a.apply(ev("tasks.bulk_changed", { taskIds: null, op: "created" }));
+    a.apply(ev("tracking.tasks.bulk_changed", { taskIds: null, op: "created" }));
     flush();
     expect(invalid(qk.statuses(P))).toBe(true);
     expect(invalid(qk.views(SLUG))).toBe(true);
@@ -100,8 +100,8 @@ describe("applyEvent", () => {
 
   it("comment.changed and attachment.changed: their lists and the task", () => {
     const a = applier();
-    a.apply(ev("comment.changed", { taskId: "t1", key: "PRJ-1", commentId: "c1", op: "created" }));
-    a.apply(ev("attachment.changed", { taskId: "t1", key: "PRJ-1", op: "deleted" }));
+    a.apply(ev("tracking.comment.changed", { taskId: "t1", key: "PRJ-1", commentId: "c1", op: "created" }));
+    a.apply(ev("tracking.attachment.changed", { taskId: "t1", key: "PRJ-1", op: "deleted" }));
     flush();
     expect(invalid(qk.comments("t1"))).toBe(true);
     expect(invalid(qk.attachments("t1"))).toBe(true);
@@ -111,7 +111,7 @@ describe("applyEvent", () => {
 
   it("project.changed: per area", () => {
     const a = applier();
-    a.apply(ev("project.changed", { areas: ["labels", "custom_fields"] }));
+    a.apply(ev("tracking.project.changed", { areas: ["labels", "custom_fields"] }));
     flush();
     expect(invalid(qk.labels(P))).toBe(true);
     expect(invalid(qk.customFields(P))).toBe(true);
@@ -120,22 +120,22 @@ describe("applyEvent", () => {
 
   it("dashboard.changed: version skip, invalidate otherwise, remove + leave when deleted while open", () => {
     const a = applier();
-    a.apply(ev("dashboard.changed", { dashboardId: "d1", op: "layout", version: 4 }));
+    a.apply(ev("tracking.dashboard.changed", { dashboardId: "d1", op: "layout", version: 4 }));
     flush();
     expect(invalid(qk.dashboard("d1"))).toBe(false);
     expect(invalid(qk.dashboards(P))).toBe(true);
-    a.apply(ev("dashboard.changed", { dashboardId: "d1", op: "layout", version: 5 }));
+    a.apply(ev("tracking.dashboard.changed", { dashboardId: "d1", op: "layout", version: 5 }));
     flush();
     expect(invalid(qk.dashboard("d1"))).toBe(true);
     opened = "d1";
-    a.apply(ev("dashboard.changed", { dashboardId: "d1", op: "deleted", version: null }));
+    a.apply(ev("tracking.dashboard.changed", { dashboardId: "d1", op: "deleted", version: null }));
     expect(qc.getQueryData(qk.dashboard("d1"))).toBeUndefined();
     expect(deleted).toEqual(["d1"]);
   });
 
   it("inbox.changed: writes the unread count and refreshes the inbox", () => {
     const a = applier();
-    a.apply(ev("inbox.changed", { unread: 7 }, { projectId: null }));
+    a.apply(ev("core.inbox.changed", { unread: 7 }, { projectId: null }));
     expect(qc.getQueryData(qk.unread("w1"))).toEqual({ count: 7 });
     expect(qc.getQueryData(qk.unread())).toEqual({ count: 7 });
   });
@@ -144,7 +144,7 @@ describe("applyEvent", () => {
     set(qk.workspace(SLUG), {});
     set(qk.me(), {});
     const a = applier();
-    a.apply(ev("access.changed", { projectId: P }));
+    a.apply(ev("core.access.changed", { projectId: P }));
     flush();
     expect(invalid(qk.workspace(SLUG))).toBe(true);
     expect(invalid(qk.me())).toBe(true);
@@ -153,8 +153,8 @@ describe("applyEvent", () => {
   it("presence.updated: replaces one location and ignores an older snapshot", () => {
     const a = applier();
     const person = (id: string) => ({ user: { id, name: id, hue: 1, avatarUrl: null }, state: "viewing" as const, field: null, typing: false, since: "2026-10-09T09:00:00Z" });
-    a.apply(ev("presence.updated", { location: { kind: "board", id: P }, people: [person("u_jordan")], at: "2026-10-09T09:00:10Z" }));
-    a.apply(ev("presence.updated", { location: { kind: "board", id: P }, people: [], at: "2026-10-09T09:00:05Z" }));
+    a.apply(ev("core.presence.updated", { location: { kind: "board", id: P }, people: [person("u_jordan")], at: "2026-10-09T09:00:10Z" }));
+    a.apply(ev("core.presence.updated", { location: { kind: "board", id: P }, people: [], at: "2026-10-09T09:00:05Z" }));
     const r = qc.getQueryData<CachedRoster>(qk.presence(SLUG, P))!;
     expect(r.locations).toHaveLength(1);
     expect(r.locations[0]!.people.map((p) => p.user.id)).toEqual(["u_jordan"]);
@@ -163,7 +163,7 @@ describe("applyEvent", () => {
   it("pause queues a project's events until resume (board drag)", () => {
     const a = applier();
     a.pause(P);
-    a.apply(ev("project.changed", { areas: ["labels"] }));
+    a.apply(ev("tracking.project.changed", { areas: ["labels"] }));
     flush();
     expect(invalid(qk.labels(P))).toBe(false);
     a.resume(P);
@@ -188,7 +188,7 @@ describe("board 37 events (§8.4)", () => {
     set(qk.development("t1"), { pullRequests: [] });
     set(qk.development("t2"), { pullRequests: [] });
     const a = applier();
-    a.apply(ev("task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: null, fields: ["development"] }));
+    a.apply(ev("tracking.task.changed", { taskId: "t1", key: "PRJ-1", op: "updated", version: null, fields: ["development"] }));
     flush();
     expect(invalid(qk.development("t1"))).toBe(true);
     expect(invalid(qk.development("t2"))).toBe(false);
@@ -200,7 +200,7 @@ describe("board 37 events (§8.4)", () => {
     set(qk.projects(SLUG), []);
     set(qk.development("t1"), { pullRequests: [] });
     const a = applier();
-    a.apply(ev("integration.changed", { integrationId: "int_1", op: "disconnected" }, { projectId: null }));
+    a.apply(ev("tracking.integration.changed", { integrationId: "int_1", op: "disconnected" }, { projectId: null }));
     flush();
     expect(invalid(qk.integrations(SLUG))).toBe(true);
     expect(invalid(qk.projects(SLUG))).toBe(true);
@@ -212,7 +212,7 @@ describe("board 37 events (§8.4)", () => {
     set(qk.telegramLink("tgl_1"), { id: "tgl_1", status: "pending" });
     set(qk.prefs(), { events: {} });
     const a = applier();
-    a.apply(ev("channels.changed", { channel: "telegram", op: "linked" }, { projectId: null }));
+    a.apply(ev("core.channels.changed", { channel: "telegram", op: "linked" }, { projectId: null }));
     flush();
     expect(invalid(qk.channels())).toBe(true);
     expect(invalid(qk.telegramLink("tgl_1"))).toBe(true);
@@ -223,7 +223,7 @@ describe("board 37 events (§8.4)", () => {
     set(qk.devRules(P), []);
     set(qk.projects(SLUG), []);
     const a = applier();
-    a.apply(ev("project.changed", { areas: ["development"] }));
+    a.apply(ev("tracking.project.changed", { areas: ["development"] }));
     flush();
     expect(invalid(qk.devRules(P))).toBe(true);
     expect(invalid(qk.projects(SLUG))).toBe(true);

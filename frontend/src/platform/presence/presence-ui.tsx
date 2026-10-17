@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import type { PresencePerson } from "@/lib/api/types";
-import { initialsOf } from "@/components/ui/avatar";
+import type { PresencePerson } from "@/api/types";
+import { initialsOf } from "@/ui/avatar";
 import { cn } from "@/lib/utils/cn";
 import { canonicalField, firstName } from "./presence-lib";
 

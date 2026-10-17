@@ -3,11 +3,11 @@
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/ui/feedback";
-import { isApiError } from "@/lib/api/errors";
-import type { DashboardSummary } from "@/lib/api/types";
-import { can, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Button } from "@/ui/button";
+import { ErrorState } from "@/ui/feedback";
+import { isApiError } from "@/api/errors";
+import type { DashboardSummary } from "@/api/types";
+import { can, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { NewDashboardDialog } from "./dashboard-dialogs";
 import { DashboardSkeleton, DashboardState, MonoNote } from "./dashboard-states";
@@ -46,7 +46,7 @@ export function DashboardsIndex() {
       </div>
     );
   }
-  const canCreate = project.status !== "archived" && can("dashboard.create", project.my_permissions);
+  const canCreate = project.status !== "archived" && can("tracking.dashboard.create", project.my_permissions);
   return (
     <DashboardState title="No dashboards yet">
       {canCreate ? (

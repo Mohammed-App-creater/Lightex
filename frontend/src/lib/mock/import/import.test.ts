@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { ImportTimeUnit, StatusGlyph } from "@/lib/api/types";
+import type { ImportTimeUnit, StatusGlyph } from "@/api/types";
 import { dateOrderOf, parseDate, parseDurationCell, parseNumber } from "./convert";
 import { parseCsv, sniffDelimiter, type Delimiter } from "./csv";
 import { decodeBytes } from "./decode";
@@ -173,7 +173,7 @@ function project(over: Partial<PlanProject> = {}): PlanProject {
       { id: "u_riley", name: "Riley Chen", email: "riley@team.dev" },
     ],
     importerId: "u_alex",
-    perms: ["project.view", "task.create", "task.assign", "epic.manage", "field.manage", "project.import"],
+    perms: ["tracking.project.view", "tracking.task.create", "tracking.task.assign", "tracking.epic.manage", "tracking.field.manage", "tracking.project.import"],
     labels: ["frontend", "backend", "bug", "perf", "infra", "design"].map((n) => ({ id: `lb_${n}`, name: n })),
     epics: [],
     sprints: [{ id: "sp_14", name: "Sprint 14" }],
@@ -232,8 +232,8 @@ describe("planning the design's 48-row sample", () => {
     expect(rows[2]!.values.labels).toEqual(["frontend", "perf"]);
   });
 
-  it("gates people on task.assign: only the importer stays suggested", () => {
-    const { validation } = planImport(file, columns, noUser, project({ perms: ["task.create", "project.import"], importerId: "u_sam" }));
+  it("gates people on tracking.task.assign: only the importer stays suggested", () => {
+    const { validation } = planImport(file, columns, noUser, project({ perms: ["tracking.task.create", "tracking.project.import"], importerId: "u_sam" }));
     expect(validation.values.people.map((v) => v.target)).toEqual([null, null, "u_sam", null]);
   });
 
@@ -275,8 +275,8 @@ describe("planning the 6-row Jira export", () => {
     expect(plan.validation.keyRange).toEqual({ first: "PRJ-61", last: "PRJ-64" });
   });
 
-  it("without epic.manage the Epic type is unmapped (a blocker)", () => {
-    const p = planImport(file, columns, noUser, project({ perms: ["task.create", "task.assign", "project.import"] }));
+  it("without tracking.epic.manage the Epic type is unmapped (a blocker)", () => {
+    const p = planImport(file, columns, noUser, project({ perms: ["tracking.task.create", "tracking.task.assign", "tracking.project.import"] }));
     expect(p.validation.blockers[0]).toEqual({ code: "type_unmapped", message: "Map 1 more type", field: "type" });
   });
 });

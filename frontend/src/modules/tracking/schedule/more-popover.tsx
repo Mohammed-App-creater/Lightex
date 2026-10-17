@@ -3,7 +3,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { ISODate, Task } from "@/lib/api/types";
+import type { ISODate, Task } from "@/api/types";
 import { CalendarChip } from "./calendar-chip";
 import type { CalCtx } from "./calendar-month";
 import { fmtDow } from "./schedule-lib";

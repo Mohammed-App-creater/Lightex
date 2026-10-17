@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { ProgressRow } from "@/lib/api/types";
+import type { ProgressRow } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ChartCard, ChartEmpty, ChartError, ChartSkeleton, Legend, TargetIcon, TipCard } from "./chart-kit";
 import { shortDate } from "./lib";

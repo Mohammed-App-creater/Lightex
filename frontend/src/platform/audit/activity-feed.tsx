@@ -2,17 +2,17 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useState, type ReactNode } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph, glyphLabel, type GlyphKind } from "@/components/ui/glyphs";
-import { useProjectMembers } from "@/features/projects/queries";
-import { activityActorName, activityText } from "@/features/tasks/activity-text";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { StatusGlyph, glyphLabel, type GlyphKind } from "@/ui/glyphs";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { activityActorName, activityText } from "@/modules/tracking/tasks/activity-text";
 import { ActorAvatar } from "./audit-parts";
-import { useWsMembers } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { ActivityEntry, User } from "@/lib/api/types";
+import { useWsMembers } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { ActivityEntry, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /*

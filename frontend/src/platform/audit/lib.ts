@@ -1,4 +1,4 @@
-import type { AuditChange, AuditEntry } from "@/lib/api/types";
+import type { AuditChange, AuditEntry } from "@/api/types";
 import { auditActionKind, auditEntity, type AuditActionKind, type AuditEntityType } from "@/lib/audit";
 
 /* Pure helpers for the audit log (board 31): labels, icons, time formatting, word diff, export. */

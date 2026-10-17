@@ -3,12 +3,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import { qk } from "@/lib/api/query-keys";
-import type { Project } from "@/lib/api/types";
+import { Button, type ButtonProps } from "@/ui/button";
+import { toast } from "@/ui/toast";
+import { qk } from "@/api/query-keys";
+import type { Project } from "@/api/types";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
-import { useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl } from "@/lib/routes";
 import { canImportInto, importNotificationText, isTerminalStatus } from "./import-lib";
 import { invalidateAfterImport, unwatchImport, useImportJob, watchedImports } from "./queries";
@@ -35,7 +35,7 @@ export function openImportWizard() {
 
 /**
  * "Import CSV" entry point (board 06 empty state, board 12 checklist). Not rendered unless the
- * viewer holds project.import and task.create on an active project.
+ * viewer holds tracking.project.import and tracking.task.create on an active project.
  */
 export function ImportCsvButton({ project, variant = "ghost", size, className }: { project: Pick<Project, "my_permissions" | "status">; variant?: ButtonProps["variant"]; size?: ButtonProps["size"]; className?: string }) {
   const allowed = canImportInto(project);

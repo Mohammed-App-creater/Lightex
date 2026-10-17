@@ -1,6 +1,6 @@
 "use client";
 
-import type { ISODate } from "@/lib/api/types";
+import type { ISODate } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { CalendarChip } from "./calendar-chip";
 import { DOWS, type CalCtx } from "./calendar-month";

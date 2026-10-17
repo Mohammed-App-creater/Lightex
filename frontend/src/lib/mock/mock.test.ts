@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ApiError } from "@/lib/api/errors";
-import type { Project, Task, TaskDetail } from "@/lib/api/types";
-import { buildQueryString, parseQueryString } from "@/lib/api/transport";
+import { ApiError } from "@/api/errors";
+import type { Project, Task, TaskDetail } from "@/api/types";
+import { buildQueryString, parseQueryString } from "@/api/transport";
 import { mockControls } from "./controls";
 import { mockSession, resetDB, getDB } from "./db";
 import { MockTransport } from "./transport";
@@ -49,38 +49,38 @@ describe("permissions are scoped (no workspace → project override)", () => {
   it("gives a workspace admin with no project membership a 403 with request-access info", async () => {
     as("u_casey");
     const ws = await req<{ my_permissions: string[] }>("GET", "/workspaces/platform");
-    expect(ws.my_permissions).toContain("workspace.manage_members");
-    const e = await rejects(req("GET", "/workspaces/platform/projects/PRJ"));
+    expect(ws.my_permissions).toContain("core.workspace.manage_members");
+    const e = await rejects(req("GET", "/tracking/workspaces/platform/projects/PRJ"));
     expect(e.status).toBe(403);
     expect(e.details?.canRequestAccess).toBe(true);
     // and the project list hides it entirely
-    const list = await req<Project[]>("GET", "/workspaces/platform/projects");
+    const list = await req<Project[]>("GET", "/tracking/workspaces/platform/projects");
     expect(list).toHaveLength(0);
   });
 
   it("returns my_permissions per scope", async () => {
     as("u_taylor");
-    const p = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    expect(p.my_permissions).toEqual(["project.view"]);
+    const p = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    expect(p.my_permissions).toEqual(["tracking.project.view"]);
     as("u_alex");
-    const p2 = await req<Project>("GET", "/workspaces/platform/projects/PRJ");
-    expect(p2.my_permissions).toContain("task.delete");
+    const p2 = await req<Project>("GET", "/tracking/workspaces/platform/projects/PRJ");
+    expect(p2.my_permissions).toContain("tracking.task.delete");
   });
 
-  it("enforces task.delete on the server even if the UI were to show it", async () => {
-    as("u_sam"); // project Member: no task.delete
-    const e = await rejects(req("DELETE", "/tasks/p_prj-t42"));
+  it("enforces tracking.task.delete on the server even if the UI were to show it", async () => {
+    as("u_sam"); // project Member: no tracking.task.delete
+    const e = await rejects(req("DELETE", "/tracking/tasks/p_prj-t42"));
     expect(e.status).toBe(403);
-    expect(e.details?.permission).toBe("task.delete");
+    expect(e.details?.permission).toBe("tracking.task.delete");
   });
 
   it("lets edit_own edit only tasks the user reported or is assigned", async () => {
     as("u_sam");
     const mine = getDB().tasks.find((x) => x.key === "PRJ-34")!; // assigned to Sam
-    const updated = await req<Task>("PATCH", `/tasks/${mine.id}`, { title: "Session timeout modal v2", version: mine.version });
+    const updated = await req<Task>("PATCH", `/tracking/tasks/${mine.id}`, { title: "Session timeout modal v2", version: mine.version });
     expect(updated.title).toBe("Session timeout modal v2");
     const notMine = getDB().tasks.find((x) => x.key === "PRJ-33")!;
-    const e = await rejects(req("PATCH", `/tasks/${notMine.id}`, { title: "x", version: notMine.version }));
+    const e = await rejects(req("PATCH", `/tracking/tasks/${notMine.id}`, { title: "x", version: notMine.version }));
     expect(e.status).toBe(403);
   });
 });
@@ -90,8 +90,8 @@ describe("tasks", () => {
 
   it("rejects stale versions with version_conflict", async () => {
     const task = getDB().tasks.find((x) => x.key === "PRJ-42")!;
-    await req("PATCH", `/tasks/${task.id}`, { priority: 4, version: task.version });
-    const e = await rejects(req("POST", `/tasks/${task.id}/move`, { position: "a0", version: 1 }));
+    await req("PATCH", `/tracking/tasks/${task.id}`, { priority: 4, version: task.version });
+    const e = await rejects(req("POST", `/tracking/tasks/${task.id}/move`, { position: "a0", version: 1 }));
     expect(e.status).toBe(409);
     expect(e.code).toBe("version_conflict");
   });
@@ -100,22 +100,22 @@ describe("tasks", () => {
     const task = getDB().tasks.find((x) => x.key === "PRJ-34")!;
     const done = getDB().statuses.find((s) => s.projectId === "p_prj" && s.glyph === "done")!;
     const before = task.version;
-    const moved = await req<Task>("POST", `/tasks/${task.id}/move`, { statusId: done.id, position: "V", version: before });
+    const moved = await req<Task>("POST", `/tracking/tasks/${task.id}/move`, { statusId: done.id, position: "V", version: before });
     expect(moved.statusId).toBe(done.id);
     expect(moved.version).toBe(before + 1);
     expect(moved.completedAt).not.toBeNull();
   });
 
   it("creates tasks with the next key and returns full detail by key", async () => {
-    const created = await req<Task>("POST", "/projects/p_prj/tasks", { title: "Brand new" });
+    const created = await req<Task>("POST", "/tracking/projects/p_prj/tasks", { title: "Brand new" });
     expect(created.key).toBe("PRJ-72");
-    const detail = await req<TaskDetail>("GET", "/workspaces/platform/tasks/prj-42");
+    const detail = await req<TaskDetail>("GET", "/tracking/workspaces/platform/tasks/prj-42");
     expect(detail.subtasks.map((s) => s.key)).toEqual(["PRJ-43", "PRJ-44", "PRJ-45"]);
-    expect(detail.project.my_permissions).toContain("task.edit_any");
+    expect(detail.project.my_permissions).toContain("tracking.task.edit_any");
   });
 
   it("filters with filter[...] params", async () => {
-    const res = await req<{ data: Task[] }>("GET", "/projects/p_prj/tasks", undefined, {
+    const res = await req<{ data: Task[] }>("GET", "/tracking/projects/p_prj/tasks", undefined, {
       filter: { assignee: "me", priority: [3, 4] },
     });
     expect(res.data.length).toBeGreaterThan(0);
@@ -123,9 +123,9 @@ describe("tasks", () => {
   });
 
   it("validates uploads server-side (10 MB, types)", async () => {
-    const big = await rejects(req("POST", "/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.png", size: 11 * 1024 * 1024, mimeType: "image/png" }));
+    const big = await rejects(req("POST", "/tracking/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.png", size: 11 * 1024 * 1024, mimeType: "image/png" }));
     expect(big.code).toBe("validation_failed");
-    const exe = await rejects(req("POST", "/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.exe", size: 10, mimeType: "application/x-msdownload" }));
+    const exe = await rejects(req("POST", "/tracking/tasks/p_prj-t42/attachments/upload-url", { fileName: "a.exe", size: 10, mimeType: "application/x-msdownload" }));
     expect(exe.fieldErrors.file).toBe("Images or code files only");
   });
 });
@@ -133,7 +133,7 @@ describe("tasks", () => {
 describe("progress is computed from tasks", () => {
   it("marks Beta launch at risk when behind the time-elapsed share", async () => {
     as("u_alex");
-    const ms = await req<{ id: string; progress: { percent: number; expected: number; atRisk: boolean } }[]>("GET", "/projects/p_prj/milestones");
+    const ms = await req<{ id: string; progress: { percent: number; expected: number; atRisk: boolean } }[]>("GET", "/tracking/projects/p_prj/milestones");
     const beta = ms.find((m) => m.id === "ms_beta")!;
     expect(beta.progress.percent).toBeLessThan(beta.progress.expected);
     expect(beta.progress.atRisk).toBe(true);

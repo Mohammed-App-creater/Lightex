@@ -3,15 +3,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { toast } from "@/components/ui/toast";
-import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
-import { PanelHeader } from "@/features/settings/project-parts";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { CustomField, CustomFieldInput, Project } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { toast } from "@/ui/toast";
+import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
+import { PanelHeader } from "@/modules/tracking/project-settings/project-parts";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { CustomField, CustomFieldInput, Project } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { CustomFieldDialog } from "./custom-field-dialog";
 import { DeleteFieldDialog, pendingFieldIds, usePendingFieldDelete } from "./delete-field-dialog";
@@ -23,7 +23,7 @@ const GRID_RO = "grid grid-cols-[minmax(0,1fr)_110px_120px] items-center gap-2.5
 
 /**
  * Project settings → Custom fields (board 39 .cf-list): list with drag / Alt+↑↓ reorder, create
- * and edit dialog, delete confirm with a 5 s Undo. Read-only without field.manage (the parent
+ * and edit dialog, delete confirm with a 5 s Undo. Read-only without tracking.field.manage (the parent
  * renders the ReadOnlyNote): no handle, no delete, no New field, rows not clickable.
  */
 export function CustomFieldsPanel({ project, canEdit }: { project: Project; canEdit: boolean }) {

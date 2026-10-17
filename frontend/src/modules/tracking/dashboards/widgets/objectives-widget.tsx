@@ -1,11 +1,11 @@
 "use client";
 
-import type { WidgetConfigMap } from "@/lib/api/types";
+import type { WidgetConfigMap } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { useProgressWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "../widget-frame";
-import { behind, objectiveRows } from "../widget-lib";
+import { useProgressWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
+import { behind, objectiveRows } from "@/modules/tracking/dashboards/widget-lib";
 import { BarRow, BarTrack, useWho, type WidgetProps } from "./common";
 
 /** Objective progress (§1.3): name, bar with the expected tick, `62%` (danger when > 10 behind). */

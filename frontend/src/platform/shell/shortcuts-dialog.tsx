@@ -3,8 +3,8 @@
 import * as D from "@radix-ui/react-dialog";
 import { ArrowRight, Search, X } from "lucide-react";
 import { Fragment, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
 import { useIsMac } from "@/lib/hooks/use-platform";
 import { shell, useShell } from "./shell-state";
 

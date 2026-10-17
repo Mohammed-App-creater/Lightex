@@ -6,18 +6,18 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
-import { useSprints } from "@/features/projects/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Sprint } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
+import { StatusGlyph } from "@/ui/glyphs";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/ui/menu";
+import { toast } from "@/ui/toast";
+import { useSprints } from "@/modules/tracking/projects/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Sprint } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { useCan, useCurrentProject, useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCan, useCurrentProject, useCurrentWorkspace } from "@/platform/roles/can";
 import { pushUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { dateRange } from "@/lib/utils/dates";
@@ -116,7 +116,7 @@ function SprintList({
   const project = useCurrentProject()!;
   const ws = useCurrentWorkspace()!;
   const qc = useQueryClient();
-  const canSprint = useCan("sprint.manage");
+  const canSprint = useCan("tracking.sprint.manage");
   const create = useMutation({
     mutationFn: () => api.planning.createSprint(project.id),
     onSuccess: (s) => {

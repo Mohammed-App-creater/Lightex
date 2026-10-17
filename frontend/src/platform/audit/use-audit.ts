@@ -2,9 +2,9 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { AuditEntry } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { AuditEntry } from "@/api/types";
 import { rangeSince, type AuditActionKind, type AuditEntityType, type AuditRange } from "@/lib/audit";
 
 export type AuditFilters = {

@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { CalendarDays, ChevronRight, Link2, Pencil } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
-import type { Objective, Status, Task } from "@/lib/api/types";
+import type { Objective, Status, Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { shortDate } from "./helpers";
 import { LinkPicker } from "./link-picker";

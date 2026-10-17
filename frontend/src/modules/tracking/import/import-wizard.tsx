@@ -4,23 +4,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Avatar, ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { DialogShell } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { useProjectMembers } from "@/features/projects/queries";
-import { isAdminRole } from "@/features/settings/project-lib";
-import { useProjects, useRoles } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { ImportJob, ImportSource, Project } from "@/lib/api/types";
-import { uploadImportFile } from "@/lib/api/uploads";
+import { Avatar, ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { DialogShell } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { useProjectMembers } from "@/modules/tracking/projects/queries";
+import { isAdminRole } from "@/modules/tracking/project-settings/project-lib";
+import { useProjects, useRoles } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { ImportJob, ImportSource, Project } from "@/api/types";
+import { uploadImportFile } from "@/api/uploads";
 import { apiMode } from "@/lib/env";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { replaceUrl, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { analysisErrorMeta, canImport, canImportInto, footerReason, isActiveStatus, isTerminalStatus, precheckImportFile, stepOf, type WizardStep } from "./import-lib";
@@ -233,7 +233,7 @@ export function ImportWizard({ param, project: current, onClose }: { param: stri
       </Body>
     );
   } else if (phase === "running" && job) {
-    content = <RunningPanel job={job} canStop={job.createdById === me.id || target.my_permissions.includes("project.update")} />;
+    content = <RunningPanel job={job} canStop={job.createdById === me.id || target.my_permissions.includes("tracking.project.update")} />;
   } else if (phase === "result" && job) {
     content = (
       <ResultPanel

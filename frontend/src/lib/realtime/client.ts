@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { authEvents } from "@/lib/api/session";
+import { authEvents } from "@/api/session";
 import { createEventApplier, type EventApplier, type Scheduler } from "./apply-event";
 import type { RealtimeEnvelope } from "./events";
 import { joinTabs, type TabMessage, type TabsEnv } from "./leader";

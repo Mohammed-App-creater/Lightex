@@ -1,9 +1,9 @@
-import type { ID, ISODateTime, PresenceLocation, PresencePerson, PresenceRoster } from "@/lib/api/types";
+import type { ID, ISODateTime, PresenceLocation, PresencePerson, PresenceRoster } from "@/api/types";
 
 /*
  * Presence roster cache maths (spec §5.3, §7.8). The cache holds one PresenceRoster per project
  * (qk.presence). Two writers feed it:
- * - `presence.updated` events: one location's full roster with its own `at` (replaceLocation);
+ * - `core.presence.updated` events: one location's full roster with its own `at` (replaceLocation);
  * - the heartbeat PUT / P3 GET: the whole project snapshot (mergeRoster).
  * Each location remembers the `at` it was last written with, so an older snapshot never
  * overwrites a newer one.
@@ -19,7 +19,7 @@ export type CachedRoster = Omit<PresenceRoster, "locations"> & {
 const sameLoc = (a: PresenceLocation, b: PresenceLocation) => a.kind === b.kind && a.id === b.id;
 const newer = (a: ISODateTime | undefined, b: ISODateTime | undefined) => (a ?? "") > (b ?? "");
 
-/** Applies one `presence.updated`. Ignores a snapshot older than the location's current one. */
+/** Applies one `core.presence.updated`. Ignores a snapshot older than the location's current one. */
 export function replaceLocation(
   r: CachedRoster | undefined,
   projectId: ID,

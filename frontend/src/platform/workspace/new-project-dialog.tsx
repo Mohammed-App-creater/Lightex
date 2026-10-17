@@ -3,18 +3,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type KeyboardEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { Field, Input, Textarea } from "@/components/ui/input";
-import { DialogClose, Modal, Sheet } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Project, ProjectTemplate, Status } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { StatusGlyph } from "@/ui/glyphs";
+import { Field, Input, Textarea } from "@/ui/input";
+import { DialogClose, Modal, Sheet } from "@/ui/modal";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Project, ProjectTemplate, Status } from "@/api/types";
 import { CATEGORY_LABEL, PROJECT_TEMPLATES, templateDef } from "@/lib/domain/project-templates";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { deriveKey, validateKey } from "./my-work";
@@ -23,7 +23,7 @@ import { useProjects } from "./queries";
 /**
  * New project (board 24 "Create project"): name → key (2–5 A–Z, derived until edited, taken keys
  * flagged live), optional description, one of 4 workflow templates with a live status preview.
- * Opened by ?new-project=1; the caller gates it on project.create (the server checks too).
+ * Opened by ?new-project=1; the caller gates it on tracking.project.create (the server checks too).
  */
 export function NewProjectDialog({
   open,

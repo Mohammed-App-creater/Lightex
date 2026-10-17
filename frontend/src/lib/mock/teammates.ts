@@ -51,7 +51,7 @@ export function simulateTeammateEdit(taskId?: string, opts: { projectId?: string
   if (!task) return null;
   // Board 33: only teammates who may move tasks make the change (a viewer never "moves" a card).
   const others = db.projectMembers
-    .filter((m) => m.projectId === task.projectId && m.userId !== me && projectPermissions(db, m.userId, task.projectId).includes("task.move"))
+    .filter((m) => m.projectId === task.projectId && m.userId !== me && projectPermissions(db, m.userId, task.projectId).includes("tracking.task.move"))
     .map((m) => m.userId);
   const actor = (opts.actorId && others.includes(opts.actorId) ? opts.actorId : others[Math.floor(Math.random() * others.length)]) ?? null;
   const current = db.statuses.find((s) => s.id === task.statusId)!;
@@ -201,14 +201,14 @@ export function presenceTick(now = Date.now(), opts: { visible?: boolean } = {})
     // Only people who could really do it: editors can edit this task, typists can comment.
     const task = db.tasks.find((x) => x.id === claim.location.id);
     const perms = (u: string) => projectPermissions(db, u, project.id);
-    const canEdit = (u: string) => perms(u).includes("task.edit_any") || (perms(u).includes("task.edit_own") && !!task && (task.assigneeId === u || task.reporterId === u));
+    const canEdit = (u: string) => perms(u).includes("tracking.task.edit_any") || (perms(u).includes("tracking.task.edit_own") && !!task && (task.assigneeId === u || task.reporterId === u));
     const editorsPool = sim.viewers.filter(canEdit);
     const [a, b] = editorsPool;
     if (!sim.editor && a && rand() < 0.6) {
       sim.editor = { userId: a, field: PROPERTY_FIELDS[Math.floor(rand() * PROPERTY_FIELDS.length)]!, until: now + 10_000 + Math.floor(rand() * 10_000) };
     }
     if (!sim.desc && b && rand() < 0.35) sim.desc = { userId: b, until: now + 10_000 + Math.floor(rand() * 10_000) };
-    const typists = sim.viewers.filter((v) => perms(v).includes("comment.create"));
+    const typists = sim.viewers.filter((v) => perms(v).includes("tracking.comment.create"));
     if (claim.composer && !sim.typer && typists.length && rand() < 0.6) {
       const typer = typists.find((v) => v !== sim.editor?.userId) ?? typists[0]!;
       const dur = 3000 + Math.floor(rand() * 2000);
@@ -230,7 +230,7 @@ export function presenceTick(now = Date.now(), opts: { visible?: boolean } = {})
 
   if (claim.location.kind === "dashboard" && sim.tick % 3 === 0) {
     // The change is made by a teammate on screen who may move tasks (never a viewer).
-    const actor = sim.viewers.find((v) => projectPermissions(db, v, project.id).includes("task.move"));
+    const actor = sim.viewers.find((v) => projectPermissions(db, v, project.id).includes("tracking.task.move"));
     simulateTeammateEdit(undefined, { projectId: project.id, actorId: actor });
   }
 }

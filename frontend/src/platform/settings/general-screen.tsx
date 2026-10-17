@@ -4,22 +4,22 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Copy, Eye, Link2, TriangleAlert, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Avatar, AvatarStack, ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { Field, Input } from "@/components/ui/input";
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "@/components/ui/menu";
-import { Modal } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
-import { toast } from "@/components/ui/toast";
-import { useMe } from "@/features/auth/session";
-import { isOwnerRole, projectAdminRole } from "@/features/members/lib";
-import { Tag } from "@/features/members/parts";
-import { useRoles, useWsMembers } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import { useCan, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Avatar, AvatarStack, ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { Field, Input } from "@/ui/input";
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "@/ui/menu";
+import { Modal } from "@/ui/modal";
+import { Spinner } from "@/ui/spinner";
+import { toast } from "@/ui/toast";
+import { useMe } from "@/platform/auth/session";
+import { isOwnerRole, projectAdminRole } from "@/platform/members/lib";
+import { Tag } from "@/platform/members/parts";
+import { useRoles, useWsMembers } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 import { confirmState, slugError, slugSegments, URL_HOST, WS_NAME_MAX, workspaceIcon, workspaceNameError } from "./lib";
@@ -31,8 +31,8 @@ type SlugCheck = { slug: string; status: "checking" | "available" | "taken" } | 
 
 /** Workspace general settings (board 20 B.4–B.6) + project directory for assigning project admins. */
 export function GeneralScreen() {
-  const canEdit = useCan("workspace.update");
-  const canDelete = useCan("workspace.delete");
+  const canEdit = useCan("core.workspace.update");
+  const canDelete = useCan("core.workspace.delete");
   return (
     <SettingsPage title="Workspace">
       {canEdit ? <WorkspaceForm /> : <WorkspaceReadOnly />}
@@ -276,7 +276,7 @@ function ProjectsSection() {
   const ws = useCurrentWorkspace()!;
   const me = useMe();
   const qc = useQueryClient();
-  const canAssign = useCan("project.assign_admin");
+  const canAssign = useCan("tracking.project.assign_admin");
   const dir = useQuery({ queryKey: qk.directory(ws.slug), queryFn: () => api.workspaces.projectDirectory(ws.slug) });
   const members = useWsMembers(ws.slug);
   const roles = useRoles(ws.slug);

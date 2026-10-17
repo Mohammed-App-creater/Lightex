@@ -2,10 +2,10 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { PresenceLocation } from "@/lib/api/types";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { PresenceLocation } from "@/api/types";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { presenceClaims, type PresenceClaim } from "@/lib/realtime/presence";
 import { mergeRoster, type CachedRoster } from "@/lib/realtime/roster";
 

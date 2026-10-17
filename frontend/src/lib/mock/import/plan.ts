@@ -1,4 +1,4 @@
-import { IMPORT_FIELD_LABELS } from "@/features/import/import-lib";
+import { IMPORT_FIELD_LABELS } from "@/modules/tracking/import/import-lib";
 import type {
   CustomFieldType,
   CustomFieldValue,
@@ -16,7 +16,7 @@ import type {
   ImportValue,
   Priority,
   StatusGlyph,
-} from "@/lib/api/types";
+} from "@/api/types";
 import { dateOrderOf, inferType, parseDate, parseDurationCell, parseNumber, roundHalfUp } from "./convert";
 import type { Delimiter, ParsedCsv } from "./csv";
 import { firstPerson, matchPerson, matchPriority, matchStatus, matchType, valueKey, type Member } from "./match";
@@ -84,7 +84,7 @@ export interface PlannedRow {
   epicName: string | null;
   blockedBy: DepTarget[];
   blocks: DepTarget[];
-  /** select fields: option names to create (only with field.manage). */
+  /** select fields: option names to create (only with tracking.field.manage). */
   newOptions: Record<string, string>;
 }
 
@@ -169,9 +169,9 @@ export function planImport(file: ParsedFile, columns: ImportColumnMapping[], use
   const cols = (f: ImportField) => columns.flatMap((c, i) => (c.field === f ? [i] : []));
   const col = (f: ImportField) => cols(f)[0] ?? -1;
   const cell = (r: string[], i: number) => (i >= 0 ? (r[i] ?? "").trim() : "");
-  const canEpic = can(project, "epic.manage");
-  const canAssign = can(project, "task.assign");
-  const canOptions = can(project, "field.manage");
+  const canEpic = can(project, "tracking.epic.manage");
+  const canAssign = can(project, "tracking.task.assign");
+  const canOptions = can(project, "tracking.field.manage");
 
   const orders = new Map<number, ImportDateOrder | null>();
   const orderOf = (i: number) => {
@@ -208,7 +208,7 @@ export function planImport(file: ParsedFile, columns: ImportColumnMapping[], use
     const explicit = Object.prototype.hasOwnProperty.call(user.people, v.key);
     if (explicit) return { ...v, target: user.people[v.key] ?? null, auto: false, matchedBy: null };
     let m = matchPerson(v.value, project.members);
-    // Without task.assign every suggestion except the importer becomes "Leave unassigned".
+    // Without tracking.task.assign every suggestion except the importer becomes "Leave unassigned".
     if (!canAssign && m.target && m.target !== project.importerId) m = { target: null, matchedBy: null };
     return { ...v, target: m.target, auto: m.target !== null, matchedBy: m.matchedBy };
   });
@@ -377,7 +377,7 @@ export function planImport(file: ParsedFile, columns: ImportColumnMapping[], use
       else warn(d, "sprint", `No sprint named “${sprintRaw}” · added to the backlog`, sprintRaw);
     }
 
-    // epic: an epic row's ID, else an epic name (existing, new with epic.manage, or a warning)
+    // epic: an epic row's ID, else an epic name (existing, new with tracking.epic.manage, or a warning)
     if (d.epicRef) {
       const target = rowOfRef(d.epicRef);
       if (target && target.isEpic && live(target)) {

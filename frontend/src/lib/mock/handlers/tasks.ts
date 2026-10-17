@@ -1,4 +1,4 @@
-import type { ActivityEntry, Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/lib/api/types";
+import type { ActivityEntry, Attachment, Comment, RichDoc, TaskDetail, TaskPatch } from "@/api/types";
 import { validateUpload } from "@/lib/files";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { nowISO, uid } from "../db";
@@ -28,14 +28,14 @@ import {
 function taskById(ctx: Ctx, id: string) {
   const t = ctx.db.tasks.find((x) => x.id === id);
   if (!t) fail(404, "not_found", "Task not found.");
-  requireProject(ctx, t.projectId, "project.view");
+  requireProject(ctx, t.projectId, "tracking.project.view");
   return t;
 }
 
 /** edit_any, or edit_own when the user reported or is assigned the task. */
 export function canEditTask(db: MockDB, userId: string, t: TaskRec) {
   const perms = projectPermissions(db, userId, t.projectId);
-  return perms.includes("task.edit_any") || (perms.includes("task.edit_own") && (t.assigneeId === userId || t.reporterId === userId));
+  return perms.includes("tracking.task.edit_any") || (perms.includes("tracking.task.edit_own") && (t.assigneeId === userId || t.reporterId === userId));
 }
 
 function checkVersion(t: TaskRec, version: unknown, db: MockDB) {
@@ -161,7 +161,7 @@ function placeholderPng(seed: string) {
 /* ───────── routes ───────── */
 
 export function registerTasks() {
-  route("GET", "/projects/:id/tasks", (ctx) => {
+  route("GET", "/tracking/projects/:id/tasks", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const q = String(ctx.query.q ?? "").toLowerCase();
     const f = (k: string) => filterValues(ctx.query, k);
@@ -211,16 +211,16 @@ export function registerTasks() {
     return paginate(out, ctx.query, 500, 500);
   });
 
-  route("POST", "/projects/:id/tasks", (ctx) => {
+  route("POST", "/tracking/projects/:id/tasks", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
-    const perms = requireProject(ctx, p.id, "task.create");
+    const perms = requireProject(ctx, p.id, "tracking.task.create");
     const b = (ctx.body ?? {}) as Partial<TaskRec>;
     const title = (b.title ?? "").trim();
     if (!title) invalid({ title: "Give the task a title" });
     const statuses = statusesOf(ctx.db, p.id);
     const statusId = b.statusId && statuses.some((s) => s.id === b.statusId) ? b.statusId : statuses.find((s) => s.glyph === "todo")!.id;
-    if (b.assigneeId && b.assigneeId !== ctx.userId && !perms.includes("task.assign")) {
-      fail(403, "forbidden", "You can’t assign tasks to others.", { permission: "task.assign" });
+    if (b.assigneeId && b.assigneeId !== ctx.userId && !perms.includes("tracking.task.assign")) {
+      fail(403, "forbidden", "You can’t assign tasks to others.", { permission: "tracking.task.assign" });
     }
     // Board 32: startDate / dueDate format and order (same messages as PATCH).
     checkTaskDates(b as Record<string, unknown>, null);
@@ -269,18 +269,18 @@ export function registerTasks() {
     return toTask(ctx.db, t);
   });
 
-  route("GET", "/workspaces/:slug/tasks/:key", (ctx) => {
+  route("GET", "/tracking/workspaces/:slug/tasks/:key", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
     const key = ctx.params.key!.toUpperCase();
     const t = ctx.db.tasks.find((x) => x.key.toUpperCase() === key && ctx.db.projects.find((p) => p.id === x.projectId)?.workspaceId === ws.id);
     if (!t) fail(404, "not_found", "Task not found. It may have been deleted, or you may not have access.");
     const perms = projectPermissions(ctx.db, ctx.userId!, t.projectId);
-    if (!perms.includes("project.view")) fail(404, "not_found", "Task not found. It may have been deleted, or you may not have access.");
+    if (!perms.includes("tracking.project.view")) fail(404, "not_found", "Task not found. It may have been deleted, or you may not have access.");
     recordRecent(ctx.db, ctx.userId!, "task", t.id);
     return toDetail(ctx.db, t, ctx.userId!);
   });
 
-  route("PATCH", "/tasks/:id", (ctx) => {
+  route("PATCH", "/tracking/tasks/:id", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
     const userId = ctx.userId!;
     const perms = projectPermissions(ctx.db, userId, t.projectId);
@@ -291,12 +291,12 @@ export function registerTasks() {
     const onlyStatus = keys.length === 1 && keys[0] === "statusId";
     const canEdit = canEditTask(ctx.db, userId, t);
     if (onlyStatus) {
-      if (!canEdit && !perms.includes("task.move")) fail(403, "forbidden", "You can’t change this task’s status.", { permission: "task.move" });
+      if (!canEdit && !perms.includes("tracking.task.move")) fail(403, "forbidden", "You can’t change this task’s status.", { permission: "tracking.task.move" });
     } else if (!canEdit) {
-      fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "task.edit_any" });
+      fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "tracking.task.edit_any" });
     }
-    if ("assigneeId" in b && b.assigneeId !== t.assigneeId && !perms.includes("task.assign")) {
-      fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
+    if ("assigneeId" in b && b.assigneeId !== t.assigneeId && !perms.includes("tracking.task.assign")) {
+      fail(403, "forbidden", "You can’t reassign tasks.", { permission: "tracking.task.assign" });
     }
     // Board 39: customFields / timeEstimateMinutes are validated before anything is written.
     const applyExt = keys.some((k) => k === "customFields" || k === "timeEstimateMinutes") ? prepareTaskExtPatch(ctx.db, t, b as Record<string, unknown>) : null;
@@ -352,9 +352,9 @@ export function registerTasks() {
     return toTask(ctx.db, t);
   });
 
-  route("DELETE", "/tasks/:id", (ctx) => {
+  route("DELETE", "/tracking/tasks/:id", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "task.delete");
+    requireProject(ctx, t.projectId, "tracking.task.delete");
     const now = nowISO();
     t.deletedAt = now;
     t.version += 1;
@@ -365,10 +365,10 @@ export function registerTasks() {
     return undefined;
   });
 
-  route("POST", "/tasks/:id/restore", (ctx) => {
+  route("POST", "/tracking/tasks/:id/restore", (ctx) => {
     const t = ctx.db.tasks.find((x) => x.id === ctx.params.id);
     if (!t) fail(404, "not_found", "Task not found.");
-    requireProject(ctx, t.projectId, "task.delete");
+    requireProject(ctx, t.projectId, "tracking.task.delete");
     const when = t.deletedAt;
     t.deletedAt = null;
     t.version += 1;
@@ -378,14 +378,14 @@ export function registerTasks() {
     return toTask(ctx.db, t);
   });
 
-  route("POST", "/projects/:id/tasks/bulk", (ctx) => {
+  route("POST", "/tracking/projects/:id/tasks/bulk", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const b = (ctx.body ?? {}) as { ids?: string[]; patch?: TaskPatch; delete?: boolean; restore?: boolean };
     const ids = (b.ids ?? []).slice(0, 200);
     const tasks = ctx.db.tasks.filter((t) => ids.includes(t.id) && t.projectId === p.id);
     const userId = ctx.userId!;
     if (b.delete || b.restore) {
-      requireProject(ctx, p.id, "task.delete");
+      requireProject(ctx, p.id, "tracking.task.delete");
       const now = nowISO();
       tasks.forEach((t) => {
         t.deletedAt = b.delete ? now : null;
@@ -402,11 +402,11 @@ export function registerTasks() {
     // Board 32: startDate isn't bulk-editable; a due date before a selected task's start fails the whole request.
     checkBulkDates(patch as Record<string, unknown>, tasks);
     const perms = projectPermissions(ctx.db, userId, p.id);
-    if ("assigneeId" in patch && !perms.includes("task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "task.assign" });
+    if ("assigneeId" in patch && !perms.includes("tracking.task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "tracking.task.assign" });
     const statusOnly = Object.keys(patch).every((k) => k === "statusId");
     for (const t of tasks) {
-      if (!(statusOnly ? perms.includes("task.move") || canEditTask(ctx.db, userId, t) : canEditTask(ctx.db, userId, t))) {
-        fail(403, "forbidden", `You can’t edit ${t.key}.`, { permission: "task.edit_any", taskId: t.id });
+      if (!(statusOnly ? perms.includes("tracking.task.move") || canEditTask(ctx.db, userId, t) : canEditTask(ctx.db, userId, t))) {
+        fail(403, "forbidden", `You can’t edit ${t.key}.`, { permission: "tracking.task.edit_any", taskId: t.id });
       }
     }
     for (const t of tasks) {
@@ -432,7 +432,7 @@ export function registerTasks() {
     return tasks.map((t) => toTask(ctx.db, t));
   });
 
-  route("GET", "/tasks/:id/activity", (ctx) => {
+  route("GET", "/tracking/tasks/:id/activity", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
     // Board 40: the task's own feed starts with "imported this task from …" (task.imported), derived
     // from the import rows so a 1,000-row import doesn't flood the shared activity log.
@@ -441,7 +441,7 @@ export function registerTasks() {
   });
 
   /* board + backlog */
-  route("GET", "/projects/:id/board", (ctx) => {
+  route("GET", "/tracking/projects/:id/board", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const statuses = statusesOf(ctx.db, p.id);
     const wanted = String(ctx.query.filter?.sprint ?? "active");
@@ -457,9 +457,9 @@ export function registerTasks() {
     return { statuses, tasks, sprintId };
   });
 
-  route("POST", "/tasks/:id/move", (ctx) => {
+  route("POST", "/tracking/tasks/:id/move", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "task.move");
+    requireProject(ctx, t.projectId, "tracking.task.move");
     const b = (ctx.body ?? {}) as { statusId?: string; sprintId?: string | null; position?: string; version?: number };
     checkVersion(t, b.version, ctx.db);
     if (typeof b.position !== "string" || !/^[0-9A-Za-z]+$/.test(b.position)) invalid({ position: "Invalid position" });
@@ -483,7 +483,7 @@ export function registerTasks() {
     return toTask(ctx.db, t);
   });
 
-  route("GET", "/projects/:id/backlog", (ctx) => {
+  route("GET", "/tracking/projects/:id/backlog", (ctx) => {
     const p = memberProject(ctx, ctx.params.id!);
     const tasks = ctx.db.tasks.filter((t) => t.projectId === p.id && !t.deletedAt && !t.parentId);
     const sprints = ctx.db.sprints
@@ -496,13 +496,13 @@ export function registerTasks() {
   });
 
   /* comments */
-  route("GET", "/tasks/:id/comments", (ctx) => {
+  route("GET", "/tracking/tasks/:id/comments", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
     return ctx.db.comments.filter((c) => c.taskId === t.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   });
-  route("POST", "/tasks/:id/comments", (ctx) => {
+  route("POST", "/tracking/tasks/:id/comments", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "comment.create");
+    requireProject(ctx, t.projectId, "tracking.comment.create");
     const body = (ctx.body as { body?: RichDoc })?.body;
     const text = richText(body);
     if (!body || !text) invalid({ body: "Write something first" });
@@ -523,8 +523,8 @@ export function registerTasks() {
     const c = ctx.db.comments.find((x) => x.id === ctx.params.id);
     if (!c) fail(404, "not_found", "Comment not found.");
     const t = taskById(ctx, c.taskId);
-    requireProject(ctx, t.projectId, "comment.edit_own");
-    if (c.authorId !== userId) fail(403, "forbidden", "You can only edit your own comments.", { permission: "comment.edit_own" });
+    requireProject(ctx, t.projectId, "tracking.comment.edit_own");
+    if (c.authorId !== userId) fail(403, "forbidden", "You can only edit your own comments.", { permission: "tracking.comment.edit_own" });
     const body = (ctx.body as { body?: RichDoc })?.body;
     if (!body || !richText(body)) invalid({ body: "Write something first" });
     c.body = body;
@@ -539,8 +539,8 @@ export function registerTasks() {
     if (!c) fail(404, "not_found", "Comment not found.");
     const t = taskById(ctx, c.taskId);
     const perms = projectPermissions(ctx.db, userId, t.projectId);
-    const own = c.authorId === userId && perms.includes("comment.edit_own");
-    if (!own && !perms.includes("comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "comment.delete_any" });
+    const own = c.authorId === userId && perms.includes("tracking.comment.edit_own");
+    if (!own && !perms.includes("tracking.comment.delete_any")) fail(403, "forbidden", "You can’t delete this comment.", { permission: "tracking.comment.delete_any" });
     trashComment(ctx.db, c, userId); // board 29: deleted comments go to the Trash for 30 days
     ctx.db.comments = ctx.db.comments.filter((x) => x.id !== c.id);
     publishComment(ctx.db, userId, t, c.id, "deleted");
@@ -548,13 +548,13 @@ export function registerTasks() {
   });
 
   /* attachments: signed URL → direct upload → confirm */
-  route("GET", "/tasks/:id/attachments", (ctx) => {
+  route("GET", "/tracking/tasks/:id/attachments", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
     return ctx.db.attachments.filter((a) => a.taskId === t.id).map(toAttachment);
   });
-  route("POST", "/tasks/:id/attachments/upload-url", (ctx) => {
+  route("POST", "/tracking/tasks/:id/attachments/upload-url", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "attachment.upload");
+    requireProject(ctx, t.projectId, "tracking.attachment.upload");
     const fileName = str(ctx.body, "fileName") ?? "";
     const size = Number((ctx.body as { size?: number })?.size ?? 0);
     const mimeType = str(ctx.body, "mimeType") ?? "";
@@ -564,9 +564,9 @@ export function registerTasks() {
     uploads.set(uploadId, { taskId: t.id, fileName: fileName.slice(0, 120), size, mimeType });
     return { uploadId, url: `mock-upload://${uploadId}`, method: "PUT", headers: { "Content-Type": mimeType || "application/octet-stream" }, expiresAt: new Date(Date.now() + 600_000).toISOString() };
   });
-  route("POST", "/tasks/:id/attachments", (ctx) => {
+  route("POST", "/tracking/tasks/:id/attachments", (ctx) => {
     const t = taskById(ctx, ctx.params.id!);
-    requireProject(ctx, t.projectId, "attachment.upload");
+    requireProject(ctx, t.projectId, "tracking.attachment.upload");
     const uploadId = str(ctx.body, "uploadId") ?? "";
     const up = uploads.get(uploadId);
     if (!up || up.taskId !== t.id || !up.blob) fail(400, "upload_missing", "Upload not found or incomplete. Try again.");
@@ -596,8 +596,8 @@ export function registerTasks() {
     if (!a) fail(404, "not_found", "File not found.");
     const t = taskById(ctx, a.taskId);
     const perms = projectPermissions(ctx.db, userId, t.projectId);
-    if (!(a.uploaderId === userId && perms.includes("attachment.upload")) && !perms.includes("attachment.delete_any"))
-      fail(403, "forbidden", "You can’t delete this file.", { permission: "attachment.delete_any" });
+    if (!(a.uploaderId === userId && perms.includes("tracking.attachment.upload")) && !perms.includes("tracking.attachment.delete_any"))
+      fail(403, "forbidden", "You can’t delete this file.", { permission: "tracking.attachment.delete_any" });
     ctx.db.attachments = ctx.db.attachments.filter((x) => x.id !== a.id);
     publishAttachment(ctx.db, userId, t, "deleted");
     return undefined;

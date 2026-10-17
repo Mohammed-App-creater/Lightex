@@ -1,4 +1,4 @@
-import type { Invite } from "@/lib/api/types";
+import type { Invite } from "@/api/types";
 import { mockSession, nowISO, uid } from "../db";
 import type { MockDB } from "../db-types";
 import { toMe } from "../derive";

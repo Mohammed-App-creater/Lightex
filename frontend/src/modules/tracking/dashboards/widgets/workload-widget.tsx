@@ -1,13 +1,13 @@
 "use client";
 
-import type { WidgetConfigMap } from "@/lib/api/types";
-import { Avatar } from "@/components/ui/avatar";
+import type { WidgetConfigMap } from "@/api/types";
+import { Avatar } from "@/ui/avatar";
 import { cn } from "@/lib/utils/cn";
-import { firstName } from "@/features/presence/presence-lib";
-import { useWorkloadWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "../widget-frame";
-import { overCapacity, workloadMeta, workloadValue } from "../widget-lib";
+import { firstName } from "@/platform/presence/presence-lib";
+import { useWorkloadWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
+import { overCapacity, workloadMeta, workloadValue } from "@/modules/tracking/dashboards/widget-lib";
 import { BarRow, BarTrack, pct, useWho, type WidgetProps } from "./common";
 
 /** Workload by person (§1.3): stacked in progress (--c1) / to do (--c2), capacity tick, `11/10`. */

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { BoardScreen } from "@/features/board/board-screen";
+import { BoardScreen } from "@/modules/tracking/board/board-screen";
 
 export default function BoardPage() {
   return (

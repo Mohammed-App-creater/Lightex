@@ -1,4 +1,4 @@
-import type { ImportTaskType, Priority, StatusGlyph } from "@/lib/api/types";
+import type { ImportTaskType, Priority, StatusGlyph } from "@/api/types";
 
 /*
  * Board 40 mock: value matching (§4.7): statuses, types, people and priorities. Shared vectors:

@@ -3,22 +3,22 @@
 import * as Popover from "@radix-ui/react-popover";
 import { CalendarRange, ChevronRight, Plus, Search, Target, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/choice";
-import { DateChip, DatePicker } from "@/components/ui/date-picker";
-import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { BlockedChip } from "@/features/dependencies/blocked-badge";
-import { hasValue } from "@/features/fields/field-lib";
-import { useCustomFields } from "@/features/fields/queries";
-import { CF_TYPE_ICON } from "@/features/filters/filter-bar";
-import { RunningTimerChip } from "@/features/time/task-time";
-import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/features/projects/queries";
-import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Checkbox } from "@/ui/choice";
+import { DateChip, DatePicker } from "@/ui/date-picker";
+import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
+import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { BlockedChip } from "@/modules/tracking/dependencies/blocked-badge";
+import { hasValue } from "@/modules/tracking/fields/field-lib";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
+import { RunningTimerChip } from "@/modules/tracking/time/task-time";
+import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/modules/tracking/projects/queries";
+import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 import { daysUntil } from "@/lib/domain/progress";
-import { PresenceField } from "@/features/presence/presence-ui";
+import { PresenceField } from "@/platform/presence/presence-ui";
 
 /* Task properties (board 14 §2.8): 3 chips · 4 fields · Planning folded · empty = hidden. */
 

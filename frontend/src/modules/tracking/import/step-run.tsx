@@ -1,8 +1,8 @@
 "use client";
 
-import { ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import type { ImportJob, ImportResult, Project } from "@/lib/api/types";
+import { ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import type { ImportJob, ImportResult, Project } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { createsLine, formatKeyRange, skipSummary } from "./import-lib";
 import { ArrowGlyph, DownloadGlyph, Note, Section, SourceGlyph, Stat } from "./parts";

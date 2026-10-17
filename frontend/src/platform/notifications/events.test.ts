@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Notification } from "@/lib/api/types";
+import type { Notification } from "@/api/types";
 import { dueLabel, glyphForStatusName, groupByDay, rowLabel, verbText } from "./events";
 
 const base: Notification = {

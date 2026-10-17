@@ -85,7 +85,7 @@ export function patchTasks(qc: QueryClient, fn: TaskFn, projectId?: string) {
 
 /**
  * Board 33 (realtime): the cached copies of a task, across every cache that holds it. applyEvent
- * skips a `task.changed` when even the oldest copy is already at that version (own echo).
+ * skips a `tracking.task.changed` when even the oldest copy is already at that version (own echo).
  */
 export function findTask(qc: QueryClient, taskId: string, projectId?: string): { task: Task; minVersion: number } | null {
   let found: Task | null = null;

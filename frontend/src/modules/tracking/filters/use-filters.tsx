@@ -3,13 +3,13 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { replaceUrl } from "@/lib/routes";
 import { useCallback, useMemo, type ReactNode } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/components/ui/glyphs";
-import { useMe } from "@/features/auth/session";
-import { epicSwatch } from "@/features/epics/epic-model";
-import { useCustomFields } from "@/features/fields/queries";
-import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/features/projects/queries";
-import type { FilterField, FilterRule } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
+import { useMe } from "@/platform/auth/session";
+import { epicSwatch } from "@/modules/tracking/epics/epic-model";
+import { useCustomFields } from "@/modules/tracking/fields/queries";
+import { useEpics, useLabels, useMilestones, useProjectMembers, useSprints, useStatuses } from "@/modules/tracking/projects/queries";
+import type { FilterField, FilterRule } from "@/api/types";
 import { shortDate, todayISO } from "@/lib/utils/dates";
 import { cfFieldId, fieldLabel, isCfField, OP_LABEL, parseRules, withRules, type MatchCtx } from "./filter-model";
 

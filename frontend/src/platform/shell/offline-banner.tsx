@@ -3,9 +3,9 @@
 import { onlineManager, useMutationState } from "@tanstack/react-query";
 import { RefreshCw, WifiOff } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Button } from "@/components/ui/button";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { toast } from "@/components/ui/toast";
+import { Button } from "@/ui/button";
+import { StatusGlyph } from "@/ui/glyphs";
+import { toast } from "@/ui/toast";
 
 /*
  * Offline banner (board 23 §2.6). While offline, TanStack Query pauses mutations; their

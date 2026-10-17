@@ -1,5 +1,5 @@
-import type { GlyphKind } from "@/components/ui/glyphs";
-import type { Status, Task } from "@/lib/api/types";
+import type { GlyphKind } from "@/ui/glyphs";
+import type { Status, Task } from "@/api/types";
 import { DAY, parseDate, startOfToday } from "@/lib/domain/progress";
 
 /* Pure helpers for the Goals screen (board 16). Kept free of React so they are unit-tested. */

@@ -3,11 +3,11 @@
 import { motion } from "motion/react";
 import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import { Kbd } from "@/components/ui/kbd";
-import type { Objective, Status, Task } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { StatusGlyph } from "@/ui/glyphs";
+import { Kbd } from "@/ui/kbd";
+import type { Objective, Status, Task } from "@/api/types";
 import { matchTask } from "./helpers";
 
 /**

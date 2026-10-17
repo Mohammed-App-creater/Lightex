@@ -4,16 +4,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Wordmark } from "@/components/brand/logo";
-import { ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
-import { AuthBanner, AuthField, AuthInput } from "@/features/auth/auth-ui";
-import { useWorkspaces } from "@/features/workspace/queries";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { Project, ProjectTemplate, Workspace } from "@/lib/api/types";
+import { Wordmark } from "@/ui/brand/logo";
+import { ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
+import { AuthBanner, AuthField, AuthInput } from "@/platform/auth/auth-ui";
+import { useWorkspaces } from "@/platform/workspace/queries";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { Project, ProjectTemplate, Workspace } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
@@ -32,7 +32,7 @@ import {
   workspaceNameError,
 } from "./logic";
 import { OnboardingStyles, onboardingStylesClasses as s } from "./onboarding-styles";
-import { AuthStyles } from "@/features/auth/auth-styles";
+import { AuthStyles } from "@/platform/auth/auth-styles";
 import { TemplatePicker } from "./template-picker";
 
 type Step = 0 | 1 | 2 | 3;

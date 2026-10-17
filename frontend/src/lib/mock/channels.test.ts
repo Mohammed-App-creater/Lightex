@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/api/errors";
-import type { ChannelTestResult, NotificationChannels, NotificationPreferences, PushDevice, SmsVerification, TelegramLink, Workspace } from "@/lib/api/types";
-import { endpointHash } from "@/features/notifications/channels/sha256";
+import { ApiError } from "@/api/errors";
+import type { ChannelTestResult, NotificationChannels, NotificationPreferences, PushDevice, SmsVerification, TelegramLink, Workspace } from "@/api/types";
+import { endpointHash } from "@/platform/notifications/channels/sha256";
 import { fanOut, releaseDue } from "./channels-dispatch";
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
@@ -54,9 +54,9 @@ describe("seed and ensureExt38", () => {
   it("upgrades a cached database once: channel keys and quiet hours, in_app / email untouched", () => {
     const db = getDB();
     db.ext38 = false;
-    db.prefs[0]!.prefs = { events: { ...db.prefs[0]!.prefs.events, assigned: { in_app: false, email: false } }, emailDelivery: "daily" } as unknown as NotificationPreferences;
+    db.prefs[0]!.prefs = { events: { ...db.prefs[0]!.prefs.events, "tracking.task.assigned": { in_app: false, email: false } }, emailDelivery: "daily" } as unknown as NotificationPreferences;
     ensureExt38(db);
-    expect(db.prefs[0]!.prefs.events.assigned).toEqual({ in_app: false, email: false, telegram: true, sms: false, push: true });
+    expect(db.prefs[0]!.prefs.events["tracking.task.assigned"]).toEqual({ in_app: false, email: false, telegram: true, sms: false, push: true });
     expect(db.prefs[0]!.prefs.quietHours.from).toBe("22:00");
     expect(db.prefs.find((p) => p.userId === "u_alex")!.prefs.quietHours.timezone).toBe("America/New_York");
   });
@@ -255,7 +255,7 @@ describe("P1 preferences", () => {
     const cur = await req<NotificationPreferences>("GET", "/notification-preferences");
     const v1 = Object.fromEntries(Object.entries(cur.events).map(([k, v]) => [k, { in_app: v.in_app, email: !v.email }]));
     const out = await req<NotificationPreferences>("PUT", "/notification-preferences", { events: v1, emailDelivery: "hourly" });
-    expect(out.events.assigned).toEqual({ in_app: true, email: false, telegram: true, sms: false, push: true });
+    expect(out.events["tracking.task.assigned"]).toEqual({ in_app: true, email: false, telegram: true, sms: false, push: true });
     expect(out.quietHours.timezone).toBe("America/New_York");
     const bad = await err(req("PUT", "/notification-preferences", { ...out, quietHours: { ...out.quietHours, from: "08:00", to: "08:00", timezone: "Mars/Base", days: [true] } }));
     expect((bad.details as { fields: Record<string, string> }).fields).toEqual({
@@ -269,11 +269,11 @@ describe("P1 preferences", () => {
 });
 
 describe("W1 workspace SMS policy", () => {
-  it("is on every workspace response; PATCH needs workspace.update and is audited", async () => {
+  it("is on every workspace response; PATCH needs core.workspace.update and is audited", async () => {
     expect((await req<Workspace>("GET", "/workspaces/platform")).notificationPolicy).toEqual({ sms: true });
     as("u_sam");
     const e = await err(req("PATCH", "/workspaces/platform", { notificationPolicy: { sms: false } }));
-    expect([e.status, (e.details as { permission: string }).permission]).toEqual([403, "workspace.update"]);
+    expect([e.status, (e.details as { permission: string }).permission]).toEqual([403, "core.workspace.update"]);
     as("u_alex");
     expect((await req<Workspace>("PATCH", "/workspaces/platform", { notificationPolicy: { sms: false } })).notificationPolicy).toEqual({ sms: false });
     expect(getDB().audit[0]!.changes).toEqual([{ field: "smsNotifications", kind: "value", before: "true", after: "false" }]);
@@ -284,7 +284,7 @@ describe("W1 workspace SMS policy", () => {
 
 describe("dispatcher (fan-out, quiet hours, summaries)", () => {
   const prefsOf = (u: string) => getDB().prefs.find((p) => p.userId === u)!.prefs;
-  const send = (urgent: boolean, now: Date, event: "assigned" | "comment" = "assigned") =>
+  const send = (urgent: boolean, now: Date, event: "tracking.task.assigned" | "tracking.comment.created" = "tracking.task.assigned") =>
     fanOut(getDB(), "u_alex", event, { workspaceId: "ws_platform", notificationId: null, taskKey: "PRJ-42", urgent, now });
 
   it("sends to wanted, usable targets outside quiet hours (one row per push device)", () => {
@@ -307,7 +307,7 @@ describe("dispatcher (fan-out, quiet hours, summaries)", () => {
   it("releases one row as is and several as one summary (originals coalesced)", () => {
     const night = new Date("2026-10-10T03:00:00Z");
     send(false, night);
-    send(false, night, "comment");
+    send(false, night, "tracking.comment.created");
     const summaries = releaseDue(getDB(), new Date("2026-10-10T12:00:30Z"));
     expect(summaries.map((s) => [s.channel, s.kind, s.status]).sort()).toEqual([
       ["push", "summary", "sent"],
@@ -319,7 +319,7 @@ describe("dispatcher (fan-out, quiet hours, summaries)", () => {
   it("skips SMS when the workspace policy is off or the number replied STOP", () => {
     const db = getDB();
     db.channelConnections!.push({ channel: "sms", userId: "u_alex", id: "smc", phoneNumber: "+14155550132", display: "", country: "US", status: "active", verifiedAt: "", lastError: null });
-    prefsOf("u_alex").events.assigned.sms = true;
+    prefsOf("u_alex").events["tracking.task.assigned"].sms = true;
     db.workspaces.find((w) => w.id === "ws_platform")!.smsEnabled = false;
     expect(send(false, new Date("2026-10-09T16:00:00Z")).find((r) => r.channel === "sms")).toMatchObject({ status: "skipped", skipReason: "policy" });
     db.workspaces.find((w) => w.id === "ws_platform")!.smsEnabled = true;

@@ -1,6 +1,6 @@
 "use client";
 
-import { SprintsScreen } from "@/features/sprints/sprints-screen";
+import { SprintsScreen } from "@/modules/tracking/sprints/sprints-screen";
 
 export default function SprintsPage() {
   return <SprintsScreen />;

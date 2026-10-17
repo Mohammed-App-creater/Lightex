@@ -3,11 +3,11 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph } from "@/components/ui/glyphs";
-import type { Epic, ISODate, Status, Task, User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
+import type { Epic, ISODate, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { addDays, agendaDays, DOW, fmtDay, fmtDowComma, isWeekend, MONTHS_LONG, weekday } from "./schedule-lib";
 import { TimelineIcon } from "./schedule-states";

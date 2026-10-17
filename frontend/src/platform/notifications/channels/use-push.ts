@@ -2,10 +2,10 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useSyncExternalStore } from "react";
-import { toast } from "@/components/ui/toast";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { PushDevice } from "@/lib/api/types";
+import { toast } from "@/ui/toast";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { PushDevice } from "@/api/types";
 import { createStore } from "@/lib/utils/store";
 import { pushView, type PushView } from "./model";
 import { checkAgain, enablePush, getPushPlatform, turnOffPush, type PushSupport } from "./push";

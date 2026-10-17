@@ -2,15 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Bell, Building2, KeyRound, Plug, ShieldCheck, Trash2, TriangleAlert, UserRound, Users } from "lucide-react";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { useSession } from "@/features/auth/session";
-import { canOpenTrash } from "@/features/trash/lib";
-import { useProjects, useRoles } from "@/features/workspace/queries";
-import { can, useCurrentWorkspace } from "@/lib/permissions/can";
+import { Avatar } from "@/ui/avatar";
+import { useSession } from "@/platform/auth/session";
+import { canOpenTrash } from "@/platform/trash/lib";
+import { useProjects, useRoles } from "@/platform/workspace/queries";
+import { can, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo, type SettingsSection } from "@/lib/routes";
 import { cn } from "@/lib/utils/cn";
 
@@ -37,7 +37,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
   const roles = useRoles(ws.slug);
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
   const projects = useProjects(ws.slug);
-  const manager = can("integration.manage", ws.my_permissions);
+  const manager = can("tracking.integration.manage", ws.my_permissions);
   const overview = useQuery({ queryKey: qk.integrations(ws.slug), queryFn: () => api.integrations.overview(ws.slug), enabled: manager, staleTime: 60_000 });
   const integrationError = manager && Boolean(overview.data?.integrations.some((i) => i.status === "error"));
 
@@ -49,7 +49,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
     { key: "general", label: "General", icon: <Building2 size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "general") },
     { key: "members", label: "Members", icon: <Users size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "members") },
     { key: "roles", label: "Roles", icon: <KeyRound size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "roles") },
-    // Board 37: every member; a warning dot for holders of integration.manage when a connection is in error.
+    // Board 37: every member; a warning dot for holders of tracking.integration.manage when a connection is in error.
     {
       key: "integrations",
       label: "Integrations",
@@ -58,15 +58,15 @@ export function SettingsShell({ children }: { children: ReactNode }) {
       dot: integrationError ? "A connection needs attention" : undefined,
     },
   ];
-  // Board 31: audit log is admins-only; hidden (not disabled) without audit.view.
-  if (can("audit.view", ws.my_permissions)) {
+  // Board 31: audit log is admins-only; hidden (not disabled) without core.audit.view.
+  if (can("core.audit.view", ws.my_permissions)) {
     workspace.push({ key: "audit", label: "Audit log", icon: <ShieldCheck size={16} strokeWidth={1.5} aria-hidden />, href: routes.settings(ws.slug, "audit") });
   }
   // Board 29: workspace Trash (its own page, /:ws/trash); hidden for users who can't restore anything.
   if (canOpenTrash(ws.my_permissions, projects.data ?? [])) {
     workspace.push({ key: "trash", label: "Trash", icon: <Trash2 size={16} strokeWidth={1.5} aria-hidden />, href: routes.trash(ws.slug) });
   }
-  if (can("workspace.delete", ws.my_permissions)) {
+  if (can("core.workspace.delete", ws.my_permissions)) {
     workspace.push({
       key: "danger",
       label: "Danger zone",

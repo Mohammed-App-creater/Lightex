@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage } from "@/lib/api/errors";
-import { qk } from "@/lib/api/query-keys";
-import type { SavedView, SavedViewInput } from "@/lib/api/types";
-import { POLL_MS } from "@/features/workspace/queries";
+import { toast } from "@/ui/toast";
+import { api } from "@/api/endpoints";
+import { errorMessage } from "@/api/errors";
+import { qk } from "@/api/query-keys";
+import type { SavedView, SavedViewInput } from "@/api/types";
+import { POLL_MS } from "@/platform/workspace/queries";
 import { useLiveInterval } from "@/lib/realtime/status-store";
 
 /* Saved views (board 30): list, create, edit, pin, reorder, delete with Undo. */

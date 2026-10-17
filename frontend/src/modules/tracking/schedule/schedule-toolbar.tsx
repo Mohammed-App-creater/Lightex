@@ -2,11 +2,11 @@
 
 import { ChevronLeft, ChevronRight, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
-import { FilterBar } from "@/features/filters/filter-bar";
-import type { FilterOptions } from "@/features/filters/use-filters";
-import type { FilterRule } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
+import { FilterBar } from "@/modules/tracking/filters/filter-bar";
+import type { FilterOptions } from "@/modules/tracking/filters/use-filters";
+import type { FilterRule } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /*

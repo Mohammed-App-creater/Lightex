@@ -45,7 +45,7 @@ export function getDB(): MockDB {
             ensureExt32(db);
             persist();
           }
-          // Board 40: project.import on cached system roles, once.
+          // Board 40: tracking.project.import on cached system roles, once.
           if (!db.ext40) {
             ensureExt40(db);
             persist();

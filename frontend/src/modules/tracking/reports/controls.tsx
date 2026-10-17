@@ -3,12 +3,12 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Calendar, Check, ChevronDown, Download } from "lucide-react";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
-import { ProjectBadge } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { Spinner } from "@/components/ui/spinner";
-import type { Project } from "@/lib/api/types";
+import { ProjectBadge } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { DatePicker } from "@/ui/date-picker";
+import { Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { Spinner } from "@/ui/spinner";
+import type { Project } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { defaultCustom, normalizeCustom, RANGE_OPTIONS, rangeLabel, type RangeState } from "./lib";
 

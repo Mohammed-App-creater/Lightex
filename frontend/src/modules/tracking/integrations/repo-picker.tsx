@@ -2,13 +2,13 @@
 
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/choice";
-import { ErrorState, Skeleton } from "@/components/ui/feedback";
-import { DialogClose, DialogShell } from "@/components/ui/modal";
-import { Tooltip } from "@/components/ui/tooltip";
-import { errorMessage } from "@/lib/api/errors";
-import type { AvailableRepository, Integration } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/choice";
+import { ErrorState, Skeleton } from "@/ui/feedback";
+import { DialogClose, DialogShell } from "@/ui/modal";
+import { Tooltip } from "@/ui/tooltip";
+import { errorMessage } from "@/api/errors";
+import type { AvailableRepository, Integration } from "@/api/types";
 import { ago } from "@/lib/utils/dates";
 import { ProviderLogo } from "./icons";
 import { PROVIDER_NAME } from "./lib/dev-lib";

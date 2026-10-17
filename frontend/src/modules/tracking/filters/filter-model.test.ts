@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { FilterRule, Task } from "@/lib/api/types";
+import type { FilterRule, Task } from "@/api/types";
 import { applyFilters, cleanRulesFor, completeRules, fieldLabel, matchRule, opsFor, parseRule, parseRules, resolveDate, sameRules, serializeRule, withOp, withRules, type FieldDef, type MatchCtx } from "./filter-model";
 
 const ctx: MatchCtx = { meId: "u1", today: "2026-10-07", sprintEnd: "2026-10-14" };

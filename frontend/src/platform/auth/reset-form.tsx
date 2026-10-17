@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api/endpoints";
-import { isApiError } from "@/lib/api/errors";
+import { Button } from "@/ui/button";
+import { api } from "@/api/endpoints";
+import { isApiError } from "@/api/errors";
 import {
   authStyles,
   AuthBanner,

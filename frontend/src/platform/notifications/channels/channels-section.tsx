@@ -1,16 +1,16 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/choice";
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "@/components/ui/menu";
-import type { NotificationChannel, NotificationChannels, PushDevice } from "@/lib/api/types";
+import { Button } from "@/ui/button";
+import { Switch } from "@/ui/choice";
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "@/ui/menu";
+import type { NotificationChannel, NotificationChannels, PushDevice } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ChannelIcon, DashDot, OkGlyph, ShieldGlyph, Spin, WarnGlyph, XGlyph } from "./icons";
 import { CHANNEL_NAME, pushRow, smsRow, telegramRow, type PreviewChannel, type PushView, type RowAction, type RowModel } from "./model";
 
 /*
  * Board 38 "Channels" (design `.ch-list`): one row per channel with its status line and actions, and for
- * holders of workspace.update the "SMS for {workspace}" policy row (no permission → no row).
+ * holders of core.workspace.update the "SMS for {workspace}" policy row (no permission → no row).
  */
 
 export type ChannelHandlers = {
@@ -120,7 +120,7 @@ export function ChannelsSection({
   channels: NotificationChannels;
   push: PushView;
   smsPolicy: boolean;
-  /** Rendered only for workspace.update holders. */
+  /** Rendered only for core.workspace.update holders. */
   policyRow: { workspaceName: string; onToggle: (on: boolean) => void } | null;
   dialog: "telegram" | "sms" | null;
   /** The action in flight, per channel ("telegram:test"). */

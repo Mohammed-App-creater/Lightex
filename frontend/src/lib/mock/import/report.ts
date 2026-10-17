@@ -1,4 +1,4 @@
-import type { ImportIssue } from "@/lib/api/types";
+import type { ImportIssue } from "@/api/types";
 
 /*
  * Board 40 mock: the error report (§5.7) and formula-safe CSV cells (§7.1). The backend twin is

@@ -1,9 +1,9 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/endpoints";
-import { qk } from "@/lib/api/query-keys";
-import type { ISODate, Status, Task } from "@/lib/api/types";
+import { api } from "@/api/endpoints";
+import { qk } from "@/api/query-keys";
+import type { ISODate, Status, Task } from "@/api/types";
 import { inRange } from "./schedule-lib";
 
 /*

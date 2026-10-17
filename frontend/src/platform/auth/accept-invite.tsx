@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/feedback";
-import { Tooltip } from "@/components/ui/tooltip";
-import { api } from "@/lib/api/endpoints";
-import { errorMessage, isApiError, isNotFound } from "@/lib/api/errors";
-import type { Invite } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/feedback";
+import { Tooltip } from "@/ui/tooltip";
+import { api } from "@/api/endpoints";
+import { errorMessage, isApiError, isNotFound } from "@/api/errors";
+import type { Invite } from "@/api/types";
 import { routes } from "@/lib/routes";
 import { useAuthFlow } from "./auth-flow";
 import {

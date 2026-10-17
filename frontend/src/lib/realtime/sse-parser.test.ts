@@ -13,7 +13,7 @@ function collect(feed: (p: ReturnType<typeof createSseParser>) => void) {
 const STREAM =
   "retry: 3000\n\n" +
   'event: hello\ndata: {"v":1,"type":"hello"}\n\n' +
-  'id: 8813\nevent: task.changed\ndata: {"v":1,"type":"task.changed","id":"8813"}\n\n' +
+  'id: 8813\nevent: tracking.task.changed\ndata: {"v":1,"type":"tracking.task.changed","id":"8813"}\n\n' +
   ": ping 2026-10-09T09:00:15Z\n\n" +
   "data: line one\ndata: line two\n\n" +
   'event: reconnect\ndata: {"reason":"lifetime"}\n\n';
@@ -25,7 +25,7 @@ describe("sse-parser", () => {
     expect(comments).toEqual(["ping 2026-10-09T09:00:15Z"]);
     expect(messages.map((m) => [m.event, m.id, m.data])).toEqual([
       ["hello", undefined, '{"v":1,"type":"hello"}'],
-      ["task.changed", "8813", '{"v":1,"type":"task.changed","id":"8813"}'],
+      ["tracking.task.changed", "8813", '{"v":1,"type":"tracking.task.changed","id":"8813"}'],
       ["message", undefined, "line one\nline two"],
       ["reconnect", undefined, '{"reason":"lifetime"}'],
     ]);
@@ -90,7 +90,7 @@ describe("sse-parser", () => {
   });
 
   it("reads a byte stream split at every byte, including inside multi-byte characters", async () => {
-    const text = "﻿id: 1\r\nevent: task.changed\r\ndata: {\"title\":\"Résumé ✓ 漢字\"}\r\n\r\n: ping\r\n\r\n";
+    const text = "﻿id: 1\r\nevent: tracking.task.changed\r\ndata: {\"title\":\"Résumé ✓ 漢字\"}\r\n\r\n: ping\r\n\r\n";
     const bytes = new TextEncoder().encode(text);
     const messages: SseMessage[] = [];
     let pings = 0;
@@ -104,6 +104,6 @@ describe("sse-parser", () => {
     await readSse(body, { onMessage: (m) => messages.push(m), onComment: () => (pings += 1), onBytes: () => (chunks += 1) });
     expect(chunks).toBe(bytes.length);
     expect(pings).toBe(1);
-    expect(messages).toEqual([{ lastEventId: "1", id: "1", event: "task.changed", data: '{"title":"Résumé ✓ 漢字"}' }]);
+    expect(messages).toEqual([{ lastEventId: "1", id: "1", event: "tracking.task.changed", data: '{"title":"Résumé ✓ 漢字"}' }]);
   });
 });

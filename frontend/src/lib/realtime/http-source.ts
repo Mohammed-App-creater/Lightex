@@ -1,7 +1,7 @@
-import { getTransport } from "@/lib/api/client";
-import { realtime } from "@/lib/api/endpoints";
-import { HttpTransport } from "@/lib/api/http-transport";
-import { tokenStore } from "@/lib/api/session";
+import { getTransport } from "@/api/client";
+import { realtime } from "@/api/endpoints";
+import { HttpTransport } from "@/api/http-transport";
+import { tokenStore } from "@/api/session";
 import { parseRetryAfter } from "./backoff";
 import { parseEnvelope } from "./events";
 import { readSse } from "./sse-parser";

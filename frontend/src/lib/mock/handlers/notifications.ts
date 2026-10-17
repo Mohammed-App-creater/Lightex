@@ -1,7 +1,7 @@
 import { publishInbox } from "../realtime";
-import { CHANNEL_ORDER, withDefaults } from "@/features/notifications/channels/model";
-import { isKnownTimeZone, isValidTime } from "@/features/notifications/channels/quiet";
-import type { NotificationChannel, NotificationEvent, NotificationPreferences, QuietHours } from "@/lib/api/types";
+import { CHANNEL_ORDER, withDefaults } from "@/platform/notifications/channels/model";
+import { isKnownTimeZone, isValidTime } from "@/platform/notifications/channels/quiet";
+import type { NotificationChannel, NotificationEvent, NotificationPreferences, QuietHours } from "@/api/types";
 import { retimeDeferred } from "../channels-dispatch";
 import { nowISO } from "../db";
 import { defaultPrefs } from "../seed";
@@ -131,7 +131,7 @@ export function registerNotifications() {
     return prefs;
   });
 
-  route("GET", "/me/recents", (ctx) => {
+  route("GET", "/tracking/me/recents", (ctx) => {
     const userId = requireUser(ctx);
     return ctx.db.recents.filter((r) => r.userId === userId).slice(0, 8);
   });

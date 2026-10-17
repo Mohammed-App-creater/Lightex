@@ -1,9 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Avatar, UnassignedAvatar, type AvatarSize } from "@/components/ui/avatar";
-import { StatusGlyph } from "@/components/ui/glyphs";
-import type { Status, Task, User } from "@/lib/api/types";
+import { Avatar, UnassignedAvatar, type AvatarSize } from "@/ui/avatar";
+import { StatusGlyph } from "@/ui/glyphs";
+import type { Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { dueTone, shortDate } from "@/lib/utils/dates";
 import { sparkStore } from "./task-origin";

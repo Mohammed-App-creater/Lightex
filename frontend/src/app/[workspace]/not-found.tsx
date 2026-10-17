@@ -1,7 +1,7 @@
 "use client";
 
-import { NotFoundScreen } from "@/components/shell/edge-screens";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { NotFoundScreen } from "@/platform/shell/edge-screens";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/lib/routes";
 
 export default function WorkspaceNotFound() {

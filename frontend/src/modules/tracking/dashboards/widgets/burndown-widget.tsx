@@ -1,11 +1,11 @@
 "use client";
 
-import { BurndownChart } from "@/features/reports/charts";
-import type { WidgetConfigMap } from "@/lib/api/types";
-import { useBurndownWidget } from "../queries";
-import { useLiveFlash } from "../use-live-flash";
-import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "../widget-frame";
-import { burndownAria } from "../widget-lib";
+import { BurndownChart } from "@/modules/tracking/reports/charts";
+import type { WidgetConfigMap } from "@/api/types";
+import { useBurndownWidget } from "@/modules/tracking/dashboards/queries";
+import { useLiveFlash } from "@/modules/tracking/dashboards/use-live-flash";
+import { WidgetEmpty, WidgetError, WidgetFrame, WidgetLegend, WidgetLoading } from "@/modules/tracking/dashboards/widget-frame";
+import { burndownAria } from "@/modules/tracking/dashboards/widget-lib";
 import { useWho, type WidgetProps } from "./common";
 
 /** Burndown (§1.3): Remaining line + area, dashed ideal, "Today" rule, end dot; sprint name as meta. */

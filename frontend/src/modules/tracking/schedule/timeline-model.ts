@@ -1,4 +1,4 @@
-import type { Epic, ProjectMember, Task, TimelineGroup, User } from "@/lib/api/types";
+import type { Epic, ProjectMember, Task, TimelineGroup, User } from "@/api/types";
 import { derivedSpan, isDependencyConflict, overlaps, sortBySpan, spanOf, type Span, type Window } from "./schedule-lib";
 
 /* Board 32 timeline model: groups (epic / assignee), the flat row list, dependency arrows. Pure. */

@@ -2,7 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { Illustration, type IllustrationName } from "@/components/brand/illustrations";
+import { Illustration, type IllustrationName } from "@/ui/brand/illustrations";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "./button";
 import { ErrorGlyph } from "./glyphs";

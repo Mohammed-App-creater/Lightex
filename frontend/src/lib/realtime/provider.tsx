@@ -2,8 +2,8 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { useMe } from "@/features/auth/session";
-import { useCurrentWorkspace } from "@/lib/permissions/can";
+import { useMe } from "@/platform/auth/session";
+import { useCurrentWorkspace } from "@/platform/roles/can";
 import { startRealtime, type RealtimeHandle } from "./client";
 import { startPresenceEngine } from "./presence";
 

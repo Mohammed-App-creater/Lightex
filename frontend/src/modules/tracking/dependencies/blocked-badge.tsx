@@ -1,5 +1,5 @@
 import { Ban } from "lucide-react";
-import type { Task } from "@/lib/api/types";
+import type { Task } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 
 /* "Blocked" chip (panel header) and badge (board card), board 39. Title text from openBlockers. */

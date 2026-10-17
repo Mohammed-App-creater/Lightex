@@ -1,4 +1,4 @@
-import type { PresenceLocation, PresencePerson, PresenceRoster } from "@/lib/api/types";
+import type { PresenceLocation, PresencePerson, PresenceRoster } from "@/api/types";
 import { mergeRoster, peopleAtLocation, replaceLocation } from "@/lib/realtime/roster";
 
 /*

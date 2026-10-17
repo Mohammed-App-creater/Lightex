@@ -1,9 +1,9 @@
 "use client";
 
 import { forwardRef } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { StatusGlyph, glyphColor } from "@/components/ui/glyphs";
-import type { Notification, User } from "@/lib/api/types";
+import { Avatar } from "@/ui/avatar";
+import { StatusGlyph, glyphColor } from "@/ui/glyphs";
+import type { Notification, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
 import { ago } from "@/lib/utils/dates";
 import { glyphForStatusName, isSystem, lineParts, rowLabel, subjectOf } from "./events";
