@@ -41,10 +41,12 @@ reset data). The component gallery is at `/dev/ui`.
 | `npm test` | Vitest unit and component tests |
 | `npm run test:e2e` | Playwright smoke suite: sign-in, board, task panel, palette, plus permission hiding for every default role. Reuses a server already running on port 3100, or starts one. Run `npx playwright install chromium` once first. |
 | `npm run check` | typecheck + lint + tests |
+| `npm run gen:api` | Regenerates `src/api/schema.d.ts` from the backend's `../docs/openapi.yaml` (openapi-typescript) |
+| `npm run check:api` | Fails when `src/api/schema.d.ts` is stale (also part of `npm test`) |
 
 ## Mock vs live
 
-Everything goes through one typed client in `src/lib/api`. Screens call `api.tasks.update(...)` and similar,
+Everything goes through one typed client in `src/api`. Screens call `api.tasks.update(...)` and similar,
 and never call `fetch` directly. A `Transport` underneath is picked by `NEXT_PUBLIC_API_MODE`:
 
 | | `mock` (default) | `live` |
@@ -67,9 +69,14 @@ NEXT_PUBLIC_APP_URL=https://app.example.com    # absolute Open Graph / icon URLs
 The backend must:
 
 - allow this origin with credentials (CORS);
-- implement the contract in [`docs/api-contract.md`](docs/api-contract.md): REST under `/api/v1`, errors as
+- implement `docs/openapi.yaml` (repo root), which the client's types are generated from (`npm run gen:api`;
+  [`docs/api-contract.md`](docs/api-contract.md) is the readable summary): REST under `/api/v1`, errors as
   `{ code, message, details }`, cursor pagination, `filter[...]`, `sort`, `?q=`;
-- return `my_permissions` on workspace and project responses.
+- return `my_permissions` on workspace and project responses, with module-namespaced codes (`core.*`,
+  `tracking.*`), and serve tracking routes under `/api/v1/tracking/` (see `docs/platform/stage1-contract.md`
+  at the repo root);
+- serve comments and attachments on the generic `targets/{targetType}/{targetId}/…` routes (for tasks
+  `targetType` is `tracking.task` and `targetId` the task id; see `docs/platform/stage2-contract.md`).
 
 The UI decides what to render **only** from `my_permissions`. Nothing is inferred from role names.
 
@@ -80,30 +87,39 @@ in the client.
 
 ```
 src/
-  app/                      Routes (App Router). Pages are thin: they render a screen from features/.
+  app/                      Routes (App Router). Pages are thin: they render a screen from platform/ or modules/.
     (auth)/                 login, register, forgot/reset password, invite/[token]
     onboarding/
-    [workspace]/            home, inbox, my-tasks, search, trash, settings/* (incl. audit), tasks/[taskKey]
-      projects/[key]/       overview, board, list, backlog, epics, sprints, objectives, milestones, reports, settings
+    [workspace]/            home, inbox, my-tasks, search, trash, timesheet, settings/* (incl. audit), tasks/[taskKey]
+      projects/[key]/       overview, board, list, backlog, timeline, calendar, epics, sprints, objectives,
+                            milestones, reports, dashboards, settings
     dev/ui/, dev/emails/    component gallery and email previews (dev tools only)
-  components/
-    ui/                     design-system primitives (button, menu, modal, side panel, toast, glyphs, ...)
+  platform/                 core, shared by every module
     shell/                  sidebar, top bar, hotkeys, dev tools, edge screens (404/403/500), offline banner
-    brand/                  logo, app loader
-  features/                 one folder per product area: screens, queries, mutations, and their tests
-    auth/ onboarding/ workspace/ projects/ board/ list/ sprints/ epics/ tasks/ goals/ filters/
-    reports/ members/ notifications/ settings/ trash/ audit/ palette/
-  lib/
-    api/                    types, endpoints, transports, query keys, optimistic helpers, uploads
+    realtime/               the SSE stream, leader election, presence and cache updates
+    routes.ts               typed URL builders, useRouteInfo, pushUrl / replaceUrl
+    auth/ workspace/ settings/ members/ roles/ notifications/ search/ audit/ trash/ onboarding/ palette/ presence/
+                            (roles/ also holds the permission catalogue, useCan / <Can> and the role editor)
+  modules/
+    tracking/               the project-tracking module: projects/ board/ list/ tasks/ sprints/ epics/ goals/
+                            filters/ schedule/ reports/ dashboards/ fields/ dependencies/ time/ import/
+                            integrations/ development/ my-tasks/ home/ project-settings/
+                            module.tsx (its registry entry), services.ts (target types, notification text)
+    sales/                  placeholder (platform Stage 3)
+  registry/                 module registry: nav items and UI slots (index.ts), non-UI services (services.ts)
+  api/                      endpoints, transports, query keys, optimistic helpers, uploads; schema.d.ts (generated
+                            from docs/openapi.yaml) and types.ts (aliases into it)
     mock/                   seed, in-memory DB, router and handlers (mock backend)
-    permissions/            permission catalogue, useCan / <Can>, scopes
+  ui/                       design-system primitives (button, menu, modal, side panel, toast, glyphs, ...)
+    brand/                  logo, app loader, illustrations
+  lib/
     domain/                 computed progress and risk (never stored)
     hooks/ utils/           hotkeys, media queries, fractional indexing, dates, ...
   styles/tokens.css         design tokens for the dark (navy), black and light themes
 docs/
   frontend-plan.md          plan and key decisions
   frontend-conventions.md   rules every screen follows (states, permissions, motion, a11y)
-  api-contract.md           the REST contract the client expects
+  api-contract.md           readable summary of the REST contract (docs/openapi.yaml is the source of truth)
   final-report.md           what was built, deviations, requested API additions, known gaps
 design/                     the design source (HTML boards) and extracted notes
 e2e/                        Playwright smoke suite

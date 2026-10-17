@@ -1,6 +1,6 @@
 "use client";
 
-import { ProjectOverview } from "@/features/projects/overview";
+import { ProjectOverview } from "@/modules/tracking/projects/overview";
 
 export default function ProjectOverviewPage() {
   return <ProjectOverview />;

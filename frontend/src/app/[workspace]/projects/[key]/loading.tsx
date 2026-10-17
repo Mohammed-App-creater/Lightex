@@ -1,4 +1,4 @@
-import { SkeletonRows } from "@/components/ui/feedback";
+import { SkeletonRows } from "@/ui/feedback";
 
 /**
  * Shown inside the project shell while a view (board, list, backlog…) is still loading on

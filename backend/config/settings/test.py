@@ -28,6 +28,9 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "lightex-test"}}
 CELERY_TASK_ALWAYS_EAGER = True
+# Tests are the escape hatch for workspace scoping (core/common/scoping.py): fixtures and assertions read every
+# workspace; requests made through the test client still run strict, exactly as in production.
+WORKSPACE_SCOPE_DEFAULT = "unscoped"
 CELERY_BROKER_URL = "memory://"
 STORAGE_BACKEND = "fake"
 # Board 40: the import runner runs synchronously (deterministic tests), with no retry delay.
@@ -86,3 +89,26 @@ GITLAB_CLIENT_SECRET = ""
 GITLAB_BASE_URL = "https://gitlab.com"
 GITLAB_ALLOWED_HOSTS = []
 GITLAB_ALLOW_PRIVATE_NETWORKS = False
+# Board 38: fake channel providers, synchronous dispatch and known secrets.
+TELEGRAM_BACKEND = "fake"
+SMS_BACKEND = "fake"
+WEB_PUSH_BACKEND = "fake"
+CHANNEL_DISPATCH = "inline"
+TELEGRAM_BOT_TOKEN = ""
+TELEGRAM_BOT_USERNAME = "lightex_bot"
+TELEGRAM_WEBHOOK_SECRET = "test-telegram-secret"
+TWILIO_ACCOUNT_SID = "ACtest"
+TWILIO_AUTH_TOKEN = "test-twilio-token"
+TWILIO_MESSAGING_SERVICE_SID = "MGtest"
+TWILIO_FROM_NUMBER = ""
+SMS_COUNTRIES = ["US", "GB", "DE"]
+VAPID_PUBLIC_KEY = "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U"
+VAPID_PRIVATE_KEY = ""
+VAPID_SUBJECT = "mailto:ops@lightex.test"
+CHANNELS_ENCRYPTION_KEY = ""
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].update(  # type: ignore[attr-defined]
+    {"channel_connect": "100000/min", "channel_test": "100000/min"}
+)
+
+# Platform Stage 2: a test-only module proving core is generic (core/tests/fake_module, contract §5).
+INSTALLED_APPS = [*INSTALLED_APPS, "core.tests.fake_module"]  # noqa: F405

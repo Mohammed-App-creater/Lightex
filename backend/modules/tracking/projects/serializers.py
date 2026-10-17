@@ -1,0 +1,242 @@
+from rest_framework import serializers
+
+from core.access import services as access
+from core.access.catalogue import ordered
+from core.accounts.serializers import UserSerializer
+from core.common.utils import iso
+
+from .models import CustomField, Label, Project, ProjectMember, Status
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    workspaceId = serializers.UUIDField(source="workspace_id")
+    leadId = serializers.UUIDField(source="lead_id", allow_null=True)
+    createdAt = serializers.SerializerMethodField()
+    memberCount = serializers.SerializerMethodField()
+    openTaskCount = serializers.SerializerMethodField()
+    doneTaskCount = serializers.SerializerMethodField()
+    activeSprintId = serializers.SerializerMethodField()
+    myRoleId = serializers.SerializerMethodField()
+    my_permissions = serializers.SerializerMethodField()
+    myDataScopes = serializers.SerializerMethodField()
+    nextTaskNumber = serializers.SerializerMethodField()
+    devEnabled = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = [
+            "id", "workspaceId", "key", "name", "description", "hue", "leadId", "status", "template", "createdAt",
+            "memberCount", "openTaskCount", "doneTaskCount", "activeSprintId", "myRoleId", "my_permissions",
+            "myDataScopes", "nextTaskNumber", "devEnabled",
+        ]  # fmt: skip
+
+    def get_createdAt(self, obj) -> str | None:
+        return iso(obj.created_at)
+
+    def get_memberCount(self, obj) -> int:
+        return getattr(obj, "member_count", None) or obj.members.count()
+
+    def get_openTaskCount(self, obj) -> int:
+        value = getattr(obj, "open_task_count", None)
+        return value if value is not None else obj.tasks.exclude(status__category="done").count()
+
+    def get_doneTaskCount(self, obj) -> int:
+        value = getattr(obj, "done_task_count", None)
+        return value if value is not None else obj.tasks.filter(status__category="done").count()
+
+    def get_activeSprintId(self, obj) -> str | None:
+        if hasattr(obj, "active_sprint_id"):
+            return str(obj.active_sprint_id) if obj.active_sprint_id else None
+        sid = obj.sprints.filter(state="active").values_list("id", flat=True).first()
+        return str(sid) if sid else None
+
+    def get_myRoleId(self, obj) -> str | None:
+        roles = self.context.get("my_roles")
+        if roles is not None:
+            rid = roles.get(obj.pk)
+        else:
+            rid = obj.members.filter(user_id=self.context["user"].pk).values_list("role_id", flat=True).first()
+        return str(rid) if rid else None
+
+    def get_devEnabled(self, obj) -> bool:
+        """Board 37: an active integration tracks a repository that applies to this project."""
+        from modules.tracking.integrations.payloads import project_dev_enabled
+
+        return project_dev_enabled(obj)
+
+    def get_my_permissions(self, obj) -> list[str]:
+        return ordered(access.project_permissions(self.context["user"], obj))
+
+    def get_myDataScopes(self, obj) -> dict[str, str]:
+        """The workspace-level map (platform Stage 4): data scope applies to workspace permissions only."""
+        return access.my_data_scopes(self.context["user"], obj.workspace_id)
+
+    def get_nextTaskNumber(self, obj) -> int:
+        """Board 40: the number the next task gets (the import picker's "next key")."""
+        return obj.task_seq + 1
+
+
+def project_context(user, projects) -> dict:
+    projects = list(projects)
+    access.prefetch_project_permissions(user, projects)
+    roles = dict(
+        ProjectMember.objects.filter(user_id=user.pk, project__in=projects).values_list("project_id", "role_id")
+    )
+    return {"user": user, "my_roles": roles}
+
+
+class ProjectBriefSerializer(serializers.Serializer):
+    """Pick<Project, "id" | "key" | "name" | "hue">"""
+
+    id = serializers.UUIDField()
+    key = serializers.CharField()
+    name = serializers.CharField()
+    hue = serializers.IntegerField()
+
+
+class StatusSerializer(serializers.ModelSerializer):
+    projectId = serializers.UUIDField(source="project_id")
+    taskCount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Status
+        fields = ["id", "projectId", "name", "category", "glyph", "position", "color", "taskCount"]
+
+    def get_taskCount(self, obj) -> int:
+        value = getattr(obj, "task_count", None)
+        return value if value is not None else obj.tasks.count()
+
+
+class LabelSerializer(serializers.ModelSerializer):
+    projectId = serializers.UUIDField(source="project_id")
+    taskCount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Label
+        fields = ["id", "projectId", "name", "color", "taskCount"]
+
+    def get_taskCount(self, obj) -> int:
+        value = getattr(obj, "task_count", None)
+        return value if value is not None else obj.tasks.count()
+
+
+class ProjectMemberSerializer(serializers.ModelSerializer):
+    projectId = serializers.UUIDField(source="project_id")
+    userId = serializers.UUIDField(source="user_id")
+    roleId = serializers.UUIDField(source="role_id")
+    user = UserSerializer()
+    addedAt = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectMember
+        fields = ["projectId", "userId", "roleId", "user", "addedAt"]
+
+    def get_addedAt(self, obj) -> str | None:
+        return iso(obj.added_at)
+
+
+class AccessRequestSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    projectId = serializers.UUIDField(source="project_id")
+    userId = serializers.UUIDField(source="user_id")
+    message = serializers.CharField()
+    createdAt = serializers.SerializerMethodField()
+    status = serializers.CharField()
+
+    def get_createdAt(self, obj) -> str | None:
+        return iso(obj.created_at)
+
+
+class AccessRequestWithUserSerializer(AccessRequestSerializer):
+    user = UserSerializer()
+
+
+class ProjectIn(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    key = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
+    template = serializers.ChoiceField(choices=["simple", "scrum", "kanban", "bugs"], required=False)
+    hue = serializers.IntegerField(required=False)
+
+
+class MemberIn(serializers.Serializer):
+    userId = serializers.UUIDField()
+    roleId = serializers.UUIDField()
+
+
+class StatusIn(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    category = serializers.ChoiceField(choices=["todo", "in_progress", "done"], required=False)
+    position = serializers.IntegerField(required=False)
+    color = serializers.CharField(required=False, allow_null=True)
+
+
+class LabelIn(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    color = serializers.CharField(required=False)
+
+
+class IdsIn(serializers.Serializer):
+    ids = serializers.ListField(child=serializers.UUIDField())
+
+
+# ───────────────────────── custom fields (board 39) ─────────────────────────
+
+
+def custom_field_data(f: CustomField) -> dict:
+    """The client's `CustomField` shape. Expects selectors.with_field_details() (falls back to queries)."""
+    count = getattr(f, "task_count", None)
+    if count is None:
+        count = f.values.filter(task__deleted_at__isnull=True).count()
+    options = sorted(f.options.all(), key=lambda o: (o.position, o.created_at)) if f.type == "select" else []
+    return {
+        "id": str(f.pk),
+        "projectId": str(f.project_id),
+        "name": f.name,
+        "type": f.type,
+        "required": f.required,
+        "position": f.position,
+        "options": [{"id": str(o.pk), "name": o.name, "color": o.color, "position": o.position} for o in options],
+        "taskCount": count,
+        "createdAt": iso(f.created_at),
+    }
+
+
+class CustomFieldOptionOut(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    color = serializers.CharField()
+    position = serializers.IntegerField()
+
+
+class CustomFieldOut(serializers.Serializer):
+    """Schema for the CustomField payload (built by custom_field_data)."""
+
+    id = serializers.UUIDField()
+    projectId = serializers.UUIDField()
+    name = serializers.CharField()
+    type = serializers.ChoiceField(choices=["text", "number", "select", "date", "user"])
+    required = serializers.BooleanField()  # type: ignore[assignment]
+    position = serializers.IntegerField()
+    options = CustomFieldOptionOut(many=True)
+    taskCount = serializers.IntegerField()
+    createdAt = serializers.DateTimeField()
+
+
+class CustomFieldOptionIn(serializers.Serializer):
+    id = serializers.UUIDField(required=False)
+    name = serializers.CharField()
+    color = serializers.CharField()
+
+
+class CustomFieldIn(serializers.Serializer):
+    name = serializers.CharField()
+    type = serializers.ChoiceField(choices=["text", "number", "select", "date", "user"])
+    required = serializers.BooleanField(required=False)  # type: ignore[assignment]
+    options = CustomFieldOptionIn(many=True, required=False)
+
+
+class CustomFieldPatchIn(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    required = serializers.BooleanField(required=False)  # type: ignore[assignment]
+    options = CustomFieldOptionIn(many=True, required=False)

@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { AppLoader } from "@/components/brand/app-loader";
-import { useSession } from "@/features/auth/session";
-import { useWorkspaces } from "@/features/workspace/queries";
-import { routes } from "@/lib/routes";
+import { AppLoader } from "@/ui/brand/app-loader";
+import { useSession } from "@/platform/auth/session";
+import { useWorkspaces } from "@/platform/workspace/queries";
+import { routes } from "@/platform/routes";
 
 /** "/" → the user's first workspace, onboarding if they have none, or sign in. */
 export default function RootPage() {

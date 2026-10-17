@@ -20,6 +20,8 @@ API additions, known gaps), `docs/frontend-conventions.md` (rules every screen f
 - `npm run test:e2e` — Playwright smoke suite (`e2e/smoke.spec.ts`). It reuses a server already on port 3100, or
   starts one.
 - `npm run build` — must pass. Stop any running `next dev` first, because both use `.next`.
+- `npm run gen:api` — regenerates `src/api/schema.d.ts` from `../docs/openapi.yaml`. `npm run check:api` (also in
+  `npm test`, `src/api/schema.test.ts`) fails when it is stale: regenerate, then fix what typecheck reports.
 
 Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-library` on TanStack Virtual's
 `useVirtualizer` in `list-screen.tsx`). Ignore Tailwind "canonical class" IDE hints.
@@ -38,48 +40,105 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   unfamiliar Next APIs.
 - **Performance rules:** the React Compiler is on (Turbopack's Rust port, no Babel plugin), so write plain
   hooks-compliant components and let it memoize. Change only the query string (`?task=`, filters, dialog state)
-  with `pushUrl` / `replaceUrl` from `src/lib/routes.ts`, never `router.push`: the router refetches the page for
+  with `pushUrl` / `replaceUrl` from `src/platform/routes.ts`, never `router.push`: the router refetches the page for
   every `router.push`, the History API does not. Heavy, open-on-demand modules (Tiptap, cmdk) stay code-split
   through `lazyWithPreload` (`src/lib/hooks/lazy-with-preload.tsx`), warmed at idle; route-only ones (Recharts)
   simply live in their route.
 
 ## Architecture
 
-- **`src/app/`** — routes. Pages are thin and render a screen from `src/features/<area>/`.
+- **`src/app/`** — routes. Pages are thin and render a screen from `src/platform/<area>/` or
+  `src/modules/tracking/<area>/`. Page URLs are unchanged by the platform restructure.
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
-  - Also: `trash`, `settings/{general,members,roles,integrations,notifications,profile,audit}` (`integrations`: v2,
+  - Also: `trash`, `sales` (Stage 3 placeholder), `settings/{general,members,roles,teams,modules,integrations,notifications,profile,audit}` (`teams`: Stage 4) (`integrations`: v2,
     board 37; `notifications`: channels, matrix and quiet hours since v2 board 38), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
   - Board 37 has no project route of its own: the task panel's Development section, the board / list PR chip and
     project settings `?tab=development` (shown when `Project.devEnabled`).
   - Import wizard (v2, board 40): no route; `?import=new|<jobId>` on any project view (`ImportWizardHost` in the
     project shell), history in project settings `?tab=import`.
 - **Task side panel:** `?task=KEY` on any project view (`TaskPanelHost`, with a card→panel morph).
-- **`src/components/ui/`** — design-system primitives. Always reuse these:
+- **`src/ui/`** — design-system primitives. Always reuse these:
   - Button (`disabledReason`, `kbd`), Menu, Modal/Sheet/Drawer, SidePanel, Tabs/NavTabs/FilterPills, toast;
   - feedback: Skeleton, EmptyState (with `illustration`), ErrorState, ProgressBar/Ring.
-- **`src/components/shell/`** — sidebar, top bar (`TopBarActions` portal), global hotkeys, dev tools, edge screens
+- **`src/platform/shell/`** — sidebar, top bar (`TopBarActions` portal), global hotkeys, dev tools, edge screens
   (404/403/500).
-- **`src/lib/api/`** — the only place that talks to a server.
+- **`src/api/`** — the only place that talks to a server.
+  - **Types come from the backend's schema (platform Stage 5).** `schema.d.ts` is generated (never edit it);
+    `types.ts` aliases `components["schemas"]` with `Wire` (drops `readonly`), `Refine` (narrows a loose field; the
+    override must be assignable to the schema's, so drift fails typecheck) and `SchemaGap` (a known wrong schema
+    field, listed in `docs/final-report.md` §6). Don't hand-write a wire shape: add the field to the backend schema,
+    regenerate, alias it. Client-only types (catalogue, filters, timeline modes) and the few extensions for
+    client-computed fields (the bare `TrashKind`) are commented as such. `ApiSchemas` exposes the raw components for
+    wire shapes the client normalizes (the mock's trash routes answer with them).
   - Screens call `api.<group>.<fn>` from `endpoints.ts`, with query keys from `qk` in `query-keys.ts`.
   - `getTransport()` picks `HttpTransport` (live) or `MockTransport` (mock) based on `NEXT_PUBLIC_API_MODE`.
   - Errors: `ApiError { code, message, details, status }`.
-- **`src/lib/realtime/`** (v2, board 33) — the one SSE stream and presence. `RealtimeProvider` (mounted by
+- **`src/platform/realtime/`** (v2, board 33) — the one SSE stream and presence. `RealtimeProvider` (mounted by
   `app/[workspace]/layout.tsx`) elects a leader tab (Web Locks + BroadcastChannel); the leader runs the fetch-based
   stream (`http-source.ts`, or `MockRealtimeSource` in mock mode, in-process) and every tab applies events to its
   cache (`apply-event.ts`). `useLiveInterval(ms)` is `false` while live, `ms` otherwise; use it instead of a literal
-  `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`features/presence`).
-- **`src/lib/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts`. Each handler file exports `register<Area>()`,
+  `POLL_MS` for anything that polls. Screens claim their presence location with `usePresence` (`platform/presence`).
+- **`src/api/mock/`** — the mock backend: seed, DB, router, `handlers/*.ts` (tracking routes registered as `/tracking/...`;
+  comments and attachments on `/targets/:type/:id/...`, which resolve only `tracking.task`). Each handler file exports `register<Area>()`,
   which is called from `mock/transport.ts`.
   - Realtime: handlers publish events through `mockBus` (`mock/realtime.ts`); the transport emits a request's events
     only when its handler succeeds. Planning and settings routes publish from the table in `mock/publish-routes.ts`.
   - The mock enforces permissions and `version` conflicts server-side. Keep the UI's gating identical.
   - Data is cached in localStorage (`lightex-mock-db`). Bump `SCHEMA` in `seed.ts` only when the seed shape really
     changes; new collections are added as optional fields instead.
-- **`src/lib/permissions/`** — the permission catalogue, the 7 default roles, and `useCan`, `<Can>`, `can()`,
+  - Records (`db-types.ts`) are the generated types minus derived fields; fields the schema made required later are
+    optional on the record and filled on the way out (`toStatus`, `toLabel`, `toActivity`, `toAudit`,
+    `toNotification` in `derive.ts`), so cached databases still load.
+- **`src/platform/roles/`** — the permission catalogue, the 7 default roles, and `useCan`, `<Can>`, `can()`,
   `canEditTask`.
-- **`src/features/`** — one folder per product area. Each holds its screens, queries, mutations and tests.
+- **Layout (platform Stage 1, `docs/platform-architecture.md` §11 and `docs/platform/stage1-contract.md` at the
+  repo root).** One folder per product area; each holds its screens, queries, mutations and tests.
+  - `src/platform/` — core: shell, auth, workspace, settings, members, roles (catalogue, `can`, role editor),
+    notifications, search, audit, trash, onboarding, palette, presence.
+  - `src/modules/tracking/` — the tracking module: projects, board, list, tasks, sprints, epics, goals, filters,
+    schedule, reports, dashboards, fields, dependencies, time, import, integrations, development, my-tasks,
+    project-settings. `src/modules/sales/` is the Stage 3 placeholder (`module.tsx`, a health-check page).
+  - `src/registry/` — the module registry. `index.ts` lists each module's `module.tsx` (nav items, project nav,
+    sidebar sections and cards, shell overlays, palette actions); `services.ts` lists each module's `services.ts`
+    (comment / attachment target types with the queries a collab event touches, notification text). Platform code
+    renders these slots; add a module's UI there, not in `sidebar.tsx` / `app-shell.tsx` / the palette.
+  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` never imports
+    `modules/` (the inbox's task chips are tracking's `targetPreviews` registry slot since Stage 3).
+    The workspace home (`modules/tracking/home/`) and the project activity feed (`modules/tracking/projects/`) are
+    tracking screens.
+- **Module system (platform Stage 3, `docs/platform/stage3-contract.md`).** `Workspace.enabledModules` (always has
+  `core`) plus `my_permissions` filter every registry slot (`moduleNavItems(ws)`, `projectNavItems(ws)`, …). Each
+  module declares the workspace `routes` it owns; `ModuleRouteGuard` (`platform/shell/module-screens.tsx`) renders
+  "Module disabled" (a link to Settings → Modules for `core.modules.manage`) or a 403. Settings → Modules is
+  `platform/modules/`; onboarding asks "What do you need?" and sends `modules` on workspace creation. The role editor
+  groups permissions by module and hides disabled ones. The mock keeps `workspaceModules` rows, guards every
+  `/{module}/…` route once in `mock/router.ts` (403 `module_disabled`) and filters a disabled module's permissions out
+  of `my_permissions`, role responses and search (`mock/modules.ts`). Sales starts off in the seed.
+- **Teams and data scope (platform Stage 4, `docs/platform/stage4-contract.md`).** Settings → Teams is
+  `platform/teams/` (every member reads it; writes need `core.teams.manage`, shown with a `disabledReason`). Catalogue
+  entries carry `scopable`; a granted scopable permission gets an Own / Team / All selector in the role editor and
+  saving sends `dataScopes`. `useDataScope(code)` (`platform/roles/can.tsx`) reads `myDataScopes`. No real module has
+  a scopable permission yet: tests push a fixture entry into `PERMISSION_CATALOGUE`, which the mock reads too
+  (`mock/data-scope.ts`). The seed (SCHEMA 7) has Frontend, Backend and Infrastructure in `platform` and Brand in
+  `design-guild`.
+- **Stage 5 (cleanup, `docs/platform/stage5-contract.md` §2).** Generated API types (above). `Notification.type` is a
+  plain string: `NotificationKind` lists the kinds the inbox draws, `eventMeta()` falls back for others, and
+  `eventType` carries the registry key. A non-owner widening a role's data scope beyond their own gets 403
+  `data_scope_exceeds_own` (`details {code, dataScope, yours}`): an error toast in the role editor, enforced by the
+  mock (`assertWithinOwnScope`). Realtime `core.module.changed` `{module, enabled}` invalidates the workspace, its
+  modules and the workspace list, so the sidebar follows a toggle made elsewhere.
+- **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
+  (everything project-related), plus `sales.health.view`; catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
+  (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
+  `core.<entity>.<verb>` (stream control events `hello` / `reset` / `reconnect` stay bare); notification
+  preference keys are `tracking.task.assigned` and so on. `actionEntity()` in `src/lib/audit.ts` strips the prefix.
+- **Generic services (platform Stage 2, `docs/platform/stage2-contract.md` at the repo root).** Comments and
+  attachments hang off a target (`TargetRef`: `targetType` `tracking.task`, `targetId` the task id; `taskTarget()`
+  builds it). Collab realtime events are `core.comment.*` / `core.attachment.*` with `{targetType, targetId}`; the
+  comment preference keys are `core.comment.created` / `core.comment.mentioned`. Audit `entityType` / `targetType`
+  and trash kinds may arrive namespaced: `auditEntity()` and `normalizeTrashList()` (`endpoints.ts`) strip the module.
 
 ## Rules that must not be broken
 
@@ -91,9 +150,9 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Live mode: access token in memory only, refresh token in an httpOnly cookie. On a 401, refresh once and retry once.
     Never put tokens in web storage.
   - Mock mode: the session is a user id in `lightex-mock-session`. It is not a token.
-- **Mutations:** optimistic, with rollback and a toast (`src/features/tasks/mutations.ts`, `src/lib/api/optimistic.ts`).
+- **Mutations:** optimistic, with rollback and a toast (`src/modules/tracking/tasks/mutations.ts`, `src/api/optimistic.ts`).
   Board moves send `version`; a 409 shows "Someone else changed this card".
-- **Freshness:** No WebSockets. One SSE stream (`src/lib/realtime/`) invalidates queries while live; otherwise
+- **Freshness:** No WebSockets. One SSE stream (`src/platform/realtime/`) invalidates queries while live; otherwise
   refetch on window focus and poll the board and inbox every 30s while visible. SSE is the agreed exception (board 33);
   any failure, or the server saying realtime is off, falls back to that polling.
 - **Every screen** has loading (skeleton), empty and error (retry) states. It must work at 390px and in the navy,
@@ -113,7 +172,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     (Telegram / SMS / Web Push notification channels, `docs/v2/38-telegram-sms-push.md`).
   - What a spec itself leaves out stays hidden or "Coming soon" (Trello and API import connectors, Telegram quick
     replies, report PNG/PDF export).
-  - Import: the CSV parser lives only in `src/lib/mock/import/` (the lazily loaded mock chunk); the live client never
+  - Import: the CSV parser lives only in `src/api/mock/import/` (the lazily loaded mock chunk); the live client never
     parses CSV. Trello and every API connector stay "Coming soon".
   - Dashboards and presence: realtime is one SSE stream per browser per workspace (never a WebSocket). No
     character-level co-editing, remote cursors or remote selections (spec §9 #8, #9); typing indicators only.
@@ -121,19 +180,19 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     with `#connect=<attempt>.<token>` on `/[ws]/settings/integrations`; the screen strips the fragment before the
     confirm call. In mock mode `authorizeUrl` is `#mock-authorize=<provider>.<attempt>` and the design's
     "Authorize Lightex" dialog stands in for the provider. Task-key matching and branch names live in
-    `src/features/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
+    `src/modules/tracking/integrations/lib/` with shared vectors (`dev-vectors.json`). PR titles and commit messages are
     text; keys are highlighted with React parts, never innerHTML.
   - Notification channels (board 38): `/[ws]/settings/notifications` has Channels, the 6 × 5 preference matrix and
-    quiet hours (`src/features/notifications/channels/`). Pure logic (phone numbers with shared
+    quiet hours (`src/platform/notifications/channels/`). Pure logic (phone numbers with shared
     `phone-vectors.json`, quiet hours, the matrix / row model, the Telegram and SMS state machines, OTP editing,
     push flows) is unit-tested there. Push uses the static `public/sw.js` (scope `/`, no fetch listener; header rule
     in `next.config.ts`) behind a `PushPlatform` (`push.ts`: browser, mock and `fakePushPlatform`). The VAPID key comes
     from the API, never an env var. The Telegram QR code is **not drawn**: it needs `uqr`, a new dependency pending
     the user's decision (TODO in `telegram-dialog.tsx`); the deep link and the 6-character code work without it.
     SMS texts and test previews never carry task titles or comments.
-- **No new endpoints without the paper trail.** An endpoint or field is only added with all of: types +
-  `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections of
-  `docs/final-report.md`.
+- **No new endpoints without the paper trail.** An endpoint or field is only added with all of: the backend schema
+  (regenerated types) + `endpoints.ts`, a mock implementation, and an entry in the "Requested API additions" sections
+  of `docs/final-report.md`.
 - **No new npm dependencies** without a reason recorded in `docs/final-report.md` §2.
 
 ## Design sources
@@ -193,6 +252,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 
 - The repo root is a monorepo: `frontend/` (this app) and `backend/`, which another session or team works on.
 - **Commit only frontend paths** (`git commit -- frontend`); never stage someone else's in-progress `backend/` changes.
-- **Backend contract:** the backend publishes `docs/openapi.yaml` at the repo root. `frontend/docs/api-contract.md`
-  was written earlier, from the brief. Reconcile the two before switching to live mode.
+- **Backend contract:** the backend publishes `docs/openapi.yaml` at the repo root, and the client's types are
+  generated from it (`npm run gen:api`). `frontend/docs/api-contract.md` is a readable summary; the schema wins. The
+  schema gaps the client still works around are in `docs/final-report.md` §6.
 - **Commit messages** end with the Co-Authored-By attribution line.

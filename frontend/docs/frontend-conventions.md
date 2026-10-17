@@ -5,17 +5,25 @@ design boards and like every other screen.
 
 ## Sources
 - Design specs (exact values, copy, states): `design/notes/*.md`. Readable boards: `design/clean/*.html`.
-- API: `docs/api-contract.md`. All calls go through `api` from `@/lib/api/endpoints` (grouped:
+- API: `docs/api-contract.md`. All calls go through `api` from `@/api/endpoints` (grouped:
   `api.auth`, `api.workspaces`, `api.roles`, `api.projects`, `api.planning`, `api.tasks`, `api.board`,
   `api.backlog`, `api.comments`, `api.attachments`, `api.reports`, `api.notifications`, `api.search`,
-  `api.audit`). Never call `fetch` directly. Types: `@/lib/api/types`.
-- Mock backend: `src/lib/mock/**` (handlers mirror the contract). Mock mode is the default.
+  `api.audit`). Never call `fetch` directly. Types: `@/api/types`.
+- Mock backend: `src/api/mock/**` (handlers mirror the contract). Mock mode is the default. Tracking
+  routes live under `/tracking/...` in both `endpoints.ts` and the mock router; core routes are unprefixed.
+  Comments and attachments use the generic `targets/{targetType}/{targetId}/…` routes; tracking code passes
+  `taskTarget(task.id)` (`src/modules/tracking/tasks/target.ts`).
+- Module screens live in `src/modules/<module>/`, platform screens in `src/platform/`. `src/platform` does not
+  import `src/modules`: a module contributes through `src/registry` instead. UI (nav items, sidebar sections and
+  cards, shell overlays, palette actions) goes in its `module.tsx`, listed by `src/registry/index.ts`; non-UI hooks
+  (comment / attachment target types, notification text) go in its `services.ts`, listed by
+  `src/registry/services.ts`.
 
 ## Stack rules
 - Next.js 16 App Router, client components for screens (`"use client"`). Route files under
-  `src/app/**/page.tsx` stay thin and render a feature component from `src/features/<area>/`.
+  `src/app/**/page.tsx` stay thin and render a feature component from `src/platform/<area>/` or `src/modules/tracking/<area>/`.
 - Next 16: `params` in server `page`/`layout` is a Promise (`const { key } = await params`). In client
-  components use `useParams()` or `useRouteInfo()` from `@/lib/routes`. Wrap components that call
+  components use `useParams()` or `useRouteInfo()` from `@/platform/routes`. Wrap components that call
   `useSearchParams()` in `<Suspense>`.
 - Tailwind v4 with design tokens. Colours: `bg-bg bg-surface bg-raised bg-hover border-line border-line-2
   border-control text-fg text-fg-2 text-fg-3 bg-accent text-accent-t bg-accent-s text-ok text-warn
@@ -28,7 +36,7 @@ design boards and like every other screen.
   reduced-motion media query in globals.css.
 - No new dependencies.
 
-## Components (`@/components/ui/*`), use these, don't re-style from scratch
+## Components (`@/ui/*`), use these, don't re-style from scratch
 `Button` (variants primary/secondary/ghost/danger/danger-ghost, sizes sm/md/lg, `icon`, `loading`,
 `kbd`, `tooltip`+`tooltipKeys`, `disabledReason` = disabled with visible reason), `Kbd`, `Shortcut`,
 `Input`, `Textarea`, `Field` (label + error/hint, wires aria), `Checkbox`, `Switch`, `Radio`,
@@ -43,21 +51,23 @@ design boards and like every other screen.
 See them all at `/dev/ui`.
 
 ## Data
-- TanStack Query. Keys only from `qk` (`@/lib/api/query-keys`). Shared hooks:
-  `@/features/workspace/queries` (useWorkspaces, useWorkspace, useProjects, useWsMembers, useRoles,
-  useUnreadCount, useMyTasks), `@/features/projects/queries` (useProject, useStatuses, useLabels,
+- TanStack Query. Keys only from `qk` (`@/api/query-keys`). Shared hooks:
+  `@/platform/workspace/queries` (useWorkspaces, useWorkspace, useProjects, useWsMembers, useRoles,
+  useUnreadCount, useMyTasks), `@/modules/tracking/projects/queries` (useProject, useStatuses, useLabels,
   useProjectMembers, useEpics, useSprints, useMilestones, useObjectives, useActiveSprint).
-- Task writes: `@/features/tasks/mutations` (useUpdateTask, useMoveTask, useCreateTask,
+- Task writes: `@/modules/tracking/tasks/mutations` (useUpdateTask, useMoveTask, useCreateTask,
   useDeleteTask) are optimistic with rollback + toast. Other mutations: invalidate the narrowest keys
   (`qk.objectives(projectId)` etc.).
 - Current context: `useCurrentWorkspace()`, `useCurrentProject()` (inside project routes),
-  `useSession()` / `useMe()` (`@/features/auth/session`), `useRouteInfo()` and `routes.*` for URLs.
+  `useSession()` / `useMe()` (`@/platform/auth/session`), `useRouteInfo()` and `routes.*` for URLs.
 - Errors: every rejection is an `ApiError { code, message, details, status, ref, request }`;
-  `isForbidden/isNotFound/isConflict/errorMessage` in `@/lib/api/errors`. 422 field errors:
+  `isForbidden/isNotFound/isConflict/errorMessage` in `@/api/errors`. 422 field errors:
   `error.fieldErrors`.
 
 ## Permissions (critical)
-- Use `useCan("perm")` / `<Can permission="perm">` from `@/lib/permissions/can`. Workspace keys read
+- Use `useCan("perm")` / `<Can permission="perm">` from `@/platform/roles/can`. Codes are namespaced by
+  module: `core.*` (workspace, roles, audit, modules, teams) or `tracking.*` (e.g.
+  `useCan("tracking.task.create", project)`); never write a bare `task.create`. Workspace keys read
   the workspace's `my_permissions`; project keys read the current project's. Never check role names.
 - Hidden means not rendered. If a control is visible but unusable (e.g. a rule like "sprint has open
   tasks"), use `Button disabledReason="…"`; never a bare disabled control.

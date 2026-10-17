@@ -2,13 +2,13 @@
 
 import { Calendar, Filter, Flag, MoreHorizontal, Plus, Search, Target, Zap } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { AppIcon, LogoMark, Wordmark } from "@/components/brand/logo";
+import { AppIcon, LogoMark, Wordmark } from "@/ui/brand/logo";
 import { BrandGallery } from "./brand-gallery";
-import { Avatar, AvatarStack, ProjectBadge, UnassignedAvatar } from "@/components/ui/avatar";
-import { CopyKey, EntityChip, LabelChip, PriorityBadge, StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Panel, StatTile } from "@/components/ui/card";
-import { Checkbox, Radio, Segmented, Switch } from "@/components/ui/choice";
+import { Avatar, AvatarStack, ProjectBadge, UnassignedAvatar } from "@/ui/avatar";
+import { CopyKey, EntityChip, LabelChip, PriorityBadge, StatusBadge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Panel, StatTile } from "@/ui/card";
+import { Checkbox, Radio, Segmented, Switch } from "@/ui/choice";
 import {
   CommandFooter,
   CommandGroup,
@@ -16,7 +16,7 @@ import {
   CommandItem,
   CommandList,
   CommandShell,
-} from "@/components/ui/command-shell";
+} from "@/ui/command-shell";
 import {
   CountUp,
   EmptyState,
@@ -25,19 +25,19 @@ import {
   ProgressRing,
   Skeleton,
   SkeletonRows,
-} from "@/components/ui/feedback";
-import { PriorityIcon, StatusGlyph, glyphLabel, type GlyphKind, type PriorityLevel } from "@/components/ui/glyphs";
-import { InlineEditText } from "@/components/ui/inline-edit";
-import { Field, Input } from "@/components/ui/input";
-import { Shortcut } from "@/components/ui/kbd";
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { ConfirmDialog } from "@/components/ui/modal";
-import { DateChip, DatePicker } from "@/components/ui/date-picker";
-import { Select } from "@/components/ui/select";
-import { SidePanel } from "@/components/ui/side-panel";
-import { FilterPills, TabPanel, Tabs } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/toast";
-import { Tooltip } from "@/components/ui/tooltip";
+} from "@/ui/feedback";
+import { PriorityIcon, StatusGlyph, glyphLabel, type GlyphKind, type PriorityLevel } from "@/ui/glyphs";
+import { InlineEditText } from "@/ui/inline-edit";
+import { Field, Input } from "@/ui/input";
+import { Shortcut } from "@/ui/kbd";
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/ui/menu";
+import { ConfirmDialog } from "@/ui/modal";
+import { DateChip, DatePicker } from "@/ui/date-picker";
+import { Select } from "@/ui/select";
+import { SidePanel } from "@/ui/side-panel";
+import { FilterPills, TabPanel, Tabs } from "@/ui/tabs";
+import { toast } from "@/ui/toast";
+import { Tooltip } from "@/ui/tooltip";
 import { addDaysISO, todayISO } from "@/lib/utils/dates";
 
 const GLYPHS: GlyphKind[] = ["backlog", "todo", "progress", "review", "done", "canceled"];

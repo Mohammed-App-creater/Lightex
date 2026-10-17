@@ -1,6 +1,6 @@
 "use client";
 
-import { NotificationPreferencesPage } from "@/features/notifications/preferences";
+import { NotificationPreferencesPage } from "@/platform/notifications/preferences";
 
 export default function NotificationSettingsPage() {
   return <NotificationPreferencesPage />;

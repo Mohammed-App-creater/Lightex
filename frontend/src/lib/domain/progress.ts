@@ -1,4 +1,4 @@
-import type { Progress, Status, Task } from "@/lib/api/types";
+import type { Progress, Status, Task } from "@/api/types";
 
 /*
  * Progress for objectives, milestones, sprints and epics is computed from tasks and never
@@ -18,7 +18,7 @@ export function isCanceled(statusId: string, statuses: Pick<Status, "id" | "glyp
 }
 
 /** done / total over tasks, ignoring canceled and deleted tasks. */
-export function progressOf(tasks: Pick<Task, "statusId" | "deletedAt">[], statuses: Status[]): Progress {
+export function progressOf(tasks: Pick<Task, "statusId" | "deletedAt">[], statuses: Pick<Status, "id" | "category" | "glyph">[]): Progress {
   const live = tasks.filter((t) => !t.deletedAt && !isCanceled(t.statusId, statuses));
   const done = live.filter((t) => isDoneStatus(t.statusId, statuses)).length;
   const total = live.length;

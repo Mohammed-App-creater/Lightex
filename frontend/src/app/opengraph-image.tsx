@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import type { ReactNode } from "react";
-import { markSvg, svgDataUri } from "@/components/brand/icon-svg";
+import { markSvg, svgDataUri } from "@/ui/brand/icon-svg";
 
 /*
  * Open Graph image (board 35, navy variant), 1200×630: wordmark top-left, "Ship at lightning

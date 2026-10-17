@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { appIconSvg, svgDataUri } from "@/components/brand/icon-svg";
+import { appIconSvg, svgDataUri } from "@/ui/brand/icon-svg";
 
 /* Apple touch icon (board 35 "App icon" 180). iOS rounds the corners itself, so the tile is square. */
 

@@ -29,27 +29,34 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
-    "apps.common",
-    "apps.accounts",
-    "apps.access",
-    "apps.workspaces",
-    "apps.projects",
-    "apps.planning",
-    "apps.tasks",
-    "apps.collaboration",
-    "apps.notifications",
-    "apps.reports",
-    "apps.audit",
-    "apps.search",
-    "apps.timetracking",
-    "apps.imports",
-    "apps.dashboards",
-    "apps.realtime",
-    "apps.integrations",
+    "core.common",
+    "core.accounts",
+    "core.access",
+    "core.workspaces",
+    "core.modules",
+    "core.teams",
+    "modules.tracking.projects",
+    "modules.tracking.planning",
+    "modules.tracking.tasks",
+    "core.collab",
+    "core.events",
+    "core.notifications",
+    "modules.tracking.reports",
+    "core.audit",
+    "core.search",
+    "modules.tracking.timetracking",
+    "modules.tracking.imports",
+    "modules.tracking.dashboards",
+    "core.realtime",
+    "modules.tracking.integrations",
+    "core.channels",
+    "modules.sales",
 ]
 
 MIDDLEWARE = [
-    "apps.common.middleware.RequestIdMiddleware",
+    "core.common.middleware.RequestIdMiddleware",
+    "core.common.scoping.WorkspaceScopeMiddleware",
+    "core.modules.services.EnabledModulesMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -60,6 +67,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Workspace scoping (core/common/scoping.py): outside a request, scoped managers raise unless a workspace is given or
+# the code runs inside `unscoped()`. Requests always start strict (WorkspaceScopeMiddleware).
+WORKSPACE_SCOPE_DEFAULT = "strict"
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -93,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-    {"NAME": "apps.accounts.validators.CharacterClassValidator"},
+    {"NAME": "core.accounts.validators.CharacterClassValidator"},
 ]
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
@@ -115,12 +126,12 @@ STORAGES = {
 # ───────────────────────── API ─────────────────────────
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["apps.accounts.authentication.BearerJWTAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["core.accounts.authentication.BearerJWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
+    "EXCEPTION_HANDLER": "core.common.exceptions.api_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -173,7 +184,25 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api/v1",
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
-    "DISABLE_ERRORS_AND_WARNINGS": True,
+    "DISABLE_ERRORS_AND_WARNINGS": False,
+    "SECURITY": [{"bearerAuth": []}],
+    # Stable names for choice sets that share a field name (the frontend generates its types from these).
+    "ENUM_NAME_OVERRIDES": {
+        "ChecksStateEnum": ["passing", "failing", "running"],
+        "ImportSourceEnum": ["csv", "jira"],
+        "ImportStatusEnum": ["draft", "ready", "queued", "running", "completed", "failed", "canceled"],
+        "ObjectiveStatusEnum": ["active", "achieved", "dropped"],
+        "DashboardWidgetTypeEnum": ["burndown", "my_tasks", "objectives", "workload", "velocity", "activity"],
+        "CustomFieldTypeEnum": ["text", "number", "select", "date", "user"],
+        "TaskTypeEnum": ["feature", "bug", "chore", "spike"],
+        "DashboardVisibilityEnum": ["shared", "personal"],
+        "RepositoryVisibilityEnum": ["public", "private", "internal"],
+        "SavedViewVisibilityEnum": ["me", "project"],
+        "SavedViewIconEnum": ["filter", "star", "user", "calendar", "bolt", "flag"],
+        "SavedViewLayoutEnum": ["board", "list"],
+    },
+    # The root /health is the load balancer's probe; /api/v1/health is the documented one.
+    "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],
 }
 
 # ───────────────────────── CORS / CSRF ─────────────────────────
@@ -313,6 +342,54 @@ INTEGRATION_BACKFILL_MAX_PRS = env.int("INTEGRATION_BACKFILL_MAX_PRS", default=2
 INTEGRATION_CATCHUP_MINUTES = env.int("INTEGRATION_CATCHUP_MINUTES", default=30)
 WEBHOOK_MAX_BODY_BYTES = env.int("WEBHOOK_MAX_BODY_BYTES", default=5 * 1024 * 1024)
 WEBHOOK_RETENTION_DAYS = env.int("WEBHOOK_RETENTION_DAYS", default=7)
+
+# ───────────────────────── Notification channels (board 38) ─────────────────────────
+# docs/v2/38-telegram-sms-push.md §2. Each channel has a real backend plus console / fake / disabled.
+
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="").lstrip("@")
+TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
+TELEGRAM_LINK_TTL_SECONDS = env.int("TELEGRAM_LINK_TTL_SECONDS", default=600)
+TELEGRAM_API_BASE = env("TELEGRAM_API_BASE", default="https://api.telegram.org")
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
+TWILIO_MESSAGING_SERVICE_SID = env("TWILIO_MESSAGING_SERVICE_SID", default="")
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+TWILIO_API_BASE = env("TWILIO_API_BASE", default="https://api.twilio.com")
+SMS_COUNTRIES: list[str] = [c.strip().upper() for c in env.list("SMS_COUNTRIES", default=["US", "GB", "DE"])]
+SMS_USER_DAILY_CAP = env.int("SMS_USER_DAILY_CAP", default=10)
+SMS_GLOBAL_DAILY_CAP = env.int("SMS_GLOBAL_DAILY_CAP", default=300)
+SMS_OTP_GLOBAL_DAILY_CAP = env.int("SMS_OTP_GLOBAL_DAILY_CAP", default=100)
+VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
+VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
+VAPID_SUBJECT = env("VAPID_SUBJECT", default="")
+# Fernet key(s), comma-separated, newest first. Empty: a dev key derived from DJANGO_SECRET_KEY.
+CHANNELS_ENCRYPTION_KEY = env("CHANNELS_ENCRYPTION_KEY", default="")
+_VAPID = bool(VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY)
+TELEGRAM_BACKEND = env("TELEGRAM_BACKEND", default="bot" if TELEGRAM_BOT_TOKEN else "disabled")
+SMS_BACKEND = env("SMS_BACKEND", default="twilio" if TWILIO_ACCOUNT_SID else "disabled")
+WEB_PUSH_BACKEND = env("WEB_PUSH_BACKEND", default="webpush" if _VAPID else "disabled")
+# "auto" (Celery with a broker, else a per-process sender pool), "thread", "celery" or "inline" (tests).
+CHANNEL_DISPATCH = env("CHANNEL_DISPATCH", default="auto")
+CHANNEL_SENDER_THREADS = env.int("CHANNEL_SENDER_THREADS", default=4)
+CHANNEL_MAX_ATTEMPTS = env.int("CHANNEL_MAX_ATTEMPTS", default=5)
+CHANNEL_HTTP_TIMEOUT = env.float("CHANNEL_HTTP_TIMEOUT", default=10.0)
+WEB_PUSH_ALLOWED_HOSTS: list[str] = env.list(
+    "WEB_PUSH_ALLOWED_HOSTS",
+    default=[
+        "fcm.googleapis.com",
+        "updates.push.services.mozilla.com",
+        "web.push.apple.com",
+        "*.notify.windows.com",
+        "*.push.apple.com",
+    ],
+)
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].update(  # type: ignore[attr-defined]
+    {
+        "channel_connect": env("THROTTLE_CHANNEL_CONNECT", default="20/hour"),
+        "channel_test": env("THROTTLE_CHANNEL_TEST", default="12/hour"),
+    }
+)
 
 # ───────────────────────── Logging ─────────────────────────
 

@@ -8,7 +8,7 @@ Each step passed its checks before it was committed.
 | `npm run build` | passes |
 | `npm run typecheck` | clean (TypeScript strict) |
 | `npm run lint` | 0 errors, 1 warning (expected React Compiler note on TanStack Virtual's `useVirtualizer`) |
-| `npm test` | 52 files, 814 tests passing (after board 38; run with `--maxWorkers=2` on this machine) |
+| `npm test` | 63 files, 876 tests passing (after platform Stage 5, including the `schema.d.ts` staleness check; run with `--maxWorkers=2` on this machine) |
 | `npm run test:e2e` | 8 Playwright tests passing (sign-in → board → task panel → palette; role-hiding matrix) |
 | Route sweep | 29 routes × {navy 1440, light 1440, near-black 390, light 390}: all render, no console errors, no horizontal scroll |
 
@@ -94,6 +94,11 @@ pointer events, and the widget charts reuse Recharts.
 Board 37 (integrations) adds **no** dependency: key matching, branch names and the connect fragment are plain
 TypeScript, and the Create branch popover reuses Radix Popover.
 
+Platform Stage 5 adds **`openapi-typescript`** (dev dependency only, never shipped): `npm run gen:api` generates
+`src/api/schema.d.ts` from the backend's `docs/openapi.yaml`, so the API types can't drift from the backend, and the
+staleness test (`src/api/schema.test.ts`, `npm run check:api`) uses its programmatic API to regenerate and compare.
+Hand-writing the types again was the alternative; it is what let the client and the schema disagree in the first place.
+
 Board 38 (notification channels) adds **no** dependency. The spec (§8.10) proposes **`uqr`** (unjs, zero-dependency,
 ~12 KB min, lazily loaded with the Telegram dialog) to draw the Telegram QR code. **Pending the user's decision; not
 installed.** Until it is approved the dialog has no QR (a TODO marks the spot in `telegram-dialog.tsx`); the
@@ -140,8 +145,15 @@ The rule applied was: docs win for behaviour, design wins for appearance.
 
 ## 5. Requested API additions
 
-`docs/api-contract.md` was written from the brief, so **the whole contract needs backend confirmation**. These
-items were needed by the designed screens and go beyond what the brief names. All are implemented in the mock.
+**Status (platform Stage 5): delivered.** The backend serves every endpoint and field requested below, and its
+`docs/openapi.yaml` describes them. The client's types are now generated from that schema (`src/api/schema.d.ts`,
+aliased in `src/api/types.ts`), so this section is the history of what was asked for and why. What the schema still
+doesn't describe, or describes wrongly, is listed in §6 under "Remaining known gaps"; the items under "Needed by the
+design, with no client call yet" below were never built on either side and stay hidden or "Coming soon".
+
+The original note: `docs/api-contract.md` was written from the brief, so the whole contract needed backend
+confirmation. These items were needed by the designed screens and go beyond what the brief names. All are implemented
+in the mock.
 
 **Endpoints the client calls, implemented in the mock**
 
@@ -201,7 +213,7 @@ banner (none for a cancel). Built from `api.auth.googleStartUrl()`.
 
 The contract is `docs/v2/39-fields-dependencies-time.md` (repo root); the backend builds the same document in
 parallel. Every item below is typed in `src/lib/api/types.ts`, has an `endpoints.ts` function and a `qk` key, and is
-implemented in the mock (`src/lib/mock/handlers/extensions.ts`, tested in `src/lib/mock/extensions.test.ts`).
+implemented in the mock (`src/api/mock/handlers/extensions.ts`, tested in `src/api/mock/extensions.test.ts`).
 
 **Endpoints**
 
@@ -249,8 +261,8 @@ and 403 / 409 on timer stop (timer discarded).
 
 The contract is `docs/v2/32-timeline-calendar.md` (repo root). **No new endpoint**: board 32 adds fields, filters, a
 sort key and validation to existing endpoints. Every item is typed in `src/lib/api/types.ts`, reachable through
-`endpoints.ts` / `qk`, and implemented in the mock (`src/lib/mock/handlers/schedule.ts`, wired into `tasks.ts` and
-`planning.ts`; tested in `src/lib/mock/schedule.test.ts`).
+`endpoints.ts` / `qk`, and implemented in the mock (`src/api/mock/handlers/schedule.ts`, wired into `tasks.ts` and
+`planning.ts`; tested in `src/api/mock/schedule.test.ts`).
 
 **Fields**
 
@@ -297,8 +309,8 @@ that path is the backend's to add (this frontend change doesn't touch `backend/`
 
 The contract is `docs/v2/40-import-wizard.md` (repo root). Every item is typed in `src/lib/api/types.ts`, reachable
 through `endpoints.ts` (`api.imports.*`, `uploadImportFile` in `uploads.ts`) and `qk` (`imports`, `importJob`,
-`importRows`), and implemented in the mock (`src/lib/mock/handlers/imports.ts` + `src/lib/mock/import/*`; tested in
-`src/lib/mock/imports.test.ts` and `src/lib/mock/import/import.test.ts`).
+`importRows`), and implemented in the mock (`src/api/mock/handlers/imports.ts` + `src/api/mock/import/*`; tested in
+`src/api/mock/imports.test.ts` and `src/api/mock/import/import.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -346,20 +358,20 @@ the mock API"); parsed rows live in memory only, so a reload fails `ready` / `qu
 **Shared test vectors and fixtures** (the contract puts the backend copies under
 `backend/apps/imports/tests/data/`; this change doesn't touch `backend/`):
 
-- `src/lib/mock/import/fixtures/import_vectors.json`: decoding, delimiter sniffing, parsing, header synonyms,
+- `src/api/mock/import/fixtures/import_vectors.json`: decoding, delimiter sniffing, parsing, header synonyms,
   suggestions, presets, status / type / people / priority matching, dates and `dateOrder`, numbers, durations,
   `csv_safe`.
-- `src/lib/mock/import/fixtures/jira-export.csv` (the contract's 6-row Jira export) and
-  `src/lib/mock/import/fixtures/sample.ts` (the design's 48-row sample).
+- `src/api/mock/import/fixtures/jira-export.csv` (the contract's 6-row Jira export) and
+  `src/api/mock/import/fixtures/sample.ts` (the design's 48-row sample).
 - `public/import-template.csv`: the live-mode "Download template" file.
 
 ### v2 · Board 33: dashboards, presence and realtime
 
 The contract is `docs/v2/33-dashboards-presence.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
-`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.dashboards.*`, `api.reports.workload`,
+`src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.dashboards.*`, `api.reports.workload`,
 `api.presence.*`, `api.realtime.streamPath`) and `qk` (`dashboards`, `dashboard`, `presence`, `myProjectTasks`), and
-implemented in the mock (`src/lib/mock/handlers/dashboards.ts`, `handlers/presence.ts`, `mock/realtime.ts`; tested in
-`src/lib/mock/dashboards.test.ts`).
+implemented in the mock (`src/api/mock/handlers/dashboards.ts`, `handlers/presence.ts`, `mock/realtime.ts`; tested in
+`src/api/mock/dashboards.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -375,7 +387,7 @@ implemented in the mock (`src/lib/mock/handlers/dashboards.ts`, `handlers/presen
 | P1 | PUT | `/workspaces/:slug/presence/:sessionId` `{ location, state, field, typing }` | member + `project.view` on the location | 200 `{ expiresAt, heartbeatSec, roster }` (the whole project's roster) | `api.presence.put` |
 | P2 | DELETE | `/workspaces/:slug/presence/:sessionId` | member | 204, idempotent (`fetch` `keepalive` on `pagehide`) | `api.presence.leave` |
 | P3 | GET | `/workspaces/:slug/presence?filter[project]=` | `project.view` | 200 `PresenceRoster` | `api.presence.roster` · `qk.presence` |
-| S1 | GET | `/workspaces/:slug/stream?v=1` (`Accept: text/event-stream`, `Authorization: Bearer`, `Last-Event-ID`) | member | 200 `text/event-stream` | `src/lib/realtime/http-source.ts` |
+| S1 | GET | `/workspaces/:slug/stream?v=1` (`Accept: text/event-stream`, `Authorization: Bearer`, `Last-Event-ID`) | member | 200 `text/event-stream` | `src/platform/realtime/http-source.ts` |
 
 **Types:** `WidgetType`, `WidgetConfigMap`, `DashboardWidget`, `DashboardWidgetInput`, `DashboardVisibility`,
 `DashboardTemplate`, `Dashboard`, `DashboardSummary`, `WorkloadRow`, `WorkloadReport`, `PresenceLocationKind`,
@@ -426,9 +438,9 @@ when they differ (they are identical today).
 ### v2 · Board 37: integrations & development (GitHub and GitLab)
 
 The contract is `docs/v2/37-integrations-github-gitlab.md` (repo root). Every item is typed in `src/lib/api/types.ts`
-and `src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.integrations.*`, `api.development.*`) and
+and `src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.integrations.*`, `api.development.*`) and
 `qk` (`integrations`, `availableRepos`, `development`, `devRules`), and implemented in the mock
-(`src/lib/mock/handlers/integrations.ts`, `src/lib/mock/dev-derive.ts`; tested in `src/lib/mock/integrations.test.ts`).
+(`src/api/mock/handlers/integrations.ts`, `src/api/mock/dev-derive.ts`; tested in `src/api/mock/integrations.test.ts`).
 
 **Endpoints** (all under `/api/v1`; same codes and messages as the contract)
 
@@ -495,11 +507,11 @@ should be created from this file, and the two must stay identical.
 ### v2 · Board 38: Telegram, SMS and push notification channels
 
 The contract is `docs/v2/38-telegram-sms-push.md` (repo root). Every item is typed in `src/lib/api/types.ts` and
-`src/lib/realtime/events.ts`, reachable through `endpoints.ts` (`api.channels.*`, the widened
+`src/platform/realtime/events.ts`, reachable through `endpoints.ts` (`api.channels.*`, the widened
 `api.notifications.preferences` / `savePreferences`, `api.workspaces.update`) and `qk` (`channels`, `telegramLink`;
-existing `prefs`, `workspace`), and implemented in the mock (`src/lib/mock/handlers/channels.ts`,
-`src/lib/mock/channels-dispatch.ts`, P1 in `handlers/notifications.ts`, W1 in `handlers/workspaces.ts` /
-`derive.ts`; tested in `src/lib/mock/channels.test.ts`).
+existing `prefs`, `workspace`), and implemented in the mock (`src/api/mock/handlers/channels.ts`,
+`src/api/mock/channels-dispatch.ts`, P1 in `handlers/notifications.ts`, W1 in `handlers/workspaces.ts` /
+`derive.ts`; tested in `src/api/mock/channels.test.ts`).
 
 **Endpoints** (all under `/api/v1`, any signed-in user unless noted; the same codes and `details` as the contract)
 
@@ -540,9 +552,122 @@ it as `?workspace=`. The backend should accept the body field (or say which it w
 `channels-lib.test.ts`. The spec names the backend copy `backend/apps/channels/tests/data/phone_vectors.json`, which
 doesn't exist yet: it should be created from this file, and the two must stay identical.
 
+### Platform Stage 2: generic services
+
+The routes and fields come from `docs/platform/stage2-contract.md` (comments and attachments on
+`targets/{targetType}/{targetId}/…`, confirm at `attachments/{id}/confirm`, `core.comment.*` / `core.attachment.*`
+events, `core.comment.created|mentioned` preference keys, additive `targetType` / `targetId` / `link` / `module`).
+Names the contract left open, which the client assumed and the backend confirmed (types in `src/api/types.ts`, mock in
+`src/api/mock`; `docs/api-contract.md` "Generic services" lists the final shapes, including `Notification.title`,
+search result targets, always-namespaced trash kinds and audit filter groups):
+
+- `UploadTicket.uploadId` is the pending attachment's id, so the client confirms with `POST attachments/{uploadId}/confirm`
+  and no body.
+- Collab event payloads name the record `commentId` / `attachmentId` (optional; the client only needs `targetType`
+  and `targetId`), and the envelope keeps `projectId` for project-owned targets.
+- `GET notification-preferences` may return `labels: {event: string}` to name the matrix rows.
+- Trash and audit namespaced values: kinds `tracking.task`, `tracking.project`, `core.comment`; audit
+  `entityType` = `targetType` = `module.entity` (comment rows `core.comment`, actions `core.comment.created|deleted`).
+
+### Platform Stage 3: module system
+
+From `docs/platform/stage3-contract.md` §3–§5; typed in `src/api/types.ts`, called through `api.modules` / `api.sales`,
+implemented in the mock (`src/api/mock/modules.ts`, `handlers/modules.ts`, the guard in `mock/router.ts`):
+
+- `GET workspaces/{slug}/modules` → `WorkspaceModule[]` (core included) · `qk.modules`; `PUT workspaces/{slug}/modules/{key}`
+  `{enabled}` → `WorkspaceModule` (`core.modules.manage`; 404, 400 `module_not_toggleable`, 400 `module_dependency`
+  with `details.modules`).
+- `Workspace.enabledModules` (always contains `core`); `POST workspaces` accepts `modules: string[]`.
+- `GET sales/workspaces/{slug}/health` → `{status, module, workspace}` (`sales.health.view`, behind the guard).
+- Every `{moduleKey}/…` route of a disabled module → 403 `module_disabled` (the mock adds `details.module`).
+
+Assumed where the contract is silent: `enabledBy` is a user id (nullable) and `enabledAt` is null for core;
+`navItems` is `[]` for a disabled module and not filtered by permission (the client filters); `module_disabled`
+carries `details: {module}`; `POST workspaces` with an unknown module key is a 422 on `modules`. The client sends
+`modules: []` for "Core tracking only". Since Stage 5 a toggle publishes `core.module.changed` (below).
+
+### Platform Stage 4: teams and data scope
+
+From `docs/platform/stage4-contract.md` §1–§2; typed in `src/api/types.ts` (`Team`, `TeamDetail`, `TeamMember`,
+`DataScope`), called through `api.teams` / `api.roles`, implemented in the mock (`handlers/teams.ts`,
+`mock/data-scope.ts`):
+
+- `GET|POST workspaces/{slug}/teams`, `GET|PATCH|DELETE teams/{id}`, `GET|POST teams/{id}/members`,
+  `PATCH|DELETE teams/{id}/members/{userId}` · `qk.teams` / `qk.team`; 409 `team_name_taken`, 400
+  `not_a_workspace_member`, 409 `already_a_member`, 404 across workspaces.
+- `PermissionInfo.scopable`, `Role.dataScopes`, `dataScopes` on role create / update (400 `data_scope_required` with
+  `details.codes`, 400 `data_scope_not_allowed`), `Workspace.myDataScopes` and `Project.myDataScopes`.
+
+Assumed where the contract is silent: team list not paginated and sorted by name; create / rename return the detail;
+name 1–60 characters and description up to 280 (422 `validation_failed` otherwise); member items carry no `hue` (the
+UI takes it from the workspace member list); `data_scope_not_allowed` carries `details.codes`; an unknown scope value
+is a 422 on `dataScopes`; a role PATCH that leaves `dataScopes` out keeps the stored scopes. Team writes publish no
+realtime event.
+
+### Platform Stage 5: generated types and cleanup
+
+From `docs/platform/stage5-contract.md` §2. All delivered by the backend and in `docs/openapi.yaml`; implemented in the
+mock:
+
+- `Notification.eventType` (registry key); `type` a plain string; `projectName` / `taskKey` / `taskTitle` snapshots. The
+  inbox keys its icons and verbs by the known kinds (`NotificationKind`) and falls back to a neutral row for others.
+- 403 `data_scope_exceeds_own` `details {code, dataScope, yours}` on role create / update (owners exempt): the role
+  editor shows an error toast naming the permission and both scopes; the mock enforces it (`assertWithinOwnScope`).
+- Realtime `core.module.changed` `{module, enabled}`: the client invalidates the workspace, its modules and the
+  workspace list (sidebar, route guards, Settings → Modules follow); the mock publishes it on a real toggle.
+
+**Where the schema and the client disagreed, the client and mock now follow the schema:**
+
+| Area | Before | Now (schema) |
+|---|---|---|
+| `POST /invites/:token/accept` | `{accessToken, user, workspaceSlug}` | `{accessToken, workspaceSlug}`; the client loads `/auth/me` with the new token |
+| `GET /auth/me` vs sign-in | one `User` with optional `hasPassword` | `Me` (with `hasPassword`) vs `User`; the session holds `User & Partial<Pick<Me, "hasPassword">>` |
+| Channel test | `workspace` in the body | `?workspace=` query parameter (`http.post` gained `query`) |
+| `Notification` | closed `type` union, no `eventType`, optional target fields | `type: string`, `eventType`, `targetType` / `targetId` / `title` / `link` always present (nullable) |
+| Notification preferences | `labels` optional | `labels` always in responses; requests send `NotificationPreferencesInput` (no `labels`) |
+| `Status.taskCount`, `Label.taskCount` | optional, only on the list routes | always present: the mock adds them on board, create and update responses too |
+| `Milestone.taskIds` | missing | present (the mock derives it) |
+| `Project.doneTaskCount`, `Role.dataScopes`, `Workspace.myDataScopes` / `notificationPolicy`, `PermissionInfo.scopable`, `TrashItem.module`, `AuditPage.total` | optional | required |
+| `ActivityEntry.actorName` / `actorKind` | optional | required (the mock fills `null` / `"user"`) |
+| `AuditEntry` | `actorId` non-null; `entityType`, `module`, `targetType`, `targetId`, `entityKey`, `source`, `requestId`, `changes` optional | `actorId` nullable (integrations); all of those required |
+| `Comment.authorId`, `Attachment.uploaderId` | non-null | nullable (deleted users); the UI guards the lookups |
+| `Invite.invitedBy` / `createdAt` / `expiresAt`, `User.createdAt`, `Team.createdAt`, member `joinedAt` | non-null | nullable; the UI shows "—" or hides the inviter line |
+| `ProgressRow.dueDate` / `quarter` | optional | required (the mock sends the objective's due date) |
+| Module `navItems[].permission` | nullable, tracking items `null` | always a string; the mock's tracking items match the backend (`projects`, `my-tasks`, `timesheet` with `core.workspace.view`) |
+| Trash kinds | typed as bare kinds on the wire | the wire kind is a string (`tracking.task`); the bare `TrashKind` is a client extension made by `normalizeTrashList()` |
+
+Extension types kept (client-side narrowing of loosely typed schema fields, each checked against the schema by
+`Refine` in `src/api/types.ts`): the permission-code unions, `Priority` 0–4, `RichDoc` (Tiptap JSON bodies), the
+notification payload, saved-view filter fields, widget configs, the import job's analysis / validation / progress /
+result, presence locations, workload rows, the `DevItem` union, quiet-hours `days` as a 7-tuple, and the bare
+`TrashKind` (client-computed). `ProjectAccessInfo` stays hand-written: it is the 403's `details.project`, and the schema
+has no components for error details.
+
 ---
 
 ## 6. Known gaps
+
+**Remaining known gaps (platform Stage 5).** `docs/openapi.yaml` is wrong or silent here; the client works around
+each with a commented `SchemaGap` or extension type in `src/api/types.ts`, to remove when the backend fixes the schema:
+
+- `NotificationPage.data` is a single `Notification` (the server sends an array).
+- `NotificationChannels`: `telegram.connection` and `sms.connection` aren't nullable, `sms.countries` and
+  `push.devices` are single objects (arrays on the wire); `TelegramLink.connection` isn't nullable either.
+- `GET targets/{type}/{id}/comments` and `…/attachments` are typed as one `Comment` / `Attachment` (lists on the wire).
+- `ProjectDirectoryEntry` has only `id` (the server sends the access info plus `isMember` and `status`).
+- `ReportKpis` lists only `completedThisSprint` (the server sends the sprint, planned, cycle-time, overdue and
+  scope-change figures too).
+- `PatchedWorkspaceUpdateInRequest` lacks `notificationPolicy` (board 38's SMS switch, which PATCH accepts).
+- Loose types the client narrows: unions sent as `string` (activity verbs, audit `source`, invite / access-request
+  `status`, `PermissionInfo.module|scope|group`, saved-view filter `field` / `op`), JSON as `unknown` (rich-text
+  bodies, payloads, widget config, import job parts, presence locations, workload rows, `TaskDetail.project`), and
+  `DevItemOut` flat instead of a union.
+- Undocumented but used: bodies on `DELETE` (`confirm`, `reassignTo`, `moveTo`), and `filter[scope]` on
+  `GET workspaces/{slug}/roles`; the backend reads them.
+- Still not built on either side: the avatar signed upload (the profile page sends a data URL), workspace restore,
+  changing a pending invite's role, "request a different role", report PNG/PDF export, and the bundle-1 field requests
+  the client never used (`Role.systemKey` / `assignable`, `Workspace.taskCount`, `Notification.glyph` / `category`).
+
 
 - **Live mode is untested against a real backend,** because none was available. The HTTP transport, refresh/retry
   logic and query-string format have unit tests, and everything else was proven in mock mode only.
@@ -768,8 +893,8 @@ Spec: `docs/v2/32-timeline-calendar.md`. API additions are listed in §5 ("v2 ·
 ### Board 40: import wizard (built)
 
 Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Board 40"). Code: `src/features/import/`
-(UI), `src/lib/mock/import/` (parser, presets, matching, conversion, planner, report) and
-`src/lib/mock/handlers/imports.ts` (I1–I9, the runner).
+(UI), `src/api/mock/import/` (parser, presets, matching, conversion, planner, report) and
+`src/api/mock/handlers/imports.ts` (I1–I9, the runner).
 
 - **Wizard** (`?import=new`, then `?import=<jobId>` with `replaceUrl`): a `DialogShell` modal (new bare dialog
   primitive in `components/ui/modal.tsx`), 760 × 640 on desktop, a full-height sheet at ≤ 760 px. Head (icon,
@@ -857,7 +982,7 @@ Spec: `docs/v2/40-import-wizard.md`. API additions are listed in §5 ("v2 · Boa
 ### Board 33: dashboards & presence, realtime over SSE (built)
 
 Spec: `docs/v2/33-dashboards-presence.md`. API additions are listed in §5 ("v2 · Board 33"). Code:
-`src/features/dashboards/` (UI), `src/features/presence/` (presence UI and hooks), `src/lib/realtime/` (the stream
+`src/features/dashboards/` (UI), `src/features/presence/` (presence UI and hooks), `src/platform/realtime/` (the stream
 client), `src/lib/domain/dashboards.ts` (widget catalogue and `pack()`), and in the mock `handlers/dashboards.ts`,
 `handlers/presence.ts`, `mock/realtime.ts`, `mock/publish-routes.ts` and the presence part of `mock/teammates.ts`.
 
@@ -1194,7 +1319,7 @@ pure logic and tests), `public/sw.js` + `public/push-badge.png`, and in the mock
   state; preference helpers; the Telegram and SMS machines; OTP editing), `push.test.ts` (enable / denied /
   dismissed / C11 failure / Check again / Turn off / sync incl. key rotation and 404 / logout order and the 1.5 s cap;
   `public/sw.js` push, malformed push, open-redirect guard, notificationclick focus vs open, pushsubscriptionchange),
-  `src/lib/mock/channels.test.ts` (seed and `ensureExt38`, C1–C14 incl. every limit and error, P1 merge and
+  `src/api/mock/channels.test.ts` (seed and `ensureExt38`, C1–C14 incl. every limit and error, P1 merge and
   validation, W1 permission and audit, the dispatcher), `preferences.test.tsx` (matrix, page per role, policy switch,
   saves, quiet-hours validation, Send test success / 502, disconnect, the SMS flow incl. lock-out and send failure,
   the Telegram flow incl. cancel, scan, countdown warn and New code, push enable / blocked), and the realtime mapping.

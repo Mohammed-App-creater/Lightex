@@ -1,7 +1,7 @@
 PY ?= python
 MANAGE = $(PY) manage.py
 
-.PHONY: install run migrate seed test cov lint fmt typecheck schema check up down
+.PHONY: install run migrate seed test cov lint fmt typecheck imports schema check up down
 
 install:
 	$(PY) -m pip install -r requirements-dev.txt
@@ -20,7 +20,7 @@ test:
 
 cov:
 	$(PY) -m pytest --cov --cov-report=term --cov-fail-under=85
-	$(PY) -m coverage report --include="apps/access/*" --fail-under=95
+	$(PY) -m coverage report --include="core/access/*" --fail-under=95
 
 lint:
 	$(PY) -m ruff check .
@@ -31,10 +31,13 @@ fmt:
 	$(PY) -m ruff check --fix .
 
 typecheck:
-	$(PY) -m mypy apps config
+	$(PY) -m mypy core modules config
+
+imports:
+	$(PY) -c "from importlinter.cli import lint_imports_command; lint_imports_command()"
 
 schema:
-	$(MANAGE) spectacular --file ../docs/openapi.yaml --validate
+	$(MANAGE) spectacular --file ../docs/openapi.yaml --validate --fail-on-warn
 
 check:
 	PY=$(PY) sh scripts/check.sh

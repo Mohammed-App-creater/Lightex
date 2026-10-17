@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { AppLoader } from "@/components/brand/app-loader";
-import { ILLUSTRATIONS, Illustration } from "@/components/brand/illustrations";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/choice";
-import { EmptyState } from "@/components/ui/feedback";
-import { ActivityFeed } from "@/features/audit/activity-feed";
-import type { ActivityEntry } from "@/lib/api/types";
+import { AppLoader } from "@/ui/brand/app-loader";
+import { ILLUSTRATIONS, Illustration } from "@/ui/brand/illustrations";
+import { Button } from "@/ui/button";
+import { Segmented } from "@/ui/choice";
+import { EmptyState } from "@/ui/feedback";
+import { ActivityFeed } from "@/modules/tracking/projects/activity-feed";
+import type { ActivityEntry } from "@/api/types";
 
 /* Board 35 (illustrations, loading) and the board 31 activity feed, for the /dev/ui gallery. */
 
@@ -24,6 +24,8 @@ const entry = (id: string, actorId: string, verb: ActivityEntry["verb"], ago: nu
   taskTitle: null,
   data,
   createdAt: min(ago),
+  actorName: null,
+  actorKind: "user",
 });
 
 const FEED: ActivityEntry[] = [

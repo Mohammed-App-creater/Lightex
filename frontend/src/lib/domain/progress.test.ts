@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { Status } from "@/lib/api/types";
+import type { Status } from "@/api/types";
 import { daysLabel, expectedPercent, isAtRisk, progressOf } from "./progress";
 
 const statuses: Status[] = [
-  { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 0 },
-  { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 1 },
-  { id: "x", projectId: "p", name: "Canceled", category: "done", glyph: "canceled", position: 2 },
+  { id: "todo", projectId: "p", name: "Todo", category: "todo", glyph: "todo", position: 0, taskCount: 0 },
+  { id: "done", projectId: "p", name: "Done", category: "done", glyph: "done", position: 1, taskCount: 0 },
+  { id: "x", projectId: "p", name: "Canceled", category: "done", glyph: "canceled", position: 2, taskCount: 0 },
 ];
 
 describe("progress", () => {

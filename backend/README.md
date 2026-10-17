@@ -42,17 +42,22 @@ python manage.py runserver 0.0.0.0:8000
 ### Demo accounts
 
 `seed_demo` loads the same data as the web client's mock mode (2 workspaces, 4 projects, 55 tasks,
-7 sprints, objectives, milestones, epics). Every account's password is **`Lightex-demo-2026`**.
+7 sprints, objectives, milestones, epics), plus three teams with leads in Platform team. Tracking is on in both
+workspaces and sales is on in Platform team. Every account's password is **`Lightex-demo-2026`**
+(`DEMO_PASSWORD`); there is one account per default workspace role and per default project role (`DEMO_ACCOUNTS` in
+`core/common/management/commands/seed_demo.py`):
 
-| Account | Workspace role (Platform team) | Role on Platform Rebuild (PRJ) |
-|---|---|---|
-| `alex@team.dev` | Owner | Project Admin |
-| `jordan@team.dev` | Admin | Manager |
-| `sam@team.dev` | Member | Member |
-| `taylor@team.dev` | Member | Viewer |
-| `casey@team.dev` | Admin | not a member (gets the 403 + request-access screen) |
+| Account | Workspace role (Platform team) | Role on Platform Rebuild (PRJ) | Teams |
+|---|---|---|---|
+| `alex@team.dev` | Owner | Project Admin | Backend (lead) |
+| `jordan@team.dev` | Admin | Manager | Frontend (lead) |
+| `sam@team.dev` | Member | Member | Backend, Frontend |
+| `taylor@team.dev` | Member | Viewer | Quality |
+| `casey@team.dev` | Admin | not a member (gets the 403 + request-access screen) | Quality (lead) |
 
-The command refuses to run when `DEBUG` is off. `--flush` deletes and recreates the demo data.
+Riley and Morgan (`riley@team.dev`, `morgan@team.dev`, Members) and Drew (`drew@guild.dev`, Owner of Design guild) use
+the same password. The command refuses to run when `DEBUG` is off. It is idempotent: when the demo workspaces exist
+it does nothing; `--flush` deletes and recreates the demo data.
 
 ## Environment variables
 
@@ -109,9 +114,40 @@ the repository. See [`.env.example`](.env.example).
 | `WEBHOOK_MAX_BODY_BYTES` / `WEBHOOK_RETENTION_DAYS` | `5242880` / `7` | Webhook body cap (413 above it) and delivery retention |
 | `THROTTLE_WEBHOOK` / `THROTTLE_INTEGRATION_CONNECT` / `THROTTLE_DEV_BRANCH` / `THROTTLE_DEV_LINK` | `1200/min` (per IP) / `10/hour` / `30/hour` / `60/hour` | Board 37 throttles |
 
-GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/integrations/github/callback`, Setup URL
-`<API_PUBLIC_URL>/api/v1/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/webhooks/github`, permissions
-and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/integrations/gitlab/callback`, scope `api`)
+### Notification channels (board 38)
+
+Telegram, SMS and Web Push (`docs/v2/38-telegram-sms-push.md` §2). Each channel has a real backend plus `console`
+(dev: logs the message, and the OTP for SMS), `fake` (tests) and `disabled` (the API reports `available: false`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `TELEGRAM_BACKEND` | `bot` when `TELEGRAM_BOT_TOKEN` is set, else `disabled` (dev: `console`, tests: `fake`) | `bot` · `console` · `fake` · `disabled` |
+| `TELEGRAM_BOT_TOKEN` | — | **Secret.** From @BotFather |
+| `TELEGRAM_BOT_USERNAME` | — (dev: `lightex_dev_bot`) | Without `@`; shown in the dialog and deep links |
+| `TELEGRAM_WEBHOOK_SECRET` | — | **Secret.** 32–256 chars `[A-Za-z0-9_-]`; checked against `X-Telegram-Bot-Api-Secret-Token` |
+| `TELEGRAM_LINK_TTL_SECONDS` | `600` | Link code lifetime |
+| `SMS_BACKEND` | `twilio` when `TWILIO_ACCOUNT_SID` is set, else `disabled` (dev: `console`, tests: `fake`) | `twilio` · `console` · `fake` · `disabled`. Prod refuses `console` |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | — | Twilio account; the token (**secret**) also verifies both Twilio webhooks |
+| `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_FROM_NUMBER` | — | Sender: the Messaging Service (preferred, handles STOP) or a number |
+| `SMS_COUNTRIES` | `US,GB,DE` | Allow-list from the server table (`IN` needs DLT registration first) |
+| `SMS_USER_DAILY_CAP` / `SMS_GLOBAL_DAILY_CAP` / `SMS_OTP_GLOBAL_DAILY_CAP` | `10` / `300` / `100` | Per UTC day, counted in Postgres |
+| `WEB_PUSH_BACKEND` | `webpush` when both VAPID keys are set, else `disabled` (dev: `console`, tests: `fake`) | `webpush` · `console` · `fake` · `disabled` |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | — | `manage.py generate_vapid_keys`; the private key is **secret**; subject `mailto:` or `https:` |
+| `WEB_PUSH_ALLOWED_HOSTS` | FCM, Mozilla, Apple, `*.notify.windows.com`, `*.push.apple.com` | Push endpoint allow-list (SSRF guard) |
+| `CHANNELS_ENCRYPTION_KEY` | dev/test: derived from `DJANGO_SECRET_KEY` | **Secret.** Fernet key(s), newest first. `manage.py generate_channels_key`; rotate with `rotate_channels_key`. Required in prod with `SMS_BACKEND=twilio` |
+| `CHANNEL_DISPATCH` | `auto` | `auto` (Celery with `REDIS_URL`, else a per-process thread pool + sweeper) · `thread` · `celery` · `inline` |
+| `CHANNEL_SENDER_THREADS` / `CHANNEL_MAX_ATTEMPTS` / `CHANNEL_HTTP_TIMEOUT` | `4` / `5` / `10` | Pool size, attempts before `dead`, seconds per provider call |
+| `THROTTLE_CHANNEL_CONNECT` / `THROTTLE_CHANNEL_TEST` | `20/hour` / `12/hour` | Telegram link + SMS start; test sends (per user) |
+| `TELEGRAM_API_BASE` / `TWILIO_API_BASE` | the real APIs | Override only for local stubs |
+
+Webhooks: Telegram `<API_PUBLIC_URL>/api/v1/webhooks/telegram` (set by `manage.py telegram_setup`, once per deploy),
+Twilio inbound `<API_PUBLIC_URL>/api/v1/webhooks/twilio/sms`; the status callback is sent with each message.
+`API_PUBLIC_URL` must be the exact public origin Twilio calls (signatures cover the full URL). Local development with a
+real bot: `manage.py telegram_poll`; without one: `manage.py telegram_fake_start <code>`.
+
+GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/tracking/integrations/github/callback`, Setup URL
+`<API_PUBLIC_URL>/api/v1/tracking/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/tracking/webhooks/github`, permissions
+and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/tracking/integrations/gitlab/callback`, scope `api`)
 are described in `docs/v2/37-integrations-github-gitlab.md` §2. Run `manage.py process_integrations` every 5 minutes
 where cron exists (it drains work, queues catch-ups, checks token expiry with `--check-tokens` and purges).
 
@@ -119,9 +155,10 @@ where cron exists (it drains work, queues catch-ups, checks token expiry with `-
 
 ```bash
 make test        # pytest
-make cov         # coverage gates: 85 % overall, 95 % on apps/access
+make cov         # coverage gates: 85 % overall, 95 % on core/access
 make lint        # ruff check + ruff format --check
 make typecheck   # mypy (django-stubs)
+make imports     # lint-imports (core never imports modules; modules are independent)
 make schema      # regenerate ../docs/openapi.yaml
 sh scripts/check.sh   # everything CI runs, in order, stopping at the first failure
 ```
@@ -134,12 +171,16 @@ Tests need PostgreSQL (full-text search, partial unique indexes and row locks ar
 
 Highlights of the suite:
 
-- **Permission matrix** (`apps/access/tests/test_permission_matrix.py`): for every route and method, the roles
-  that must pass and the roles that must be refused. The table is checked against the URL configuration, so a
+- **Permission matrix** (`modules/tracking/tests/access/test_permission_matrix.py`): for every route and method, the
+  roles that must pass and the roles that must be refused. The table is checked against the URL configuration, so a
   new endpoint without an entry fails the suite.
-- **IDOR** (`apps/access/tests/test_idor.py`): every route called by a user from another workspace (always 404)
-  and every project route called by workspace members who aren't on the project (403/404).
-- **Concurrency** (`apps/tasks/tests/test_concurrency.py`): real threads; parallel creates get unique keys,
+- **IDOR** (`modules/tracking/tests/access/test_idor.py`): every route called by a user from another workspace
+  (always 404) and every project route called by workspace members who aren't on the project (403/404).
+- **Tenant isolation** (`modules/tracking/tests/access/test_tenant_isolation.py`): walks the URL resolver for every
+  `tracking/` and `sales/` route and every core workspace-scoped route, and calls each method as a user of another
+  workspace (always 404); skipped routes are listed with their reason. It also checks that every module and platform
+  table has a non-null `workspace` and the scoped manager (with the listed exceptions).
+- **Concurrency** (`modules/tracking/tasks/tests/test_concurrency.py`): real threads; parallel creates get unique keys,
   simultaneous edits at the same version yield exactly one success.
 
 ## Running without a Celery worker
@@ -163,9 +204,12 @@ Run these from cron, a platform scheduler, or a CI schedule:
 | `python manage.py send_notification_emails --delivery hourly` | hourly | Queued emails for people on hourly delivery |
 | `python manage.py send_notification_emails --delivery daily` | daily | Queued emails for people on daily delivery |
 | `python manage.py purge_trash` | daily | Deletes trash items older than 30 days, abandoned uploads and old outbox rows |
-| `python manage.py process_outbox` | every few minutes (optional) | Retries notification events that failed |
+| `python manage.py process_outbox` | every few minutes (optional) | Retries domain events whose handlers failed |
+| `python manage.py check_orphan_targets` | weekly (optional) | Reports comments, attachments, notifications and events whose target no longer exists |
 | `python manage.py purge_imports` | daily | Board 40: cancels untouched import drafts (24 h) and deletes import jobs and their files 30 days after they finish (imported tasks stay) |
 | `python manage.py resume_imports` | every minute (optional) | Board 40: re-dispatches imports whose runner stopped sending heartbeats (the import poll does this too) |
+| `python manage.py send_channel_deliveries` | every 5 minutes (recommended) | Board 38: retries and quiet-hours summaries left by a sleeping or restarted process |
+| `python manage.py channel_deliveries --dead [--since 7d]` / `--retry <id>` / `--retry-dead` | by hand | Board 38: list or re-queue dead-letter deliveries (no message text, no phone numbers) |
 | `python manage.py sync_permissions` | after deploys (runs on `migrate` too) | Syncs the permission catalogue |
 
 Board 33 needs no scheduled command: each web process sweeps expired presence rows and old stream events while it
@@ -212,7 +256,7 @@ curl -N -H "Authorization: Bearer $TOKEN" -H "Accept: text/event-stream" \
 ```
 
 It prints `retry: 3000` and `event: hello` at once, then `: ping …` every 15 s. Change something in another
-terminal (edit a task in the web client, or `PATCH /api/v1/tasks/{id}`) and a `task.changed` event appears. Add
+terminal (edit a task in the web client, or `PATCH /api/v1/tracking/tasks/{id}`) and a `tracking.task.changed` event appears. Add
 `-H "Last-Event-ID: <id>"` to replay what came after an id.
 
 `bash scripts/sse_smoke.sh` runs the same checks against the real image (gunicorn gthread, LISTEN/NOTIFY, the stream
@@ -274,27 +318,162 @@ The image (`Dockerfile`) runs migrations and then gunicorn on `$PORT` with gthre
   running, `ADMIN_ENABLED` off unless needed. Without Redis the cache is per process, so rate limits are counted
   per gunicorn worker; add Redis for exact limits.
 
+## Platform services
+
+Core never imports a module (`lint-imports` fails CI otherwise). Generic services refer to module records as
+`(target_type, target_id)` (`<module>.<entity>` plus the record's UUID) and ask registries that each module fills
+from its AppConfig `ready()`. Tracking does all of its registration in `modules/tracking/hooks/` (called from
+`modules.tracking.projects.apps`); the test-only `core/tests/fake_module` shows the minimum a module needs.
+
+| Registry | Register with | Used by |
+|---|---|---|
+| Targets (`core/common/targets.py`) | `register_target_type("tracking.task", TaskTarget())` | comments, attachments, notifications, audit hints, trash, `check_orphan_targets` |
+| Access scopes (`core/access/scopes.py`) | `register_scope_provider(ProjectScope())` | `can()` for the `project` scope, inbox and stream visibility, role deletion |
+| Event types and handlers (`core/events/registry.py`) | `register_event_type(key, label, default_channels, module)`, `register_handler(pattern, fn, module=...)` | the outbox dispatcher; the notification preference matrix (keys, labels, defaults) |
+| Search (`core/search/services.py`) | `register_search_provider("tracking", TrackingSearch())` | `GET /search`, `GET /workspaces/{slug}/search` |
+| Trash (`core/audit/trash.py`) | `register_trash_kind(TaskTrash())` | workspace trash list, restore, purge, `purge_trash` |
+| Audit groups (`core/audit/registry.py`) | `register_audit_group("task", ["tracking.task"])` | the audit view's `filter[entity]` |
+| Realtime (`core/realtime/`) | `register_realtime_types(...)`, `register_audit_publisher(fn)`, `register_access_hook(fn)`, `presence.register_location(kind, fn)` | the SSE stream and presence |
+| Workspace hooks (`core/workspaces/hooks.py`) | `register_member_removed(fn)` | removing a workspace member |
+| Demo seeders (`core/common/seeding.py`) | `register_seeder(TrackingSeeder)` | `manage.py seed_demo` |
+
+To plug a module in: subclass `TargetResolver` (`exists`, `can_view`, `can_comment`, `can_attach`, `describe`,
+`workspace_of`, optionally `subscribers`, `mentionable`, `context`, `storage_prefix`) and register it; it then gets
+`GET|POST /api/v1/targets/{targetType}/{targetId}/comments`, `GET …/attachments`, `POST …/attachments/upload-url`,
+comment and mention notifications (`core.comment.created`, `core.comment.mentioned`), audit rows and realtime hints
+(`core.comment.*`, `core.attachment.*`, payload `{targetType, targetId, commentId | attachmentId}`). Emit domain
+events with `core.events.services.emit(type, workspace=…, target_type=…, target_id=…, actor=…, payload=…)` inside
+the write's transaction; handlers run after commit (inline without a Celery worker), must be idempotent, and a
+failure records `attempts` and `error` for `process_outbox` to retry.
+
+## Module system
+
+Each module declares a `ModuleDefinition` (`core/modules/registry.py`) and calls `register_module()` from its AppConfig
+`ready()`: core in `core/modules/core_module.py`, tracking in `modules/tracking/module.py` (not toggleable yet), sales in
+`modules/sales/module.py`. A definition lists the module's permissions, `default_role_grants` (system role key → codes),
+`locked_role_grants`, notification event types (with their channel and email templates), target types, search provider,
+`nav_items` and `depends_on`. The permission catalogue (`core/access/catalogue.py`, which holds only core's entries) is
+assembled from the definitions and synced on migrate and by `manage.py sync_permissions`.
+
+`WorkspaceModule` stores which toggleable modules are on per workspace (`core` has no row; non-toggleable modules are
+always on). New workspaces get tracking plus `POST /workspaces` `modules`; `GET|PUT /workspaces/{slug}/modules[/{key}]`
+lists and switches them (`core.modules.manage`, audit `core.module.enabled|disabled`, errors `module_not_toggleable`
+and `module_dependency`). Enabling seeds the module's default grants. Workspace responses carry `enabledModules`.
+
+Module routes are mounted with `module_urls(key, patterns)` (`config/api_urls.py`): after `ScopedPermission` resolves
+the view's workspace or project (non-members get 404) it answers 403 `module_disabled` when the module is off.
+While a module is off its codes are dropped from `can()`, `my_permissions` and role responses (the rows stay), and the
+outbox, notifications, search and trash skip it. `core.modules.services.enabled_modules()` is cached per request.
+Switching a module publishes the workspace-wide realtime event `core.module.changed` (`{module, enabled}`), and the
+expired-trash purge leaves a disabled module's kinds alone (`TrashKind.purge_expired(..., skip_workspaces=...)`).
+
+## Workspace scoping
+
+Every module and platform table has a non-null `workspace` foreign key, even when a parent implies it (a child row
+without one takes its parent's on save and `bulk_create`: `workspace_parent = "project"`). Models subclass
+`core.common.models.WorkspaceScopedModel` (or `WorkspaceScopedSoftDeleteModel`), whose default manager answers only
+when it knows the workspace (`core/common/scoping.py`):
+
+- `Model.objects.for_workspace(ws)` names it;
+- inside a request, `WorkspaceScopeMiddleware` starts strict and `ScopedView` scopes the rest of the request to the
+  workspace of the scope it resolved (the generic comment and attachment views do the same with their target), so
+  `Model.objects.filter(...)` is filtered to it: another workspace's id simply isn't found;
+- `Model.objects.unscoped()` is the explicit escape hatch: scope resolution itself, views that span the user's
+  workspaces (`cross_workspace = True`: auth, inbox, global search, my tasks/recents/timer, channels, webhooks),
+  management commands (`manage.py` runs them unscoped), Celery tasks (a prerun signal), the background threads, the
+  post-migrate permission sync, and tests (`WORKSPACE_SCOPE_DEFAULT = "unscoped"` in the test settings).
+
+Anything else raises `UnscopedQueryError`. Writes (`create`, `bulk_create`) name or derive their workspace and skip
+the check. Global tables (users, the permission catalogue, auth tokens, channel connections, notification preferences,
+the webhook inbox) have no workspace; `ChannelDelivery` (nullable workspace), `RealtimeEvent` (a stream log read
+outside requests) and `RunningTimer` (one per user across workspaces) have a workspace but a plain manager.
+
+Core tables never reference module tables: audit rows, notifications, realtime events and presence sessions carry
+generic `scope_id` / `subject_id` hints (tracking: the project and the task) instead of foreign keys, and a purge
+deletes the generic rows of the purged targets (`core.collab.services.delete_target_records`). Notifications store
+the registered event-type key in `type` and the display kind (`assigned`, `mention`, …) in `kind`.
+
+## Teams and data scope
+
+Teams (`core/teams`) are flat groups of workspace members (`Team`, `TeamMember` with `is_lead`); a user may be in
+several. `GET|POST /workspaces/{slug}/teams`, `GET|PATCH|DELETE /teams/{id}`, `GET|POST /teams/{id}/members` and
+`PATCH|DELETE /teams/{id}/members/{userId}`: reads are open to members, writes need `core.teams.manage` and are
+audited (`core.team.*`). Removing someone from the workspace removes their team memberships.
+
+A module makes a permission scopable in its definition, and may name the default scope per role (otherwise Owner and
+Admin get `all` and Member gets `own`):
+
+```python
+PERMISSIONS = (workspace_permission("sales.lead.view", "Sales", "View leads", "See leads", scopable=True),)
+DEFINITION = ModuleDefinition(
+    ...,
+    permissions=PERMISSIONS,
+    default_role_grants={"owner": ["sales.lead.view"], "member": {"sales.lead.view": "team"}},
+)
+```
+
+Each role then grants the code with a `RolePermission.data_scope` of `own`, `team` or `all` (role requests and
+responses carry `dataScopes: {code: scope}`; workspace and project responses carry `myDataScopes`). The model names
+its owner field, and every list selector for that data goes through `visible_to`, the only place the scope is applied:
+
+```python
+class Lead(SoftDeleteModel):
+    data_scope_owner_field = "owner"  # and data_scope_workspace_field, default "workspace"
+
+
+def leads_for(user, workspace):
+    return visible_to(Lead.objects.all(), user, "sales.lead.view", workspace)
+```
+
+`own` keeps the user's records, `team` adds those owned by anyone sharing a live team with them, `all` is the whole
+workspace; no grant, a non-member or a disabled module gives `none()`. It always filters by workspace. A non-scopable
+code or a model without an owner field raises. Single-record checks still use `can()`.
+
+Role writes can't hand out a wider data scope than the actor's own for that code: setting or changing a scope beyond
+it answers 403 `data_scope_exceeds_own` (`details: {code, dataScope, yours}`). Owners are exempt.
+
 ## Layout
 
 ```
 config/            settings (base, dev, test, prod), URLs, Celery app
-apps/
-  common/          base models (UUID, timestamps, soft delete), errors, pagination, rich-text sanitising,
-                   fractional index, throttles, health, seed_demo
+core/              the platform core (docs/platform-architecture.md); never imports modules/
+  common/          base models (UUID, timestamps, soft delete, WorkspaceScopedModel), workspace scoping, errors,
+                   pagination, rich-text sanitising, fractional index, throttles, health, the target registry,
+                   seed_demo (+ seeder registry)
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
-  access/          permission catalogue, roles, can(), DRF permission class
+  access/          permission catalogue (assembled from the modules), roles, can(), visible_to(), DRF permission class
+  teams/           teams and team members (data scope `team`)
   workspaces/      workspaces, members, invitations, access requests
-  projects/        projects, members, statuses, labels, access requests, recents, saved views
-  planning/        objectives, milestones, epics, sprints
-  tasks/           tasks, status history, board, backlog, bulk, activity
-  collaboration/   comments, attachments, storage backends
-  notifications/   outbox events, notifications, preferences, email templates
-  reports/         burndown, velocity, cycle time, throughput, progress, KPIs, workload
-  dashboards/      board 33: project dashboards (shared / personal) and their widget layouts
+  collab/          generic comments and attachments on any registered target, storage backends
+  events/          the DomainEvent outbox, event type and handler registries, process_outbox
+  notifications/   notifications, preferences (built from the event type registry), email templates
+  channels/        board 38: Telegram, SMS and Web Push delivery
   realtime/        board 33: the SSE stream, the per-process hub and brokers, events, presence
-  audit/           audit log, activity feeds, trash
-  search/          PostgreSQL full-text search
+  audit/           audit log, trash (registered kinds)
+  search/          search provider registry and fan-out
+  tests/           fake_module: a test-only module proving the core is generic
+modules/
+  tracking/        the tracking module, served under /api/v1/tracking/
+    projects/      projects, members, statuses, labels, access requests, recents, saved views
+    planning/      objectives, milestones, epics, sprints
+    tasks/         tasks, status history, board, backlog, bulk, activity feeds, send_due_soon
+    hooks/         everything tracking registers with core (targets, scope provider, events, search, trash,
+                   realtime, workspace hooks, demo seeder)
+    reports/       burndown, velocity, cycle time, throughput, progress, KPIs, workload
+    dashboards/    board 33: project dashboards (shared / personal) and their widget layouts
+    imports/       board 40: CSV / Jira / Trello / Asana imports
+    integrations/  board 37: GitHub and GitLab
+    timetracking/  board 39: time entries, timers, timesheet
+  sales/           skeleton (Stage 3): the module definition and a health route; how to add a module:
+                   ../docs/platform/adding-a-module.md
 ```
+
+Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so table names are unchanged. Stage 5 replaced
+the migration history with one fresh `0001_initial` per app (`access` and `planning` also have a `0002_initial`, where
+Django splits a real foreign-key cycle). There are no data migrations: the permission catalogue is synced after every
+`migrate`, and default roles are seeded when a workspace is created or a module is enabled.
+`lint-imports` (import-linter, configured in `pyproject.toml`) enforces that `core` never imports `modules` and that
+modules never import each other; there are no exceptions for production code (see "Platform services").
 
 Every app follows the same layering: `models.py` (fields and invariants), `selectors.py` (reads, always scoped
 through membership), `services.py` (writes and business rules; every mutation writes an audit row),

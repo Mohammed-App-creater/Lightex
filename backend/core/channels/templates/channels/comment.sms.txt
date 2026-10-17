@@ -1,0 +1,1 @@
+{% autoescape off %}Lightex: New comment on {{ task_key }}{% if actor_first %} from {{ actor_first }}{% endif %}. {{ cta_url }} Reply STOP to opt out{% endautoescape %}

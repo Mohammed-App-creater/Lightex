@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Segmented } from "@/components/ui/choice";
-import { EmptyState } from "@/components/ui/feedback";
+import { Segmented } from "@/ui/choice";
+import { EmptyState } from "@/ui/feedback";
 import { cn } from "@/lib/utils/cn";
 import { EMAIL_TEMPLATES, mergeTags, renderTemplate } from "./catalog";
 

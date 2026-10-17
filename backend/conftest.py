@@ -2,7 +2,7 @@ import pytest
 from django.core.cache import cache
 from rest_framework.test import APIClient
 
-from apps.common.testing import UserFactory, client_for, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
 
 
 @pytest.fixture(autouse=True)

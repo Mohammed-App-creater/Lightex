@@ -1,6 +1,6 @@
 "use client";
 
-import { IntegrationsScreen } from "@/features/integrations/integrations-screen";
+import { IntegrationsScreen } from "@/modules/tracking/integrations/integrations-screen";
 
 export default function Page() {
   return <IntegrationsScreen />;

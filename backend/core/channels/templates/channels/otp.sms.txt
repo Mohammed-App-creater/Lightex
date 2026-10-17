@@ -1,0 +1,3 @@
+{% autoescape off %}Lightex code: {{ code }}. It expires in 10 minutes. Don't share it.
+
+@{{ host }} #{{ code }}{% endautoescape %}

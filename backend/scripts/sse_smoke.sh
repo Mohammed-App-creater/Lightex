@@ -50,10 +50,10 @@ curl -fs "$api/health" >/dev/null || fail "the API did not start"
 
 read -r token task slug < <(docker exec "$tag-api" python manage.py shell -c "
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.accounts.models import User
-from apps.projects.services import create_project
-from apps.tasks.services import create_task
-from apps.workspaces.services import create_workspace
+from core.accounts.models import User
+from modules.tracking.projects.services import create_project
+from modules.tracking.tasks.services import create_task
+from core.workspaces.services import create_workspace
 user = User.objects.create_user(email='smoke@example.com', password='Smoke-pass-2026!', name='Smoke Test')
 ws = create_workspace(user, name='Smoke', slug='smoke')
 project = create_project(user, ws, {'name': 'Smoke', 'key': 'SMK', 'template': 'simple'})
@@ -81,12 +81,12 @@ awk -v t="$took" 'BEGIN { exit !(t < 1.0) }' || fail "/health took ${took}s"
 echo "ok: /health answers in ${took}s while streams are open"
 
 curl -sf -X PATCH -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
-  -d '{"title": "Smoke task, edited", "version": 1}' "$api/api/v1/tasks/$task" >/dev/null || fail "PATCH failed"
+  -d '{"title": "Smoke task, edited", "version": 1}' "$api/api/v1/tracking/tasks/$task" >/dev/null || fail "PATCH failed"
 sleep 1
-for i in 1 2; do grep -q "event: task.changed" "$work/s$i" || fail "stream $i did not get task.changed"; done
+for i in 1 2; do grep -q "event: tracking.task.changed" "$work/s$i" || fail "stream $i did not get tracking.task.changed"; done
 echo "ok: the PATCH reached both streams within a second"
 
-id=$(grep -m1 -B1 "event: task.changed" "$work/s1" | sed -n 's/^id: //p')
+id=$(grep -m1 -B1 "event: tracking.task.changed" "$work/s1" | sed -n 's/^id: //p')
 # Restart the API (SIGTERM, as on a deploy): open streams must end with `reconnect` (shutdown) and the slots are
 # fresh afterwards. (A client that just disappears frees its slot on the server's next failed write; some local port
 # proxies keep the upstream connection open, so this smoke doesn't rely on that.)

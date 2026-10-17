@@ -1,0 +1,1 @@
+{% autoescape off %}Lightex: {{ task_key }} moved to {{ to_status }}. {{ cta_url }} Reply STOP to opt out{% endautoescape %}

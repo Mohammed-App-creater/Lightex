@@ -1,6 +1,6 @@
 "use client";
 
-import { GoalsScreen } from "@/features/goals/goals-screen";
+import { GoalsScreen } from "@/modules/tracking/goals/goals-screen";
 
 export default function Page() {
   return <GoalsScreen tab="objectives" />;

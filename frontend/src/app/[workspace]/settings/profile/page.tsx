@@ -1,6 +1,6 @@
 "use client";
 
-import { ProfileScreen } from "@/features/settings/profile-screen";
+import { ProfileScreen } from "@/platform/settings/profile-screen";
 
 export default function Page() {
   return <ProfileScreen />;
