@@ -145,7 +145,8 @@ class TaskTarget(TargetResolver):
         task = self._task(target_id)
         if task is None:
             return []
-        return [u for u in dict.fromkeys([task.reporter_id, task.assignee_id]) if u]
+        assignees = task.task_assignees.order_by("position", "created_at").values_list("user_id", flat=True)
+        return [u for u in dict.fromkeys([task.reporter_id, *assignees]) if u]
 
     def mentionable(self, target_id: Any, user_ids: list[str]) -> set[str]:
         task = self._task(target_id)

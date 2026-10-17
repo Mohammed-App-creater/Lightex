@@ -41,6 +41,10 @@ def _channel(event: DomainEvent, task: Any = None, **extra: Any) -> dict[str, An
     return ctx
 
 
+def _assignees(task: Any) -> list[Any]:
+    return list(task.task_assignees.order_by("position", "created_at").values_list("user_id", flat=True))
+
+
 def on_task_assigned(event: DomainEvent) -> None:
     task = _task(event)
     if task is None:
@@ -66,7 +70,7 @@ def on_status_change(event: DomainEvent) -> None:
     payload = {"fromStatus": event.payload.get("fromStatus"), "toStatus": event.payload.get("toStatus")}
     if event.payload.get("via"):  # board 37: a status change made by an integration's automation
         payload["via"] = event.payload["via"]
-    for user in recipients(event, [task.assignee_id, task.reporter_id], target=_task_target(task)):
+    for user in recipients(event, [*_assignees(task), task.reporter_id], target=_task_target(task)):
         deliver(
             event,
             user,
@@ -81,10 +85,11 @@ def on_status_change(event: DomainEvent) -> None:
 
 def on_due_soon(event: DomainEvent) -> None:
     task = _task(event)
-    if task is None or task.assignee_id is None:
+    assignees = _assignees(task) if task is not None else []
+    if task is None or not assignees:
         return
     relative = event.payload.get("relative", "soon")
-    for user in recipients(event, [task.assignee_id], target=_task_target(task)):
+    for user in recipients(event, assignees, target=_task_target(task)):
         deliver(
             event,
             user,
@@ -150,7 +155,7 @@ def on_sprint_started(event: DomainEvent) -> None:
             target=target,
             payload={"sprintName": sprint.name},
             email_template="sprint_started",
-            email_context={**context, "your_task_count": tasks.filter(assignee=user).count()},
+            email_context={**context, "your_task_count": tasks.filter(assignees=user).count()},
             channel_context={
                 **_channel(event),
                 "sprint_id": str(sprint.pk),

@@ -41,7 +41,7 @@ class W:
         sprint = self.sprint if sprint == "active" else sprint
         data = {"title": "t", "statusId": str(self.st[glyph].pk), "estimate": estimate}
         if who is not None:
-            data["assigneeId"] = str(who.pk)
+            data["assigneeIds"] = [str(who.pk)]
         if parent is not None:
             data["parentId"] = str(parent.pk)
         elif sprint is None:

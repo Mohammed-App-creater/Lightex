@@ -108,7 +108,7 @@ def _resolve_due(value: str, today: dt.date, sprint_end: dt.date | None) -> dt.d
         return None
 
 
-_FK = {"assignee": "assignee_id", "sprint": "sprint_id", "epic": "epic_id"}
+_FK = {"assignee": "assignees", "sprint": "sprint_id", "epic": "epic_id"}
 
 
 def apply_rules(qs: QuerySet, rules: list[dict[str, Any]], user: Any, project: Project) -> QuerySet:

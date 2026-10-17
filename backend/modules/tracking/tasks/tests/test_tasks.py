@@ -39,10 +39,10 @@ def test_create_task_payload_and_side_effects(owner, project, st):
     assert body["sprintId"] is None
     assert body["position"]
     assert set(body) == {
-        "id", "projectId", "key", "number", "title", "type", "priority", "statusId", "assigneeId", "reporterId",
+        "id", "projectId", "key", "number", "title", "type", "priority", "statusId", "assigneeIds", "reporterId",
         "estimate", "dueDate", "epicId", "milestoneId", "sprintId", "parentId", "objectiveIds", "labelIds",
         "position", "version", "createdAt", "updatedAt", "completedAt", "deletedAt", "subtaskCount",
-        "subtaskDoneCount", "commentCount", "attachmentCount",
+        "subtaskDoneCount", "commentCount", "attachmentCount", "checklistCount", "checklistDoneCount",
         "customFields", "isBlocked", "openBlockers", "timeEstimateMinutes", "loggedMinutes", "startDate", "dev",
     }  # fmt: skip
     second = new(client, project, title="Second")
@@ -69,7 +69,7 @@ def test_create_validation_and_cross_project_refs(owner, ws, project, st):
         ("type", "story"),
         ("dueDate", "not-a-date"),
         ("estimate", "x"),
-        ("assigneeId", str(UserFactory().id)),
+        ("assigneeIds", [str(UserFactory().id)]),
     ]:
         res = client.post(f"/api/v1/tracking/projects/{project.id}/tasks", {"title": "T", field: value}, format="json")
         assert res.status_code == 422, field
@@ -225,18 +225,20 @@ def test_assign_requires_task_assign(owner, ws, project):
     teammate = add_project_member(project, key="project_member")
     c = client_for(user)
     res = c.post(
-        f"/api/v1/tracking/projects/{project.id}/tasks", {"title": "T", "assigneeId": str(teammate.id)}, format="json"
+        f"/api/v1/tracking/projects/{project.id}/tasks",
+        {"title": "T", "assigneeIds": [str(teammate.id)]},
+        format="json",
     )
     assert res.status_code == 403
-    mine = new(c, project, assigneeId=str(user.id))
+    mine = new(c, project, assigneeIds=[str(user.id)])
     assert (
         c.patch(
-            f"/api/v1/tracking/tasks/{mine['id']}", {"assigneeId": str(teammate.id), "version": 1}, format="json"
+            f"/api/v1/tracking/tasks/{mine['id']}", {"assigneeIds": [str(teammate.id)], "version": 1}, format="json"
         ).status_code
         == 403
     )
     ok = client_for(owner).patch(
-        f"/api/v1/tracking/tasks/{mine['id']}", {"assigneeId": str(teammate.id), "version": 1}, format="json"
+        f"/api/v1/tracking/tasks/{mine['id']}", {"assigneeIds": [str(teammate.id)], "version": 1}, format="json"
     )
     assert ok.status_code == 200
     assert AuditLog.objects.filter(action="tracking.task.assigned").exists()
@@ -286,7 +288,7 @@ def test_list_filters_sort_and_cursor(owner, project, st):
             project,
             title=f"Task {i}",
             priority=i % 5,
-            assigneeId=str(member.id) if i % 2 else None,
+            assigneeIds=[str(member.id)] if i % 2 else [],
             epicId=str(epic.id) if i < 2 else None,
             dueDate=f"2026-10-{10 + i}" if i % 3 else None,
         )
@@ -326,7 +328,7 @@ def test_bulk_update_delete_restore(owner, project, st):
             "ids": ids,
             "patch": {
                 "statusId": str(st["progress"].id),
-                "assigneeId": str(member.id),
+                "assigneeIds": [str(member.id)],
                 "labelIds": [label],
                 "priority": 4,
             },
@@ -388,8 +390,8 @@ def test_bulk_respects_per_task_permissions(owner, project):
 def test_my_tasks_and_workspace_tasks(owner, ws, project):
     member = add_project_member(project, key="project_member")
     hidden = make_project(ws, owner, key="HID")
-    create_task(owner, project, {"title": "A", "assigneeId": str(member.id), "dueDate": "2026-10-09"})
-    create_task(owner, project, {"title": "B", "assigneeId": str(member.id)})
+    create_task(owner, project, {"title": "A", "assigneeIds": [str(member.id)], "dueDate": "2026-10-09"})
+    create_task(owner, project, {"title": "B", "assigneeIds": [str(member.id)]})
     create_task(owner, hidden, {"title": "Hidden"})
     c = client_for(member)
     mine = c.get("/api/v1/tracking/workspaces/platform/tasks?filter[assignee]=me").json()

@@ -113,6 +113,7 @@ def _kwargs(name: str, route: str, w) -> dict:
         "import_id": w.import_job.pk,
         "entry_id": w.entry.pk,
         "dependency_id": w.dependency.pk,
+        "checklist_item_id": w.checklist_item.pk,
         "sprint_id": w.sprint.pk,
         "dashboard_id": w.dashboard.pk,
         "integration_id": w.integration.pk,

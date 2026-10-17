@@ -26,9 +26,16 @@ from .fixtures import JIRA, SAMPLE, analyzed, mapped_sample, sample_text, save_m
 pytestmark = pytest.mark.django_db
 
 
+def only_assignee(task):
+    """An imported task's one assignee (imports assign at most one person), or None."""
+    users = list(task.assignees.all())
+    assert len(users) <= 1
+    return users[0] if users else None
+
+
 def _tasks(job_id):
     ids = ImportRow.objects.filter(job_id=job_id, outcome="task").values_list("task_id", flat=True)
-    return {t.key: t for t in Task.objects.filter(pk__in=ids).select_related("status", "assignee", "epic", "sprint")}
+    return {t.key: t for t in Task.objects.filter(pk__in=ids).select_related("status", "epic", "sprint")}
 
 
 # ───────────────────────── the sample ─────────────────────────
@@ -70,7 +77,7 @@ def test_the_sample_imports_44_tasks(world):
     world.project.refresh_from_db()
     assert world.project.task_seq == 104
     first = tasks["PRJ-61"]
-    assert (first.title, first.status.name, first.assignee, first.priority, first.estimate) == (
+    assert (first.title, first.status.name, only_assignee(first), first.priority, first.estimate) == (
         "Fix login redirect loop", "Todo", world.alex, 3, 3,
     )  # fmt: skip
     assert first.due_date == dt.date(2026, 10, 8) and first.reporter == world.alex and first.version == 1
@@ -79,7 +86,7 @@ def test_the_sample_imports_44_tasks(world):
     }  # fmt: skip
     assert {lb.name for lb in tasks["PRJ-63"].labels.all()} == {"frontend", "perf"}
     assert tasks["PRJ-64"].status.name == "Done" and tasks["PRJ-64"].completed_at is not None
-    assert tasks["PRJ-64"].assignee is None  # Chris Ortiz → Leave unassigned
+    assert only_assignee(tasks["PRJ-64"]) is None  # Chris Ortiz → Leave unassigned
     assert tasks["PRJ-65"].status.name == "In review"
     assert all(t.sprint is None for t in tasks.values())  # backlog, not the active sprint (§9 #27)
     assert not active.scope_changes.exists()
@@ -209,16 +216,16 @@ def test_the_jira_export(world):
     drawer = tasks["Cart drawer"]
     assert drawer.epic == epic and drawer.estimate == 3 and drawer.time_estimate_minutes == 480
     assert (drawer.start_date, drawer.due_date) == (dt.date(2026, 10, 5), dt.date(2026, 10, 14))
-    assert drawer.sprint == world.sprint and drawer.assignee == world.jordan and drawer.priority == 2
+    assert drawer.sprint == world.sprint and only_assignee(drawer) == world.jordan and drawer.priority == 2
     assert {lb.name for lb in drawer.labels.all()} == {"frontend", "ux"}
     animation = tasks["Cart drawer animation"]
-    assert animation.parent == drawer and animation.assignee == world.jordan
+    assert animation.parent == drawer and only_assignee(animation) == world.jordan
     assert animation.sprint == world.sprint and animation.epic == epic and animation.time_estimate_minutes == 120
     bug = tasks["Price rounding bug"]
-    assert bug.status.name == "Done" and bug.priority == 4 and bug.assignee == world.sam and bug.epic == epic
+    assert bug.status.name == "Done" and bug.priority == 4 and only_assignee(bug) == world.sam and bug.epic == epic
     assert bug.type == "bug"
     retry = tasks["Payment retry"]
-    assert retry.status.name == "In review" and retry.assignee is None and retry.sprint is None
+    assert retry.status.name == "In review" and only_assignee(retry) is None and retry.sprint is None
     assert {lb.name for lb in retry.labels.all()} == {"backend", "api"}
     assert TaskDependency.objects.filter(blocker=bug, blocked=retry).count() == 1
     assert ImportRow.objects.get(job_id=job["id"], row=2).epic == epic

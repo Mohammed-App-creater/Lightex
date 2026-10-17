@@ -54,7 +54,7 @@ def pr(number=7, title="PRJ-1 Fix", head="prj-1-fix", state="open", updated=None
 
 @pytest.fixture
 def tasks(owner, project):
-    return [create_task(owner, project, {"title": f"Task {i}", "assigneeId": str(owner.id)}) for i in range(1, 4)]
+    return [create_task(owner, project, {"title": f"Task {i}", "assigneeIds": [str(owner.id)]}) for i in range(1, 4)]
 
 
 def test_pr_lifecycle_links_audit_and_realtime(ws, owner, project, github, web, tasks, monkeypatch):
@@ -163,7 +163,7 @@ def _rule(project, trigger, category):
 
 def test_pr_merged_automation_moves_to_done_as_the_integration(ws, owner, project, github, web, tasks):
     sam = add_project_member(project)
-    update_task(owner, tasks[0], {"assigneeId": str(sam.id), "version": tasks[0].version})
+    update_task(owner, tasks[0], {"assigneeIds": [str(sam.id)], "version": tasks[0].version})
     done = _rule(project, "pr_merged", "done").status
     ctx = ctx_for(github)
     t = timezone.now()

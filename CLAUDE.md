@@ -8,7 +8,7 @@ Internal project-management app for software teams. This is a monorepo:
 | `backend/` | Backend service (Django modular monolith; `manage.py`, `config/`, Docker). Its plan is `docs/backend-plan.md`. |
 | `backend/core/` | Platform core: accounts, workspaces, access, teams, modules, collab, events, notifications, channels, realtime, audit, search, common. Must not import `backend/modules/` (import-linter). |
 | `backend/modules/` | Toggleable modules: `tracking/` (projects, tasks, planning, reports, dashboards, imports, integrations, time) and `sales/` (skeleton). Modules never import each other. |
-| `docs/` | Repo-level docs: `platform-architecture.md` (core + modules design, the source of truth), `platform/` (stage contracts, `adding-a-module.md`), `backend-plan.md` and `openapi.yaml` (the backend's API spec). |
+| `docs/` | Repo-level docs: `platform-architecture.md` (core + modules design, the source of truth), `platform/` (stage contracts, `adding-a-module.md`), `tracking/` (tracking feature contracts, e.g. task checklists and multiple assignees), `backend-plan.md` and `openapi.yaml` (the backend's API spec). |
 | `.github/workflows/` | CI (`backend.yml`). |
 
 - The frontend and backend are developed in parallel, often by separate sessions. Commit only the paths you changed

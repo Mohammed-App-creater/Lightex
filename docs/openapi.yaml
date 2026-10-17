@@ -4874,6 +4874,94 @@ paths:
                 items:
                   $ref: '#/components/schemas/ActivityOut'
           description: ''
+  /api/v1/tracking/tasks/{task_id}/checklist:
+    post:
+      operationId: tracking_tasks_checklist_create
+      description: A task's checklist. Writes need task edit rights (edit_any, or
+        edit_own as reporter or an assignee).
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChecklistItemInRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistItemOut'
+          description: ''
+  /api/v1/tracking/tasks/{task_id}/checklist/{checklist_item_id}:
+    patch:
+      operationId: tracking_tasks_checklist_partial_update
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: checklist_item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChecklistItemPatchInRequest'
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistItemOut'
+          description: ''
+    delete:
+      operationId: tracking_tasks_checklist_destroy
+      description: Scope = the task's project (resolved from the task id in the URL).
+      parameters:
+      - in: path
+        name: checklist_item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: task_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/tracking/tasks/{task_id}/dependencies:
     get:
       operationId: tracking_tasks_dependencies_retrieve
@@ -7478,6 +7566,61 @@ components:
       enum:
       - sent
       type: string
+    ChecklistItemInRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+        position:
+          type: string
+          nullable: true
+          minLength: 1
+          description: 'Omitted or null: last.'
+      required:
+      - text
+    ChecklistItemOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        text:
+          type: string
+        done:
+          type: boolean
+        position:
+          type: string
+          description: Base-62 fractional index, like Task.position.
+        doneAt:
+          type: string
+          format: date-time
+          nullable: true
+        doneById:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        createdById:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - createdAt
+      - createdById
+      - done
+      - doneAt
+      - doneById
+      - id
+      - position
+      - taskId
+      - text
     ChecksStateEnum:
       enum:
       - passing
@@ -7920,12 +8063,13 @@ components:
           format: uuid
         status:
           $ref: '#/components/schemas/DependencyStatusOut'
-        assigneeId:
-          type: string
-          format: uuid
-          nullable: true
+        assigneeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
       required:
-      - assigneeId
+      - assigneeIds
       - id
       - key
       - status
@@ -9344,6 +9488,18 @@ components:
       - epic
       - skipped
       type: string
+    PatchedChecklistItemPatchInRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+        done:
+          type: boolean
+        position:
+          type: string
+          minLength: 1
     PatchedCommentInRequest:
       type: object
       properties:
@@ -9715,10 +9871,14 @@ components:
           type: integer
           maximum: 4
           minimum: 0
-        assigneeId:
-          type: string
-          format: uuid
+        assigneeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
           nullable: true
+          description: Replaces the assignees (project members, up to 10, in order);
+            [] or null unassigns everyone.
         sprintId:
           type: string
           format: uuid
@@ -11684,10 +11844,12 @@ components:
         statusId:
           type: string
           format: uuid
-        assigneeId:
-          type: string
-          format: uuid
-          nullable: true
+        assigneeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Assignees in order (0–10). Replaced the single `assigneeId`.
         reporterId:
           type: string
           format: uuid
@@ -11755,6 +11917,10 @@ components:
           type: integer
         attachmentCount:
           type: integer
+        checklistCount:
+          type: integer
+        checklistDoneCount:
+          type: integer
         customFields:
           type: object
           additionalProperties: {}
@@ -11782,12 +11948,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TaskOut'
+        checklist:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItemOut'
+          description: In position order.
         project: {}
         dependencies:
           $ref: '#/components/schemas/TaskDependenciesOut'
       required:
-      - assigneeId
+      - assigneeIds
       - attachmentCount
+      - checklist
+      - checklistCount
+      - checklistDoneCount
       - commentCount
       - completedAt
       - createdAt
@@ -12007,10 +12181,12 @@ components:
         statusId:
           type: string
           format: uuid
-        assigneeId:
-          type: string
-          format: uuid
-          nullable: true
+        assigneeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Assignees in order (0–10). Replaced the single `assigneeId`.
         reporterId:
           type: string
           format: uuid
@@ -12078,6 +12254,10 @@ components:
           type: integer
         attachmentCount:
           type: integer
+        checklistCount:
+          type: integer
+        checklistDoneCount:
+          type: integer
         customFields:
           type: object
           additionalProperties: {}
@@ -12100,8 +12280,10 @@ components:
           nullable: true
           description: 'Board 37: linked PRs/branches/commits; null without links.'
       required:
-      - assigneeId
+      - assigneeIds
       - attachmentCount
+      - checklistCount
+      - checklistDoneCount
       - commentCount
       - completedAt
       - createdAt
@@ -12184,10 +12366,14 @@ components:
           type: integer
           maximum: 4
           minimum: 0
-        assigneeId:
-          type: string
-          format: uuid
+        assigneeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
           nullable: true
+          description: Replaces the assignees (project members, up to 10, in order);
+            [] or null unassigns everyone.
         sprintId:
           type: string
           format: uuid

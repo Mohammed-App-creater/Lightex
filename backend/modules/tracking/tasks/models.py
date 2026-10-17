@@ -22,8 +22,13 @@ class Task(WorkspaceScopedSoftDeleteModel):
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="feature")
     priority = models.PositiveSmallIntegerField(default=0)
     status = models.ForeignKey("projects.Status", on_delete=models.PROTECT, related_name="tasks")
-    assignee = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_tasks"
+    # Ordered by when each person was assigned (TaskAssignee.created_at).
+    assignees = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through="TaskAssignee",
+        through_fields=("task", "user"),
+        related_name="assigned_tasks",
+        blank=True,
     )
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="reported_tasks"
@@ -73,7 +78,6 @@ class Task(WorkspaceScopedSoftDeleteModel):
         indexes = [
             models.Index(fields=["project", "status", "position"], name="task_board_order"),
             models.Index(fields=["key"], name="task_key"),
-            models.Index(fields=["assignee", "deleted_at"], name="task_assignee"),
             models.Index(fields=["sprint", "deleted_at"], name="task_sprint"),
             models.Index(fields=["project", "completed_at"], name="task_completed"),
             models.Index(fields=["parent"], name="task_parent"),
@@ -106,6 +110,51 @@ class TaskLabel(WorkspaceScopedModel):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["task", "label"], name="task_label_unique")]
+
+
+MAX_ASSIGNEES = 10
+
+
+class TaskAssignee(WorkspaceScopedModel):
+    """One person assigned to a task. A task has 0–MAX_ASSIGNEES of them."""
+
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="task_assignees")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="task_assignments")
+    # The order the client sent; new people go last.
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["task", "user"], name="task_assignee_unique")]
+        indexes = [models.Index(fields=["user", "task"], name="task_assignee_user")]
+
+
+MAX_CHECKLIST_ITEMS = 100
+
+
+class ChecklistItem(WorkspaceScopedModel):
+    """One to-do on a task's checklist."""
+
+    workspace_parent = "task"
+
+    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="checklist_items")
+    text = models.CharField(max_length=500)
+    done = models.BooleanField(default=False)
+    # Base-62 fractional index, like Task.position.
+    position = models.CharField(max_length=64, db_collation="C")
+    done_at = models.DateTimeField(null=True, blank=True)
+    done_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        indexes = [models.Index(fields=["task", "position"], name="checklist_task_order")]
 
 
 class TaskStatusHistory(WorkspaceScopedModel):

@@ -30,7 +30,17 @@ from modules.tracking.projects.models import CustomField, Label, Project, Projec
 
 from . import selectors
 from .domain import apply_status, initial_history
-from .models import Task, TaskDependency, TaskFieldValue, TaskLabel, TaskObjective
+from .models import (
+    MAX_ASSIGNEES,
+    MAX_CHECKLIST_ITEMS,
+    ChecklistItem,
+    Task,
+    TaskAssignee,
+    TaskDependency,
+    TaskFieldValue,
+    TaskLabel,
+    TaskObjective,
+)
 
 MAX_BULK = 200
 
@@ -39,11 +49,20 @@ MAX_BULK = 200
 
 
 def can_edit(user: Any, task: Task) -> bool:
-    """task.edit_any, or task.edit_own when the user reported or is assigned the task."""
+    """task.edit_any, or task.edit_own when the user reported the task or is one of its assignees."""
     project = task.project
     if access.can(user, "tracking.task.edit_any", project):
         return True
-    return access.can(user, "tracking.task.edit_own", project) and user.pk in (task.assignee_id, task.reporter_id)
+    if not access.can(user, "tracking.task.edit_own", project):
+        return False
+    return user.pk == task.reporter_id or TaskAssignee.objects.filter(task=task, user_id=user.pk).exists()
+
+
+def assignee_ids(task: Task) -> list[Any]:
+    """The task's assignees' user ids, in order."""
+    return list(
+        TaskAssignee.objects.filter(task=task).order_by("position", "created_at").values_list("user_id", flat=True)
+    )
 
 
 def current_payload(task: Task) -> dict[str, Any]:
@@ -87,17 +106,45 @@ def _default_status(project: Project) -> Status:
     return statuses[0]
 
 
-def _assignee(project: Project, value: Any) -> Any:
-    if value is None:
-        return None
-    member = (
-        ProjectMember.objects.filter(project=project, user_id=value).select_related("user").first()
-        if selectors.is_uuid(value)
-        else None
-    )
-    if member is None:
-        raise invalid({"assigneeId": "Assign someone on this project"})
-    return member.user
+def _assignees(project: Project, values: Any) -> list[Any]:
+    """`assigneeIds` → project members' users, in the order sent (duplicates dropped). Null means nobody."""
+    ids = _id_list([] if values is None else values, "assigneeIds")
+    if len(ids) > MAX_ASSIGNEES:
+        raise invalid({"assigneeIds": f"Assign up to {MAX_ASSIGNEES} people"})
+    members = {
+        str(m.user_id): m.user
+        for m in ProjectMember.objects.filter(project=project, user_id__in=ids).select_related("user")
+    }
+    if len(members) != len(ids):
+        raise invalid({"assigneeIds": "Assign people on this project"})
+    return [members[i] for i in ids]
+
+
+def _set_assignees(task: Task, users: list[Any]) -> None:
+    """Replaces the task's assignees with `users`, in that order."""
+    wanted = [u.pk for u in users]
+    TaskAssignee.objects.filter(task=task).exclude(user_id__in=wanted).delete()
+    current = {a.user_id: a for a in TaskAssignee.objects.filter(task=task)}
+    new = []
+    for position, user_id in enumerate(wanted):
+        row = current.get(user_id)
+        if row is None:
+            new.append(TaskAssignee(task=task, user_id=user_id, position=position))
+        elif row.position != position:
+            TaskAssignee.objects.filter(pk=row.pk).update(position=position)
+    TaskAssignee.objects.bulk_create(new)
+
+
+def _emit_assigned(task: Task, actor: Any, user_ids: list[Any]) -> None:
+    """One `tracking.task.assigned` per newly assigned person (each gets their own notification)."""
+    for user_id in user_ids:
+        emit(
+            "tracking.task.assigned",
+            workspace=task.project.workspace_id,
+            project=task.project,
+            actor=actor,
+            payload={"taskId": str(task.pk), "assigneeId": str(user_id)},
+        )
 
 
 def _sprint(project: Project, value: Any) -> Sprint | None:
@@ -252,8 +299,8 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         raise forbidden(details={"permission": "tracking.task.create"})
     title = _title(data.get("title"))
     status = _status(project, data["statusId"]) if data.get("statusId") else _default_status(project)
-    assignee = _assignee(project, data.get("assigneeId"))
-    if assignee is not None and assignee.pk != actor.pk and not access.can(actor, "tracking.task.assign", project):
+    assignees = _assignees(project, data.get("assigneeIds"))
+    if any(u.pk != actor.pk for u in assignees) and not access.can(actor, "tracking.task.assign", project):
         raise forbidden("You can’t assign tasks to others.", {"permission": "tracking.task.assign"})
     parent = _ref(Task, project, data.get("parentId"), "parentId")
     if parent is not None and parent.parent_id is not None:
@@ -283,7 +330,6 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         description=description,
         type=_type(data.get("type") or "feature"),
         priority=_priority(data.get("priority", 0)),
-        assignee=assignee,
         reporter=actor,
         estimate=_estimate(data.get("estimate")),
         start_date=start_date,
@@ -299,6 +345,7 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
     task.save()
     initial_history(task, actor, at=now)
     TaskLabel.objects.bulk_create([TaskLabel(task=task, label=lb) for lb in labels])
+    _set_assignees(task, assignees)
     refresh_search_vector(task)
     if sprint is not None:
         _track_scope(task, None, sprint.pk, actor)
@@ -308,14 +355,7 @@ def create_task(actor: Any, project: Project, data: dict[str, Any]) -> Task:
         "tracking.task.created",
         [change("Title", None, title, "text"), change("Status", None, status.glyph, "status")],
     )
-    if assignee is not None:
-        emit(
-            "tracking.task.assigned",
-            workspace=project.workspace_id,
-            project=project,
-            actor=actor,
-            payload={"taskId": str(task.pk), "assigneeId": str(assignee.pk)},
-        )
+    _emit_assigned(task, actor, [u.pk for u in assignees])
     _emit_mentions(task, actor, mention_ids(description), [])
     return task
 
@@ -340,7 +380,7 @@ def _emit_mentions(task: Task, actor: Any, now: list[str], before: list[str]) ->
 # ───────────────────────── update ─────────────────────────
 
 EDITABLE = {
-    "title", "type", "priority", "statusId", "assigneeId", "estimate", "startDate", "dueDate", "epicId", "milestoneId",
+    "title", "type", "priority", "statusId", "assigneeIds", "estimate", "startDate", "dueDate", "epicId", "milestoneId",
     "sprintId", "objectiveIds", "labelIds", "description", "customFields", "timeEstimateMinutes",
 }  # fmt: skip
 
@@ -375,17 +415,23 @@ def update_task(
         _authorize_patch(actor, task, keys)
     project = task.project
     changes: list[dict[str, Any]] = []
-    status_change = assign_change = None
+    status_change = None
+    assignees: list[Any] = []
+    assign_changes: list[dict[str, Any]] = []
+    added_assignees: list[Any] = []
     linked: list[Objective] = []
     mentions_before = mention_ids(task.description)
 
-    if "assigneeId" in keys:
-        assignee = _assignee(project, data["assigneeId"])
-        if (assignee.pk if assignee else None) != task.assignee_id:
+    if "assigneeIds" in keys:
+        assignees = _assignees(project, data["assigneeIds"])
+        before_ids, after_ids = assignee_ids(task), [u.pk for u in assignees]
+        if set(after_ids) != set(before_ids):  # a reorder alone is not a change
             if not access.can(actor, "tracking.task.assign", project):
                 raise forbidden("You can’t reassign tasks.", {"permission": "tracking.task.assign"})
-            assign_change = change("Assignee", task.assignee_id, assignee.pk if assignee else None, "person")
-            task.assignee = assignee
+            added_assignees = [i for i in after_ids if i not in before_ids]
+            assign_changes = [change("Assignee", i, None, "person") for i in before_ids if i not in after_ids]
+            assign_changes += [change("Assignee", None, i, "person") for i in added_assignees]
+            _set_assignees(task, assignees)
     if "title" in keys:
         title = _title(data["title"])
         if title != task.title:
@@ -486,17 +532,16 @@ def update_task(
             actor=actor,
             payload=payload,
         )
-    if assign_change:
-        name = task.assignee.name if task.assignee else "nobody"
-        _audit(task, actor, "tracking.task.assigned", [assign_change], {"assignee": name})
-        if task.assignee_id:
-            emit(
-                "tracking.task.assigned",
-                workspace=project.workspace_id,
-                project=project,
-                actor=actor,
-                payload={"taskId": str(task.pk), "assigneeId": str(task.assignee_id)},
-            )
+    if assign_changes:
+        names = [u.name for u in assignees]
+        _audit(
+            task,
+            actor,
+            "tracking.task.assigned",
+            assign_changes,
+            {"assignee": ", ".join(names) if names else "nobody", "assigneeCount": len(names)},
+        )
+        _emit_assigned(task, actor, added_assignees)
     for objective in linked:
         _audit(
             task,
@@ -749,7 +794,7 @@ def restore_task(actor: Any, task: Task) -> Task:
 
 # ───────────────────────── bulk ─────────────────────────
 
-BULK_FIELDS = {"statusId", "assigneeId", "labelIds", "sprintId", "priority", "epicId", "milestoneId", "dueDate"}
+BULK_FIELDS = {"statusId", "assigneeIds", "labelIds", "sprintId", "priority", "epicId", "milestoneId", "dueDate"}
 
 
 @transaction.atomic
@@ -783,7 +828,7 @@ def bulk(actor: Any, project: Project, data: dict[str, Any]) -> list[Task]:
     if unknown:
         raise invalid({f"patch.{sorted(unknown)[0]}": "This field can’t be bulk-edited"})
     _check_bulk_due(patch, tasks)
-    if "assigneeId" in patch and not access.can(actor, "tracking.task.assign", project):
+    if "assigneeIds" in patch and not access.can(actor, "tracking.task.assign", project):
         raise forbidden("You can’t reassign tasks.", {"permission": "tracking.task.assign"})
     for task in tasks:
         if task.deleted_at is not None:
@@ -930,3 +975,106 @@ def remove_dependency(actor: Any, task: Task, dependency_id: Any) -> None:
         raise forbidden(_CANT_EDIT, {"permission": "tracking.task.edit_any"})
     _audit_link(actor, "tracking.task.dependency_removed", link.blocker, link.blocked)
     link.delete()
+
+
+# ───────────────────────── checklist ─────────────────────────
+
+CHECKLIST_TEXT_MAX = 500
+CHECKLIST_FIELDS = {"text", "done", "position"}
+
+
+def _checklist_text(value: Any) -> str:
+    text = value.strip() if isinstance(value, str) else ""
+    if not text:
+        raise invalid({"text": "Write what needs doing"})
+    if len(text) > CHECKLIST_TEXT_MAX:
+        raise invalid({"text": f"Up to {CHECKLIST_TEXT_MAX} characters"})
+    return text
+
+
+def _checklist_position(value: Any) -> str:
+    if not isinstance(value, str) or not fractional.is_valid_key(value):
+        raise invalid({"position": "Invalid position"})
+    return value
+
+
+def _checklist_task(actor: Any, task: Task) -> Task:
+    """The task, locked (serialises the item limit and appends), after the deleted and edit checks."""
+    task = Task.all_objects.select_for_update().select_related("project").get(pk=task.pk)
+    if task.deleted_at is not None:
+        raise conflict("task_deleted", _DELETED)
+    if not can_edit(actor, task):
+        raise forbidden(_CANT_EDIT, {"permission": "tracking.task.edit_any"})
+    return task
+
+
+def _checklist_item(task: Task, item_id: Any) -> ChecklistItem:
+    item = ChecklistItem.objects.filter(task=task, pk=item_id).first() if selectors.is_uuid(item_id) else None
+    if item is None:
+        raise not_found("Checklist item not found.")
+    return item
+
+
+def _audit_checklist(task: Task, actor: Any, op: str, text: str) -> None:
+    """Audit only (not in the activity feeds); realtime sends `fields: ["checklist"]` without a version bump."""
+    _audit(task, actor, "tracking.task.checklist_updated", data={"op": op, "text": text[:200]})
+
+
+@transaction.atomic
+def add_checklist_item(actor: Any, task: Task, data: dict[str, Any]) -> ChecklistItem:
+    task = _checklist_task(actor, task)
+    text = _checklist_text(data.get("text"))
+    unknown = set(data) - {"text", "position"}
+    if unknown:
+        raise invalid({sorted(unknown)[0]: "This field can’t be set here"})
+    items = ChecklistItem.objects.filter(task=task)
+    if items.count() >= MAX_CHECKLIST_ITEMS:
+        raise conflict("checklist_limit", f"A checklist can have up to {MAX_CHECKLIST_ITEMS} items.")
+    if data.get("position") is not None:
+        position = _checklist_position(data["position"])
+    else:
+        last = items.order_by("-position").values_list("position", flat=True).first()
+        position = fractional.key_between(last, None)
+    item = ChecklistItem.objects.create(task=task, text=text, position=position, created_by=actor)
+    _audit_checklist(task, actor, "added", text)
+    return item
+
+
+@transaction.atomic
+def update_checklist_item(actor: Any, task: Task, item_id: Any, data: dict[str, Any]) -> ChecklistItem:
+    task = _checklist_task(actor, task)
+    item = _checklist_item(task, item_id)
+    unknown = set(data) - CHECKLIST_FIELDS
+    if unknown:
+        raise invalid({sorted(unknown)[0]: "This field can’t be changed here"})
+    ops: list[str] = []
+    if "done" in data:
+        if not isinstance(data["done"], bool):
+            raise invalid({"done": "Send true or false"})
+        if data["done"] != item.done:
+            item.done = data["done"]
+            item.done_at = timezone.now() if item.done else None
+            item.done_by = actor if item.done else None
+            ops.append("checked" if item.done else "unchecked")
+    if "text" in data:
+        text = _checklist_text(data["text"])
+        if text != item.text:
+            item.text = text
+            ops.append("renamed")
+    if "position" in data:
+        position = _checklist_position(data["position"])
+        if position != item.position:
+            item.position = position
+            ops.append("moved")
+    if ops:
+        item.save()
+        _audit_checklist(task, actor, ops[0], item.text)
+    return item
+
+
+@transaction.atomic
+def delete_checklist_item(actor: Any, task: Task, item_id: Any) -> None:
+    task = _checklist_task(actor, task)
+    item = _checklist_item(task, item_id)
+    item.delete()
+    _audit_checklist(task, actor, "removed", item.text)

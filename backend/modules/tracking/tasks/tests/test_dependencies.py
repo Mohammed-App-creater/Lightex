@@ -6,7 +6,7 @@ from django.test.utils import CaptureQueriesContext
 
 from core.audit.models import AuditLog
 from core.common.testing import client_for
-from modules.tracking.tasks.models import Task, TaskDependency
+from modules.tracking.tasks.models import Task, TaskAssignee, TaskDependency
 from modules.tracking.tasks.services import DEPENDENCY_LIMIT, create_task, delete_task, restore_task
 from modules.tracking.testing import add_project_member, make_project
 
@@ -54,7 +54,7 @@ def test_add_both_relations_and_payload(owner, tasks):
         "title": b.title,
         "statusId": str(b.status_id),
         "status": {"name": b.status.name, "glyph": b.status.glyph, "category": b.status.category},
-        "assigneeId": None,
+        "assigneeIds": [],
     }
     res = add(client, a, "blocks", c)
     assert [i["task"]["key"] for i in res.json()["blocks"]] == [c.key]
@@ -225,8 +225,9 @@ def test_open_blockers_in_payloads(owner, project, st, tasks):
     detail = client.get(f"/api/v1/tracking/tasks/{a.id}").json()
     assert detail["isBlocked"] is True
     assert detail["openBlockers"] == [{"id": str(b.id), "key": b.key, "title": b.title}]
-    Task.objects.filter(pk=b.pk).update(assignee=owner, status=st["done"])
-    Task.objects.filter(pk=a.pk).update(assignee=owner)
+    Task.objects.filter(pk=b.pk).update(status=st["done"])
+    for t in (a, b):
+        TaskAssignee.objects.create(task=t, user=owner)
     board = client.get(f"/api/v1/tracking/projects/{project.id}/board?filter[sprint]=all").json()
     card = next(t for t in board["tasks"] if t["id"] == str(a.id))
     assert card["isBlocked"] is False
