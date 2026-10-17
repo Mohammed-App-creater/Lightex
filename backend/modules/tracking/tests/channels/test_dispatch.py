@@ -194,7 +194,7 @@ CTX = {
 }  # fmt: skip
 
 
-@pytest.mark.parametrize("template", render.TEMPLATES)
+@pytest.mark.parametrize("template", render.templates())
 def test_every_template_renders_and_sms_never_has_titles_or_comments(template):
     text, _ = render.telegram(template, CTX)
     title, body = render.push(template, CTX)

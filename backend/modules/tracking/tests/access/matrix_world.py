@@ -40,7 +40,7 @@ def build_world() -> World:
     from core.workspaces.models import Invitation
 
     owner = UserFactory(name="Owner")
-    ws = make_workspace(owner, name="Platform team", slug="platform")
+    ws = make_workspace(owner, name="Platform team", slug="platform", modules=["sales"])
     users = {"owner": owner}
     users["ws_admin"] = add_member(ws, UserFactory(name="WS Admin"), "admin")
     users["ws_member"] = add_member(ws, UserFactory(name="WS Member"), "member")

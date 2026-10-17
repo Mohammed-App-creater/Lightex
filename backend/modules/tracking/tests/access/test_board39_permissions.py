@@ -33,7 +33,7 @@ def test_catalogue_endpoint_lists_the_new_codes_in_order(owner):
     for code in NEW:
         assert code in codes
     assert codes.index("tracking.field.manage") == codes.index("tracking.status.manage") + 1
-    assert codes.index("tracking.time.log") == codes.index("tracking.task.delete") + 1
+    assert codes.index("tracking.time.log") == codes.index("tracking.development.link") + 1
     assert codes.index("tracking.time.delete_any") == codes.index("tracking.time.log") + 1
 
 

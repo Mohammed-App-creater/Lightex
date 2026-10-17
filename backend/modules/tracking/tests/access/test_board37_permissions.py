@@ -38,18 +38,20 @@ def test_catalogue_and_orders(owner):
         "core.workspace.delete",
         "core.workspace.manage_members",
         "core.roles.manage",
-        "tracking.project.create",
-        "tracking.project.assign_admin",
-        "tracking.integration.manage",
         "core.audit.view",
         "core.modules.manage",
         "core.teams.manage",
+        # Platform Stage 3: module codes follow core's, in module order.
+        "tracking.project.create",
+        "tracking.project.assign_admin",
+        "tracking.integration.manage",
+        "sales.health.view",
     ]
     order = catalogue.PROJECT_ORDER
     assert order[order.index("tracking.project.import") + 1] == "tracking.development.link"
     assert order[order.index("tracking.development.link") + 1] == "tracking.time.log"
     codes = [r["key"] for r in client_for(owner).get("/api/v1/permissions").json()]
-    assert codes.index("tracking.integration.manage") == codes.index("core.roles.manage") + 1
+    assert codes.index("tracking.integration.manage") == codes.index("tracking.project.assign_admin") + 1
     assert codes.index("tracking.development.link") == codes.index("tracking.project.import") + 1
 
 

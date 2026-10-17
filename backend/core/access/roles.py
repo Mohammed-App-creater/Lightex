@@ -10,6 +10,7 @@ from django.db.models import Count, Q
 
 from core.audit.services import change, record
 from core.common.exceptions import conflict, forbidden, invalid, not_found
+from core.modules.services import code_enabled, visible_codes
 
 from . import catalogue
 from .catalogue import OWNER_PERMISSION, WORKSPACE
@@ -38,12 +39,15 @@ def get_role(role_id: Any) -> Role:
     return role
 
 
-def _clean_permissions(scope: str, raw: Any) -> list[str]:
+def _clean_permissions(scope: str, raw: Any, workspace: Any) -> list[str]:
     if not isinstance(raw, list) or not all(isinstance(c, str) for c in raw):
         raise invalid({"permissions": "Pick permissions from the list"})
-    unknown = [c for c in raw if catalogue.SCOPE_OF.get(c) != scope]
+    unknown = [c for c in raw if catalogue.scope_of(c) != scope]
     if unknown:
         raise invalid({"permissions": f"{unknown[0]} isn’t a {scope} permission"})
+    off = [c for c in raw if not code_enabled(workspace, c)]
+    if off:
+        raise invalid({"permissions": f"{off[0]} belongs to a module that is turned off"})
     return catalogue.ordered(raw)
 
 
@@ -102,7 +106,7 @@ def create_role(actor: Any, workspace: Any, data: dict[str, Any]) -> Role:
     name = _name(data.get("name"))
     if _name_taken(workspace, scope, name):
         raise invalid({"name": "A role with this name exists"})
-    codes = _clean_permissions(scope, data.get("permissions", []))
+    codes = _clean_permissions(scope, data.get("permissions", []), workspace)
     _ensure_no_escalation(actor, scope, workspace, set(codes))
     role = Role.objects.create(
         workspace=workspace, name=name, description=str(data.get("description") or "")[:120], scope=scope
@@ -140,11 +144,15 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
             changes.append(change("Description", role.description, description, "text"))
             role.description = description
     if "permissions" in data:
-        codes = _clean_permissions(role.scope, data.get("permissions"))
-        current = set(role.permissions.values_list("code", flat=True))
+        codes = _clean_permissions(role.scope, data.get("permissions"), role.workspace)
+        stored = set(role.permissions.values_list("code", flat=True))
+        # Grants of disabled modules are hidden from the editor and kept as they are.
+        current = visible_codes(role.workspace, stored)
+        hidden = stored - current
         new = set(codes)
-        if role.is_system and role.system_key in catalogue.ROLE_DEF_BY_KEY:
-            locked = set(catalogue.ROLE_DEF_BY_KEY[role.system_key].core) - new
+        rdef = catalogue.role_def(role.system_key) if role.is_system else None
+        if rdef is not None:
+            locked = visible_codes(role.workspace, rdef.core) - new
             if locked:
                 raise invalid({"permissions": f"{sorted(locked)[0]} can’t be removed from the {role.name} role"})
         _ensure_no_escalation(actor, role.scope, role.workspace, new - current)
@@ -156,7 +164,7 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
         ):
             raise conflict("last_owner", "A workspace needs at least one owner.")
         if new != current:
-            _set_permissions(role, codes)
+            _set_permissions(role, [*codes, *sorted(hidden)])
             changes.append(change("Permissions", ", ".join(catalogue.ordered(current)), ", ".join(codes)))
     if changes:
         role.save()
@@ -201,7 +209,7 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
         )
         raise conflict("role_in_use", "Reassign members before deleting this role.", {"memberCount": count})
     if target is not None:
-        target_codes = set(target.permissions.values_list("code", flat=True))
+        target_codes = visible_codes(role.workspace, target.permissions.values_list("code", flat=True))
         _ensure_no_escalation(actor, role.scope, role.workspace, target_codes)
         if (
             role.scope == WORKSPACE

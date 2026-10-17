@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from core.modules.services import visible_codes
+
 from . import catalogue
 from .models import Role
 
@@ -24,7 +26,8 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ["id", "workspaceId", "name", "description", "scope", "isSystem", "permissions", "memberCount"]
 
     def get_permissions(self, obj) -> list[str]:
-        return catalogue.ordered(p.code for p in obj.permissions.all())
+        # Grants of modules disabled in the workspace are hidden (their rows are kept).
+        return catalogue.ordered(visible_codes(obj.workspace_id, (p.code for p in obj.permissions.all())))
 
     def get_memberCount(self, obj) -> int:
         if obj.scope == "workspace":

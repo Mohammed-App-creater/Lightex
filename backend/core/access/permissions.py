@@ -11,6 +11,8 @@ from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.views import APIView
 
 from core.common.exceptions import forbidden
+from core.modules.services import ensure_enabled
+from core.modules.urls_guard import module_of_request
 
 from .services import can
 
@@ -29,6 +31,9 @@ class ScopedPermission(BasePermission):
             # Fail closed: a method without a declared permission is never allowed.
             raise forbidden("This action is not available.")
         obj = view.scope  # resolving the scope raises 404 / 403 membership errors
+        module = module_of_request(request)
+        if module is not None:
+            ensure_enabled(module, obj)  # the module guard: 403 module_disabled
         if code != MEMBER and not can(request.user, code, obj):
             raise forbidden(details={"permission": code})
         return True

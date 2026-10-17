@@ -77,6 +77,17 @@ ROWS: list[Row] = [
         deny=("ws_admin", "ws_member", "manager", "outsider"),
         body=lambda w: {"confirm": "no"},
     ),
+    # ── platform Stage 3: modules (the world's workspace has sales enabled) ──
+    Row("workspace-modules", "GET", S, allow=("owner", "ws_member", "pmember"), deny=("outsider", "anon")),
+    Row(
+        "workspace-module",
+        "PUT",
+        lambda w: {"slug": w.ws.slug, "key": "sales"},
+        allow=("owner", "ws_admin"),
+        deny=("ws_member", "manager", "outsider", "anon"),
+        body=lambda w: {"enabled": True},
+    ),
+    Row("sales-health", "GET", S, allow=("owner", "ws_admin", "ws_member"), deny=("outsider", "anon")),
     Row("workspace-slug-availability", "GET", S, allow=("owner", "ws_member"), deny=("outsider",), query="?q=abc"),
     Row("workspace-members", "GET", S, allow=("owner", "ws_member", "viewer"), deny=("outsider", "anon")),
     Row(

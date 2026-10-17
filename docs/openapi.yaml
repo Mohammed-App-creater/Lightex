@@ -774,6 +774,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
           description: ''
+  /api/v1/sales/workspaces/{slug}/health:
+    get:
+      operationId: sales_workspaces_health_retrieve
+      description: 'A placeholder route proving the module guard: 403 `module_disabled`
+        while sales is off.'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesHealth'
+          description: ''
   /api/v1/search:
     get:
       operationId: search_retrieve
@@ -4301,7 +4321,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedWorkspaceCreateInRequest'
+              $ref: '#/components/schemas/PatchedWorkspaceUpdateInRequest'
       responses:
         '200':
           content:
@@ -4597,6 +4617,58 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/workspaces/{slug}/modules:
+    get:
+      operationId: workspaces_modules_list
+      description: Every registered module (core included) and whether it is on. Any
+        member may read it.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - modules
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceModule'
+          description: ''
+  /api/v1/workspaces/{slug}/modules/{key}:
+    put:
+      operationId: workspaces_modules_update
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - modules
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModuleToggleInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceModule'
+          description: ''
   /api/v1/workspaces/{slug}/presence:
     get:
       operationId: workspaces_presence_retrieve
@@ -6833,6 +6905,13 @@ components:
       - subscribe
       - refresh
       type: string
+    ModuleToggleInRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+      required:
+      - enabled
     MyWsAccessRequest:
       type: object
       properties:
@@ -6842,6 +6921,25 @@ components:
           nullable: true
       required:
       - request
+    NavItem:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        icon:
+          type: string
+        path:
+          type: string
+        permission:
+          type: string
+      required:
+      - icon
+      - key
+      - label
+      - path
+      - permission
     Notification:
       type: object
       properties:
@@ -7341,7 +7439,7 @@ components:
           description: PATCH only. 1–60000 minutes; null or 0 clears.
         version:
           type: integer
-    PatchedWorkspaceCreateInRequest:
+    PatchedWorkspaceUpdateInRequest:
       type: object
       properties:
         name:
@@ -8016,6 +8114,19 @@ components:
       - taskId
       - taskKey
       - taskTitle
+    SalesHealth:
+      type: object
+      properties:
+        status:
+          type: string
+        module:
+          type: string
+        workspace:
+          type: string
+      required:
+      - module
+      - status
+      - workspace
     SlugAvailability:
       type: object
       properties:
@@ -9483,8 +9594,14 @@ components:
           additionalProperties:
             type: boolean
           readOnly: true
+        enabledModules:
+          type: array
+          items:
+            type: string
+          readOnly: true
       required:
       - createdAt
+      - enabledModules
       - id
       - memberCount
       - myRoleId
@@ -9499,6 +9616,11 @@ components:
           type: string
         slug:
           type: string
+        modules:
+          type: array
+          items:
+            type: string
+            minLength: 1
     WorkspaceMember:
       type: object
       properties:
@@ -9535,3 +9657,46 @@ components:
       - active
       - deactivated
       type: string
+    WorkspaceModule:
+      type: object
+      description: 'Schema only: the data is built by `core.modules.services.modules_data`.'
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        isCore:
+          type: boolean
+        toggleable:
+          type: boolean
+        enabled:
+          type: boolean
+        dependsOn:
+          type: array
+          items:
+            type: string
+        enabledAt:
+          type: string
+          format: date-time
+          nullable: true
+        enabledBy:
+          type: string
+          format: uuid
+          nullable: true
+        navItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/NavItem'
+      required:
+      - dependsOn
+      - description
+      - enabled
+      - enabledAt
+      - enabledBy
+      - isCore
+      - key
+      - name
+      - navItems
+      - toggleable

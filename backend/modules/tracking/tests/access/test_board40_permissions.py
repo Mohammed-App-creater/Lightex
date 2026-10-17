@@ -30,7 +30,7 @@ namespace = importlib.import_module("core.access.migrations.0007_namespace_permi
 def test_catalogue_entry_and_placement(owner):
     rows = client_for(owner).get("/api/v1/permissions").json()
     codes = [r["key"] for r in rows]
-    assert codes.index(CODE) == codes.index("tracking.time.delete_any") + 1
+    assert codes.index(CODE) == codes.index("tracking.task.move") + 1
     entry = catalogue.BY_CODE[CODE]
     assert (entry.scope, entry.group, entry.label, entry.description) == (
         "project", "Tasks", "Import tasks", "Bring in tasks from a CSV or another tool’s export",

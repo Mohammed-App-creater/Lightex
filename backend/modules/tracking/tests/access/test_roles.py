@@ -227,7 +227,11 @@ def test_last_owner_is_protected_through_roles(owner, ws):
     client = client_for(owner)
     custom = client.post(
         "/api/v1/workspaces/platform/roles",
-        {"name": "Co-owner", "scope": "workspace", "permissions": list(catalogue.WORKSPACE_ORDER)},
+        {
+            "name": "Co-owner",
+            "scope": "workspace",
+            "permissions": [c for c in catalogue.WORKSPACE_ORDER if "sales" not in c],
+        },
         format="json",
     ).json()
     WorkspaceMember.objects.filter(user=owner).update(role_id=custom["id"])

@@ -4,15 +4,15 @@ from django.db.models.functions import Lower
 from core.common.models import BaseModel
 
 SCOPE_CHOICES = [("workspace", "Workspace"), ("project", "Project")]
-MODULE_CHOICES = [("core", "Core"), ("tracking", "Tracking")]
 
 
 class Permission(BaseModel):
-    """Catalogue row. The source of truth is access.catalogue; rows are synced on migrate."""
+    """Catalogue row. The source of truth is the module definitions (access.catalogue assembles them); rows are
+    synced on migrate and by `manage.py sync_permissions`."""
 
     code = models.CharField(max_length=64, unique=True)
     scope = models.CharField(max_length=16, choices=SCOPE_CHOICES)
-    module = models.CharField(max_length=16, choices=MODULE_CHOICES, default="tracking")
+    module = models.CharField(max_length=32, default="core")
     group = models.CharField(max_length=32)
     label = models.CharField(max_length=80)
     description = models.CharField(max_length=200)

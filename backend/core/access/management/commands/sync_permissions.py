@@ -4,7 +4,7 @@ from core.access.services import sync_permission_catalogue
 
 
 class Command(BaseCommand):
-    help = "Sync the permission catalogue (defined in core/access/catalogue.py) into the database."
+    help = "Sync the permission catalogue (assembled from every module definition) into the database."
 
     def handle(self, *args, **options):
         created, updated, removed = sync_permission_catalogue()

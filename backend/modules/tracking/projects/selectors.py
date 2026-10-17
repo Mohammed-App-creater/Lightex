@@ -9,8 +9,8 @@ from typing import Any
 from django.db.models import Count, OuterRef, Prefetch, Q, QuerySet, Subquery
 
 from core.access import services as access
-from core.access.catalogue import PROJECT_ADMIN_PERMISSION
 from core.common.exceptions import ApiError, not_found
+from modules.tracking.module import PROJECT_ADMIN_PERMISSION
 
 from .models import (
     AccessRequest,

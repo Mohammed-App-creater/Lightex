@@ -11,11 +11,12 @@ from django.db.models import Max
 from django.utils import timezone
 
 from core.access import services as access
-from core.access.catalogue import PROJECT, PROJECT_ADMIN_PERMISSION
+from core.access.catalogue import PROJECT
 from core.access.models import Role
 from core.audit.services import change, record
 from core.common.exceptions import conflict, forbidden, invalid, not_found
 from core.workspaces.models import WorkspaceMember
+from modules.tracking.module import PROJECT_ADMIN_PERMISSION
 
 from . import selectors, templates
 from .models import AccessRequest, Label, Project, ProjectKeyAlias, ProjectMember, Recent, Status

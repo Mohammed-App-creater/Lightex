@@ -6,12 +6,12 @@ from typing import Any
 
 from django.conf import settings
 
-from core.access.catalogue import PROJECT_ADMIN_PERMISSION
 from core.accounts.models import User
 from core.events.models import DomainEvent
-from core.events.registry import register_event_type, register_handler
+from core.events.registry import register_handler
 from core.notifications.emails import base_context, queue_email
 from core.notifications.handlers import deliver, preferences_for, recipients
+from modules.tracking.module import PROJECT_ADMIN_PERMISSION
 
 from .targets import _fmt, task_channel_context, task_context
 
@@ -263,35 +263,7 @@ def on_import_finished(event: DomainEvent) -> None:
 
 
 def register() -> None:
-    on = {"in_app": True, "email": True, "telegram": True, "sms": False, "push": True}
-    register_event_type("tracking.task.assigned", "Assigned to me", on, MODULE, channel_template="assigned", position=0)
-    register_event_type(
-        "tracking.task.status_changed",
-        "Status change on my tasks",
-        {"in_app": True, "email": False, "telegram": False, "sms": False, "push": False},
-        MODULE,
-        channel_template="status_change",
-        position=20,
-    )
-    register_event_type(
-        "tracking.task.due_soon",
-        "Due soon",
-        {"in_app": True, "email": True, "telegram": True, "sms": True, "push": True},
-        MODULE,
-        channel_template="due_soon",
-        position=40,
-    )
-    register_event_type(
-        "tracking.sprint.started",
-        "Sprint started",
-        {"in_app": True, "email": False, "telegram": False, "sms": False, "push": False},
-        MODULE,
-        channel_template="sprint_started",
-        position=50,
-    )
-    register_event_type("tracking.sprint.completed", "Sprint completed", module=MODULE, preference=False)
-    register_event_type("tracking.project.access_requested", "Access requests", module=MODULE, preference=False)
-    register_event_type("tracking.import.finished", "Imports", module=MODULE, preference=False)
+    """Handlers only: the event types (labels, channels, templates) are declared in modules/tracking/module.py."""
     register_handler("tracking.task.assigned", on_task_assigned, module=MODULE)
     register_handler("tracking.task.status_changed", on_status_change, module=MODULE)
     register_handler("tracking.task.due_soon", on_due_soon, module=MODULE)

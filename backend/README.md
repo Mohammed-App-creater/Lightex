@@ -337,6 +337,25 @@ events with `core.events.services.emit(type, workspace=…, target_type=…, tar
 the write's transaction; handlers run after commit (inline without a Celery worker), must be idempotent, and a
 failure records `attempts` and `error` for `process_outbox` to retry.
 
+## Module system
+
+Each module declares a `ModuleDefinition` (`core/modules/registry.py`) and calls `register_module()` from its AppConfig
+`ready()`: core in `core/modules/core_module.py`, tracking in `modules/tracking/module.py` (not toggleable yet), sales in
+`modules/sales/module.py`. A definition lists the module's permissions, `default_role_grants` (system role key → codes),
+`locked_role_grants`, notification event types (with their channel and email templates), target types, search provider,
+`nav_items` and `depends_on`. The permission catalogue (`core/access/catalogue.py`, which holds only core's entries) is
+assembled from the definitions and synced on migrate and by `manage.py sync_permissions`.
+
+`WorkspaceModule` stores which toggleable modules are on per workspace (`core` has no row; non-toggleable modules are
+always on). New workspaces get tracking plus `POST /workspaces` `modules`; `GET|PUT /workspaces/{slug}/modules[/{key}]`
+lists and switches them (`core.modules.manage`, audit `core.module.enabled|disabled`, errors `module_not_toggleable`
+and `module_dependency`). Enabling seeds the module's default grants. Workspace responses carry `enabledModules`.
+
+Module routes are mounted with `module_urls(key, patterns)` (`config/api_urls.py`): after `ScopedPermission` resolves
+the view's workspace or project (non-members get 404) it answers 403 `module_disabled` when the module is off.
+While a module is off its codes are dropped from `can()`, `my_permissions` and role responses (the rows stay), and the
+outbox, notifications, search and trash skip it. `core.modules.services.enabled_modules()` is cached per request.
+
 ## Layout
 
 ```

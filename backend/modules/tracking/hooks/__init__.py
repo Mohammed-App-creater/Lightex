@@ -12,6 +12,11 @@ def register() -> None:
     if _registered:
         return
     _registered = True
+    from core.modules.registry import register_module
+    from modules.tracking.module import DEFINITION
+
+    register_module(DEFINITION)  # permissions, default grants, event types, templates, navigation
+
     from . import access, events, realtime, search, seed, targets, trash, workspaces
 
     access.register()

@@ -10,6 +10,7 @@ from core.accounts.views import session_response
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_values
 from core.common.throttles import InvitationThrottle, InviteTokenThrottle
+from core.modules.services import prime as prime_modules
 
 from . import selectors, services
 from .models import WorkspaceAccessRequest
@@ -23,6 +24,7 @@ from .serializers import (
     WorkspaceCreateIn,
     WorkspaceMemberSerializer,
     WorkspaceSerializer,
+    WorkspaceUpdateIn,
 )
 
 
@@ -42,13 +44,16 @@ class WorkspaceListView(APIView):
 
     @extend_schema(tags=["workspaces"], responses={200: WorkspaceSerializer(many=True)})
     def get(self, request):
-        items = selectors.workspaces_for(request.user)
+        items = list(selectors.workspaces_for(request.user))
+        prime_modules(items)
         return Response(WorkspaceSerializer(items, many=True, context={"user": request.user}).data)
 
     @extend_schema(tags=["workspaces"], request=WorkspaceCreateIn, responses={201: WorkspaceSerializer})
     def post(self, request):
         data = body(request)
-        ws = services.create_workspace(request.user, name=str(data.get("name", "")), slug=data.get("slug"))
+        ws = services.create_workspace(
+            request.user, name=str(data.get("name", "")), slug=data.get("slug"), modules=data.get("modules")
+        )
         return Response(
             ws_data(request, selectors.workspace_for(request.user, ws.slug)), status=status.HTTP_201_CREATED
         )
@@ -61,7 +66,7 @@ class WorkspaceDetailView(WorkspaceScopedView):
     def get(self, request, slug):
         return Response(ws_data(request, self.scope))
 
-    @extend_schema(tags=["workspaces"], request=WorkspaceCreateIn, responses={200: WorkspaceSerializer})
+    @extend_schema(tags=["workspaces"], request=WorkspaceUpdateIn, responses={200: WorkspaceSerializer})
     def patch(self, request, slug):
         ws = services.update_workspace(request.user, self.scope, body(request))
         return Response(ws_data(request, selectors.workspace_for(request.user, ws.slug)))

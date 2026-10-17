@@ -18,7 +18,7 @@ from django.utils import timezone
 from core.accounts.models import User
 from core.common.targets import get_resolver
 from core.events.models import DomainEvent
-from core.events.registry import event_type, register_event_type, register_handler
+from core.events.registry import event_type, register_handler
 
 from .emails import base_context, queue_email
 from .models import Notification, NotificationPreference, default_events
@@ -62,8 +62,13 @@ def deliver(
     target resolver's `describe()`.
     """
     from core.channels import dispatch as channels
+    from core.modules.services import code_enabled
 
     target_type, target_id = target or (event.target_type, event.target_id)
+    if target_type and not code_enabled(event.workspace_id, target_type):
+        return None  # a comment or mention on a record of a module that is turned off in this workspace
+    if pref and not code_enabled(event.workspace_id, pref):
+        return None
     resolver = get_resolver(target_type) if target_type else None
     info = resolver.describe(target_id) if resolver is not None and target_id is not None else {}
     project_id = info.get("projectId") or event.project_id
@@ -207,25 +212,8 @@ def workspace_access_context(req: Any, workspace: Any) -> dict[str, Any]:
 
 
 def register() -> None:
-    """Core's event types and handlers (called from the notifications AppConfig)."""
-    register_event_type(
-        "core.comment.mentioned",
-        "Mentioned",
-        {"in_app": True, "email": True, "telegram": True, "sms": False, "push": True},
-        "core",
-        channel_template="mentioned",
-        position=10,
-    )
-    register_event_type(
-        "core.comment.created",
-        "New comment",
-        {"in_app": True, "email": False, "telegram": True, "sms": False, "push": True},
-        "core",
-        channel_template="comment",
-        position=30,
-    )
-    register_event_type("core.workspace.access_requested", "Workspace access requests", module="core", preference=False)
-    register_event_type("core.member.invited", "Invitations", module="core", preference=False)
+    """Core's notification handlers (called from the notifications AppConfig). The event types are declared in core's
+    module definition (core/modules/core_module.py)."""
     register_handler("core.comment.mentioned", on_mentioned, module="core")
     register_handler("core.comment.created", on_comment, module="core")
     register_handler("core.workspace.access_requested", on_workspace_access_request, module="core")

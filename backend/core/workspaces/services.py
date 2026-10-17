@@ -18,6 +18,7 @@ from core.accounts.services import EMAIL_RE, normalize_email, password_problem
 from core.audit.services import change, record
 from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.common.tokens import hash_token, new_token, token_matches
+from core.modules.services import enable_initial_modules
 from core.workspaces.hooks import member_removed
 
 from .models import Invitation, Workspace, WorkspaceAccessRequest, WorkspaceMember
@@ -46,7 +47,8 @@ def slug_available(slug: str, *, exclude: Workspace | None = None) -> bool:
 
 
 @transaction.atomic
-def create_workspace(user: User, *, name: str, slug: str | None = None) -> Workspace:
+def create_workspace(user: User, *, name: str, slug: str | None = None, modules: Any = None) -> Workspace:
+    """`modules`: extra toggleable modules to enable (tracking is always enabled)."""
     name = (name or "").strip()
     clean = slugify(slug or name)
     fields: dict[str, str] = {}
@@ -63,6 +65,7 @@ def create_workspace(user: User, *, name: str, slug: str | None = None) -> Works
             ws = Workspace.objects.create(slug=clean, name=name[:40])
     except IntegrityError as exc:
         raise invalid({"slug": f"lightex.app/{clean} is taken"}) from exc
+    enable_initial_modules(user, ws, modules)
     roles = access.seed_default_roles(ws)
     WorkspaceMember.objects.create(
         workspace=ws, user=user, role=roles["owner"], joined_at=timezone.now(), last_active_at=timezone.now()

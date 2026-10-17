@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "core.accounts",
     "core.access",
     "core.workspaces",
+    "core.modules",
     "modules.tracking.projects",
     "modules.tracking.planning",
     "modules.tracking.tasks",
@@ -48,10 +49,12 @@ INSTALLED_APPS = [
     "core.realtime",
     "modules.tracking.integrations",
     "core.channels",
+    "modules.sales",
 ]
 
 MIDDLEWARE = [
     "core.common.middleware.RequestIdMiddleware",
+    "core.modules.services.EnabledModulesMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",

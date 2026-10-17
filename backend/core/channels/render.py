@@ -1,6 +1,8 @@
 """Message rendering (docs/v2/38-telegram-sms-push.md §6.3–§6.5), always at send time from `template` + `context`.
 
-Templates live in `templates/channels/<template>.<channel>.txt`. Telegram renders with autoescape on (the markup is
+Templates live in `templates/channels/<template>.<channel>.txt`: core's own (`mentioned`, `comment`, `summary`, `test`,
+`otp`) here, a module's next to its code, declared on its event types (`channel_template`, `channel_summary`,
+`channel_button` in the module definition). Telegram renders with autoescape on (the markup is
 `<b>`/`<i>` written in the template); SMS and push render with autoescape off. Every context value passes through
 `plain()` first. SMS never contains a task title, comment text or project name: its templates don't use those tags.
 A push template renders two lines: the title, then the body.
@@ -17,8 +19,23 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.template.loader import render_to_string
 
-TEMPLATES = ("assigned", "mentioned", "status_change", "comment", "due_soon", "sprint_started", "summary", "test")
-BUTTON = {"sprint_started": "Open board", "summary": "Open inbox"}
+CORE_TEMPLATES = ("summary", "test")
+BUTTON = {"summary": "Open inbox"}
+
+
+def templates() -> tuple[str, ...]:
+    """Every channel template: the registered event types' (core's and the modules'), then the digest and test."""
+    from core.events.registry import channel_templates
+
+    return (*channel_templates(), *CORE_TEMPLATES)
+
+
+def _button(template: str) -> str:
+    from core.events.registry import for_channel_template
+
+    etype = for_channel_template(template)
+    return BUTTON.get(template) or (etype.channel_button if etype else "")
+
 
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f​-‏ -‮⁦-⁩]")
 _SPACE = re.compile(r"\s+")
@@ -92,7 +109,7 @@ def telegram(template: str, context: dict[str, Any]) -> tuple[str, tuple[str, st
     url = str(ctx.get("cta_url") or "")
     if not url or template == "test":
         return text, None
-    label = BUTTON.get(template) or f"Open {ctx.get('task_key') or 'Lightex'}"
+    label = _button(template) or f"Open {ctx.get('task_key') or 'Lightex'}"
     if https_front() and url.startswith("https://"):
         return text, (label, url)
     return f"{text}\n{url}", None
@@ -146,13 +163,9 @@ def push_payload(template: str, context: dict[str, Any], *, sent_at: str) -> byt
 
 
 def summary_line(template: str, ctx: dict[str, Any]) -> str:
-    key = ctx.get("task_key") or ""
-    actor = first_word(str(ctx.get("actor_name") or ctx.get("author_name") or ctx.get("assigner_name") or ""))
-    return {
-        "assigned": f"{key} assigned to you",
-        "mentioned": f"{key} · {actor} mentioned you",
-        "status_change": f"{key} moved to {ctx.get('to_status', '')}",
-        "comment": f"{key} · {actor} commented",
-        "due_soon": f"{key} is due {ctx.get('due_relative', 'soon')}",
-        "sprint_started": f"{ctx.get('sprint_name', 'Sprint')} started",
-    }.get(template, key)
+    from core.events.registry import for_channel_template
+
+    etype = for_channel_template(template)
+    if etype is not None and etype.channel_summary is not None:
+        return etype.channel_summary(ctx)
+    return str(ctx.get("task_key") or "")

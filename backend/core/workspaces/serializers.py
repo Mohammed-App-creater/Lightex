@@ -3,6 +3,7 @@ from rest_framework import serializers
 from core.access.services import my_permissions
 from core.accounts.serializers import UserSerializer, user_brief
 from core.common.utils import iso
+from core.modules.services import enabled_modules
 
 from .models import Invitation, Workspace, WorkspaceMember
 
@@ -13,12 +14,17 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
     notificationPolicy = serializers.SerializerMethodField()
+    enabledModules = serializers.SerializerMethodField()
 
     class Meta:
         model = Workspace
         fields = [
             "id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions", "notificationPolicy",
+            "enabledModules",
         ]  # fmt: skip
+
+    def get_enabledModules(self, obj) -> list[str]:
+        return enabled_modules(obj)
 
     def get_notificationPolicy(self, obj) -> dict[str, bool]:
         return {"sms": obj.sms_enabled}
@@ -95,6 +101,12 @@ class InviteSerializer(serializers.ModelSerializer):
 
 
 class WorkspaceCreateIn(serializers.Serializer):
+    name = serializers.CharField(required=False, allow_blank=True)
+    slug = serializers.CharField(required=False, allow_blank=True)
+    modules = serializers.ListField(child=serializers.CharField(), required=False)
+
+
+class WorkspaceUpdateIn(serializers.Serializer):
     name = serializers.CharField(required=False, allow_blank=True)
     slug = serializers.CharField(required=False, allow_blank=True)
 

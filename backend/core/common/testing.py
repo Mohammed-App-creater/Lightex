@@ -37,11 +37,13 @@ def client_for(user: User | None) -> APIClient:
     return client
 
 
-def make_workspace(owner: User | None = None, name: str = "Platform team", slug: str | None = None):
+def make_workspace(
+    owner: User | None = None, name: str = "Platform team", slug: str | None = None, modules: list[str] | None = None
+):
     from core.workspaces.services import create_workspace
 
     owner = owner or UserFactory()
-    return create_workspace(owner, name=name, slug=slug)
+    return create_workspace(owner, name=name, slug=slug, modules=modules)
 
 
 def role(ws: Any, key: str):

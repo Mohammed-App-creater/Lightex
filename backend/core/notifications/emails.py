@@ -15,16 +15,15 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-TEMPLATES = {
-    "invitation",
-    "password_reset",
-    "task_assigned",
-    "mentioned",
-    "due_soon",
-    "sprint_started",
-    "sprint_completed",
-    "access_request",
-}
+#: Core's own templates. Modules declare theirs on their event types (`email_templates` in the module definition).
+CORE_TEMPLATES = {"invitation", "password_reset", "mentioned", "access_request"}
+
+
+def templates() -> set[str]:
+    from core.events.registry import email_templates
+
+    return CORE_TEMPLATES | set(email_templates())
+
 
 _ANCHOR = re.compile(r'<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S | re.I)
 
@@ -37,7 +36,7 @@ def base_context(workspace_slug: str | None = None) -> dict[str, Any]:
 
 
 def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]:
-    if template not in TEMPLATES:
+    if template not in templates():
         raise ValueError(f"Unknown email template {template}")
     body = render_to_string(f"emails/{template}.html", context)
     match = re.search(r"<title>(.*?)</title>", body, re.S)

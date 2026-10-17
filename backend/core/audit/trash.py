@@ -71,8 +71,14 @@ def unregister_trash_kind(key: str) -> None:
     _KINDS.pop(key, None)
 
 
-def kinds() -> list[TrashKind]:
-    return sorted(_KINDS.values(), key=lambda k: k.position)
+def kinds(workspace: Any = None) -> list[TrashKind]:
+    """Every kind, or with `workspace` only those of modules enabled there (a disabled module's trash is hidden)."""
+    out = sorted(_KINDS.values(), key=lambda k: k.position)
+    if workspace is None:
+        return out
+    from core.modules.services import is_enabled
+
+    return [k for k in out if is_enabled(workspace, k.module or k.kind.split(".", 1)[0])]
 
 
 def kind_for(key: Any) -> TrashKind | None:
@@ -114,9 +120,9 @@ def item(
 
 
 def _access(user: Any, workspace: Any) -> dict[str, str]:
-    levels = {k.kind: k.access(user, workspace) for k in kinds()}
+    levels = {k.kind: k.access(user, workspace) for k in kinds(workspace)}
     if all(level == NONE for level in levels.values()):
-        first = next((k.permission for k in kinds() if k.permission), "")
+        first = next((k.permission for k in kinds(workspace) if k.permission), "")
         raise forbidden("Trash is for members and admins.", {"permission": first} if first else None)
     return levels
 
@@ -124,14 +130,14 @@ def _access(user: Any, workspace: Any) -> dict[str, str]:
 def list_items(user: Any, workspace: Any) -> dict[str, Any]:
     levels = _access(user, workspace)
     items: list[dict[str, Any]] = []
-    for k in kinds():
+    for k in kinds(workspace):
         items.extend(k.items(user, workspace))
     items.sort(key=lambda i: i["deletedAt"] or "", reverse=True)
     best = max((_RANK[v] for v in levels.values()), default=0)
     return {
         "data": items,
         "scope": ALL if best == _RANK[ALL] else OWN,
-        "kinds": [k.kind for k in kinds() if k.offered(user, workspace)],
+        "kinds": [k.kind for k in kinds(workspace) if k.offered(user, workspace)],
         "retentionDays": settings.TRASH_RETENTION_DAYS,
     }
 

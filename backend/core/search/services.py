@@ -45,8 +45,13 @@ def unregister_search_provider(module: str) -> None:
     _PROVIDERS.pop(module, None)
 
 
-def providers() -> list[SearchProvider]:
-    return list(_PROVIDERS.values())
+def providers(workspace: Any = None) -> list[SearchProvider]:
+    """Every provider, or with `workspace` only those of modules enabled there."""
+    if workspace is None:
+        return list(_PROVIDERS.values())
+    from core.modules.services import is_enabled
+
+    return [p for key, p in _PROVIDERS.items() if is_enabled(workspace, key)]
 
 
 def workspace_types() -> list[str]:
@@ -74,7 +79,7 @@ def workspace_search(user: Any, workspace: Any, q: str, types: list[str], limit:
     want = set(types) or set(workspace_types())
     q = q.strip()
     out: list[dict[str, Any]] = []
-    for provider in providers():
+    for provider in providers(workspace):
         asked = want & set(provider.types)
         if asked:
             out.extend(provider.search(user, workspace, q, limit, asked))
@@ -98,9 +103,25 @@ def workspace_search(user: Any, workspace: Any, q: str, types: list[str], limit:
 
 
 def global_search(user: Any, q: str, kind: str | None, limit: int) -> list[dict[str, Any]]:
+    """Across the user's workspaces; results in a workspace where the provider's module is off are dropped."""
+    from core.modules.services import always_on
+
     out: list[dict[str, Any]] = []
-    for provider in providers():
+    for key, provider in list(_PROVIDERS.items()):
         asked = {kind} & set(provider.global_types) if kind else set(provider.global_types)
-        if asked:
-            out.extend(provider.search_all(user, q, limit, asked))
+        if not asked:
+            continue
+        rows = provider.search_all(user, q, limit, asked)
+        if not always_on(key):
+            rows = [r for r in rows if _result_enabled(r, key)]
+        out.extend(rows)
     return out
+
+
+def _result_enabled(row: dict[str, Any], key: str) -> bool:
+    from core.common.targets import get_resolver
+    from core.modules.services import is_enabled
+
+    resolver = get_resolver(row.get("targetType") or "")
+    workspace_id = resolver.workspace_of(row.get("targetId")) if resolver is not None else None
+    return workspace_id is not None and is_enabled(workspace_id, key)

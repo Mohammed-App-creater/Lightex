@@ -18,6 +18,7 @@ from core.access.services import (
     workspace_permissions,
 )
 from core.common.testing import UserFactory, add_member, make_workspace, role
+from core.modules.services import code_enabled, visible_codes
 from core.workspaces.models import WorkspaceMember
 from modules.tracking.projects.models import Project, ProjectMember
 
@@ -68,7 +69,8 @@ def test_each_default_role_gets_exactly_its_catalogue_permissions(owner, ws):
         user = UserFactory()
         if rdef.scope == "workspace":
             WorkspaceMember.objects.create(workspace=ws, user=user, role=role(ws, rdef.key))
-            assert set(workspace_permissions(user, ws)) == set(rdef.permissions), rdef.key
+            # Only core's and the enabled modules' grants are seeded (sales is off here).
+            assert set(workspace_permissions(user, ws)) == visible_codes(ws, rdef.permissions), rdef.key
         else:
             add_member(ws, user, "member")
             join(project, user, rdef.key)
@@ -150,7 +152,7 @@ def test_prefetch_loads_many_projects_in_one_query(owner, ws):
 
 
 def test_my_permissions_order_is_stable(owner, ws):
-    assert my_permissions(owner, ws) == catalogue.WORKSPACE_ORDER
+    assert my_permissions(owner, ws) == [c for c in catalogue.WORKSPACE_ORDER if code_enabled(ws, c)]
 
 
 def test_catalogue_sync_is_idempotent_and_repairs_drift():
@@ -173,7 +175,7 @@ def test_sync_command(capsys):
 def test_seed_roles_resyncs_missing_catalogue(db):
     Permission.objects.all().delete()
     ws = make_workspace(UserFactory(), slug="fresh")
-    assert ws.roles.get(system_key="owner").permissions.count() == len(catalogue.WORKSPACE_ORDER)
+    assert ws.roles.get(system_key="owner").permissions.count() == len(visible_codes(ws, catalogue.WORKSPACE_ORDER))
 
 
 def test_scoped_permission_edge_cases(owner, ws):

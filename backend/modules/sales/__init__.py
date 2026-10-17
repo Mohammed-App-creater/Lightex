@@ -1,1 +1,1 @@
-"""Sales module. Empty skeleton; built in Stage 3."""
+"""Sales module (skeleton): the module definition, one permission and a health route behind the module guard."""

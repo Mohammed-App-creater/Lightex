@@ -15,8 +15,10 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
+from core.modules.services import is_enabled
+
 from .models import DomainEvent
-from .registry import handlers_for
+from .registry import event_type, handlers_for
 
 logger = logging.getLogger("lightex.events")
 
@@ -60,8 +62,12 @@ def process_event(event_id: Any) -> bool:
             )
             if event is None:
                 return False
-            for entry in handlers_for(event.type):
-                entry.handler(event)
+            # A module disabled in the event's workspace: its handlers, and every handler of its event types, are
+            # skipped (the event is still marked processed; re-enabling does not replay it).
+            if is_enabled(event.workspace_id, module_of(event.type)):
+                for entry in handlers_for(event.type):
+                    if is_enabled(event.workspace_id, entry.module):
+                        entry.handler(event)
             event.processed_at = timezone.now()
             event.attempts += 1
             event.error = ""
@@ -71,6 +77,11 @@ def process_event(event_id: Any) -> bool:
         logger.exception("Processing event %s failed", event_id)
         DomainEvent.objects.filter(pk=event_id).update(error=str(exc)[:2000], attempts=F("attempts") + 1)
         return False
+
+
+def module_of(event_type_key: str) -> str:
+    etype = event_type(event_type_key)
+    return etype.module if etype is not None else event_type_key.split(".", 1)[0]
 
 
 def pending(max_attempts: int = 5) -> list[Any]:

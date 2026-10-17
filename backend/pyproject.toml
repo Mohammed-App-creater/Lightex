@@ -40,7 +40,7 @@ warn_unused_ignores = false
 exclude = ["migrations/", "[.]venv/"]
 
 [[tool.mypy.overrides]]
-module = ["core.*.tests.*", "core.tests.*", "modules.tracking.*.tests.*", "modules.tracking.tests.*", "conftest", "core.common.testing", "modules.tracking.testing"]
+module = ["core.*.tests.*", "core.tests.*", "modules.tracking.*.tests.*", "modules.tracking.tests.*", "modules.sales.tests.*", "conftest", "core.common.testing", "modules.tracking.testing"]
 ignore_errors = true
 
 [tool.django-stubs]

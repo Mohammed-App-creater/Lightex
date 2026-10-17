@@ -1,8 +1,10 @@
-"""Every /api/v1 route, one include per app. Core routes sit at the root; tracking routes under `tracking/`."""
+"""Every /api/v1 route, one include per app. Core routes sit at the root; each module's under `<module key>/`,
+wrapped by `module_urls` so the module guard answers 403 `module_disabled` while the module is off."""
 
 from django.urls import include, path
 
 from core.common.views import health
+from core.modules.urls_guard import module_urls
 
 tracking_urlpatterns = [
     path("", include("modules.tracking.projects.urls")),
@@ -26,5 +28,7 @@ urlpatterns = [
     path("", include("core.audit.urls")),
     path("", include("core.realtime.urls")),
     path("", include("core.channels.urls")),
-    path("tracking/", include(tracking_urlpatterns)),
+    path("", include("core.modules.urls")),
+    path("tracking/", include(module_urls("tracking", tracking_urlpatterns))),
+    path("sales/", include(module_urls("sales", [path("", include("modules.sales.urls"))]))),
 ]

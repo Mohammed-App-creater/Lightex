@@ -30,6 +30,7 @@ from core.access.services import seed_default_roles
 from core.accounts.models import User
 from core.common.seeding import SeedContext, seeders
 from core.common.tokens import new_token
+from core.modules.services import enable_initial_modules
 from core.workspaces.models import Invitation, Workspace, WorkspaceMember
 
 DEMO_PASSWORD = "Lightex-demo-2026"
@@ -79,6 +80,7 @@ class Command(BaseCommand, SeedContext):
                 slug=w["slug"], name=w["name"], hue=w["hue"], created_at=self.ts(w["createdAt"])
             )
             self.workspaces[w["id"]] = ws
+            enable_initial_modules(None, ws, [])
             for key, role in seed_default_roles(ws).items():
                 self.roles[f"{w['id']}-role-{key}"] = role
         for r in data["roles"]:

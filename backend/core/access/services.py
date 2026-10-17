@@ -3,6 +3,9 @@
 Workspace permissions come only from the user's WorkspaceMember role; permissions of a module scope (`project`)
 only from the role the module's scope provider loads (core/access/scopes.py). Neither scope grants anything in the
 other. Results are cached per request on the user instance (DRF builds a fresh user object for every request).
+
+Permissions of a module that is disabled in the workspace are dropped from every result (`can()` is False for them
+and `my_permissions` leaves them out); their `RolePermission` rows stay, so re-enabling the module restores them.
 """
 
 from __future__ import annotations
@@ -13,8 +16,10 @@ from uuid import UUID
 
 from django.db import transaction
 
+from core.modules.services import code_enabled, visible_codes, workspace_id_of
+
 from . import catalogue, scopes
-from .catalogue import PROJECT, SCOPE_OF, WORKSPACE
+from .catalogue import PROJECT, WORKSPACE
 
 if TYPE_CHECKING:
     from core.accounts.models import User
@@ -52,7 +57,7 @@ def workspace_permissions(user: Any, workspace: Any) -> frozenset[str]:
         rows = WorkspaceMember.objects.filter(
             user_id=user.pk, workspace_id=wid, status="active", workspace__deleted_at__isnull=True
         ).values_list("role__permissions__code", "role__permissions__scope")
-        cache[wid] = frozenset(code for code, scope in rows if code and scope == WORKSPACE)
+        cache[wid] = frozenset(visible_codes(wid, (code for code, scope in rows if code and scope == WORKSPACE)))
     return cache[wid]
 
 
@@ -115,7 +120,7 @@ def can(user: User | Any, code: str, obj: Any, *, include_deleted: bool = False)
     A workspace-scope code is only ever checked against a workspace, a project-scope code only
     against a project. There is no override in either direction.
     """
-    scope = SCOPE_OF.get(code)
+    scope = catalogue.scope_of(code)
     if scope is None:
         raise ValueError(f"Unknown permission {code!r}")
     if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
@@ -131,8 +136,10 @@ def can(user: User | Any, code: str, obj: Any, *, include_deleted: bool = False)
 
 def _scope_permissions(user: Any, provider: scopes.ScopeProvider, obj: Any, include_deleted: bool) -> frozenset[str]:
     if provider.scope == PROJECT:
-        return project_permissions(user, obj, include_deleted=include_deleted)
-    return provider.load_permissions(user, [obj.pk], include_deleted=include_deleted)[obj.pk]
+        codes = project_permissions(user, obj, include_deleted=include_deleted)
+    else:
+        codes = provider.load_permissions(user, [obj.pk], include_deleted=include_deleted)[obj.pk]
+    return frozenset(visible_codes(workspace_id_of(obj), codes))
 
 
 def my_permissions(user: Any, obj: Any) -> list[str]:
@@ -155,7 +162,7 @@ def sync_permission_catalogue() -> tuple[int, int, int]:
     created = updated = 0
     with transaction.atomic():
         existing = {p.code: p for p in Permission.objects.all()}
-        for i, p in enumerate(catalogue.PERMISSIONS):
+        for i, p in enumerate(catalogue.all_permissions()):
             row = existing.pop(p.code, None)
             values = {
                 "module": p.module,
@@ -180,16 +187,17 @@ def sync_permission_catalogue() -> tuple[int, int, int]:
 
 
 def seed_default_roles(workspace: Any) -> dict[str, Any]:
-    """Creates the seven system roles for a new workspace. Returns {system_key: Role}."""
+    """Creates the seven system roles for a new workspace with the grants of core and of the modules already
+    enabled in it (`enable_initial_modules` runs first). Returns {system_key: Role}."""
     from .models import Permission, Role, RolePermission
 
     perms = {p.code: p for p in Permission.objects.all()}
-    if len(perms) < len(catalogue.PERMISSIONS):
+    if any(p.code not in perms for p in catalogue.all_permissions()):
         sync_permission_catalogue()
         perms = {p.code: p for p in Permission.objects.all()}
     roles: dict[str, Any] = {}
     links: list[Any] = []
-    for r in catalogue.DEFAULT_ROLES:
+    for r in catalogue.default_roles():
         role = Role.objects.create(
             workspace=workspace,
             name=r.name,
@@ -199,10 +207,38 @@ def seed_default_roles(workspace: Any) -> dict[str, Any]:
             system_key=r.key,
         )
         roles[r.key] = role
-        links.extend(RolePermission(role=role, permission=perms[c]) for c in r.permissions)
+        links.extend(
+            RolePermission(role=role, permission=perms[c]) for c in r.permissions if code_enabled(workspace, c)
+        )
     RolePermission.objects.bulk_create(links)
     return roles
 
 
+def seed_module_grants(workspace: Any, defn: Any) -> int:
+    """Gives the workspace's system roles a module's default grants (on enable). Idempotent: existing rows are kept,
+    missing ones added. Returns how many were added."""
+    from .models import Permission, RolePermission
+
+    if any(catalogue.get(c) is None for codes in defn.default_role_grants.values() for c in codes):
+        raise LookupError(f"Module {defn.key} grants a permission missing from the catalogue")
+    wanted = {c for codes in defn.default_role_grants.values() for c in codes}
+    if not wanted:
+        return 0
+    if Permission.objects.filter(code__in=wanted).count() < len(wanted):
+        sync_permission_catalogue()
+    perms = {p.code: p for p in Permission.objects.filter(code__in=wanted)}
+    roles = workspace.roles.filter(is_system=True, system_key__in=list(defn.default_role_grants))
+    have = set(RolePermission.objects.filter(role__in=roles).values_list("role_id", "permission__code"))
+    links = [
+        RolePermission(role=role, permission=perms[c])
+        for role in roles
+        for c in defn.default_role_grants.get(role.system_key, [])
+        if (role.pk, c) not in have
+    ]
+    RolePermission.objects.bulk_create(links, ignore_conflicts=True)
+    return len(links)
+
+
 def role_permission_codes(role: Any) -> set[str]:
-    return set(role.permissions.values_list("code", flat=True))
+    """The role's codes, without those of modules disabled in its workspace."""
+    return visible_codes(role.workspace_id, role.permissions.values_list("code", flat=True))

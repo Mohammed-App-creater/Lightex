@@ -18,9 +18,10 @@ NEW_CORE = {"core.modules.manage", "core.teams.manage"}
 
 def test_every_code_is_namespaced_and_carries_its_module():
     for p in catalogue.PERMISSIONS:
-        assert p.module in ("core", "tracking"), p.code
+        assert p.module in ("core", "tracking", "sales"), p.code
         assert p.code.startswith(f"{p.module}."), p.code
-    assert set(namespace.RENAMES.values()) | NEW_CORE == set(catalogue.BY_CODE)
+    stage3 = {"sales.health.view"}  # docs/platform/stage3-contract.md §4
+    assert set(namespace.RENAMES.values()) | NEW_CORE | stage3 == set(catalogue.BY_CODE)
 
 
 def test_new_core_codes_go_to_owner_and_admin_only(ws):
