@@ -104,7 +104,9 @@ describe("permission matrix", () => {
     expect(off.map((m) => m.module)).toEqual(["core", "tracking"]);
     const on = groupCatalogueByModule(PERMISSION_CATALOGUE, "workspace", ["core", "tracking", "sales"], order);
     expect(on.map((m) => m.module)).toEqual(["core", "tracking", "sales"]);
-    expect(on.at(-1)!.groups.flatMap((g) => g.items.map((p) => p.key))).toEqual(["sales.dashboard.view"]);
+    const salesKeys = on.at(-1)!.groups.flatMap((g) => g.items.map((p) => p.key));
+    expect(salesKeys).toHaveLength(46);
+    expect(salesKeys[0]).toBe("sales.dashboard.view");
     expect(groupCatalogueByModule(PERMISSION_CATALOGUE, "project", ["core", "tracking"], order).map((m) => m.module)).toEqual(["tracking"]);
     expect(enabledCatalogue(PERMISSION_CATALOGUE, ["core", "tracking"]).some((p) => p.module === "sales")).toBe(false);
   });

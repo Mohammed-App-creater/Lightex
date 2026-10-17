@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe("seed", () => {
   it("bumps the schema and seeds teams in both workspaces", async () => {
-    expect(SCHEMA).toBe(8); // sales S0 bumped it again
+    expect(SCHEMA).toBe(9); // sales S0 bumped it again
     const teams = await call<Team[]>("GET", "/workspaces/platform/teams");
     expect(teams.map((x) => x.name)).toEqual(["Backend", "Frontend", "Infrastructure"]);
     const frontend = teams.find((x) => x.name === "Frontend")!;

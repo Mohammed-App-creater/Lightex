@@ -381,8 +381,15 @@ export function registerWorkspaces() {
 
   route("PATCH", "/roles/:id", (ctx) => {
     const role = roleForManage(ctx);
-    if (role.isSystem) fail(403, "forbidden", "System roles are locked. Duplicate to customize.");
     const body = ctx.body as Partial<RoleRec>;
+    // Sales sync: system roles' permissions are editable (as on the backend); the Owner role stays locked here, and
+    // renaming or re-describing a system role is refused.
+    if (role.isSystem) {
+      if (role.scope === "workspace" && role.key === "owner") fail(403, "forbidden", "The Owner role is locked. Duplicate to customize.");
+      const renamed = body.name !== undefined && body.name.trim() !== role.name;
+      const redescribed = body.description !== undefined && body.description.slice(0, 80) !== role.description;
+      if (renamed || redescribed) fail(403, "forbidden", "System roles can’t be renamed. Duplicate it to customise.");
+    }
     // Everything is validated before anything is written.
     let name = role.name;
     if (body.name !== undefined) {

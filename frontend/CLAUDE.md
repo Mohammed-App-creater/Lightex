@@ -125,7 +125,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   `design-guild`.
 - **Sales S0 (`docs/sales/s0-contract.md`).** A workspace member holds one or more roles (`roleIds`, precedence
   order; `roleId` / `myRoleId` are the primary one). Permissions are the union, the widest data scope wins. The mock
-  (SCHEMA 8) enforces the 422 shapes, no escalation (403) and `last_owner` (409); module default roles are seeded on
+  (SCHEMA 9 since the sales sync) enforces the 422 shapes, no escalation (403) and `last_owner` (409); module default roles are seeded on
   enable (`MockModuleDef.defaultRoles`: the four sales roles). `Workspace.timezone` is edited in Settings → General
   (`platform/settings/timezone-select.tsx`).
 - **Stage 5 (cleanup, `docs/platform/stage5-contract.md` §2).** Generated API types (above). `Notification.type` is a

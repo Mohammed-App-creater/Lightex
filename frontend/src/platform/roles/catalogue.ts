@@ -21,6 +21,19 @@ export const PERMISSION_GROUP_ORDER: PermissionGroup[] = [
   "Collaboration",
   "Reports",
   "Administration",
+  // Sales: the backend's groups, in its catalogue order.
+  "Sales",
+  "Sales: customers",
+  "Sales: leads",
+  "Sales: pipeline",
+  "Sales: quotations",
+  "Sales: activities",
+  "Sales: follow-ups",
+  "Sales: targets",
+  "Sales: daily reports",
+  "Sales: performance",
+  "Sales: reports",
+  "Sales: settings",
 ];
 
 /** The module is the code's first segment: `core.*`, `tracking.*` or `sales.*`. */
@@ -43,6 +56,68 @@ const prj = (
   description: string,
 ): PermissionInfo => ({ key, module: moduleOf(key), scope: "project", group, label, description, scopable: false });
 
+/** A sales workspace code, as `modules/sales/module.py` declares it (scopable unless it says otherwise). */
+const sales = (key: WorkspacePermission, group: PermissionGroup, label: string, description: string, scopable = true): PermissionInfo => ({
+  ...ws(key, group, label, description),
+  scopable,
+});
+
+/** The sales catalogue (backend `modules/sales/module.py`, docs/sales/api.md §2), in the backend's order. */
+export const SALES_PERMISSIONS: PermissionInfo[] = [
+  sales("sales.dashboard.view", "Sales", "Use sales", "Open Sales and see dashboards over the people in scope"),
+  sales("sales.company.view", "Sales: customers", "View companies", "See companies in scope"),
+  sales("sales.company.create", "Sales: customers", "Create companies", "Add companies", false),
+  sales("sales.company.edit", "Sales: customers", "Edit companies", "Edit companies in scope and change their owner"),
+  sales("sales.company.delete", "Sales: customers", "Delete companies", "Delete and restore companies in scope"),
+  sales("sales.contact.view", "Sales: customers", "View contacts", "See contacts in scope"),
+  sales("sales.contact.create", "Sales: customers", "Create contacts", "Add contacts", false),
+  sales("sales.contact.edit", "Sales: customers", "Edit contacts", "Edit contacts in scope and change their owner"),
+  sales("sales.contact.delete", "Sales: customers", "Delete contacts", "Delete and restore contacts in scope"),
+  sales("sales.lead.view", "Sales: leads", "View leads", "See leads in scope"),
+  sales("sales.lead.create", "Sales: leads", "Create leads", "Add leads", false),
+  sales("sales.lead.edit", "Sales: leads", "Edit leads", "Edit leads in scope"),
+  sales("sales.lead.delete", "Sales: leads", "Delete leads", "Delete leads in scope"),
+  sales("sales.lead.assign", "Sales: leads", "Assign leads", "Change the owner of leads in scope"),
+  sales("sales.lead.convert", "Sales: leads", "Convert leads", "Qualify, disqualify and convert leads in scope"),
+  sales("sales.opportunity.view", "Sales: pipeline", "View opportunities", "See opportunities in scope"),
+  sales("sales.opportunity.create", "Sales: pipeline", "Create opportunities", "Add opportunities", false),
+  sales("sales.opportunity.edit", "Sales: pipeline", "Edit opportunities", "Edit opportunities in scope"),
+  sales("sales.opportunity.move", "Sales: pipeline", "Move opportunities", "Move opportunities in scope between open stages"),
+  sales("sales.opportunity.close", "Sales: pipeline", "Close opportunities", "Mark opportunities in scope won or lost"),
+  sales("sales.opportunity.delete", "Sales: pipeline", "Delete opportunities", "Delete opportunities in scope"),
+  sales("sales.opportunity.assign", "Sales: pipeline", "Assign opportunities", "Change the owner of opportunities in scope"),
+  sales("sales.opportunity.reopen", "Sales: pipeline", "Reopen opportunities", "Reopen won or lost opportunities in scope"),
+  sales("sales.quotation.view", "Sales: quotations", "View quotations", "See quotations in scope"),
+  sales("sales.quotation.create", "Sales: quotations", "Create quotations", "Add quotations", false),
+  sales("sales.quotation.edit", "Sales: quotations", "Edit quotations", "Edit, send and record answers to quotations in scope"),
+  sales("sales.quotation.delete", "Sales: quotations", "Delete quotations", "Delete quotations in scope"),
+  sales("sales.activity.view", "Sales: activities", "View activities", "See calls, visits, meetings and notes in scope"),
+  sales("sales.activity.create", "Sales: activities", "Log activities", "Log calls, visits, meetings and notes", false),
+  sales("sales.activity.edit", "Sales: activities", "Edit activities", "Edit activities in scope"),
+  sales("sales.activity.delete", "Sales: activities", "Delete activities", "Delete activities in scope"),
+  sales("sales.followup.view", "Sales: follow-ups", "View follow-ups", "See follow-ups in scope"),
+  sales("sales.followup.create", "Sales: follow-ups", "Create follow-ups", "Add follow-ups", false),
+  sales("sales.followup.edit", "Sales: follow-ups", "Edit follow-ups", "Edit and reschedule follow-ups in scope"),
+  sales("sales.followup.complete", "Sales: follow-ups", "Complete follow-ups", "Complete follow-ups in scope"),
+  sales("sales.followup.reassign", "Sales: follow-ups", "Reassign follow-ups", "Change the owner of follow-ups in scope"),
+  sales("sales.followup.delete", "Sales: follow-ups", "Delete follow-ups", "Delete follow-ups in scope"),
+  sales("sales.target.view", "Sales: targets", "View targets", "See targets of the people in scope"),
+  sales("sales.target.manage", "Sales: targets", "Manage targets", "Set and allocate targets for people in scope"),
+  sales("sales.dailyreport.submit", "Sales: daily reports", "Submit daily report", "Submit your own daily report", false),
+  sales("sales.dailyreport.view", "Sales: daily reports", "View daily reports", "See daily reports in scope"),
+  sales("sales.dailyreport.review", "Sales: daily reports", "Review daily reports", "Review and reopen daily reports in scope"),
+  sales("sales.performance.view", "Sales: performance", "View performance", "See performance pages and ranking in scope"),
+  sales("sales.report.view", "Sales: reports", "View reports", "Run sales reports over the people in scope"),
+  sales("sales.report.export", "Sales: reports", "Export reports", "Download sales reports as CSV"),
+  sales("sales.settings.manage", "Sales: settings", "Manage sales settings", "Edit stages, products, lost reasons, the working calendar and thresholds", false),
+];
+
+/** Owner and Admin get every sales code (scope `all`) except submitting a daily report; Member gets none. */
+export const OWNER_ADMIN_SALES_CODES = SALES_PERMISSIONS.map((p) => p.key as WorkspacePermission).filter((k) => k !== "sales.dailyreport.submit");
+const OWNER_ADMIN_SALES_SCOPES: Record<string, DataScope> = Object.fromEntries(
+  SALES_PERMISSIONS.filter((p) => p.scopable && p.key !== "sales.dailyreport.submit").map((p) => [p.key, "all" as DataScope]),
+);
+
 export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   // Workspace scope
   ws("tracking.project.create", "Planning", "Create projects", "Start new projects in this workspace"),
@@ -58,8 +133,8 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   // Platform Stage 1: catalogue and default roles only; their screens arrive in Stages 3 and 4.
   ws("core.modules.manage", "Administration", "Manage modules", "Turn modules on and off for the workspace"),
   ws("core.teams.manage", "Administration", "Manage teams", "Create teams and choose their members and leads"),
-  // Sales S0: the Sales area (placeholder until S1), scopable. Listed with module "sales"; hidden while sales is off.
-  { ...ws("sales.dashboard.view", "Reports", "View sales dashboard", "Open Sales and see dashboards over the visible people"), scopable: true },
+  // Sales: listed with module "sales"; hidden while sales is off.
+  ...SALES_PERMISSIONS,
   // Project scope
   prj("tracking.task.create", "Tasks", "Create tasks", "Add tasks to the board and backlog"),
   prj("tracking.task.edit_any", "Tasks", "Edit any task", "Change fields on others’ tasks"),
@@ -94,7 +169,7 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   prj("tracking.project.delete", "Administration", "Delete project", "Delete the project and its tasks"),
 ];
 
-/** Platform Stage 4: whether a grant of `code` carries a data scope (sales S0: `sales.dashboard.view`). */
+/** Platform Stage 4: whether a grant of `code` carries a data scope (the sales codes). */
 export const isScopable = (catalogue: readonly PermissionInfo[], code: string) =>
   catalogue.some((p) => p.key === code && p.scopable === true);
 
@@ -109,7 +184,7 @@ export const DEFAULT_ROLES: {
   scope: RoleScope;
   description: string;
   permissions: (WorkspacePermission | ProjectPermission)[];
-  /** The data scope of each scopable grant (sales S0: `sales.dashboard.view`). */
+  /** The data scope of each scopable grant (the sales codes). */
   dataScopes?: Record<string, DataScope>;
 }[] = [
   {
@@ -129,9 +204,9 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
-      "sales.dashboard.view",
+      ...OWNER_ADMIN_SALES_CODES,
     ],
-    dataScopes: { "sales.dashboard.view": "all" },
+    dataScopes: OWNER_ADMIN_SALES_SCOPES,
   },
   {
     key: "admin",
@@ -149,17 +224,16 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
-      "sales.dashboard.view",
+      ...OWNER_ADMIN_SALES_CODES,
     ],
-    dataScopes: { "sales.dashboard.view": "all" },
+    dataScopes: OWNER_ADMIN_SALES_SCOPES,
   },
   {
     key: "member",
     name: "Member",
     scope: "workspace",
     description: "Sees the workspace and joins projects they’re added to.",
-    permissions: ["core.workspace.view", "sales.dashboard.view"],
-    dataScopes: { "sales.dashboard.view": "own" },
+    permissions: ["core.workspace.view"],
   },
   {
     key: "project_admin",

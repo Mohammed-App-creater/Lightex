@@ -667,6 +667,15 @@ implemented in the mock (SCHEMA 8):
   `sales.health.view` in S1. Until the backend ships S1, live mode hides the Sales nav item (its `my_permissions`
   still carry `sales.health.view`).
 
+### Sales sync (backend S1–S6)
+
+- Types regenerated from the full sales API in `docs/openapi.yaml`; no sales endpoints are wired yet (the screens come later).
+- Catalogue: the backend's 46 `sales.*` codes, groups and scopable flags (`SALES_PERMISSIONS` in `platform/roles/catalogue.ts`).
+- Mock (SCHEMA 9): the four sales default roles use the backend's GRANT_TABLE; Owner / Admin get every sales code (scope `all`) except `sales.dailyreport.submit`; Member gets none.
+- Role editor and mock: system roles' permissions are editable (as on the backend), except Owner; renaming, re-describing and deleting system roles stay refused.
+- `GET sales/workspaces/{slug}/health` left the backend schema; `SalesHealth` is now a client-only type and only the mock answers it, until the sales screens replace the placeholder.
+- Note: no-escalation means an Owner (who lacks `sales.dailyreport.submit`) can't assign Sales Admin, Sales Manager or Salesperson, on the backend and in the mock.
+
 ---
 
 ## 6. Known gaps

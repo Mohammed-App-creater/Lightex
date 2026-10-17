@@ -81,7 +81,9 @@ export function RolesScreen() {
   // Stage 3: permissions of modules turned off for the workspace are hidden (role responses omit them too).
   const cat = enabledCatalogue(catalogue.data ?? [], ws.enabledModules);
   const current = list.find((r) => r.id === selected[scope]) ?? list.find((r) => !isOwnerRole(r)) ?? list[0];
-  const editable = canManage && current ? !current.isSystem : false;
+  // System roles: permissions are editable (Owner excepted), name and description are not.
+  const editable = canManage && current ? !isOwnerRole(current) : false;
+  const metaEditable = editable && !current?.isSystem;
   const saved = current ? toDraft(current) : null;
   const working = draft && current && draft.id === current.id ? draft : saved;
   const changes = saved && working && editable ? changeCount(saved, working) : 0;
@@ -329,7 +331,7 @@ export function RolesScreen() {
                   <ChevronLeft size={16} aria-hidden />
                 </Button>
               )}
-              {editable ? (
+              {metaEditable ? (
                 <input
                   aria-label="Role name"
                   maxLength={40}
@@ -371,7 +373,7 @@ export function RolesScreen() {
                   <span className="max-[760px]:hidden">Duplicate</span>
                 </Button>
               )}
-              {editable && (
+              {metaEditable && (
                 <Button
                   variant="ghost"
                   icon
@@ -390,7 +392,7 @@ export function RolesScreen() {
                 {nameError}
               </p>
             )}
-            {editable ? (
+            {metaEditable ? (
               <input
                 aria-label="Role description"
                 maxLength={80}
@@ -422,13 +424,13 @@ export function RolesScreen() {
                 · {grantedCount({ ...current, permissions: working.permissions }, cat)} of {total} permissions
               </span>
             </div>
-            {current.isSystem && (
+            {current.isSystem && (editable || isOwnerRole(current)) && (
               <div className="flex items-center gap-2 rounded-md border border-line-2 bg-raised py-[9px] pl-3 pr-2.5 text-[12.5px] text-fg-2">
                 <Lock size={14} aria-hidden />
-                System role · duplicate to customize
+                {editable ? "System role · permissions can change, the name can’t" : "System role · duplicate to customize"}
               </div>
             )}
-            {!canManage && !current.isSystem && (
+            {!canManage && !isOwnerRole(current) && (
               <div className="flex items-center gap-2 rounded-md border border-line-2 bg-raised py-[9px] pl-3 pr-2.5 text-[12.5px] text-fg-2">
                 <Lock size={14} aria-hidden />
                 Read-only · only admins can edit roles
@@ -544,7 +546,7 @@ function RoleGroup({
                 )}
               >
                 {r.isSystem ? (
-                  <Lock size={12} className="flex-none text-fg-3" aria-label="Locked" />
+                  <Lock size={12} className="flex-none text-fg-3" aria-label="System" />
                 ) : (
                   <span aria-hidden className="size-2 flex-none rounded-[3px] border-[1.5px] border-accent-t" />
                 )}

@@ -1,5 +1,5 @@
 import type { DataScope, ModuleNavItemInfo, Permission, WorkspaceModule } from "@/api/types";
-import { PERMISSION_CATALOGUE, isScopable } from "@/platform/roles/catalogue";
+import { OWNER_ADMIN_SALES_CODES, PERMISSION_CATALOGUE, isScopable } from "@/platform/roles/catalogue";
 import type { MockDB, WorkspaceModuleRec } from "./db-types";
 
 /*
@@ -33,6 +33,77 @@ export interface MockDefaultRole {
   grants: Record<string, DataScope | null>;
 }
 
+/**
+ * The backend's sales GRANT_TABLE (`modules/sales/module.py`): code → granted to Sales Admin, CEO / GM,
+ * Sales Manager, Salesperson (1 = granted).
+ */
+const SALES_GRANT_TABLE: [string, ...(0 | 1)[]][] = [
+  ["sales.dashboard.view", 1, 1, 1, 1],
+  ["sales.company.view", 1, 1, 1, 1],
+  ["sales.company.create", 1, 0, 1, 1],
+  ["sales.company.edit", 1, 0, 1, 1],
+  ["sales.company.delete", 1, 0, 0, 0],
+  ["sales.contact.view", 1, 1, 1, 1],
+  ["sales.contact.create", 1, 0, 1, 1],
+  ["sales.contact.edit", 1, 0, 1, 1],
+  ["sales.contact.delete", 1, 0, 0, 0],
+  ["sales.lead.view", 1, 1, 1, 1],
+  ["sales.lead.create", 1, 0, 1, 1],
+  ["sales.lead.edit", 1, 0, 1, 1],
+  ["sales.lead.delete", 1, 0, 1, 0],
+  ["sales.lead.assign", 1, 0, 1, 0],
+  ["sales.lead.convert", 1, 0, 1, 1],
+  ["sales.opportunity.view", 1, 1, 1, 1],
+  ["sales.opportunity.create", 1, 0, 1, 1],
+  ["sales.opportunity.edit", 1, 0, 1, 1],
+  ["sales.opportunity.move", 1, 0, 1, 1],
+  ["sales.opportunity.close", 1, 0, 1, 1],
+  ["sales.opportunity.delete", 1, 0, 0, 0],
+  ["sales.opportunity.assign", 1, 0, 1, 0],
+  ["sales.opportunity.reopen", 1, 0, 0, 0],
+  ["sales.quotation.view", 1, 1, 1, 1],
+  ["sales.quotation.create", 1, 0, 1, 1],
+  ["sales.quotation.edit", 1, 0, 1, 1],
+  ["sales.quotation.delete", 1, 0, 1, 0],
+  ["sales.activity.view", 1, 1, 1, 1],
+  ["sales.activity.create", 1, 0, 1, 1],
+  ["sales.activity.edit", 1, 0, 1, 1],
+  ["sales.activity.delete", 1, 0, 1, 1],
+  ["sales.followup.view", 1, 1, 1, 1],
+  ["sales.followup.create", 1, 0, 1, 1],
+  ["sales.followup.edit", 1, 0, 1, 1],
+  ["sales.followup.complete", 1, 0, 1, 1],
+  ["sales.followup.reassign", 1, 0, 1, 0],
+  ["sales.followup.delete", 1, 0, 1, 1],
+  ["sales.target.view", 1, 1, 1, 1],
+  ["sales.target.manage", 1, 1, 1, 0],
+  ["sales.dailyreport.submit", 1, 0, 1, 1],
+  ["sales.dailyreport.view", 1, 1, 1, 1],
+  ["sales.dailyreport.review", 1, 1, 1, 0],
+  ["sales.performance.view", 1, 1, 1, 1],
+  ["sales.report.view", 1, 1, 1, 0],
+  ["sales.report.export", 1, 1, 1, 0],
+  ["sales.settings.manage", 1, 0, 0, 0],
+];
+
+const SALES_ROLE_COLUMNS: [key: string, name: string, scope: DataScope, description: string][] = [
+  ["sales_admin", "Sales Admin", "all", "Everything in Sales, including settings."],
+  ["sales_ceo", "CEO / GM", "all", "Sees everything, reviews reports and sets targets; no day-to-day editing."],
+  ["sales_manager", "Sales Manager", "team", "Runs the team's pipeline, targets and daily reports."],
+  ["sales_salesperson", "Salesperson", "own", "Works their own customers, leads and deals."],
+];
+
+/** The four sales default roles; each also grants `core.workspace.view`. Scopable codes carry the role's scope. */
+function salesDefaultRoles(): MockDefaultRole[] {
+  return SALES_ROLE_COLUMNS.map(([key, name, scope, description], i) => {
+    const grants: Record<string, DataScope | null> = { "core.workspace.view": null };
+    for (const [code, ...row] of SALES_GRANT_TABLE) {
+      if (row[i]) grants[code] = isScopable(PERMISSION_CATALOGUE, code) ? scope : null;
+    }
+    return { key, name, description, grants };
+  });
+}
+
 /** Registration order. Exported mutable so tests can register a module that depends on another. */
 export const MODULE_DEFS: MockModuleDef[] = [
   {
@@ -64,19 +135,14 @@ export const MODULE_DEFS: MockModuleDef[] = [
   {
     key: "sales",
     name: "Sales",
-    description: "Leads, opportunities and pipeline health. A placeholder for now.",
+    description: "Customers, leads, pipeline, targets and daily reports for sales teams.",
     isCore: false,
     toggleable: true,
     dependsOn: [],
     navItems: [{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.dashboard.view" }],
-    defaultRoleGrants: { owner: ["sales.dashboard.view"], admin: ["sales.dashboard.view"], member: ["sales.dashboard.view"] },
-    // Spec §3. Only the codes that exist so far (S1 adds the real sales.* grants).
-    defaultRoles: [
-      { key: "sales_admin", name: "Sales Admin", description: "Everything in Sales, including its settings.", grants: { "core.workspace.view": null, "sales.dashboard.view": "all" } },
-      { key: "sales_ceo", name: "CEO / GM", description: "Sees all of Sales, reviews reports and sets targets.", grants: { "core.workspace.view": null, "sales.dashboard.view": "all" } },
-      { key: "sales_manager", name: "Sales Manager", description: "Runs the team’s pipeline, targets and daily reports.", grants: { "core.workspace.view": null, "sales.dashboard.view": "team" } },
-      { key: "sales_salesperson", name: "Salesperson", description: "Works their own leads, deals and follow-ups.", grants: { "core.workspace.view": null, "sales.dashboard.view": "own" } },
-    ],
+    // Owner and Admin: every sales code with scope `all` (seedGrants' default for them) except daily-report submit.
+    defaultRoleGrants: { owner: OWNER_ADMIN_SALES_CODES, admin: OWNER_ADMIN_SALES_CODES },
+    defaultRoles: salesDefaultRoles(),
   },
 ];
 

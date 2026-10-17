@@ -27,8 +27,10 @@ import type {
  * 7: Stage 4 teams (`teams`, `teamMembers`: three in Platform team, one in Design guild) and `dataScopes` on roles.
  * 8: Sales S0: several workspace roles per member (`wsMembers[].roleIds`, `invites[].roleIds`), `timezone` on
  *    workspaces (Africa/Addis_Ababa) and the scopable `sales.dashboard.view` in place of `sales.health.view`.
+ * 9: Sales sync: the backend's 46 `sales.*` codes (Owner / Admin all but `sales.dailyreport.submit`, scope `all`;
+ *    Member none) and the four sales default roles' real grants.
  */
-export const SCHEMA = 8;
+export const SCHEMA = 9;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,

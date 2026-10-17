@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe("seed", () => {
   it("bumps the schema, gives every member a role list and every workspace the default time zone", async () => {
-    expect(SCHEMA).toBe(8);
+    expect(SCHEMA).toBe(9);
     expect(getDB().wsMembers.every((m) => m.roleIds.length === 1)).toBe(true);
     const ws = await workspace();
     expect(ws).toMatchObject({ timezone: "Africa/Addis_Ababa", myRoleId: R("owner"), myRoleIds: [R("owner")] });
@@ -180,17 +180,19 @@ describe("invites with several roles", () => {
 describe("widest data scope", () => {
   it("unions scopable grants across roles: all > team > own", async () => {
     await enableSales();
-    as("u_sam"); // Member: sales.dashboard.view own
-    expect((await workspace()).myDataScopes).toEqual({ "sales.dashboard.view": "own" });
+    as("u_sam"); // Member: nothing in sales
+    expect((await workspace()).myDataScopes).toEqual({});
     as("u_alex");
+    // Owner lacks `sales.dailyreport.submit` by default; no-escalation needs it to hand out the sales roles below.
+    getDB().roles.find((r) => r.id === R("owner"))!.permissions.push("sales.dailyreport.submit");
     await setRoles("u_sam", [R("member"), R("sales_manager")]);
     as("u_sam");
-    expect((await workspace()).myDataScopes).toEqual({ "sales.dashboard.view": "team" });
+    expect((await workspace()).myDataScopes!["sales.dashboard.view"]).toBe("team");
     as("u_alex");
     await setRoles("u_sam", [R("sales_salesperson"), R("member"), R("sales_admin")]);
     as("u_sam");
     const ws = await workspace();
-    expect(ws.myDataScopes).toEqual({ "sales.dashboard.view": "all" });
+    expect(ws.myDataScopes!["sales.dashboard.view"]).toBe("all");
     expect(ws.myRoleIds).toEqual([R("member"), R("sales_admin"), R("sales_salesperson")]);
   });
 });

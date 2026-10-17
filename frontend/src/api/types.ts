@@ -49,11 +49,53 @@ export const WORKSPACE_PERMISSIONS = [
   "core.audit.view",
   "core.modules.manage",
   "core.teams.manage",
-  /*
-   * Sales S0: the Sales area (placeholder page until S1). Scopable (own / team / all); replaces the Stage 3
-   * skeleton code `sales.health.view`, which the backend drops in S1. Hidden while sales is off.
-   */
+  /* Sales (backend `modules/sales/module.py`, docs/sales/api.md §2): the whole catalogue. Hidden while sales is off. */
   "sales.dashboard.view",
+  "sales.company.view",
+  "sales.company.create",
+  "sales.company.edit",
+  "sales.company.delete",
+  "sales.contact.view",
+  "sales.contact.create",
+  "sales.contact.edit",
+  "sales.contact.delete",
+  "sales.lead.view",
+  "sales.lead.create",
+  "sales.lead.edit",
+  "sales.lead.delete",
+  "sales.lead.assign",
+  "sales.lead.convert",
+  "sales.opportunity.view",
+  "sales.opportunity.create",
+  "sales.opportunity.edit",
+  "sales.opportunity.move",
+  "sales.opportunity.close",
+  "sales.opportunity.delete",
+  "sales.opportunity.assign",
+  "sales.opportunity.reopen",
+  "sales.quotation.view",
+  "sales.quotation.create",
+  "sales.quotation.edit",
+  "sales.quotation.delete",
+  "sales.activity.view",
+  "sales.activity.create",
+  "sales.activity.edit",
+  "sales.activity.delete",
+  "sales.followup.view",
+  "sales.followup.create",
+  "sales.followup.edit",
+  "sales.followup.complete",
+  "sales.followup.reassign",
+  "sales.followup.delete",
+  "sales.target.view",
+  "sales.target.manage",
+  "sales.dailyreport.submit",
+  "sales.dailyreport.view",
+  "sales.dailyreport.review",
+  "sales.performance.view",
+  "sales.report.view",
+  "sales.report.export",
+  "sales.settings.manage",
 ] as const;
 
 export const PROJECT_PERMISSIONS = [
@@ -95,7 +137,15 @@ export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
 export type Permission = WorkspacePermission | ProjectPermission;
 export type RoleScope = S["RoleScopeEnum"];
 
-export type PermissionGroup = "Tasks" | "Planning" | "Collaboration" | "Reports" | "Administration";
+export type PermissionGroup =
+  | "Tasks"
+  | "Planning"
+  | "Collaboration"
+  | "Reports"
+  | "Administration"
+  /* Sales: the backend's groups for `sales.*` codes. */
+  | "Sales"
+  | `Sales: ${string}`;
 
 /** Who owns a permission (Stage 1 contract §1). Independent of `scope`. */
 export type PermissionModule = "core" | "tracking" | "sales";
@@ -495,7 +545,11 @@ export interface Session {
   user: SessionUser;
 }
 
-export type SalesHealth = Wire<S["SalesHealth"]>;
+/**
+ * Client-only: the Stage 3 placeholder's `GET sales/workspaces/{slug}/health`, which the backend dropped with the
+ * real sales API (S1+). Only the mock answers it; the sales screens replace the placeholder (final-report §6).
+ */
+export type SalesHealth = { status: string; module: string; workspace: string };
 export type DownloadUrl = Wire<S["DownloadUrl"]>;
 
 /* ───────────────────────── Saved views (board 30) ───────────────────────── */

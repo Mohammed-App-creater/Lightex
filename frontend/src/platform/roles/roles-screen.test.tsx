@@ -145,3 +145,33 @@ describe("RolesScreen data scope", () => {
     expect(within(editor).queryByText("Choose Own, Team or All")).not.toBeInTheDocument();
   });
 });
+
+describe("RolesScreen system roles", () => {
+  it("edits a system role's permissions but not its name; Owner stays locked", async () => {
+    const update = vi.spyOn(api.roles, "update");
+    await mount();
+    await userEvent.click(screen.getByRole("button", { name: /^SystemMember/ }));
+    const editor = await screen.findByRole("region", { name: "Member role" });
+    expect(within(editor).queryByRole("textbox", { name: "Role name" })).not.toBeInTheDocument();
+    expect(within(editor).queryByRole("button", { name: "Delete role" })).not.toBeInTheDocument();
+    expect(within(editor).getByText("System role · permissions can change, the name can’t")).toBeInTheDocument();
+    await userEvent.click(within(editor).getByRole("switch", { name: /Manage teams/ }));
+    await save();
+    await waitFor(() => expect(update).toHaveBeenCalled());
+    await waitFor(() => expect(getDB().roles.find((r) => r.id === "ws_platform-role-member")?.permissions).toContain("core.teams.manage"));
+
+    await userEvent.click(screen.getByRole("button", { name: /^SystemOwner/ }));
+    const owner = await screen.findByRole("region", { name: "Owner role" });
+    expect(within(owner).getByText("System role · duplicate to customize")).toBeInTheDocument();
+    expect(within(owner).getByRole("switch", { name: /Manage teams/ })).toBeDisabled();
+  });
+
+  it("mock: refuses renaming a system role and any edit of Owner", async () => {
+    mockSession.set("u_alex");
+    const patch = (id: string, body: object) => transport.request({ method: "PATCH", path: `/roles/${id}`, body });
+    await expect(patch("ws_platform-role-member", { name: "Everyone" })).rejects.toMatchObject({ status: 403 });
+    await expect(patch("ws_platform-role-owner", { permissions: ["core.workspace.view"] })).rejects.toMatchObject({ status: 403 });
+    await patch("ws_platform-role-member", { name: "Member", permissions: ["core.workspace.view", "core.audit.view"] });
+    expect(getDB().roles.find((r) => r.id === "ws_platform-role-member")?.permissions).toEqual(["core.workspace.view", "core.audit.view"]);
+  });
+});
