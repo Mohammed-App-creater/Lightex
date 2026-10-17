@@ -237,13 +237,68 @@ export function grantedCount(role: Pick<Role, "permissions" | "scope">, catalogu
   return role.permissions.filter((p) => keys.has(p)).length;
 }
 
+/* ───────────────────────── Several roles per member (sales S0) ───────────────────────── */
+
+/**
+ * No privilege escalation (s0-contract §1): adding or removing a role needs every permission it grants. Both lists
+ * come from the API, which already leaves out disabled modules' codes.
+ */
+export function canGrantRole(role: Pick<Role, "permissions">, myPermissions: readonly string[]) {
+  const mine = new Set(myPermissions);
+  return role.permissions.every((p) => mine.has(p));
+}
+
+/**
+ * Why a role's checkbox can't be toggled, or null when it can. `held` is the current selection. Owner is never
+ * changed from the UI (its description says it can't be assigned); the server's 409 `last_owner` still guards it.
+ */
+export function roleToggleBlock(role: Role, held: readonly string[], myPermissions: readonly string[]): string | null {
+  const on = held.includes(role.id);
+  if (isOwnerRole(role)) return "The Owner role can’t be assigned or removed here";
+  if (on && held.length === 1) return "Keep at least one role";
+  if (!canGrantRole(role, myPermissions)) return "It has permissions you don’t have";
+  return null;
+}
+
+/** Turns one role on or off, keeping the order of `roles` (the API's precedence order). */
+export function toggleRoleId(held: readonly string[], id: string, on: boolean, roles: readonly Pick<Role, "id">[]): string[] {
+  const next = new Set(held);
+  if (on) next.add(id);
+  else next.delete(id);
+  const rank = (x: string) => {
+    const i = roles.findIndex((r) => r.id === x);
+    return i === -1 ? roles.length : i;
+  };
+  return [...next].sort((a, b) => rank(a) - rank(b));
+}
+
+/** Role names for ids (unknown ids dropped), in the given order. */
+export function roleNamesOf(ids: readonly string[], roles: readonly Pick<Role, "id" | "name">[]) {
+  return ids.map((id) => roles.find((r) => r.id === id)?.name).filter((n): n is string => Boolean(n));
+}
+
+/** Whether removing the member is allowed: every one of their roles must be grantable (the server checks too). */
+export const canRemoveMember = (member: Pick<WorkspaceMember, "roleIds">, roles: readonly Role[], myPermissions: readonly string[]) =>
+  member.roleIds.every((id) => {
+    const r = roles.find((x) => x.id === id);
+    return !r || canGrantRole(r, myPermissions);
+  });
+
+/** "Member", "Member + Salesperson", "Admin + 2 more". */
+export function rolesLabel(names: readonly string[]) {
+  if (!names.length) return "Choose a role";
+  if (names.length <= 2) return names.join(" + ");
+  return `${names[0]} + ${names.length - 1} more`;
+}
+
 /* ───────────────────────── Members list ───────────────────────── */
 
+/** Sales S0: a member holds one or more roles; the role filter keeps members holding it. */
 export function filterMembers(members: WorkspaceMember[], q: string, roleId: string | null) {
   const needle = q.trim().toLowerCase();
   return members.filter(
     (m) =>
-      (!roleId || m.roleId === roleId) &&
+      (!roleId || m.roleIds.includes(roleId)) &&
       (!needle || m.user.name.toLowerCase().includes(needle) || m.user.email.toLowerCase().includes(needle)),
   );
 }

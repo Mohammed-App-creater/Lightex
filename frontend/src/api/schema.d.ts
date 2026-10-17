@@ -247,6 +247,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/internal/jobs/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["internal_jobs_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites/{token}": {
         parameters: {
             query?: never;
@@ -3756,9 +3772,10 @@ export interface components {
             workspaceName: string;
             /** Format: email */
             email: string;
-            /** Format: uuid */
-            roleId: string;
-            roleName: string;
+            readonly roleId: string;
+            readonly roleName: string;
+            readonly roleIds: string[];
+            readonly roleNames: string[];
             readonly invitedBy: {
                 [key: string]: unknown;
             } | null;
@@ -3768,8 +3785,34 @@ export interface components {
         };
         InviteInRequest: {
             emails: string[];
-            roleId: string;
+            /** @description The roles the invitee gets (one or more). */
+            roleIds?: string[];
+            /** @description Deprecated: the same as roleIds: [roleId]. */
+            roleId?: string;
         };
+        JobRun: {
+            job: string;
+            ran: number;
+            skipped: number;
+            failed: number;
+            workspaces: components["schemas"]["JobRunWorkspace"][];
+        };
+        JobRunInRequest: {
+            /**
+             * Format: uuid
+             * @description Only this workspace.
+             */
+            workspaceId?: string;
+        };
+        JobRunWorkspace: {
+            /** Format: uuid */
+            workspaceId: string;
+            status: components["schemas"]["JobRunWorkspaceStatusEnum"];
+            /** @description The exception class name (failed only). */
+            error?: string;
+        };
+        /** @enum {string} */
+        JobRunWorkspaceStatusEnum: "ran" | "skipped" | "failed";
         Label: {
             /** Format: uuid */
             readonly id: string;
@@ -3909,6 +3952,9 @@ export interface components {
                 [key: string]: number;
             };
         };
+        NotificationPolicyInRequest: {
+            sms?: boolean;
+        };
         NotificationPreferences: {
             quietHours: components["schemas"]["QuietHours"];
             events: {
@@ -4007,6 +4053,12 @@ export interface components {
             /** Format: uuid */
             roleId?: string;
         };
+        PatchedMemberRolesInRequest: {
+            /** @description Replaces the member's roles (one or more). */
+            roleIds?: string[];
+            /** @description Deprecated: the same as roleIds: [roleId]. */
+            roleId?: string;
+        };
         PatchedMilestoneInRequest: {
             name?: string;
             description?: string;
@@ -4043,9 +4095,6 @@ export interface components {
         PatchedRepositoryScopeInRequest: {
             /** @description [] = all projects */
             projectIds?: string[];
-        };
-        PatchedRoleIdInRequest: {
-            roleId?: string;
         };
         PatchedRoleInRequest: {
             name?: string;
@@ -4123,6 +4172,9 @@ export interface components {
         PatchedWorkspaceUpdateInRequest: {
             name?: string;
             slug?: string;
+            /** @description An IANA time zone name, e.g. Africa/Addis_Ababa. */
+            timezone?: string;
+            notificationPolicy?: components["schemas"]["NotificationPolicyInRequest"];
         };
         PermissionInfo: {
             key: string;
@@ -5117,9 +5169,12 @@ export interface components {
             slug: string;
             name: string;
             hue?: number;
+            timezone?: string;
             readonly createdAt: string | null;
             readonly memberCount: number;
+            /** @description The primary role (the first of `myRoleIds`). */
             readonly myRoleId: string | null;
+            readonly myRoleIds: string[];
             readonly my_permissions: string[];
             readonly myDataScopes: {
                 [key: string]: string;
@@ -5148,8 +5203,9 @@ export interface components {
             userId: string;
             /** Format: uuid */
             workspaceId: string;
-            /** Format: uuid */
-            roleId: string;
+            /** @description The primary role (the first of `roleIds`). */
+            readonly roleId: string;
+            readonly roleIds: string[];
             user: components["schemas"]["User"];
             status?: components["schemas"]["WorkspaceMemberStatusEnum"];
             readonly joinedAt: string | null;
@@ -5534,6 +5590,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    internal_jobs_run: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Jobs-Secret": string;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["JobRunInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRun"];
                 };
             };
         };
@@ -10065,7 +10148,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedRoleIdInRequest"];
+                "application/json": components["schemas"]["PatchedMemberRolesInRequest"];
             };
         };
         responses: {

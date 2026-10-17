@@ -51,6 +51,8 @@ export type WorkspaceRec = {
   deletedAt: string | null;
   /** Board 38: `notificationPolicy.sms` (missing = true). */
   smsEnabled?: boolean;
+  /** Sales S0: an IANA time zone name (missing = `Africa/Addis_Ababa`). */
+  timezone?: string;
 };
 /** Platform Stage 3 `WorkspaceModule`: unique on (workspaceId, moduleKey). `core` has no row. */
 export type WorkspaceModuleRec = {
@@ -65,7 +67,8 @@ export type WorkspaceModuleRec = {
 export type WsMemberRec = {
   workspaceId: string;
   userId: string;
-  roleId: string;
+  /** Sales S0: one or more workspace roles (`WorkspaceMemberRole`), in precedence order (`sortRoleIds`). */
+  roleIds: string[];
   status: "active" | "deactivated";
   joinedAt: string;
   lastActiveAt: string | null;
@@ -98,7 +101,8 @@ export type InviteRec = {
   token: string;
   workspaceId: string;
   email: string;
-  roleId: string;
+  /** Sales S0: the roles the invitee gets on accept (one or more, in precedence order). */
+  roleIds: string[];
   invitedById: string;
   createdAt: string;
   expiresAt: string;

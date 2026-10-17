@@ -93,7 +93,7 @@ export function RolesScreen() {
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
   // People whose role grants role management (from the role's permissions, never its name).
   const roleAdmins = (members.data ?? []).filter(
-    (m) => m.status === "active" && roles.data?.find((r) => r.id === m.roleId)?.permissions.includes("core.roles.manage"),
+    (m) => m.status === "active" && m.roleIds.some((id) => roles.data?.find((r) => r.id === id)?.permissions.includes("core.roles.manage")),
   );
   const refresh = () => qc.invalidateQueries({ queryKey: qk.roles(ws.slug) });
 
@@ -296,7 +296,7 @@ export function RolesScreen() {
   } else if (loading || !current || !working) {
     body = <RolesSkeleton />;
   } else {
-    const holders = scope === "workspace" ? (members.data ?? []).filter((m) => m.roleId === current.id) : [];
+    const holders = scope === "workspace" ? (members.data ?? []).filter((m) => m.roleIds.includes(current.id)) : [];
     const changed = new Set([...changedKeys(current.permissions, working.permissions), ...rescoped(toDraft(current), working)]);
     const showList = !mobile || !editorOpen;
     const showEditor = !mobile || editorOpen;
@@ -495,7 +495,7 @@ export function RolesScreen() {
           key={deleting.id}
           role={deleting}
           roles={list}
-          holders={(members.data ?? []).filter((m) => m.roleId === deleting.id).map((m) => m.user)}
+          holders={(members.data ?? []).filter((m) => m.roleIds.includes(deleting.id)).map((m) => m.user)}
           onClose={() => setDeleting(null)}
           onDeleted={async (target, moved) => {
             await refresh();

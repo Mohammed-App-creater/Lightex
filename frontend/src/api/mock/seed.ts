@@ -25,8 +25,10 @@ import type {
  * 6: Stage 3 modules (`workspaceModules`: tracking on in every workspace, sales off) and `sales.health.view` on the
  *    workspace Owner / Admin / Member roles.
  * 7: Stage 4 teams (`teams`, `teamMembers`: three in Platform team, one in Design guild) and `dataScopes` on roles.
+ * 8: Sales S0: several workspace roles per member (`wsMembers[].roleIds`, `invites[].roleIds`), `timezone` on
+ *    workspaces (Africa/Addis_Ababa) and the scopable `sales.dashboard.view` in place of `sales.health.view`.
  */
-export const SCHEMA = 7;
+export const SCHEMA = 8;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -124,8 +126,8 @@ export function createSeed(): MockDB {
     schema: SCHEMA,
     users: people.map((u) => ({ ...u, avatarUrl: null, createdAt: T("2026-03-02"), password: MOCK_PASSWORD })),
     workspaces: [
-      { id: "ws_platform", slug: "platform", name: "Platform team", hue: 255, createdAt: T("2026-03-02"), deletedAt: null },
-      { id: "ws_guild", slug: "design-guild", name: "Design guild", hue: 300, createdAt: T("2026-05-11"), deletedAt: null },
+      { id: "ws_platform", slug: "platform", name: "Platform team", hue: 255, createdAt: T("2026-03-02"), deletedAt: null, timezone: "Africa/Addis_Ababa" },
+      { id: "ws_guild", slug: "design-guild", name: "Design guild", hue: 300, createdAt: T("2026-05-11"), deletedAt: null, timezone: "Africa/Addis_Ababa" },
     ],
     wsMembers: [],
     workspaceModules: [],
@@ -170,6 +172,7 @@ export function createSeed(): MockDB {
         scope: r.scope,
         isSystem: true,
         permissions: [...r.permissions],
+        ...(r.dataScopes ? { dataScopes: { ...r.dataScopes } } : {}),
       });
     }
   }
@@ -201,7 +204,7 @@ export function createSeed(): MockDB {
   const wsm = (workspaceId: string, userId: string, key: string, lastMin: number | null): WsMemberRec => ({
     workspaceId,
     userId,
-    roleId: role(workspaceId, key),
+    roleIds: [role(workspaceId, key)],
     status: "active",
     joinedAt: T("2026-03-02"),
     lastActiveAt: lastMin === null ? null : ago(lastMin),
@@ -234,7 +237,7 @@ export function createSeed(): MockDB {
       token: "invite-quinn",
       workspaceId: "ws_platform",
       email: "quinn@team.dev",
-      roleId: role("ws_platform", "member"),
+      roleIds: [role("ws_platform", "member")],
       invitedById: AK,
       createdAt: ago(60 * 26),
       expiresAt: new Date(Date.now() + 6 * 86_400_000).toISOString(),
@@ -245,7 +248,7 @@ export function createSeed(): MockDB {
       token: "invite-avery",
       workspaceId: "ws_platform",
       email: "avery@contractor.io",
-      roleId: role("ws_platform", "member"),
+      roleIds: [role("ws_platform", "member")],
       invitedById: JL,
       createdAt: ago(60 * 24 * 4),
       expiresAt: new Date(Date.now() + 3 * 86_400_000).toISOString(),

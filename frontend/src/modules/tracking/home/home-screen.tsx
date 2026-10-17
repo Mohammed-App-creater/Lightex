@@ -456,7 +456,7 @@ function NoAccess() {
     onSettled: () => void qc.invalidateQueries({ queryKey: qk.wsAccessRequest(ws.slug) }),
   });
   const adminRoles = new Map(roles.filter((r) => r.scope === "workspace" && r.permissions.includes("core.workspace.manage_members")).map((r) => [r.id, r.name]));
-  const admins = members.filter((m) => m.status === "active" && adminRoles.has(m.roleId)).slice(0, 4);
+  const admins = members.filter((m) => m.status === "active" && m.roleIds.some((id) => adminRoles.has(id))).slice(0, 4);
   // Both mutations flip the UI optimistically, so the button on screen belongs to whichever is in flight.
   const busy = request.isPending || withdraw.isPending;
 
@@ -479,7 +479,7 @@ function NoAccess() {
                 <span className="truncate font-mono text-[11px] text-fg-3">{m.user.email}</span>
               </span>
               <span className={cn("rounded-[5px] bg-raised px-1.5 py-1 font-mono text-[10.5px] font-medium leading-none text-fg-2", requested && "bg-ok-s text-ok")}>
-                {requested ? "Notified" : adminRoles.get(m.roleId)}
+                {requested ? "Notified" : adminRoles.get(m.roleIds.find((id) => adminRoles.has(id)) ?? "")}
               </span>
             </div>
           ))}

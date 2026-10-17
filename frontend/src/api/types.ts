@@ -49,8 +49,11 @@ export const WORKSPACE_PERMISSIONS = [
   "core.audit.view",
   "core.modules.manage",
   "core.teams.manage",
-  /* Stage 3 (platform): the sales module's placeholder page. Hidden while sales is off. */
-  "sales.health.view",
+  /*
+   * Sales S0: the Sales area (placeholder page until S1). Scopable (own / team / all); replaces the Stage 3
+   * skeleton code `sales.health.view`, which the backend drops in S1. Hidden while sales is off.
+   */
+  "sales.dashboard.view",
 ] as const;
 
 export const PROJECT_PERMISSIONS = [
@@ -131,11 +134,13 @@ export type Workspace = Refine<
     myDataScopes: DataScopeMap;
     /** Board 38: PATCH needs `core.workspace.update`. */
     notificationPolicy: { sms: boolean };
+    /** Sales S0: an IANA name (default `Africa/Addis_Ababa`); always sent (the schema marks it optional: it has a default). */
+    timezone: string;
   }
 >;
 export type WorkspaceCreate = Refine<S["WorkspaceCreateInRequest"], { name: string; slug: string }>;
-/** `notificationPolicy` (board 38) is accepted by PATCH but missing from `PatchedWorkspaceUpdateInRequest` (known gap). */
-export type WorkspacePatch = Wire<S["PatchedWorkspaceUpdateInRequest"]> & { notificationPolicy?: { sms: boolean } };
+/** `name`, `slug`, `timezone` (sales S0) and the board 38 `notificationPolicy`. */
+export type WorkspacePatch = Wire<S["PatchedWorkspaceUpdateInRequest"]>;
 export type SlugAvailability = Wire<S["SlugAvailability"]>;
 
 /* Platform Stage 4: flat teams inside a workspace. */

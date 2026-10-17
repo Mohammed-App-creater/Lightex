@@ -10,7 +10,7 @@ export const sales: ModuleDefinition = {
   key: "sales",
   name: "Sales",
   icon: Briefcase,
-  routes: [{ segment: "sales", permission: "sales.health.view" }],
-  nav: [{ id: "sales", label: "Sales", icon: Briefcase, href: (ws) => routes.sales(ws), page: "sales", permission: "sales.health.view" }],
+  routes: [{ segment: "sales", permission: "sales.dashboard.view" }],
+  nav: [{ id: "sales", label: "Sales", icon: Briefcase, href: (ws) => routes.sales(ws), page: "sales", permission: "sales.dashboard.view" }],
   projectNav: [],
 };

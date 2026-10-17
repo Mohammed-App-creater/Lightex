@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe("seed", () => {
   it("bumps the schema and seeds teams in both workspaces", async () => {
-    expect(SCHEMA).toBe(7);
+    expect(SCHEMA).toBe(8); // sales S0 bumped it again
     const teams = await call<Team[]>("GET", "/workspaces/platform/teams");
     expect(teams.map((x) => x.name)).toEqual(["Backend", "Frontend", "Infrastructure"]);
     const frontend = teams.find((x) => x.name === "Frontend")!;
@@ -211,17 +211,21 @@ describe("data scope", () => {
     expect((await call<Role>("PATCH", `/roles/${role.id}`, { permissions: ["core.workspace.view"] })).dataScopes).toEqual({});
     await call("PATCH", `/roles/${role.id}`, { permissions: ["core.workspace.view", CODE], dataScopes: { [CODE]: "own" } });
 
+    // Sales S0: no privilege escalation, so the owner holds the fixture code before assigning a role with it.
+    const owner = getDB().roles.find((r) => r.id === "ws_platform-role-owner")!;
+    owner.permissions = [...owner.permissions, CODE as Permission];
+    owner.dataScopes = { ...owner.dataScopes, [CODE]: "all" };
     await call("PATCH", "/workspaces/platform/members/u_sam", { roleId: role.id });
     as("u_sam");
     expect((await call<Workspace>("GET", "/workspaces/platform")).myDataScopes).toEqual({ [CODE]: "own" });
     expect((await call<Project>("GET", "/tracking/workspaces/platform/projects/PRJ")).myDataScopes).toEqual({ [CODE]: "own" });
-    as("u_alex");
+    as("u_taylor");
     expect((await call<Workspace>("GET", "/workspaces/platform")).myDataScopes).toEqual({});
   });
 
   it("Stage 5: a non-owner can't grant a wider scope than their own (403 data_scope_exceeds_own); owners can", async () => {
     // u_jordan (Admin) holds the code with Team.
-    const admin = getDB().roles.find((r) => r.id === getDB().wsMembers.find((m) => m.userId === "u_jordan" && m.workspaceId === "ws_platform")!.roleId)!;
+    const admin = getDB().roles.find((r) => r.id === getDB().wsMembers.find((m) => m.userId === "u_jordan" && m.workspaceId === "ws_platform")!.roleIds[0])!;
     admin.permissions = [...admin.permissions, CODE];
     admin.dataScopes = { ...admin.dataScopes, [CODE]: "team" };
     as("u_jordan");

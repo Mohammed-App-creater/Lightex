@@ -1,4 +1,5 @@
 import type {
+  DataScope,
   PermissionGroup,
   PermissionInfo,
   PermissionModule,
@@ -57,8 +58,8 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   // Platform Stage 1: catalogue and default roles only; their screens arrive in Stages 3 and 4.
   ws("core.modules.manage", "Administration", "Manage modules", "Turn modules on and off for the workspace"),
   ws("core.teams.manage", "Administration", "Manage teams", "Create teams and choose their members and leads"),
-  // Platform Stage 3: the sales module (placeholder). Listed with module "sales"; hidden while sales is off.
-  ws("sales.health.view", "Reports", "View sales", "Open the Sales module"),
+  // Sales S0: the Sales area (placeholder until S1), scopable. Listed with module "sales"; hidden while sales is off.
+  { ...ws("sales.dashboard.view", "Reports", "View sales dashboard", "Open Sales and see dashboards over the visible people"), scopable: true },
   // Project scope
   prj("tracking.task.create", "Tasks", "Create tasks", "Add tasks to the board and backlog"),
   prj("tracking.task.edit_any", "Tasks", "Edit any task", "Change fields on others’ tasks"),
@@ -93,7 +94,7 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   prj("tracking.project.delete", "Administration", "Delete project", "Delete the project and its tasks"),
 ];
 
-/** Platform Stage 4: no real module has a scopable permission yet, so every entry above says `scopable: false`. */
+/** Platform Stage 4: whether a grant of `code` carries a data scope (sales S0: `sales.dashboard.view`). */
 export const isScopable = (catalogue: readonly PermissionInfo[], code: string) =>
   catalogue.some((p) => p.key === code && p.scopable === true);
 
@@ -108,6 +109,8 @@ export const DEFAULT_ROLES: {
   scope: RoleScope;
   description: string;
   permissions: (WorkspacePermission | ProjectPermission)[];
+  /** The data scope of each scopable grant (sales S0: `sales.dashboard.view`). */
+  dataScopes?: Record<string, DataScope>;
 }[] = [
   {
     key: "owner",
@@ -126,8 +129,9 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
-      "sales.health.view",
+      "sales.dashboard.view",
     ],
+    dataScopes: { "sales.dashboard.view": "all" },
   },
   {
     key: "admin",
@@ -145,15 +149,17 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
-      "sales.health.view",
+      "sales.dashboard.view",
     ],
+    dataScopes: { "sales.dashboard.view": "all" },
   },
   {
     key: "member",
     name: "Member",
     scope: "workspace",
     description: "Sees the workspace and joins projects they’re added to.",
-    permissions: ["core.workspace.view", "sales.health.view"],
+    permissions: ["core.workspace.view", "sales.dashboard.view"],
+    dataScopes: { "sales.dashboard.view": "own" },
   },
   {
     key: "project_admin",

@@ -119,10 +119,15 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
 - **Teams and data scope (platform Stage 4, `docs/platform/stage4-contract.md`).** Settings → Teams is
   `platform/teams/` (every member reads it; writes need `core.teams.manage`, shown with a `disabledReason`). Catalogue
   entries carry `scopable`; a granted scopable permission gets an Own / Team / All selector in the role editor and
-  saving sends `dataScopes`. `useDataScope(code)` (`platform/roles/can.tsx`) reads `myDataScopes`. No real module has
-  a scopable permission yet: tests push a fixture entry into `PERMISSION_CATALOGUE`, which the mock reads too
-  (`mock/data-scope.ts`). The seed (SCHEMA 7) has Frontend, Backend and Infrastructure in `platform` and Brand in
+  saving sends `dataScopes`. `useDataScope(code)` (`platform/roles/can.tsx`) reads `myDataScopes`. The first real
+  scopable code is `sales.dashboard.view` (sales S0); tests also push a fixture entry into `PERMISSION_CATALOGUE`, which the mock reads too
+  (`mock/data-scope.ts`). The seed has Frontend, Backend and Infrastructure in `platform` and Brand in
   `design-guild`.
+- **Sales S0 (`docs/sales/s0-contract.md`).** A workspace member holds one or more roles (`roleIds`, precedence
+  order; `roleId` / `myRoleId` are the primary one). Permissions are the union, the widest data scope wins. The mock
+  (SCHEMA 8) enforces the 422 shapes, no escalation (403) and `last_owner` (409); module default roles are seeded on
+  enable (`MockModuleDef.defaultRoles`: the four sales roles). `Workspace.timezone` is edited in Settings → General
+  (`platform/settings/timezone-select.tsx`).
 - **Stage 5 (cleanup, `docs/platform/stage5-contract.md` §2).** Generated API types (above). `Notification.type` is a
   plain string: `NotificationKind` lists the kinds the inbox draws, `eventMeta()` falls back for others, and
   `eventType` carries the registry key. A non-owner widening a role's data scope beyond their own gets 403
@@ -130,7 +135,8 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   mock (`assertWithinOwnScope`). Realtime `core.module.changed` `{module, enabled}` invalidates the workspace, its
   modules and the workspace list, so the sidebar follows a toggle made elsewhere.
 - **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
-  (everything project-related), plus `sales.health.view`; catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
+  (everything project-related), plus `sales.dashboard.view` (scopable; it replaced the Stage 3 `sales.health.view` in sales
+  S0); catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
   (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
   `core.<entity>.<verb>` (stream control events `hello` / `reset` / `reconnect` stay bare); notification
   preference keys are `tracking.task.assigned` and so on. `actionEntity()` in `src/lib/audit.ts` strips the prefix.

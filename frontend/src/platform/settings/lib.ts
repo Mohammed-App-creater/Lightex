@@ -16,6 +16,85 @@ export function workspaceNameError(name: string): string | null {
   return null;
 }
 
+/* ───────────────────────── Workspace time zone (sales S0) ───────────────────────── */
+
+/** The backend's default `Workspace.timezone`. */
+export const DEFAULT_TIMEZONE = "Africa/Addis_Ababa";
+
+/** Used when the runtime has no `Intl.supportedValuesOf` (older Safari): a short list of common zones. */
+export const FALLBACK_TIME_ZONES = [
+  "Africa/Addis_Ababa",
+  "Africa/Cairo",
+  "Africa/Johannesburg",
+  "Africa/Lagos",
+  "Africa/Nairobi",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Mexico_City",
+  "America/New_York",
+  "America/Sao_Paulo",
+  "America/Toronto",
+  "Asia/Dubai",
+  "Asia/Hong_Kong",
+  "Asia/Kolkata",
+  "Asia/Riyadh",
+  "Asia/Shanghai",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "Europe/Berlin",
+  "Europe/Istanbul",
+  "Europe/London",
+  "Europe/Madrid",
+  "Europe/Moscow",
+  "Europe/Paris",
+  "Pacific/Auckland",
+  "UTC",
+];
+
+/** Every IANA zone the browser knows, sorted, always including `current`. */
+export function timeZoneOptions(current?: string, supported: () => string[] = supportedTimeZones): string[] {
+  let list: string[] = [];
+  try {
+    list = supported();
+  } catch {
+    list = [];
+  }
+  if (!list.length) list = FALLBACK_TIME_ZONES;
+  const all = new Set(list);
+  if (current) all.add(current);
+  return [...all].sort((a, b) => a.localeCompare(b));
+}
+
+function supportedTimeZones(): string[] {
+  const fn = (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf;
+  return fn ? fn("timeZone") : [];
+}
+
+/** "America/New_York" → "America/New York". */
+export const timeZoneLabel = (tz: string) => tz.replace(/_/g, " ");
+
+/** Zones whose name contains every word of `q` (case-insensitive; "_" and "/" count as spaces). */
+export function filterTimeZones(list: readonly string[], q: string): string[] {
+  const words = q.toLowerCase().split(/[\s/_]+/).filter(Boolean);
+  if (!words.length) return [...list];
+  return list.filter((tz) => {
+    const name = tz.toLowerCase().replace(/[/_]/g, " ");
+    return words.every((w) => name.includes(w));
+  });
+}
+
+/** The zone's UTC offset right now, e.g. "GMT+3" (empty when the runtime can't tell). */
+export function timeZoneOffset(tz: string, at = new Date()): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(at);
+    return parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+  } catch {
+    return "";
+  }
+}
+
 /** Local slug rules, in the design's order. `null` means "valid locally" (server still checks). */
 export function slugError(slug: string): string | null {
   if (!slug) return "Required";

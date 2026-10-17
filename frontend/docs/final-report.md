@@ -643,6 +643,30 @@ result, presence locations, workload rows, the `DevItem` union, quiet-hours `day
 `TrashKind` (client-computed). `ProjectAccessInfo` stays hand-written: it is the 403's `details.project`, and the schema
 has no components for error details.
 
+### Sales S0: several roles per member, workspace time zone
+
+From `docs/sales/s0-contract.md` §1, §2 and §4 (repo root). Delivered by the backend and in `docs/openapi.yaml`;
+implemented in the mock (SCHEMA 8):
+
+- `WorkspaceMember.roleIds`, `Workspace.myRoleIds`, `Invite.roleIds` / `roleNames` (precedence order; the single
+  fields are the primary role). The mock stores `roleIds` on members and invites, unions the roles' grants into
+  `my_permissions`, keeps the widest data scope per code, counts every holder in `Role.memberCount` and matches
+  `filter[role]` on any role.
+- `PATCH …/members/:userId {roleIds}` and `POST …/invites {emails, roleIds}` (old `roleId` accepted), with the 422
+  shapes, 403 escalation (`details.permission`) and 409 `last_owner` from the contract; `DELETE /roles/:id
+  {reassignTo}` moves holders and pending invites without duplicates.
+- `Workspace.timezone` (IANA, default `Africa/Addis_Ababa`) shown and edited in Settings → General with a searchable
+  select over `Intl.supportedValuesOf("timeZone")` (a short fallback list when the browser lacks it).
+- Module default roles: enabling sales seeds Sales Admin, CEO / GM, Sales Manager and Salesperson as system roles
+  (only `core.workspace.view` and `sales.dashboard.view` so far, scoped all / all / team / own).
+- UI: the members list shows every role as chips; changing roles is a multi-select (a role whose permissions you
+  don't hold, the last remaining role and Owner are disabled with the reason); the invite dialog picks one or more
+  roles; Remove is hidden when a member holds a role you couldn't grant. The optimistic role change used to write an
+  array into the paginated members cache (it threw before the request); it now updates the page.
+- **Ahead of the backend:** the client gates Sales on `sales.dashboard.view` (scopable), which replaces the skeleton
+  `sales.health.view` in S1. Until the backend ships S1, live mode hides the Sales nav item (its `my_permissions`
+  still carry `sales.health.view`).
+
 ---
 
 ## 6. Known gaps
@@ -657,7 +681,6 @@ each with a commented `SchemaGap` or extension type in `src/api/types.ts`, to re
 - `ProjectDirectoryEntry` has only `id` (the server sends the access info plus `isMember` and `status`).
 - `ReportKpis` lists only `completedThisSprint` (the server sends the sprint, planned, cycle-time, overdue and
   scope-change figures too).
-- `PatchedWorkspaceUpdateInRequest` lacks `notificationPolicy` (board 38's SMS switch, which PATCH accepts).
 - Loose types the client narrows: unions sent as `string` (activity verbs, audit `source`, invite / access-request
   `status`, `PermissionInfo.module|scope|group`, saved-view filter `field` / `op`), JSON as `unknown` (rich-text
   bodies, payloads, widget config, import job parts, presence locations, workload rows, `TaskDetail.project`), and

@@ -122,7 +122,7 @@ describe("seed + upgrade (§9.8)", () => {
     const db = getDB();
     expect(db.ext37).toBe(true);
     const owner = db.roles.find((r) => r.key === "owner" && r.workspaceId === "ws_platform")!;
-    expect(owner.permissions.slice(-5)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage", "sales.health.view"]);
+    expect(owner.permissions.slice(-5)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage", "sales.dashboard.view"]);
     const member = db.roles.find((r) => r.key === "project_member" && r.workspaceId === "ws_platform")!;
     expect(member.permissions.indexOf("tracking.development.link")).toBe(member.permissions.indexOf("tracking.project.import") + 1);
     expect(db.roles.find((r) => r.key === "viewer" && r.workspaceId === "ws_platform")!.permissions).not.toContain("tracking.development.link");

@@ -44,6 +44,9 @@ import { auditTargetFields } from "@/lib/audit";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
+/** Sales S0: `Workspace.timezone` when the record has none. */
+export const DEFAULT_TIMEZONE = "Africa/Addis_Ababa";
+
 export const toUser = ({ password: _password, ...u }: UserRec): User => u;
 /** The signed-in user's own profile, which also says whether the account has a password. */
 export const toMe = (u: UserRec): Me => ({ ...toUser(u), hasPassword: Boolean(u.password) });
@@ -52,15 +55,45 @@ export function wsMembership(db: MockDB, userId: string, workspaceId: string) {
   return db.wsMembers.find((m) => m.userId === userId && m.workspaceId === workspaceId && m.status === "active");
 }
 
+/** Sales S0 role precedence: Owner, Admin, Member, then every other role by name (case-insensitive), then id. */
+const PRECEDENCE: Record<string, number> = { owner: 0, admin: 1, member: 2 };
+export function comparePrecedence(a: RoleRec, b: RoleRec) {
+  return (
+    (PRECEDENCE[a.key ?? ""] ?? 3) - (PRECEDENCE[b.key ?? ""] ?? 3) ||
+    a.name.toLowerCase().localeCompare(b.name.toLowerCase()) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+/** Role ids in precedence order, duplicates and unknown ids dropped. */
+export function sortRoleIds(db: MockDB, ids: readonly string[]): string[] {
+  return [...new Set(ids)]
+    .map((id) => db.roles.find((r) => r.id === id))
+    .filter((r): r is RoleRec => Boolean(r))
+    .sort(comparePrecedence)
+    .map((r) => r.id);
+}
+
+/** A member's (or invite's) roles, in precedence order. */
+export function rolesOf(db: MockDB, roleIds: readonly string[]): RoleRec[] {
+  return sortRoleIds(db, roleIds).map((id) => db.roles.find((r) => r.id === id)!);
+}
+
+/** The union of the roles' workspace codes (stored grants, disabled modules included). */
+export function codesOf(roles: readonly RoleRec[]): Set<string> {
+  return new Set(roles.flatMap((r) => r.permissions as string[]));
+}
+
+/** Sales S0: the union of every workspace role's grants. */
 export function wsPermissions(db: MockDB, userId: string, workspaceId: string): WorkspacePermission[] {
   const m = wsMembership(db, userId, workspaceId);
   if (!m) return [];
-  const role = db.roles.find((r) => r.id === m.roleId);
-  // Stage 3: a disabled module's permissions are excluded (and so ignored by every server-side check).
+  const held = codesOf(rolesOf(db, m.roleIds));
+  // Catalogue order. Stage 3: a disabled module's permissions are excluded (and so ignored by every server-side check).
   return onlyEnabled(
     db,
     workspaceId,
-    (role?.permissions ?? []).filter((p): p is WorkspacePermission => (WORKSPACE_PERMISSIONS as readonly string[]).includes(p)),
+    WORKSPACE_PERMISSIONS.filter((p) => held.has(p)),
   );
 }
 
@@ -90,9 +123,11 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
     hue: w.hue,
     createdAt: w.createdAt,
     memberCount: db.wsMembers.filter((x) => x.workspaceId === w.id && x.status === "active").length,
-    myRoleId: m.roleId,
+    myRoleId: sortRoleIds(db, m.roleIds)[0] ?? "",
+    myRoleIds: sortRoleIds(db, m.roleIds),
     my_permissions: wsPermissions(db, userId, w.id),
     notificationPolicy: { sms: w.smsEnabled !== false },
+    timezone: w.timezone ?? DEFAULT_TIMEZONE,
     enabledModules: enabledModules(db, w.id),
     myDataScopes: myDataScopes(db, userId, w.id),
   };
@@ -101,7 +136,7 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
 export function toRole(db: MockDB, r: RoleRec): Role {
   const memberCount =
     r.scope === "workspace"
-      ? db.wsMembers.filter((m) => m.roleId === r.id && m.status === "active").length
+      ? db.wsMembers.filter((m) => m.roleIds.includes(r.id) && m.status === "active").length
       : new Set(db.projectMembers.filter((m) => m.roleId === r.id).map((m) => m.userId)).size;
   return {
     id: r.id,

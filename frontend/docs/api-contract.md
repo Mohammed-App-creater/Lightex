@@ -80,7 +80,7 @@ return 403 `module_disabled`.
 |---|---|---|
 | GET | /workspaces/:slug/modules | → `[{key, name, description, isCore, toggleable, enabled, dependsOn, enabledAt, enabledBy, navItems}]`, core included, not paginated; any member |
 | PUT | /workspaces/:slug/modules/:key | `{enabled}` → the module (`core.modules.manage`); 404 unknown; 400 `module_not_toggleable`; 400 `module_dependency` `details.modules` |
-| GET | /sales/workspaces/:slug/health | → `{status: "ok", module: "sales", workspace}` (`sales.health.view`) |
+| GET | /sales/workspaces/:slug/health | → `{status: "ok", module: "sales", workspace}` (`sales.dashboard.view` since sales S0; see below) |
 
 ## Teams and data scope (platform Stage 4)
 
@@ -126,6 +126,31 @@ disabled modules excluded). The client reads it with `useDataScope(code)`; the s
   `hasPassword`), sign-in responses a plain `User`; `POST /me/notification-channels/:channel/test` takes `workspace`
   as a query parameter; module `navItems[].permission` is always a string.
 
+## Sales S0 (core prerequisites)
+
+`docs/sales/s0-contract.md` §1, §2 and §4 are binding (repo root). What changed for the client:
+
+- **Several workspace roles per member.** `WorkspaceMember.roleIds`, `Workspace.myRoleIds` and `Invite.roleIds` /
+  `roleNames` list every role in precedence order (Owner, Admin, Member, then by name); `roleId`, `myRoleId` and
+  `roleName` stay and are the primary role (the first). Permissions are the union of the roles; for a scopable code
+  the widest scope wins (`all` > `team` > `own`) in `myDataScopes`. `Role.memberCount` counts every holder.
+  `filter[role]` returns members holding any of the roles.
+- **Requests.** `PATCH /workspaces/:slug/members/:userId {roleIds}` replaces the roles; `POST …/invites {emails,
+  roleIds}` gives every invitee all of them. The old single `roleId` still works (`roleIds` wins when both are sent).
+- **Errors.** 422 `validation_failed` `details.fields.roleIds` "Pick at least one role" (empty, not a list, or
+  nothing sent) or "Pick workspace roles" (unknown, other workspace, project scope); the old field gives
+  `details.fields.roleId` "Pick a workspace role". 403 `forbidden` `details.permission` when a role added or removed
+  (or a removed member's role) grants a permission the actor lacks. 409 `last_owner` when a member edit, a removal, a
+  role edit or a role delete would leave no active member with `core.workspace.delete`. `DELETE /roles/:id
+  {reassignTo}` moves holders and pending invites to the target (no duplicates).
+- **Workspace time zone.** `Workspace.timezone` (IANA, default `Africa/Addis_Ababa`); `PATCH /workspaces/:slug
+  {timezone}` (`core.workspace.update`, audited as `Time zone`); unknown names are 422 `details.fields.timezone`
+  "Pick a valid time zone".
+- **Module default roles.** Enabling a module seeds its default workspace roles as system roles (sales: Sales Admin,
+  CEO / GM, Sales Manager, Salesperson), keeping existing ones as they are.
+- **`sales.health.view` → `sales.dashboard.view`.** The client (nav item, route guard, mock) gates Sales on the
+  scopable `sales.dashboard.view`, which the backend introduces in S1 when it drops the skeleton code.
+
 ## Auth
 | Method | Path | Body → Response |
 |---|---|---|
@@ -147,18 +172,18 @@ disabled modules excluded). The client reads it with `useDataScope(code)`; the s
 | GET | /workspaces | → `Workspace[]` with `my_permissions` |
 | POST | /workspaces | `{name,slug,modules?}` (onboarding; `modules`: extra module keys, e.g. `["sales"]`) |
 | GET | /workspaces/:slug | → `Workspace` |
-| PATCH | /workspaces/:slug | `{name?, slug?}` (`core.workspace.update`) |
+| PATCH | /workspaces/:slug | `{name?, slug?, timezone?, notificationPolicy?}` (`core.workspace.update`) |
 | DELETE | /workspaces/:slug | soft delete, 30-day restore (`core.workspace.delete`) |
 | GET | /workspaces/:slug/slug-availability?q= | → `{available}` |
-| GET | /workspaces/:slug/members | paginated, `q`, `filter[role]` |
-| PATCH | /workspaces/:slug/members/:userId | `{roleId}` (`core.workspace.manage_members`) |
+| GET | /workspaces/:slug/members | paginated, `q`, `filter[role]` (any of) |
+| PATCH | /workspaces/:slug/members/:userId | `{roleIds}` (or the old `{roleId}`) (`core.workspace.manage_members`); 403 escalation, 409 `last_owner` |
 | DELETE | /workspaces/:slug/members/:userId | |
-| GET/POST | /workspaces/:slug/invites | `{emails[], roleId}` |
+| GET/POST | /workspaces/:slug/invites | `{emails[], roleIds[]}` (or the old `roleId`) |
 | DELETE | /workspaces/:slug/invites/:id | revoke |
 | POST | /workspaces/:slug/invites/:id/resend | |
 | GET | /workspaces/:slug/roles?filter[scope]=workspace\|project | → `Role[]` |
 | POST | /workspaces/:slug/roles | `{name, scope, permissions[], dataScopes?}` (`core.roles.manage`; 403 `data_scope_exceeds_own`) |
-| PATCH/DELETE | /roles/:id | system roles: 403 on PATCH/DELETE; DELETE in use → 409 `role_in_use` |
+| PATCH/DELETE | /roles/:id | system roles: 403 on PATCH/DELETE; DELETE in use → 409 `role_in_use` unless `{reassignTo}`; 409 `last_owner` |
 | GET | /permissions | → catalogue `{key, module, scope, group, label, description, scopable}[]` (`module`: `core`, `tracking` or `sales`) |
 | GET | /workspaces/:slug/audit | paginated (`core.audit.view`) |
 | GET | /tracking/workspaces/:slug/activity | recent activity across visible projects |

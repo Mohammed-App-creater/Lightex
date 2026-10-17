@@ -185,7 +185,7 @@ export function Onboarding() {
       const roles = await api.roles.list(ws.slug, "workspace");
       const r = roles.find((x) => x.scope === "workspace" && x.name.toLowerCase() === role);
       if (!r) throw new Error("Couldn’t find the role for invites. Try again.");
-      await api.workspaces.invite(ws.slug, list, r.id);
+      await api.workspaces.invite(ws.slug, list, [r.id]);
       void qc.invalidateQueries({ queryKey: qk.invites(ws.slug) });
       setInvited({ count: list.length, role });
       go(READY);

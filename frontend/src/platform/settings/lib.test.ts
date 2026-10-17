@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_TIMEZONE,
+  FALLBACK_TIME_ZONES,
+  filterTimeZones,
+  timeZoneLabel,
+  timeZoneOffset,
+  timeZoneOptions,
   avatarFileError,
   confirmState,
   moveItem,
@@ -88,5 +94,34 @@ describe("moveItem", () => {
   it("reorders and ignores out-of-range moves", () => {
     expect(moveItem(["a", "b", "c"], 0, 1)).toEqual(["b", "a", "c"]);
     expect(moveItem(["a", "b"], 1, 2)).toEqual(["a", "b"]);
+  });
+});
+
+describe("workspace time zone (sales S0)", () => {
+  it("lists the browser's zones, falls back to a short list and always keeps the current one", () => {
+    expect(timeZoneOptions(undefined, () => ["Europe/Paris", "Africa/Addis_Ababa"])).toEqual(["Africa/Addis_Ababa", "Europe/Paris"]);
+    expect(timeZoneOptions("Etc/GMT+3", () => [])).toEqual([...FALLBACK_TIME_ZONES, "Etc/GMT+3"].sort((a, b) => a.localeCompare(b)));
+    expect(
+      timeZoneOptions(undefined, () => {
+        throw new Error("unsupported");
+      }),
+    ).toContain(DEFAULT_TIMEZONE);
+    // The real runtime has Intl.supportedValuesOf.
+    expect(timeZoneOptions()).toContain("Asia/Tokyo");
+  });
+
+  it("filters by every word, ignoring case, slashes and underscores", () => {
+    const list = ["Africa/Addis_Ababa", "America/New_York", "America/Los_Angeles", "Europe/London"];
+    expect(filterTimeZones(list, "")).toEqual(list);
+    expect(filterTimeZones(list, "addis")).toEqual(["Africa/Addis_Ababa"]);
+    expect(filterTimeZones(list, "new york")).toEqual(["America/New_York"]);
+    expect(filterTimeZones(list, "america/los")).toEqual(["America/Los_Angeles"]);
+    expect(filterTimeZones(list, "mars")).toEqual([]);
+  });
+
+  it("labels and offsets", () => {
+    expect(timeZoneLabel("America/New_York")).toBe("America/New York");
+    expect(timeZoneOffset("Africa/Addis_Ababa")).toBe("GMT+3");
+    expect(timeZoneOffset("Not/AZone")).toBe("");
   });
 });

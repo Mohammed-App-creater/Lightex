@@ -20,6 +20,17 @@ export interface MockModuleDef {
   defaultRoleGrants: Record<string, Permission[]>;
   /** Stage 4: scopes for scopable codes in `defaultRoleGrants`, by role key. Default: Owner / Admin `all`, others `own`. */
   defaultRoleScopes?: Record<string, Record<string, DataScope>>;
+  /** Sales S0 (s0-contract §4): workspace system roles the module contributes, created on enable when missing. */
+  defaultRoles?: MockDefaultRole[];
+}
+
+/** The backend's `DefaultRole(key, name, description, grants={code: scope | None})`. `key` is the role's system key. */
+export interface MockDefaultRole {
+  key: string;
+  name: string;
+  description: string;
+  /** Code → data scope for scopable codes (null = `own`), null for the others. */
+  grants: Record<string, DataScope | null>;
 }
 
 /** Registration order. Exported mutable so tests can register a module that depends on another. */
@@ -57,8 +68,15 @@ export const MODULE_DEFS: MockModuleDef[] = [
     isCore: false,
     toggleable: true,
     dependsOn: [],
-    navItems: [{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.health.view" }],
-    defaultRoleGrants: { owner: ["sales.health.view"], admin: ["sales.health.view"], member: ["sales.health.view"] },
+    navItems: [{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.dashboard.view" }],
+    defaultRoleGrants: { owner: ["sales.dashboard.view"], admin: ["sales.dashboard.view"], member: ["sales.dashboard.view"] },
+    // Spec §3. Only the codes that exist so far (S1 adds the real sales.* grants).
+    defaultRoles: [
+      { key: "sales_admin", name: "Sales Admin", description: "Everything in Sales, including its settings.", grants: { "core.workspace.view": null, "sales.dashboard.view": "all" } },
+      { key: "sales_ceo", name: "CEO / GM", description: "Sees all of Sales, reviews reports and sets targets.", grants: { "core.workspace.view": null, "sales.dashboard.view": "all" } },
+      { key: "sales_manager", name: "Sales Manager", description: "Runs the team’s pipeline, targets and daily reports.", grants: { "core.workspace.view": null, "sales.dashboard.view": "team" } },
+      { key: "sales_salesperson", name: "Salesperson", description: "Works their own leads, deals and follow-ups.", grants: { "core.workspace.view": null, "sales.dashboard.view": "own" } },
+    ],
   },
 ];
 
@@ -118,8 +136,41 @@ export function writeModule(db: MockDB, workspaceId: string, key: string, enable
     row.enabledBy = actorId;
     row.enabledAt = new Date().toISOString();
     seedGrants(db, workspaceId, key);
+    seedDefaultRoles(db, workspaceId, key);
   }
   return row;
+}
+
+/**
+ * Sales S0 (s0-contract §4): creates the module's missing default roles as system roles. A role found by its system
+ * key is left as it is (admin edits survive). A taken name becomes "<name> (<module name>)"; if that's taken too,
+ * the role is skipped.
+ */
+export function seedDefaultRoles(db: MockDB, workspaceId: string, key: string) {
+  const def = moduleDef(key);
+  for (const r of def?.defaultRoles ?? []) {
+    const roles = db.roles.filter((x) => x.workspaceId === workspaceId && x.scope === "workspace");
+    if (roles.some((x) => x.key === r.key)) continue;
+    const taken = (n: string) => roles.some((x) => x.name.toLowerCase() === n.toLowerCase());
+    const name = !taken(r.name) ? r.name : !taken(`${r.name} (${def!.name})`) ? `${r.name} (${def!.name})` : null;
+    if (!name) continue;
+    const permissions = Object.keys(r.grants) as Permission[];
+    const dataScopes: Record<string, DataScope> = {};
+    for (const [code, scope] of Object.entries(r.grants)) {
+      if (isScopable(PERMISSION_CATALOGUE, code)) dataScopes[code] = scope ?? "own";
+    }
+    db.roles.push({
+      id: `${workspaceId}-role-${r.key}`,
+      workspaceId,
+      key: r.key,
+      name,
+      description: r.description,
+      scope: "workspace",
+      isSystem: true,
+      permissions,
+      dataScopes,
+    });
+  }
 }
 
 /** Enabling seeds the module's default role grants on the workspace's system roles, idempotently. */

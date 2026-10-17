@@ -176,12 +176,14 @@ export const workspaces = {
   slugAvailability: (slug: string, q: string) =>
     http.get<SlugAvailability>(`/workspaces/${enc(slug)}/slug-availability`, { q }),
   members: (slug: string, query?: ListQuery) => http.get<Paginated<WorkspaceMember>>(`/workspaces/${enc(slug)}/members`, query),
-  updateMember: (slug: string, userId: string, roleId: string) =>
-    http.patch<WorkspaceMember>(`/workspaces/${enc(slug)}/members/${enc(userId)}`, { roleId }),
+  /** Sales S0: replaces the member's workspace roles (one or more). */
+  updateMember: (slug: string, userId: string, roleIds: string[]) =>
+    http.patch<WorkspaceMember>(`/workspaces/${enc(slug)}/members/${enc(userId)}`, { roleIds }),
   removeMember: (slug: string, userId: string) => http.del(`/workspaces/${enc(slug)}/members/${enc(userId)}`),
   invites: (slug: string) => http.get<Invite[]>(`/workspaces/${enc(slug)}/invites`),
-  invite: (slug: string, emails: string[], roleId: string) =>
-    http.post<Invite[]>(`/workspaces/${enc(slug)}/invites`, { emails, roleId }),
+  /** Sales S0: every invitee gets all of `roleIds` on accept. */
+  invite: (slug: string, emails: string[], roleIds: string[]) =>
+    http.post<Invite[]>(`/workspaces/${enc(slug)}/invites`, { emails, roleIds }),
   revokeInvite: (slug: string, id: string) => http.del(`/workspaces/${enc(slug)}/invites/${enc(id)}`),
   resendInvite: (slug: string, id: string) => http.post<Invite>(`/workspaces/${enc(slug)}/invites/${enc(id)}/resend`),
   activity: (slug: string, query?: ListQuery) => http.get<Paginated<ActivityEntry>>(`/tracking/workspaces/${enc(slug)}/activity`, query),
