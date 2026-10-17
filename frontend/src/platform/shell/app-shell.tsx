@@ -14,10 +14,11 @@ import { isNotFound } from "@/api/errors";
 import { qk } from "@/api/query-keys";
 import { lazyWithPreload, whenIdle } from "@/lib/hooks/lazy-with-preload";
 import { useIsCompact } from "@/lib/hooks/use-media-query";
-import { WorkspaceScope } from "@/platform/roles/can";
+import { WorkspaceScope, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { ErrorScreen, NotFoundScreen } from "./edge-screens";
+import { ModuleRouteGuard } from "./module-screens";
 import { DevTools } from "./dev-tools";
 import { GlobalHotkeys } from "./global-hotkeys";
 import { OfflineBanner } from "./offline-banner";
@@ -90,6 +91,7 @@ function WorkspaceLoader({ slug, children }: { slug: string; children: ReactNode
 }
 
 function Shell({ children }: { children: ReactNode }) {
+  const ws = useCurrentWorkspace()!;
   const { collapsed, drawer } = useShell();
   const compact = useIsCompact();
   useEffect(() => shell.hydrate(), []);
@@ -97,10 +99,10 @@ function Shell({ children }: { children: ReactNode }) {
     () =>
       whenIdle(() => {
         preloadPalette();
-        shellOverlays().forEach((o) => o.preload());
+        shellOverlays(ws).forEach((o) => o.preload());
         preloadShortcuts();
       }),
-    [],
+    [ws],
   );
 
   return (
@@ -132,12 +134,13 @@ function Shell({ children }: { children: ReactNode }) {
             <TopBar compact={compact} setSlot={setSlot} />
             <OfflineBanner />
             <main id="main" tabIndex={-1} className="relative min-h-0 flex-1 overflow-auto outline-none">
-              {children}
+              {/* Stage 3: a disabled module's routes render "Module disabled" (registry + enabledModules). */}
+              <ModuleRouteGuard>{children}</ModuleRouteGuard>
             </main>
           </div>
           <GlobalHotkeys />
           <CommandPalette />
-          {shellOverlays().map(({ id, Component }) => (
+          {shellOverlays(ws).map(({ id, Component }) => (
             <Component key={id} />
           ))}
           <ShortcutsDialog />

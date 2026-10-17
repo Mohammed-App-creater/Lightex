@@ -51,6 +51,16 @@ export type WorkspaceRec = {
   /** Board 38: `notificationPolicy.sms` (missing = true). */
   smsEnabled?: boolean;
 };
+/** Platform Stage 3 `WorkspaceModule`: unique on (workspaceId, moduleKey). `core` has no row. */
+export type WorkspaceModuleRec = {
+  workspaceId: string;
+  moduleKey: string;
+  enabled: boolean;
+  enabledBy: string | null;
+  enabledAt: string | null;
+  settings: Record<string, unknown>;
+  plan: string | null;
+};
 export type WsMemberRec = {
   workspaceId: string;
   userId: string;
@@ -112,6 +122,8 @@ export interface MockDB {
   users: UserRec[];
   workspaces: WorkspaceRec[];
   wsMembers: WsMemberRec[];
+  /** Platform Stage 3 (SCHEMA 6). */
+  workspaceModules: WorkspaceModuleRec[];
   roles: RoleRec[];
   invites: InviteRec[];
   projects: ProjectRec[];

@@ -4,6 +4,8 @@ import { can } from "@/platform/roles/can";
 import { routes } from "@/platform/routes";
 import type { ModuleDefinition } from "@/registry";
 import { PinnedViews } from "./filters/pinned-views";
+import { TASK_TARGET } from "./tasks/target";
+import { TaskNotificationPreview } from "./tasks/notification-preview";
 import { canImportInto } from "./import/import-lib";
 import { SprintCard } from "./sprints/sidebar-sprint-card";
 
@@ -15,6 +17,9 @@ const createTask = lazyWithPreload(() => import("./tasks/create-task-dialog").th
 export const tracking: ModuleDefinition = {
   key: "tracking",
   name: "Tracking",
+  icon: Columns3,
+  // Not toggleable in Stage 3, but its routes are declared like any module's.
+  routes: [{ segment: "projects" }, { segment: "tasks" }, { segment: "my-tasks" }, { segment: "timesheet" }],
   nav: [
     { id: "my-tasks", label: "My tasks", icon: CircleCheck, href: (ws) => routes.myTasks(ws), page: "my-tasks", keys: ["G", "T"] },
     // Board 39 (v2): every workspace member; data is limited to projects they can see.
@@ -49,4 +54,6 @@ export const tracking: ModuleDefinition = {
       allowed: Boolean(currentProject && canImportInto(currentProject)),
     },
   ],
+  // Inbox preview chips (status, priority, assignee, due) for task notifications; older rows have only a taskKey.
+  targetPreviews: [{ targetType: TASK_TARGET, fallback: (n) => Boolean(n.taskKey), Component: TaskNotificationPreview }],
 };

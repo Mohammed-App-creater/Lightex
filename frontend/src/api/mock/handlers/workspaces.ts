@@ -4,7 +4,9 @@ import { PERMISSION_CATALOGUE, DEFAULT_ROLES } from "@/platform/roles/catalogue"
 import { nowISO, uid } from "../db";
 import type { MockDB, RoleRec } from "../db-types";
 import { projectMembership, toProject, toRole, toTask, toUser, toWorkspace, wsMembership } from "../derive";
+import { isModuleOn, moduleOfCode, onlyEnabled, writeModule } from "../modules";
 import { auditList } from "./audit";
+import { creationModules } from "./modules";
 import { toInvite } from "./auth";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
@@ -72,9 +74,12 @@ export function registerWorkspaces() {
     const slug = slugify(str(ctx.body, "slug") ?? name);
     if (name.length < 2) invalid({ name: "Use at least 2 characters" });
     if (RESERVED.includes(slug) || ctx.db.workspaces.some((w) => w.slug === slug)) invalid({ slug: `lightex.app/${slug} is taken` });
+    // Stage 3: tracking plus the optional `modules` passed at creation.
+    const extra = creationModules(ctx.body);
     const ws = { id: uid("ws"), slug, name: name.slice(0, 40), hue: Math.floor(Math.random() * 360), createdAt: nowISO(), deletedAt: null };
     ctx.db.workspaces.push(ws);
     seedRoles(ctx.db, ws.id);
+    for (const key of ["tracking", ...extra]) writeModule(ctx.db, ws.id, key, true, userId);
     ctx.db.wsMembers.push({ workspaceId: ws.id, userId, roleId: `${ws.id}-role-owner`, status: "active", joinedAt: nowISO(), lastActiveAt: nowISO() });
     audit(ctx.db, ws.id, userId, "core.workspace.created", ws.name);
     return toWorkspace(ctx.db, ws, userId);
@@ -246,7 +251,8 @@ export function registerWorkspaces() {
     if (!name) invalid({ name: "Name is required" });
     if (ctx.db.roles.some((r) => r.workspaceId === ws.id && r.scope === scope && r.name.toLowerCase() === name.toLowerCase()))
       invalid({ name: "A role with this name exists" });
-    const allowed = PERMISSION_CATALOGUE.filter((p) => p.scope === scope).map((p) => p.key);
+    // Stage 3: a disabled module's permissions can't be granted while it's off.
+    const allowed = onlyEnabled(ctx.db, ws.id, PERMISSION_CATALOGUE.filter((p) => p.scope === scope).map((p) => p.key));
     const role: RoleRec = {
       id: uid("role"),
       workspaceId: ws.id,
@@ -275,8 +281,10 @@ export function registerWorkspaces() {
     }
     if (body.description !== undefined) role.description = body.description.slice(0, 80);
     if (body.permissions) {
-      const allowed = PERMISSION_CATALOGUE.filter((p) => p.scope === role.scope).map((p) => p.key);
-      role.permissions = body.permissions.filter((p) => allowed.includes(p));
+      const allowed = onlyEnabled(ctx.db, role.workspaceId, PERMISSION_CATALOGUE.filter((p) => p.scope === role.scope).map((p) => p.key));
+      // Stage 3: the client never sees a disabled module's grants, so they are kept as stored.
+      const hidden = role.permissions.filter((p) => !isModuleOn(ctx.db, role.workspaceId, moduleOfCode(p)));
+      role.permissions = [...body.permissions.filter((p) => allowed.includes(p)), ...hidden];
     }
     audit(ctx.db, role.workspaceId, ctx.userId!, "core.role.updated", role.name);
     return toRole(ctx.db, role);
@@ -340,7 +348,9 @@ function searchHandler(ctx: Ctx) {
   const want = (t: string) => !types.length || types.includes(t);
   const ids = visibleProjectIds(ctx.db, userId, ws.id);
   const out: SearchResult[] = [];
-  if (want("task")) {
+  // Stage 3: a disabled module's search providers are skipped (tracking owns tasks and projects).
+  const tracking = isModuleOn(ctx.db, ws.id, "tracking");
+  if (want("task") && tracking) {
     const tasks = ctx.db.tasks
       .filter((t) => !t.deletedAt && ids.includes(t.projectId))
       .filter((t) => !q || t.key.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))
@@ -362,7 +372,7 @@ function searchHandler(ctx: Ctx) {
       });
     }
   }
-  if (want("project")) {
+  if (want("project") && tracking) {
     ctx.db.projects
       .filter((p) => ids.includes(p.id) && (!q || p.name.toLowerCase().includes(q) || p.key.toLowerCase().includes(q)))
       .forEach((p) =>

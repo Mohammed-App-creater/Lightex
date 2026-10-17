@@ -22,8 +22,11 @@ export const PERMISSION_GROUP_ORDER: PermissionGroup[] = [
   "Administration",
 ];
 
-/** The module is the code's first segment: `core.*` or `tracking.*`. */
-export const moduleOf = (key: string): PermissionModule => (key.startsWith("core.") ? "core" : "tracking");
+/** The module is the code's first segment: `core.*`, `tracking.*` or `sales.*`. */
+export const moduleOf = (key: string): PermissionModule => {
+  const head = key.slice(0, key.indexOf("."));
+  return head === "core" || head === "sales" ? head : "tracking";
+};
 
 const ws = (
   key: WorkspacePermission,
@@ -54,6 +57,8 @@ export const PERMISSION_CATALOGUE: PermissionInfo[] = [
   // Platform Stage 1: catalogue and default roles only; their screens arrive in Stages 3 and 4.
   ws("core.modules.manage", "Administration", "Manage modules", "Turn modules on and off for the workspace"),
   ws("core.teams.manage", "Administration", "Manage teams", "Create teams and choose their members and leads"),
+  // Platform Stage 3: the sales module (placeholder). Listed with module "sales"; hidden while sales is off.
+  ws("sales.health.view", "Reports", "View sales", "Open the Sales module"),
   // Project scope
   prj("tracking.task.create", "Tasks", "Create tasks", "Add tasks to the board and backlog"),
   prj("tracking.task.edit_any", "Tasks", "Edit any task", "Change fields on others’ tasks"),
@@ -117,6 +122,7 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
+      "sales.health.view",
     ],
   },
   {
@@ -135,6 +141,7 @@ export const DEFAULT_ROLES: {
       "core.audit.view",
       "core.modules.manage",
       "core.teams.manage",
+      "sales.health.view",
     ],
   },
   {
@@ -142,7 +149,7 @@ export const DEFAULT_ROLES: {
     name: "Member",
     scope: "workspace",
     description: "Sees the workspace and joins projects they’re added to.",
-    permissions: ["core.workspace.view"],
+    permissions: ["core.workspace.view", "sales.health.view"],
   },
   {
     key: "project_admin",

@@ -28,7 +28,8 @@ import {
   changeCount,
   changedKeys,
   copyName,
-  groupCatalogue,
+  enabledCatalogue,
+  groupCatalogueByModule,
   grantedCount,
   isOwnerRole,
   roleNameError,
@@ -38,6 +39,11 @@ import {
   type RoleDraft,
 } from "@/platform/members/lib";
 import { StateBox, Tag } from "@/platform/members/parts";
+import { MODULES } from "@/registry";
+
+/** Module headings in the permission matrix (registry names; core is the platform). */
+const MODULE_NAMES: Record<string, string> = { core: "Core", ...Object.fromEntries(MODULES.map((m) => [m.key, m.name])) };
+const MODULE_ORDER = MODULES.map((m) => m.key);
 
 const toDraft = (r: Role): RoleDraft => ({ name: r.name, description: r.description, permissions: [...r.permissions] });
 
@@ -203,7 +209,8 @@ export function RolesScreen() {
 
   const loading = roles.isPending || catalogue.isPending;
   const error = roles.error ?? catalogue.error;
-  const cat = catalogue.data ?? [];
+  // Stage 3: permissions of modules turned off for the workspace are hidden (role responses omit them too).
+  const cat = enabledCatalogue(catalogue.data ?? [], ws.enabledModules);
   const total = cat.filter((p) => p.scope === scope).length;
 
   const header = (
@@ -388,6 +395,7 @@ export function RolesScreen() {
             )}
             <PermissionMatrix
               catalogue={cat}
+              enabledModules={ws.enabledModules}
               scope={scope}
               granted={working.permissions}
               changed={changed}
@@ -506,6 +514,7 @@ function RoleGroup({
 
 function PermissionMatrix({
   catalogue,
+  enabledModules,
   scope,
   granted,
   changed,
@@ -513,13 +522,41 @@ function PermissionMatrix({
   onToggle,
 }: {
   catalogue: PermissionInfo[];
+  enabledModules: readonly string[];
   scope: RoleScope;
   granted: Permission[];
   changed: Set<string>;
   locked: boolean;
   onToggle: (key: Permission, on: boolean) => void;
 }) {
-  const groups = groupCatalogue(catalogue, scope);
+  const modules = groupCatalogueByModule(catalogue, scope, enabledModules, MODULE_ORDER);
+  return (
+    <div className="flex flex-col gap-4">
+      {modules.map((m) => (
+        <section key={m.module} aria-labelledby={`perm-mod-${m.module}`} className="flex flex-col">
+          <h3 id={`perm-mod-${m.module}`} className="m-0 pb-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.07em] text-fg-3">
+            {MODULE_NAMES[m.module] ?? m.module}
+          </h3>
+          <PermissionGroups groups={m.groups} granted={granted} changed={changed} locked={locked} onToggle={onToggle} />
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function PermissionGroups({
+  groups,
+  granted,
+  changed,
+  locked,
+  onToggle,
+}: {
+  groups: ReturnType<typeof groupCatalogueByModule>[number]["groups"];
+  granted: Permission[];
+  changed: Set<string>;
+  locked: boolean;
+  onToggle: (key: Permission, on: boolean) => void;
+}) {
   return (
     <div className="flex flex-col">
       {groups.map((g) => {

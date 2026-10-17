@@ -168,6 +168,25 @@ export function groupCatalogue(catalogue: PermissionInfo[], scope: RoleScope) {
   })).filter((g) => g.items.length > 0);
 }
 
+/**
+ * Platform Stage 3: the role editor groups permissions by module (core first, then registry order), each split
+ * into the design's groups. Modules turned off for the workspace are left out.
+ */
+export function groupCatalogueByModule(catalogue: PermissionInfo[], scope: RoleScope, enabledModules: readonly string[], order: readonly string[] = []) {
+  const keys = [...new Set(catalogue.filter((p) => p.scope === scope).map((p) => p.module))]
+    .filter((m) => m === "core" || enabledModules.includes(m))
+    .sort((a, b) => rank(a, order) - rank(b, order));
+  return keys
+    .map((module) => ({ module, groups: groupCatalogue(catalogue.filter((p) => p.module === module), scope) }))
+    .filter((m) => m.groups.length > 0);
+}
+
+const rank = (m: string, order: readonly string[]) => (m === "core" ? -1 : order.includes(m) ? order.indexOf(m) : order.length);
+
+/** The catalogue without the permissions of modules that are turned off (core is always on). */
+export const enabledCatalogue = (catalogue: PermissionInfo[], enabledModules: readonly string[]) =>
+  catalogue.filter((p) => p.module === "core" || enabledModules.includes(p.module));
+
 /** Permissions of a role that exist in the catalogue for its scope (for "{n} of {total}"). */
 export function grantedCount(role: Pick<Role, "permissions" | "scope">, catalogue: PermissionInfo[]) {
   const keys = new Set(catalogue.filter((p) => p.scope === role.scope).map((p) => p.key));

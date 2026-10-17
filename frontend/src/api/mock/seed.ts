@@ -21,8 +21,10 @@ import type {
 /**
  * 4: Stage 1 namespaced permission codes, event types, audit actions and preference keys.
  * 5: Stage 2 generic targets (comments / attachments carry targetType + targetId, no taskId) and core.comment.* preference keys.
+ * 6: Stage 3 modules (`workspaceModules`: tracking on in every workspace, sales off) and `sales.health.view` on the
+ *    workspace Owner / Admin / Member roles.
  */
-export const SCHEMA = 5;
+export const SCHEMA = 6;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -124,6 +126,7 @@ export function createSeed(): MockDB {
       { id: "ws_guild", slug: "design-guild", name: "Design guild", hue: 300, createdAt: T("2026-05-11"), deletedAt: null },
     ],
     wsMembers: [],
+    workspaceModules: [],
     roles: [],
     invites: [],
     projects: [],
@@ -145,6 +148,11 @@ export function createSeed(): MockDB {
     resetTokens: [],
     recents: [],
   };
+
+  /* modules (Stage 3): tracking on everywhere, as the backend's data migration does; sales starts off */
+  for (const ws of db.workspaces) {
+    db.workspaceModules.push({ workspaceId: ws.id, moduleKey: "tracking", enabled: true, enabledBy: null, enabledAt: ws.createdAt, settings: {}, plan: null });
+  }
 
   /* roles: the seven defaults per workspace, plus one custom role in Platform team */
   for (const ws of db.workspaces) {

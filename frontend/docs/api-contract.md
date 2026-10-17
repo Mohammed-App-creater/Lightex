@@ -66,6 +66,19 @@
   ungrouped → workspace). Collab actions: `core.comment.created|updated|deleted|restored|purged`,
   `core.attachment.created|deleted`.
 
+## Modules (platform Stage 3)
+
+`docs/platform/stage3-contract.md` §3 is binding. `Workspace.enabledModules: string[]` (always contains `core`) and
+`my_permissions` drive the sidebar, palette and route guards (`src/registry`). A disabled module's permissions are
+missing from `my_permissions` and from role responses (`GET /permissions` still lists them, with `module`); its routes
+return 403 `module_disabled`.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | /workspaces/:slug/modules | → `[{key, name, description, isCore, toggleable, enabled, dependsOn, enabledAt, enabledBy, navItems}]`, core included, not paginated; any member |
+| PUT | /workspaces/:slug/modules/:key | `{enabled}` → the module (`core.modules.manage`); 404 unknown; 400 `module_not_toggleable`; 400 `module_dependency` `details.modules` |
+| GET | /sales/workspaces/:slug/health | → `{status: "ok", module: "sales", workspace}` (`sales.health.view`) |
+
 ## Auth
 | Method | Path | Body → Response |
 |---|---|---|
@@ -85,7 +98,7 @@
 | Method | Path | Notes |
 |---|---|---|
 | GET | /workspaces | → `Workspace[]` with `my_permissions` |
-| POST | /workspaces | `{name,slug}` (onboarding) |
+| POST | /workspaces | `{name,slug,modules?}` (onboarding; `modules`: extra module keys, e.g. `["sales"]`) |
 | GET | /workspaces/:slug | → `Workspace` |
 | PATCH | /workspaces/:slug | `{name?, slug?}` (`core.workspace.update`) |
 | DELETE | /workspaces/:slug | soft delete, 30-day restore (`core.workspace.delete`) |
@@ -99,7 +112,7 @@
 | GET | /workspaces/:slug/roles?filter[scope]=workspace\|project | → `Role[]` |
 | POST | /workspaces/:slug/roles | `{name, scope, permissions[]}` (`core.roles.manage`) |
 | PATCH/DELETE | /roles/:id | system roles: 403 on PATCH/DELETE; DELETE in use → 409 `role_in_use` |
-| GET | /permissions | → catalogue `{key, module, scope, group, label, description}[]` (`module`: `core` or `tracking`) |
+| GET | /permissions | → catalogue `{key, module, scope, group, label, description}[]` (`module`: `core`, `tracking` or `sales`) |
 | GET | /workspaces/:slug/audit | paginated (`core.audit.view`) |
 | GET | /tracking/workspaces/:slug/activity | recent activity across visible projects |
 | GET | /tracking/workspaces/:slug/tasks?filter[assignee]=me | my tasks across projects |

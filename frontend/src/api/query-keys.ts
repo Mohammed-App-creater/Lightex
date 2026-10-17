@@ -15,6 +15,9 @@ export const qk = {
   /** Saved views + my pins (board 30). */
   views: (slug: string) => ["workspace", slug, "views"] as const,
   trash: (slug: string) => ["workspace", slug, "trash"] as const,
+  /** Platform Stage 3: the workspace's modules (under the workspace, so its blanket invalidation reaches it). */
+  modules: (slug: string) => ["workspace", slug, "modules"] as const,
+  salesHealth: (slug: string) => ["workspace", slug, "sales", "health"] as const,
   search: (slug: string, q: string, types?: string) => ["workspace", slug, "search", q, types ?? "all"] as const,
   recents: () => ["recents"] as const,
 

@@ -46,11 +46,11 @@ import { can, useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes, useRouteInfo } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
 import { useModKey } from "@/lib/hooks/use-platform";
-import { moduleNavItems, projectNavItems, sidebarProjectCards, sidebarSections } from "@/registry";
+import { moduleNavItems, projectNavItems, sidebarProjectCards, sidebarSections, type ModuleContext } from "@/registry";
 import { shell } from "./shell-state";
 
-/** Project links from the module registry that this project's permissions allow. */
-export const subItemsFor = (perms: string[]) => projectNavItems().filter((s) => !s.gate || s.gate(perms));
+/** Project links from the enabled modules (registry) that this project's permissions allow. */
+export const subItemsFor = (ws: ModuleContext, perms: string[]) => projectNavItems(ws).filter((s) => !s.gate || s.gate(perms));
 
 const itemBase =
   "relative flex h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 text-[13px] font-medium text-fg-2 transition-colors duration-[var(--dur-fast)] ease-out hover:bg-hover hover:text-fg max-[1023px]:h-[42px]";
@@ -246,7 +246,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           <Inbox size={16} strokeWidth={1.6} aria-hidden />
           {unread > 0 && <span aria-hidden className="absolute right-2 top-[7px] size-[7px] rounded-full bg-accent-t shadow-[0_0_0_2px_var(--surface)]" />}
         </RailLink>
-        {moduleNavItems().map((item) => (
+        {moduleNavItems(ws).map((item) => (
           <RailLink key={item.id} href={item.href(ws.slug)} label={item.label} keys={item.keys} active={route.page === item.page}>
             <item.icon size={16} strokeWidth={1.6} aria-hidden />
           </RailLink>
@@ -258,7 +258,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           </RailLink>
         ))}
         <span className="flex-1" />
-        {sidebarProjectCards().map(({ id, Component }) => (
+        {sidebarProjectCards(ws).map(({ id, Component }) => (
           <Component key={id} project={activeProject} ws={ws.slug} rail />
         ))}
         <RailLink href={routes.settings(ws.slug, "profile")} label="Settings" keys={["⌘", ","]} active={route.page === "settings"}>
@@ -352,8 +352,8 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
             ) : null
           }
         />
-        {/* Module links come from the registry (src/registry). */}
-        {moduleNavItems().map((item) => (
+        {/* Module links come from the registry (src/registry), filtered by enabledModules and my_permissions. */}
+        {moduleNavItems(ws).map((item) => (
           <NavItem
             key={item.id}
             href={item.href(ws.slug)}
@@ -366,7 +366,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
         ))}
 
         {/* Saved views pinned by me (board 30): Manage / Done, Alt+↑↓ reorder. */}
-        {sidebarSections().map(({ id, Component }) => (
+        {sidebarSections(ws).map(({ id, Component }) => (
           <Component key={id} open={!closedSections.has(id)} onToggle={() => toggleSection(id)} onNavigate={nav} />
         ))}
 
@@ -409,7 +409,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
             {shownProjects.map((p) => {
               const open = openKey === p.key;
               const active = route.projectKey === p.key;
-              const subs = subItemsFor(p.my_permissions);
+              const subs = subItemsFor(ws, p.my_permissions);
               const subIndex = active ? subs.findIndex((s) => s.view === route.view) : -1;
               return (
                 <div key={p.id}>
@@ -476,7 +476,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
       </div>
 
       <div className="flex flex-col gap-0.5 border-t border-line px-2.5 pb-2.5 pt-2">
-        {sidebarProjectCards().map(({ id, Component }) => (
+        {sidebarProjectCards(ws).map(({ id, Component }) => (
           <Component key={id} project={activeProject} ws={ws.slug} onNavigate={nav} />
         ))}
         <div className="flex items-end gap-0.5">

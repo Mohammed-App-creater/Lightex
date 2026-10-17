@@ -99,3 +99,15 @@ export function inviteSummary(n: number, role: string): string {
 }
 
 export const CHIP_HUES = [200, 20, 150, 60, 330, 285];
+
+/* ── "What do you need?" (platform Stage 3) ── */
+
+export type ModuleChoice = "tracking" | "tracking-sales";
+
+export const MODULE_CHOICES: { value: ModuleChoice; label: string; body: string }[] = [
+  { value: "tracking", label: "Core tracking only", body: "Projects, boards, sprints, goals and reports." },
+  { value: "tracking-sales", label: "Core tracking + Sales", body: "Everything in tracking, plus the Sales module." },
+];
+
+/** The `modules` sent on workspace creation (tracking is always on, so it isn't listed). */
+export const modulesFor = (choice: ModuleChoice): string[] => (choice === "tracking-sales" ? ["sales"] : []);

@@ -22,7 +22,7 @@ import { toast } from "@/ui/toast";
 import { cycleTheme } from "@/platform/shell/global-hotkeys";
 import { shell, useShell, type PaletteScope } from "@/platform/shell/shell-state";
 import { useSession } from "@/platform/auth/session";
-import { modulePaletteActions, type PaletteAction } from "@/registry";
+import { moduleNavItems, modulePaletteActions, type PaletteAction } from "@/registry";
 import { useProjects, useWsMembers, useRoles } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { qk } from "@/api/query-keys";
@@ -131,8 +131,8 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
         run: () => shell.openCreateTask(currentProject && can("tracking.task.create", currentProject.my_permissions) ? { projectId: currentProject.id } : {}),
         allowed: canCreateAnywhere,
       },
-      // Module actions (registry), e.g. tracking's "Import tasks…" (board 40).
-      ...modulePaletteActions({ currentProject }),
+      // Module actions (registry, enabled modules only), e.g. tracking's "Import tasks…" (board 40).
+      ...modulePaletteActions(ws, { currentProject }),
       { id: "board", label: "Go to board", keys: ["G", "B"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("board"), allowed: projects.length > 0 },
       {
         id: "theme",
@@ -147,6 +147,17 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
       { id: "milestones", label: "Go to milestones", keys: ["G", "M"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("milestones"), allowed: projects.length > 0 },
       { id: "objectives", label: "Go to objectives", keys: ["G", "O"], icon: <ArrowRight size={12} aria-hidden />, run: () => goProject("objectives"), allowed: projects.length > 0 },
       { id: "inbox", label: "Go to inbox", keys: ["G", "I"], icon: <Inbox size={12} aria-hidden />, run: () => router.push(routes.inbox(ws.slug)), allowed: true },
+      // Stage 3: a "Go to" per module nav item (enabled modules, permission-gated), e.g. "Go to sales".
+      ...moduleNavItems(ws).map(
+        (item): Action => ({
+          id: `nav:${item.id}`,
+          label: `Go to ${item.label.toLowerCase()}`,
+          keys: item.keys ?? [],
+          icon: <item.icon size={12} aria-hidden />,
+          run: () => router.push(item.href(ws.slug)),
+          allowed: true,
+        }),
+      ),
       {
         id: "link",
         label: "Copy link",
@@ -182,7 +193,7 @@ function PaletteInner({ initialScope }: { initialScope: PaletteScope }) {
       { id: "shortcuts", label: "Keyboard shortcuts", keys: ["?"], icon: <FileText size={12} aria-hidden />, run: () => shell.setShortcuts(true), allowed: true },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [projects, currentProject, theme, ws.slug, canCreateAnywhere],
+    [projects, currentProject, theme, ws, canCreateAnywhere],
   );
   const allowedActions = actions.filter((a) => a.allowed);
 

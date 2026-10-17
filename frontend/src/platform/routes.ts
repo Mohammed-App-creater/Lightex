@@ -17,7 +17,7 @@ export type ProjectView =
   | "dashboards"
   | "settings";
 
-export type SettingsSection = "general" | "members" | "roles" | "integrations" | "notifications" | "profile" | "audit";
+export type SettingsSection = "general" | "members" | "roles" | "modules" | "integrations" | "notifications" | "profile" | "audit";
 
 export const routes = {
   login: (next?: string) => (next ? `/login?next=${encodeURIComponent(next)}` : "/login"),
@@ -33,6 +33,8 @@ export const routes = {
   trash: (ws: string) => `/${ws}/trash`,
   /** Board 39 (v2): workspace timesheet. */
   timesheet: (ws: string) => `/${ws}/timesheet`,
+  /** Platform Stage 3: the sales module's placeholder page. */
+  sales: (ws: string) => `/${ws}/sales`,
   /** Board 33 (v2): one project dashboard. */
   dashboard: (ws: string, key: string, id: string) => `/${ws}/projects/${key}/dashboards/${encodeURIComponent(id)}`,
 };
@@ -65,7 +67,7 @@ export function useRouteInfo() {
     taskKey: params.taskKey ?? null,
     view,
     section,
-    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash" | "timesheet",
+    page: (parts[1] ?? "home") as "home" | "inbox" | "my-tasks" | "search" | "projects" | "tasks" | "settings" | "trash" | "timesheet" | "sales",
     pathname,
   };
 }

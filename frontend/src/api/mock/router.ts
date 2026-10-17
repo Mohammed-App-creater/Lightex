@@ -4,6 +4,7 @@ import type { Paginated, Permission, ProjectPermission, WorkspacePermission } fr
 import { getDB } from "./db";
 import type { MockDB } from "./db-types";
 import { projectPermissions, wsMembership, wsPermissions } from "./derive";
+import { isModuleOn, moduleDef } from "./modules";
 
 export type Ctx = {
   params: Record<string, string>;
@@ -18,6 +19,15 @@ type Route = { method: HttpMethod; pattern: string; re: RegExp; keys: string[]; 
 const routes: Route[] = [];
 
 export function route(method: HttpMethod, pattern: string, handler: Handler, opts: { anonymous?: boolean } = {}) {
+  // Stage 3 guard, applied once per module URL prefix (`/tracking/…`, `/sales/…`), not per handler.
+  const mod = pattern.split("/")[1] ?? "";
+  if (moduleDef(mod) && !moduleDef(mod)!.isCore) {
+    const inner = handler;
+    handler = (ctx) => {
+      guardModule(ctx, mod, pattern);
+      return inner(ctx);
+    };
+  }
   const keys: string[] = [];
   const re = new RegExp(
     "^" +
@@ -41,6 +51,46 @@ export function match(method: HttpMethod, path: string) {
     }
   }
   return null;
+}
+
+/* ───────── module guard (Stage 3 contract §3) ───────── */
+
+type Row = { workspaceId?: string; projectId?: string; taskId?: string; integrationId?: string };
+
+/** The workspace an object row belongs to, following project / task / integration links. */
+function workspaceOfRow(db: MockDB, row: Row | undefined): string | null {
+  if (!row) return null;
+  if (row.workspaceId) return row.workspaceId;
+  if (row.projectId) return db.projects.find((p) => p.id === row.projectId)?.workspaceId ?? null;
+  if (row.taskId) return workspaceOfRow(db, db.tasks.find((t) => t.id === row.taskId));
+  if (row.integrationId) return workspaceOfRow(db, db.integrations?.find((i) => i.id === row.integrationId));
+  return null;
+}
+
+/**
+ * Resolves the workspace from the path: `workspaces/:slug`, or the object after the module prefix
+ * (`projects/:id`, `tasks/:id`, `custom-fields/:fieldId`…). User-level routes (`me/…`) resolve to none.
+ */
+function workspaceForRoute(ctx: Ctx, pattern: string): string | null {
+  const { db, params } = ctx;
+  if (params.slug) return db.workspaces.find((w) => w.slug === params.slug && !w.deletedAt)?.id ?? null;
+  const [, , segment, param] = pattern.split("/");
+  const key = param?.startsWith(":") ? param.slice(1) : null;
+  if (!segment || !key || !params[key]) return null;
+  const collection = segment.replace(/-(\w)/g, (_, c: string) => c.toUpperCase());
+  const rows = (db as unknown as Record<string, unknown>)[collection];
+  if (!Array.isArray(rows)) return null;
+  return workspaceOfRow(db, (rows as (Row & { id?: string })[]).find((r) => r.id === params[key]));
+}
+
+function guardModule(ctx: Ctx, mod: string, pattern: string) {
+  if (!ctx.userId) return;
+  const workspaceId = workspaceForRoute(ctx, pattern);
+  // Non-members fall through to the handler's own 404.
+  if (!workspaceId || !wsMembership(ctx.db, ctx.userId, workspaceId)) return;
+  if (!isModuleOn(ctx.db, workspaceId, mod)) {
+    fail(403, "module_disabled", `${moduleDef(mod)!.name} is turned off for this workspace.`, { module: mod });
+  }
 }
 
 /* ───────── errors and guards ───────── */

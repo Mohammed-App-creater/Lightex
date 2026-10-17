@@ -29,19 +29,25 @@ import {
   slugify,
   splitDraft,
   addChips,
+  modulesFor,
   workspaceNameError,
+  type ModuleChoice,
 } from "./logic";
+import { ModulePicker } from "./module-picker";
 import { OnboardingStyles, onboardingStylesClasses as s } from "./onboarding-styles";
 import { AuthStyles } from "@/platform/auth/auth-styles";
 import { TemplatePicker } from "./template-picker";
 
-type Step = 0 | 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3 | 4;
 type InviteRole = "member" | "admin";
 
-const STEP_LABELS = ["Workspace", "Project", "Team"];
+const STEP_LABELS = ["Workspace", "Modules", "Project", "Team"];
+/** The "You’re ready" step. */
+const READY: Step = 4;
 
 /**
- * Onboarding (board 23 §3): workspace → first project → invites → "You’re ready".
+ * Onboarding (board 23 §3): workspace name → "What do you need?" (platform Stage 3: creates the workspace with
+ * its `modules`) → first project → invites → "You’re ready".
  * Each entity is created once; going Back shows it read-only and Continue just moves on.
  */
 export function Onboarding() {
@@ -61,7 +67,9 @@ export function Onboarding() {
   const [wsShow, setWsShow] = useState(false);
   const [wsServer, setWsServer] = useState<string | null>(null);
   const [ws, setWs] = useState<Workspace | null>(null);
-  // Step 2
+  // Step 2: "What do you need?"
+  const [moduleChoice, setModuleChoice] = useState<ModuleChoice>("tracking");
+  // Step 3
   const [projName, setProjName] = useState("");
   const [key, setKey] = useState("");
   const [keyEdited, setKeyEdited] = useState(false);
@@ -69,7 +77,7 @@ export function Onboarding() {
   const [projShow, setProjShow] = useState<{ name: boolean; key: boolean }>({ name: false, key: false });
   const [projServer, setProjServer] = useState<{ name?: string; key?: string }>({});
   const [project, setProject] = useState<Project | null>(null);
-  // Step 3
+  // Step 4
   const [chips, setChips] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [role, setRole] = useState<InviteRole>("member");
@@ -87,9 +95,10 @@ export function Onboarding() {
       mounted.current = true;
       return;
     }
-    if (step === 3) readyHeading.current?.focus();
+    if (step === READY) readyHeading.current?.focus();
+    else if (step === 1) document.querySelector<HTMLInputElement>(`input[name="${uid}-modules"]:checked`)?.focus();
     else firstField.current?.focus();
-  }, [step]);
+  }, [step, uid]);
 
   const go = (to: Step) => {
     setDir(to > step ? 1 : -1);
@@ -106,20 +115,29 @@ export function Onboarding() {
   const chipsErr = chipsServer ?? chipsError(chips);
 
   /* ── step actions ── */
-  async function submitWorkspace() {
+  function submitWorkspace() {
     if (ws) return go(1);
     setWsShow(true);
     if (wsError) return firstField.current?.focus();
+    go(1);
+  }
+
+  /** "What do you need?": creates the workspace with the chosen `modules`. */
+  async function submitModules() {
+    if (ws) return go(2);
+    if (workspaceNameError(wsName)) return go(0);
     setBusy(true);
     try {
-      const created = await api.workspaces.create({ name: wsName.trim(), slug });
+      const created = await api.workspaces.create({ name: wsName.trim(), slug, modules: modulesFor(moduleChoice) });
       setWs(created);
       void qc.invalidateQueries({ queryKey: qk.workspaces() });
-      go(1);
+      go(2);
     } catch (err) {
       if (isApiError(err) && err.status === 422 && (err.fieldErrors.slug || err.fieldErrors.name)) {
+        // The name is on the first step: go back there with the server's message.
         setWsServer(err.fieldErrors.slug ?? err.fieldErrors.name ?? null);
-        firstField.current?.focus();
+        setWsShow(true);
+        go(0);
       } else setAlert(errorMessage(err));
     } finally {
       setBusy(false);
@@ -127,7 +145,7 @@ export function Onboarding() {
   }
 
   async function submitProject() {
-    if (project) return go(2);
+    if (project) return go(3);
     if (!ws) return go(0);
     setProjShow({ name: true, key: true });
     if (nameErr) return firstField.current?.focus();
@@ -137,7 +155,7 @@ export function Onboarding() {
       const created = await api.projects.create(ws.slug, { name: projName.trim(), key: effectiveKey, template });
       setProject(created);
       void qc.invalidateQueries({ queryKey: qk.projects(ws.slug) });
-      go(2);
+      go(3);
     } catch (err) {
       const f = isApiError(err) && err.status === 422 ? err.fieldErrors : {};
       if (f.name || f.key) {
@@ -151,7 +169,7 @@ export function Onboarding() {
   }
 
   async function submitInvites() {
-    if (invited || !ws) return go(3);
+    if (invited || !ws) return go(READY);
     // Enter / Continue commits the draft first.
     let list = chips;
     if (draft.trim()) {
@@ -159,7 +177,7 @@ export function Onboarding() {
       setChips(list);
       setDraft("");
     }
-    if (!list.length) return go(3);
+    if (!list.length) return go(READY);
     setChipsShow(true);
     if (chipsError(list)) return firstField.current?.focus();
     setBusy(true);
@@ -170,7 +188,7 @@ export function Onboarding() {
       await api.workspaces.invite(ws.slug, list, r.id);
       void qc.invalidateQueries({ queryKey: qk.invites(ws.slug) });
       setInvited({ count: list.length, role });
-      go(3);
+      go(READY);
     } catch (err) {
       if (isApiError(err) && err.status === 422 && err.fieldErrors.emails) {
         setChipsServer(err.fieldErrors.emails);
@@ -184,9 +202,10 @@ export function Onboarding() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (busy) return;
-    if (step === 0) void submitWorkspace();
-    else if (step === 1) void submitProject();
-    else if (step === 2) void submitInvites();
+    if (step === 0) submitWorkspace();
+    else if (step === 1) void submitModules();
+    else if (step === 2) void submitProject();
+    else if (step === 3) void submitInvites();
     else openApp();
   };
 
@@ -206,9 +225,9 @@ export function Onboarding() {
   }
 
   const cta =
-    step === 2 && !invited ? inviteCta(chips.length + (draft.trim() ? 1 : 0)) : step === 3 ? (project ? "Open board" : ws ? "Open workspace" : "Open Lightex") : "Continue";
+    step === 3 && !invited ? inviteCta(chips.length + (draft.trim() ? 1 : 0)) : step === READY ? (project ? "Open board" : ws ? "Open workspace" : "Open Lightex") : "Continue";
 
-  const busyLabel = step === 0 ? "Creating…" : step === 1 ? "Creating…" : "Sending…";
+  const busyLabel = step === 1 || step === 2 ? "Creating…" : "Sending…";
 
   return (
     <div className="flex h-dvh flex-col bg-bg">
@@ -218,8 +237,8 @@ export function Onboarding() {
       <header className="flex h-14 flex-none items-center gap-4 px-5 max-[760px]:h-[52px] max-[760px]:pl-3.5 max-[760px]:pr-2">
         <Wordmark size={17} />
         <span className="flex-1" />
-        {step < 3 && (
-          <Button variant="ghost" size="sm" onClick={() => go(3)} className="max-[760px]:h-11">
+        {step < READY && (
+          <Button variant="ghost" size="sm" onClick={() => go(READY)} className="max-[760px]:h-11">
             Skip for now
           </Button>
         )}
@@ -234,7 +253,7 @@ export function Onboarding() {
             initial={{ opacity: 0, x: 16 * dir }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className={cn("flex w-[460px] max-w-full flex-col gap-[18px]", step === 3 && "items-start")}
+            className={cn("flex w-[460px] max-w-full flex-col gap-[18px]", step === READY && "items-start")}
           >
             {step === 0 && (
               <>
@@ -272,6 +291,23 @@ export function Onboarding() {
             )}
 
             {step === 1 && (
+              <>
+                <StepHeading id={`${uid}-h`}>What do you need?</StepHeading>
+                {ws ? (
+                  <p className="m-0 -mt-2 text-meta text-fg-3">Already set. You can change modules later in Settings → Modules.</p>
+                ) : (
+                  <p className="m-0 -mt-2 text-ui text-fg-2">You can turn modules on or off later in Settings → Modules.</p>
+                )}
+                <ModulePicker
+                  name={`${uid}-modules`}
+                  value={ws ? (ws.enabledModules.includes("sales") ? "tracking-sales" : "tracking") : moduleChoice}
+                  onChange={setModuleChoice}
+                  locked={Boolean(ws)}
+                />
+              </>
+            )}
+
+            {step === 2 && (
               <>
                 <StepHeading id={`${uid}-h`}>Create your first project</StepHeading>
                 {project && <p className="m-0 -mt-2 text-meta text-fg-3">Already created. You can rename it later in project settings.</p>}
@@ -341,7 +377,7 @@ export function Onboarding() {
               </>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <>
                 <StepHeading id={`${uid}-h`}>Invite your team</StepHeading>
                 {invited && (
@@ -387,7 +423,7 @@ export function Onboarding() {
               </>
             )}
 
-            {step === 3 && (
+            {step === READY && (
               <>
                 <span aria-hidden className={s.ring}>
                   {[
@@ -417,6 +453,7 @@ export function Onboarding() {
                         <span className="truncate font-mono text-meta">lightex.app/{ws.slug}</span>
                       </SummaryRow>
                     )}
+                    {ws && <SummaryRow label="Modules">{ws.enabledModules.includes("sales") ? "Tracking + Sales" : "Tracking"}</SummaryRow>}
                     {project && (
                       <SummaryRow label="Project">
                         <ProjectBadge code={project.key} hue={project.hue} size={22} />
@@ -445,12 +482,12 @@ export function Onboarding() {
             "max-[760px]:w-full max-[760px]:border-t max-[760px]:border-line max-[760px]:bg-surface max-[760px]:px-4 max-[760px]:pb-6 max-[760px]:pt-3",
           )}
         >
-          {(step === 1 || step === 2) && (
+          {step > 0 && step < READY && (
             <Button variant="ghost" size="lg" onClick={() => go((step - 1) as Step)} className="max-[760px]:h-11">
               Back
             </Button>
           )}
-          {step === 3 && (
+          {step === READY && (
             <Button variant="ghost" size="lg" onClick={startOver} className="max-[760px]:h-11">
               Start over
             </Button>
@@ -462,7 +499,7 @@ export function Onboarding() {
             size="lg"
             loading={busy}
             kbd={mobile || busy ? undefined : "↵"}
-            disabledReason={step === 3 && !destination ? "Create a workspace first" : undefined}
+            disabledReason={step === READY && !destination ? "Create a workspace first" : undefined}
             className="max-[760px]:h-11 max-[760px]:flex-1"
           >
             {busy ? busyLabel : cta}
@@ -504,16 +541,16 @@ function SummaryRow({ label, children }: { label: string; children: ReactNode })
 }
 
 function Progress({ step }: { step: Step }) {
-  const fin = step === 3;
+  const fin = step === READY;
   return (
     <div
       role="progressbar"
       aria-label="Setup progress"
       aria-valuemin={0}
-      aria-valuemax={3}
+      aria-valuemax={READY}
       aria-valuenow={step}
-      aria-valuetext={fin ? "Setup complete" : `Step ${step + 1} of 3`}
-      className="mx-auto mt-2 grid w-[420px] max-w-[calc(100%-32px)] flex-none grid-cols-3 gap-2 max-[760px]:mx-4 max-[760px]:w-auto max-[760px]:max-w-none"
+      aria-valuetext={fin ? "Setup complete" : `Step ${step + 1} of ${READY}`}
+      className="mx-auto mt-2 grid w-[460px] max-w-[calc(100%-32px)] flex-none grid-cols-4 gap-2 max-[760px]:mx-4 max-[760px]:w-auto max-[760px]:max-w-none"
     >
       {STEP_LABELS.map((label, i) => {
         const done = fin || i < step;

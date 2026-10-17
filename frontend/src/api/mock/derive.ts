@@ -27,6 +27,7 @@ import type {
   WorkspaceRec,
 } from "./db-types";
 import { devEnabledOf, devSummaryOf } from "./dev-derive";
+import { enabledModules, onlyEnabled } from "./modules";
 
 /* Server-side derivations: permissions, counts and progress are computed, never stored. */
 
@@ -42,8 +43,11 @@ export function wsPermissions(db: MockDB, userId: string, workspaceId: string): 
   const m = wsMembership(db, userId, workspaceId);
   if (!m) return [];
   const role = db.roles.find((r) => r.id === m.roleId);
-  return (role?.permissions ?? []).filter((p): p is WorkspacePermission =>
-    (WORKSPACE_PERMISSIONS as readonly string[]).includes(p),
+  // Stage 3: a disabled module's permissions are excluded (and so ignored by every server-side check).
+  return onlyEnabled(
+    db,
+    workspaceId,
+    (role?.permissions ?? []).filter((p): p is WorkspacePermission => (WORKSPACE_PERMISSIONS as readonly string[]).includes(p)),
   );
 }
 
@@ -56,8 +60,11 @@ export function projectPermissions(db: MockDB, userId: string, projectId: string
   const m = projectMembership(db, userId, projectId);
   if (!m) return [];
   const role = db.roles.find((r) => r.id === m.roleId);
-  return (role?.permissions ?? []).filter((p): p is ProjectPermission =>
-    (PROJECT_PERMISSIONS as readonly string[]).includes(p),
+  const workspaceId = db.projects.find((p) => p.id === projectId)?.workspaceId ?? "";
+  return onlyEnabled(
+    db,
+    workspaceId,
+    (role?.permissions ?? []).filter((p): p is ProjectPermission => (PROJECT_PERMISSIONS as readonly string[]).includes(p)),
   );
 }
 
@@ -73,6 +80,7 @@ export function toWorkspace(db: MockDB, w: WorkspaceRec, userId: string): Worksp
     myRoleId: m.roleId,
     my_permissions: wsPermissions(db, userId, w.id),
     notificationPolicy: { sms: w.smsEnabled !== false },
+    enabledModules: enabledModules(db, w.id),
   };
 }
 
@@ -88,7 +96,8 @@ export function toRole(db: MockDB, r: RoleRec): Role {
     description: r.description,
     scope: r.scope,
     isSystem: r.isSystem,
-    permissions: r.permissions as Permission[],
+    // Stage 3: role responses omit a disabled module's permissions (the stored rows are untouched).
+    permissions: onlyEnabled(db, r.workspaceId, r.permissions as Permission[]),
     memberCount,
   };
 }

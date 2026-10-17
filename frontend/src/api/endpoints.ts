@@ -68,6 +68,7 @@ import type {
   Workspace,
   WorkspaceAccessRequest,
   WorkspaceMember,
+  WorkspaceModule,
   AvailableRepository,
   DevAutomationRule,
   DevBranch,
@@ -119,7 +120,8 @@ export const auth = {
 
 export const workspaces = {
   list: () => http.get<Workspace[]>("/workspaces"),
-  create: (body: { name: string; slug: string }) => http.post<Workspace>("/workspaces", body),
+  /** Stage 3: `modules` turns on extra modules at creation (tracking is always on). */
+  create: (body: { name: string; slug: string; modules?: string[] }) => http.post<Workspace>("/workspaces", body),
   get: (slug: string) => http.get<Workspace>(`/workspaces/${enc(slug)}`),
   /** Board 38: `notificationPolicy` (the SMS switch) also needs `core.workspace.update`. */
   update: (slug: string, body: { name?: string; slug?: string; notificationPolicy?: { sms: boolean } }) =>
@@ -547,10 +549,25 @@ export const channels = {
     http.post<ChannelTestResult>(`/me/notification-channels/${channel}/test`, body ?? {}),
 };
 
+/** Platform Stage 3 (docs/platform/stage3-contract.md §3): the workspace's modules. */
+export const modules = {
+  /** Every module, core included. Any member may read it; not paginated. */
+  list: (slug: string) => http.get<WorkspaceModule[]>(`/workspaces/${enc(slug)}/modules`),
+  /** Needs `core.modules.manage`. 400 `module_not_toggleable` / `module_dependency` (`details.modules`), 404 unknown key. */
+  set: (slug: string, key: string, enabled: boolean) => http.put<WorkspaceModule>(`/workspaces/${enc(slug)}/modules/${enc(key)}`, { enabled }),
+};
+
+/** Platform Stage 3: the sales module's placeholder endpoint (behind the module guard). */
+export const sales = {
+  health: (slug: string) => http.get<{ status: "ok"; module: "sales"; workspace: string }>(`/sales/workspaces/${enc(slug)}/health`),
+};
+
 /** S1. The stream is not a JSON request: src/platform/realtime opens it. The path is kept here for the paper trail. */
 export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };
 
 export const api = {
+  modules,
+  sales,
   channels,
   integrations,
   development,

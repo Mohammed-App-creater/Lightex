@@ -1,23 +1,20 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/ui/avatar";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/feedback";
-import { PriorityIcon, StatusGlyph, glyphColor, priorityMeta } from "@/ui/glyphs";
+import { StatusGlyph, glyphColor } from "@/ui/glyphs";
 import { Kbd } from "@/ui/kbd";
-import { useStatuses } from "@/modules/tracking/projects/queries";
-import { api } from "@/api/endpoints";
 import { isForbidden, isNotFound } from "@/api/errors";
-import { qk } from "@/api/query-keys";
-import type { Notification, TaskDetail, User } from "@/api/types";
+import type { Notification, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { agoLong, dueTone, shortDate } from "@/lib/utils/dates";
+import { agoLong, shortDate } from "@/lib/utils/dates";
+import { useCurrentWorkspace } from "@/platform/roles/can";
+import { targetPreviewsFor } from "@/registry";
 import { notificationText } from "@/registry/services";
 import { dueLabel, glyphForStatusName, isSystem } from "./events";
 import { ArrowRightIcon, CheckIcon, CloseIcon, HollowCircleIcon } from "./icons";
 import { WhoTile } from "./notification-row";
+import { usePreviewTask } from "./preview-task";
 
 /** Access requests are reviewed on the project's Members settings tab. */
 export const accessHref = (ws: string, n: Pick<Notification, "type" | "payload">) =>
@@ -55,15 +52,6 @@ function StatusChip({ name }: { name: string }) {
   );
 }
 
-export function usePreviewTask(slug: string, key: string | null) {
-  return useQuery({
-    queryKey: qk.task(slug, key ?? ""),
-    queryFn: () => api.tasks.get(slug, key!),
-    enabled: Boolean(key),
-    retry: (count, err) => !isNotFound(err) && !isForbidden(err) && count < 2,
-  });
-}
-
 export function PreviewContent({
   n,
   actor,
@@ -85,18 +73,17 @@ export function PreviewContent({
   onOpenTask: (href: string) => void;
   phone?: boolean;
 }) {
+  const ws = useCurrentWorkspace();
   const taskQ = usePreviewTask(slug, n.taskKey);
-  const task: TaskDetail | undefined = taskQ.data;
-  const statuses = useStatuses(task?.projectId);
+  const task = taskQ.data;
+  // The target's detail chips come from the module that owns it (registry slot), e.g. tracking's task chips.
+  const targetPreviews = ws ? targetPreviewsFor(ws, n) : [];
   const gone = taskQ.isError && (isNotFound(taskQ.error) || isForbidden(taskQ.error));
   const read = Boolean(n.readAt);
   const toggleLabel = read ? "Mark unread" : "Mark read";
-  const status = task ? statuses.data?.find((s) => s.id === task.statusId) : undefined;
-  const assignee = task?.assigneeId ? members.get(task.assigneeId) ?? null : null;
   const href = n.taskKey && !gone ? taskHref(slug, n.taskKey, task?.project.key) : null;
   const review = accessHref(slug, n);
   const importLink = importHref(slug, n);
-  const tone = task ? dueTone(task.dueDate, status?.category === "done") : "none";
   const title = task?.title ?? n.taskTitle ?? n.payload.sprintName ?? n.projectName ?? n.title ?? "";
 
   return (
@@ -126,55 +113,9 @@ export function PreviewContent({
           {title}
         </h3>
 
-        {n.taskKey && (
-          <div className="flex flex-wrap gap-1.5" aria-label="Task details" role="group">
-            {taskQ.isPending ? (
-              <>
-                <Skeleton className="h-[26px] w-24 rounded-[7px]" />
-                <Skeleton className="h-[26px] w-20 rounded-[7px]" />
-                <Skeleton className="h-[26px] w-24 rounded-[7px]" />
-                <Skeleton className="h-[26px] w-[72px] rounded-[7px]" />
-              </>
-            ) : gone ? (
-              <p role="status" className="m-0 rounded-[10px] border border-dashed border-line-2 px-3 py-2.5 text-[12.5px] leading-5 text-fg-2">
-                This task was deleted or you no longer have access to it.
-              </p>
-            ) : taskQ.isError ? (
-              <p role="status" className="m-0 flex items-center gap-2 text-[12.5px] text-fg-2">
-                Couldn’t load task details.
-                <Button variant="ghost" size="sm" onClick={() => void taskQ.refetch()}>
-                  Retry
-                </Button>
-              </p>
-            ) : task ? (
-              <>
-                {status && (
-                  <Chip>
-                    <StatusGlyph kind={status.glyph} className="size-3" color={glyphColor[status.glyph]} />
-                    {status.name}
-                  </Chip>
-                )}
-                <Chip>
-                  <PriorityIcon level={task.priority} bars />
-                  {priorityMeta[task.priority].label}
-                </Chip>
-                <Chip>
-                  {assignee ? (
-                    <Avatar name={assignee.name} hue={assignee.hue} size={20} ring={false} decorative />
-                  ) : (
-                    <UnassignedAvatar size={20} label="" />
-                  )}
-                  {assignee?.name ?? "Unassigned"}
-                </Chip>
-                {task.dueDate && (
-                  <Chip className={cn("font-mono", tone === "soon" || tone === "late" ? "text-warn" : "text-fg-2")}>
-                    Due {shortDate(task.dueDate)}
-                  </Chip>
-                )}
-              </>
-            ) : null}
-          </div>
-        )}
+        {targetPreviews.map(({ targetType, Component }) => (
+          <Component key={targetType} n={n} slug={slug} members={members} />
+        ))}
 
         <EventCard n={n} actor={actor} me={me} />
       </div>

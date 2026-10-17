@@ -8,6 +8,10 @@ export type ApiErrorCode =
   | "version_conflict"
   | "role_in_use"
   | "rate_limited"
+  /* Platform Stage 3: modules. */
+  | "module_disabled"
+  | "module_dependency"
+  | "module_not_toggleable"
   | "server_error"
   | "network_error"
   | (string & {});
@@ -60,4 +64,8 @@ export function isForbidden(e: unknown) {
 }
 export function isNotFound(e: unknown) {
   return isApiError(e) && (e.status === 404 || e.code === "not_found");
+}
+/** Platform Stage 3: a route of a module that is turned off for the workspace (403 `module_disabled`). */
+export function isModuleDisabled(e: unknown) {
+  return isApiError(e) && e.code === "module_disabled";
 }

@@ -50,7 +50,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   - Workspace routes live under `[workspace]/`; project views under `[workspace]/projects/[key]/`.
   - Project views: overview, board, list, backlog, timeline, calendar (v2, board 32), epics, sprints, objectives,
     milestones, reports, dashboards (v2, board 33: `dashboards` picks one, `dashboards/[dashboardId]`), settings.
-  - Also: `trash`, `settings/{general,members,roles,integrations,notifications,profile,audit}` (`integrations`: v2,
+  - Also: `trash`, `sales` (Stage 3 placeholder), `settings/{general,members,roles,modules,integrations,notifications,profile,audit}` (`integrations`: v2,
     board 37; `notifications`: channels, matrix and quiet hours since v2 board 38), `tasks/[taskKey]`, `my-tasks`, `search`, `inbox`, `timesheet` (v2, board 39).
   - Board 37 has no project route of its own: the task panel's Development section, the board / list PR chip and
     project settings `?tab=development` (shown when `Project.devEnabled`).
@@ -87,17 +87,25 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     notifications, search, audit, trash, onboarding, palette, presence.
   - `src/modules/tracking/` — the tracking module: projects, board, list, tasks, sprints, epics, goals, filters,
     schedule, reports, dashboards, fields, dependencies, time, import, integrations, development, my-tasks,
-    project-settings. `src/modules/sales/` is an empty placeholder (Stage 3).
+    project-settings. `src/modules/sales/` is the Stage 3 placeholder (`module.tsx`, a health-check page).
   - `src/registry/` — the module registry. `index.ts` lists each module's `module.tsx` (nav items, project nav,
     sidebar sections and cards, shell overlays, palette actions); `services.ts` lists each module's `services.ts`
     (comment / attachment target types with the queries a collab event touches, notification text). Platform code
     renders these slots; add a module's UI there, not in `sidebar.tsx` / `app-shell.tsx` / the palette.
-  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` does not import
-    `modules/` (one known exception: the inbox preview's `useStatuses` in `platform/notifications/preview.tsx`).
+  - Dependency direction: `modules/*` may import `platform/`, `ui/`, `api/` and `lib/`; `platform/` never imports
+    `modules/` (the inbox's task chips are tracking's `targetPreviews` registry slot since Stage 3).
     The workspace home (`modules/tracking/home/`) and the project activity feed (`modules/tracking/projects/`) are
     tracking screens.
+- **Module system (platform Stage 3, `docs/platform/stage3-contract.md`).** `Workspace.enabledModules` (always has
+  `core`) plus `my_permissions` filter every registry slot (`moduleNavItems(ws)`, `projectNavItems(ws)`, …). Each
+  module declares the workspace `routes` it owns; `ModuleRouteGuard` (`platform/shell/module-screens.tsx`) renders
+  "Module disabled" (a link to Settings → Modules for `core.modules.manage`) or a 403. Settings → Modules is
+  `platform/modules/`; onboarding asks "What do you need?" and sends `modules` on workspace creation. The role editor
+  groups permissions by module and hides disabled ones. The mock keeps `workspaceModules` rows, guards every
+  `/{module}/…` route once in `mock/router.ts` (403 `module_disabled`) and filters a disabled module's permissions out
+  of `my_permissions`, role responses and search (`mock/modules.ts`). Sales starts off in the seed.
 - **Namespacing.** Permission codes are `core.*` (workspace, roles, audit, modules, teams) or `tracking.*`
-  (everything project-related); catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
+  (everything project-related), plus `sales.health.view`; catalogue entries carry `module`. Tracking API routes are prefixed with `/tracking`
   (core routes are not). Realtime event types and audit actions are `tracking.<entity>.<verb>` or
   `core.<entity>.<verb>` (stream control events `hello` / `reset` / `reconnect` stay bare); notification
   preference keys are `tracking.task.assigned` and so on. `actionEntity()` in `src/lib/audit.ts` strips the prefix.

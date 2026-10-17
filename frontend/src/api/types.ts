@@ -26,6 +26,8 @@ export const WORKSPACE_PERMISSIONS = [
   /* Stage 1 (platform): no endpoints or UI yet (Stages 3 and 4). */
   "core.modules.manage",
   "core.teams.manage",
+  /* Stage 3 (platform): the sales module's placeholder page. Hidden while sales is off. */
+  "sales.health.view",
 ] as const;
 
 export const PROJECT_PERMISSIONS = [
@@ -70,7 +72,7 @@ export type RoleScope = "workspace" | "project";
 export type PermissionGroup = "Tasks" | "Planning" | "Collaboration" | "Reports" | "Administration";
 
 /** Who owns a permission (Stage 1 contract §1). Independent of `scope`. */
-export type PermissionModule = "core" | "tracking";
+export type PermissionModule = "core" | "tracking" | "sales";
 
 export interface PermissionInfo {
   key: Permission;
@@ -117,6 +119,34 @@ export interface Workspace {
   my_permissions: WorkspacePermission[];
   /** Board 38 (additive, optional so older payloads still parse). PATCH needs `core.workspace.update`. */
   notificationPolicy?: { sms: boolean };
+  /** Platform Stage 3: module keys turned on for this workspace. Always contains "core". */
+  enabledModules: string[];
+}
+
+/** A nav item a module contributes (Stage 3 contract §1); `path` is relative to the workspace. */
+export interface ModuleNavItemInfo {
+  key: string;
+  label: string;
+  icon: string;
+  path: string;
+  permission: string | null;
+}
+
+/** `GET workspaces/{slug}/modules` (Stage 3 contract §3). `core` is listed too (always on, not toggleable). */
+export interface WorkspaceModule {
+  key: string;
+  name: string;
+  description: string;
+  isCore: boolean;
+  toggleable: boolean;
+  enabled: boolean;
+  dependsOn: string[];
+  /** null for core (it has no row) and for modules never turned on. */
+  enabledAt: ISODateTime | null;
+  /** The user id that last turned the module on (assumed: an id, not a user object). */
+  enabledBy: ID | null;
+  /** Empty while the module is disabled. */
+  navItems: ModuleNavItemInfo[];
 }
 
 export type MemberStatus = "active" | "deactivated";

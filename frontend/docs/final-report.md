@@ -557,6 +557,23 @@ search result targets, always-namespaced trash kinds and audit filter groups):
 - Trash and audit namespaced values: kinds `tracking.task`, `tracking.project`, `core.comment`; audit
   `entityType` = `targetType` = `module.entity` (comment rows `core.comment`, actions `core.comment.created|deleted`).
 
+### Platform Stage 3: module system
+
+From `docs/platform/stage3-contract.md` §3–§5; typed in `src/api/types.ts`, called through `api.modules` / `api.sales`,
+implemented in the mock (`src/api/mock/modules.ts`, `handlers/modules.ts`, the guard in `mock/router.ts`):
+
+- `GET workspaces/{slug}/modules` → `WorkspaceModule[]` (core included) · `qk.modules`; `PUT workspaces/{slug}/modules/{key}`
+  `{enabled}` → `WorkspaceModule` (`core.modules.manage`; 404, 400 `module_not_toggleable`, 400 `module_dependency`
+  with `details.modules`).
+- `Workspace.enabledModules` (always contains `core`); `POST workspaces` accepts `modules: string[]`.
+- `GET sales/workspaces/{slug}/health` → `{status, module, workspace}` (`sales.health.view`, behind the guard).
+- Every `{moduleKey}/…` route of a disabled module → 403 `module_disabled` (the mock adds `details.module`).
+
+Assumed where the contract is silent: `enabledBy` is a user id (nullable) and `enabledAt` is null for core;
+`navItems` is `[]` for a disabled module and not filtered by permission (the client filters); `module_disabled`
+carries `details: {module}`; `POST workspaces` with an unknown module key is a 422 on `modules`. The client sends
+`modules: []` for "Core tracking only". A module toggle publishes no realtime event; other tabs catch up on focus.
+
 ---
 
 ## 6. Known gaps
