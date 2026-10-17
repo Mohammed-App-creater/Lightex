@@ -8,7 +8,7 @@ from core.access import catalogue
 from core.access.models import Permission, Role, RolePermission
 from core.access.services import my_data_scopes, sync_permission_catalogue, visible_to
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_member, client_for, make_workspace, role
+from core.common.testing import UserFactory, add_member, client_for, make_member, make_workspace, role, set_roles
 from core.modules import services as modules
 from core.modules.registry import ModuleDefinition, register_module, unregister_module
 from core.teams.models import Team, TeamMember
@@ -193,9 +193,7 @@ def test_no_grant_non_members_and_disabled_module_see_nothing(world):
     custom = Role.objects.create(workspace=ws, name="Bare", scope="workspace")
     RolePermission.objects.create(role=custom, permission=Permission.objects.get(code="core.workspace.view"))
     bare = UserFactory()
-    from core.workspaces.models import WorkspaceMember
-
-    WorkspaceMember.objects.create(workspace=ws, user=bare, role=custom)
+    make_member(ws, bare, custom)
     assert seen(world, bare) == []
     assert seen(world, world["outsider"]) == []
     assert my_data_scopes(world["outsider"], ws) == {}
@@ -348,15 +346,13 @@ def test_a_scope_change_tells_role_holders(world):
 
 def _role_manager(world, scope):
     """A workspace member whose custom role manages roles and holds VIEW with `scope`."""
-    from core.workspaces.models import WorkspaceMember
-
     custom = Role.objects.create(workspace=world["ws"], name=f"Role manager {scope}", scope="workspace")
     for code in ("core.workspace.view", "core.roles.manage", VIEW):
         RolePermission.objects.create(
             role=custom, permission=Permission.objects.get(code=code), data_scope=scope if code == VIEW else None
         )
     user = add_member(world["ws"], UserFactory(name=f"RM {scope}"))
-    WorkspaceMember.objects.filter(workspace=world["ws"], user=user).update(role=custom)
+    set_roles(world["ws"], user, custom)
     return user
 
 

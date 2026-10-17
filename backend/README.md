@@ -69,6 +69,7 @@ the repository. See [`.env.example`](.env.example).
 | `DJANGO_SETTINGS_MODULE` | `config.settings.dev` (manage.py), `config.settings.prod` (wsgi) | `dev`, `test` or `prod` |
 | `DJANGO_SECRET_KEY` | required | Django signing key |
 | `JWT_SIGNING_KEY` | `DJANGO_SECRET_KEY` | Signs access and refresh tokens |
+| `JOBS_SECRET` | empty (endpoint off) | **Secret.** The `X-Jobs-Secret` value external cron sends to `POST /api/v1/internal/jobs/{name}` |
 | `DJANGO_DEBUG` | `true` in dev, `false` in prod | |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` (required in prod) | |
 | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/lightex` | PostgreSQL connection |
@@ -335,6 +336,7 @@ from its AppConfig `ready()`. Tracking does all of its registration in `modules/
 | Audit groups (`core/audit/registry.py`) | `register_audit_group("task", ["tracking.task"])` | the audit view's `filter[entity]` |
 | Realtime (`core/realtime/`) | `register_realtime_types(...)`, `register_audit_publisher(fn)`, `register_access_hook(fn)`, `presence.register_location(kind, fn)` | the SSE stream and presence |
 | Workspace hooks (`core/workspaces/hooks.py`) | `register_member_removed(fn)` | removing a workspace member |
+| Scheduled jobs (`core/jobs/registry.py`) | `register_job("sales_followup_digest", fn, module="sales", schedule="daily 07:30")` | `manage.py run_job`, `POST /internal/jobs/{name}`, the Celery task `core.jobs.run_job` |
 | Demo seeders (`core/common/seeding.py`) | `register_seeder(TrackingSeeder)` | `manage.py seed_demo` |
 
 To plug a module in: subclass `TargetResolver` (`exists`, `can_view`, `can_comment`, `can_attach`, `describe`,
@@ -432,6 +434,29 @@ code or a model without an owner field raises. Single-record checks still use `c
 Role writes can't hand out a wider data scope than the actor's own for that code: setting or changing a scope beyond
 it answers 403 `data_scope_exceeds_own` (`details: {code, dataScope, yours}`). Owners are exempt.
 
+## Workspace roles, time zone and jobs (sales S0)
+
+The contract is `docs/sales/s0-contract.md`.
+
+- **Several roles per member.** `WorkspaceMember.roles` goes through `WorkspaceMemberRole`. Workspace permissions are
+  the union of the member's roles, and for a scopable code the widest scope wins (`all` > `team` > `own`). Members
+  and invites carry `roleIds` (in precedence order: Owner, Admin, Member, then by name), and `roleId` is the first
+  of them. `PATCH /members/{userId}` and `POST /invites` take `roleIds`, and the old `roleId` still works. The
+  last-Owner rule covers every role change. A module adds its own default roles with
+  `ModuleDefinition.default_roles=(DefaultRole(key, name, description, grants={code: scope | None}),)`. They are
+  seeded when the module is on (on workspace creation and on enable), and an existing role is never changed.
+- **Time zone.** `Workspace.timezone` (IANA, default `Africa/Addis_Ababa`, `PATCH /workspaces/{slug}`). Compute
+  "today" and period boundaries with `core/workspaces/timezone.py`: `workspace_today`, `workspace_now`,
+  `local_date`, `day_bounds` and `range_bounds`.
+- **Scheduled jobs.** `register_job(name, func, module=..., schedule=..., description=...)` from `ready()`.
+  `func(workspace, *, now)` runs once per live workspace, in its own transaction, with `now` in the workspace time
+  zone. Workspaces where the module is off are skipped. Guard side effects with `core.jobs.services.claim(ws, job,
+  key)`, so a second run does nothing. Trigger a job with `manage.py run_job <name> [--workspace ID]` (`--list` shows
+  the jobs), with the Celery task `core.jobs.run_job`, or from an external cron with `POST
+  /api/v1/internal/jobs/{name}` and the header `X-Jobs-Secret: $JOBS_SECRET`. The endpoint refuses every call while
+  `JOBS_SECRET` is unset.
+- **Owned records.** `core.common.models.OwnedModel` adds `owner` and `data_scope_owner_field = "owner"`.
+
 ## Layout
 
 ```
@@ -443,7 +468,8 @@ core/              the platform core (docs/platform-architecture.md); never impo
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
   access/          permission catalogue (assembled from the modules), roles, can(), visible_to(), DRF permission class
   teams/           teams and team members (data scope `team`)
-  workspaces/      workspaces, members, invitations, access requests
+  workspaces/      workspaces, members (several roles each), invitations, access requests, workspace time zone
+  jobs/            scheduled job registry, runner, run_job, the internal jobs endpoint, JobMark idempotency
   collab/          generic comments and attachments on any registered target, storage backends
   events/          the DomainEvent outbox, event type and handler registries, process_outbox
   notifications/   notifications, preferences (built from the event type registry), email templates

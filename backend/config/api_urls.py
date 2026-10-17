@@ -30,6 +30,7 @@ urlpatterns = [
     path("", include("core.realtime.urls")),
     path("", include("core.channels.urls")),
     path("", include("core.modules.urls")),
+    path("", include("core.jobs.urls")),
     path("tracking/", include(module_urls("tracking", tracking_urlpatterns))),
     path("sales/", include(module_urls("sales", [path("", include("modules.sales.urls"))]))),
 ]

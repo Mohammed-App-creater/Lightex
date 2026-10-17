@@ -718,4 +718,6 @@ ROWS = [
     _row("webhook-telegram", "POST", allow=(PUBLIC,)),
     _row("webhook-twilio-sms", "POST", allow=(PUBLIC,), signed=True),
     _row("webhook-twilio-status", "POST", allow=(PUBLIC,), signed=True),
+    # Sales S0: external cron; the shared X-Jobs-Secret header (none here) is the only credential, so 403.
+    _row("internal-job-run", "POST", lambda w: {"name": "nope"}, allow=(PUBLIC,), signed=True),
 ]  # fmt: skip

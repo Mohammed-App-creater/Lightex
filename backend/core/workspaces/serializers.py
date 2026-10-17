@@ -7,12 +7,14 @@ from core.common.utils import iso
 from core.modules.services import enabled_modules
 
 from .models import Invitation, Workspace, WorkspaceMember
+from .selectors import my_roles
 
 
 class WorkspaceSerializer(serializers.ModelSerializer):
     createdAt = serializers.SerializerMethodField()
     memberCount = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
+    myRoleIds = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
     myDataScopes = serializers.SerializerMethodField()
     notificationPolicy = serializers.SerializerMethodField()
@@ -21,8 +23,8 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
         fields = [
-            "id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions", "myDataScopes",
-            "notificationPolicy", "enabledModules",
+            "id", "slug", "name", "hue", "timezone", "createdAt", "memberCount", "myRoleId", "myRoleIds",
+            "my_permissions", "myDataScopes", "notificationPolicy", "enabledModules",
         ]  # fmt: skip
 
     def get_enabledModules(self, obj) -> list[str]:
@@ -39,10 +41,12 @@ class WorkspaceSerializer(serializers.ModelSerializer):
         return count if count is not None else obj.members.filter(status="active").count()
 
     def get_myRoleId(self, obj) -> str | None:
-        rid = getattr(obj, "my_role_id", None)
-        if rid is None:
-            rid = obj.members.filter(user_id=self.context["user"].pk).values_list("role_id", flat=True).first()
-        return str(rid) if rid else None
+        """The primary role (the first of `myRoleIds`)."""
+        roles = my_roles(self.context["user"], obj)
+        return str(roles[0].pk) if roles else None
+
+    def get_myRoleIds(self, obj) -> list[str]:
+        return [str(r.pk) for r in my_roles(self.context["user"], obj)]
 
     def get_my_permissions(self, obj) -> list[str]:
         return my_permissions(self.context["user"], obj)
@@ -54,14 +58,23 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 class WorkspaceMemberSerializer(serializers.ModelSerializer):
     userId = serializers.UUIDField(source="user_id")
     workspaceId = serializers.UUIDField(source="workspace_id")
-    roleId = serializers.UUIDField(source="role_id")
+    roleId = serializers.SerializerMethodField()
+    roleIds = serializers.SerializerMethodField()
     user = UserSerializer()
     joinedAt = serializers.SerializerMethodField()
     lastActiveAt = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkspaceMember
-        fields = ["userId", "workspaceId", "roleId", "user", "status", "joinedAt", "lastActiveAt"]
+        fields = ["userId", "workspaceId", "roleId", "roleIds", "user", "status", "joinedAt", "lastActiveAt"]
+
+    def get_roleId(self, obj) -> str:
+        """The primary role (the first of `roleIds`)."""
+        roles = obj.role_list()
+        return str(roles[0].pk) if roles else ""
+
+    def get_roleIds(self, obj) -> list[str]:
+        return [str(r.pk) for r in obj.role_list()]
 
     def get_joinedAt(self, obj) -> str | None:
         return iso(obj.joined_at)
@@ -73,8 +86,10 @@ class WorkspaceMemberSerializer(serializers.ModelSerializer):
 class InviteSerializer(serializers.ModelSerializer):
     workspaceId = serializers.UUIDField(source="workspace_id")
     workspaceName = serializers.CharField(source="workspace.name")
-    roleId = serializers.UUIDField(source="role_id")
-    roleName = serializers.CharField(source="role.name")
+    roleId = serializers.SerializerMethodField()
+    roleName = serializers.SerializerMethodField()
+    roleIds = serializers.SerializerMethodField()
+    roleNames = serializers.SerializerMethodField()
     invitedBy = serializers.SerializerMethodField()
     createdAt = serializers.SerializerMethodField()
     expiresAt = serializers.SerializerMethodField()
@@ -89,11 +104,27 @@ class InviteSerializer(serializers.ModelSerializer):
             "email",
             "roleId",
             "roleName",
+            "roleIds",
+            "roleNames",
             "invitedBy",
             "createdAt",
             "expiresAt",
             "status",
         ]
+
+    def get_roleId(self, obj) -> str:
+        roles = obj.role_list()
+        return str(roles[0].pk) if roles else ""
+
+    def get_roleName(self, obj) -> str:
+        roles = obj.role_list()
+        return roles[0].name if roles else ""
+
+    def get_roleIds(self, obj) -> list[str]:
+        return [str(r.pk) for r in obj.role_list()]
+
+    def get_roleNames(self, obj) -> list[str]:
+        return [r.name for r in obj.role_list()]
 
     def get_invitedBy(self, obj) -> dict | None:
         return user_brief(obj.invited_by) or {"id": "", "name": "Someone", "hue": 0}
@@ -111,22 +142,34 @@ class WorkspaceCreateIn(serializers.Serializer):
     modules = serializers.ListField(child=serializers.CharField(), required=False)
 
 
+class NotificationPolicyIn(serializers.Serializer):
+    sms = serializers.BooleanField(required=False)
+
+
 class WorkspaceUpdateIn(serializers.Serializer):
     name = serializers.CharField(required=False, allow_blank=True)
     slug = serializers.CharField(required=False, allow_blank=True)
+    timezone = serializers.CharField(required=False, help_text="An IANA time zone name, e.g. Africa/Addis_Ababa.")
+    notificationPolicy = NotificationPolicyIn(required=False)
 
 
 class ConfirmIn(serializers.Serializer):
     confirm = serializers.CharField(required=False, allow_blank=True)
 
 
-class RoleIdIn(serializers.Serializer):
-    roleId = serializers.CharField()
+class MemberRolesIn(serializers.Serializer):
+    roleIds = serializers.ListField(
+        child=serializers.CharField(), required=False, help_text="Replaces the member's roles (one or more)."
+    )
+    roleId = serializers.CharField(required=False, help_text="Deprecated: the same as roleIds: [roleId].")
 
 
 class InviteIn(serializers.Serializer):
     emails = serializers.ListField(child=serializers.CharField())
-    roleId = serializers.CharField()
+    roleIds = serializers.ListField(
+        child=serializers.CharField(), required=False, help_text="The roles the invitee gets (one or more)."
+    )
+    roleId = serializers.CharField(required=False, help_text="Deprecated: the same as roleIds: [roleId].")
 
 
 class AcceptInviteIn(serializers.Serializer):

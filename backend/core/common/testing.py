@@ -50,9 +50,35 @@ def role(ws: Any, key: str):
     return ws.roles.get(system_key=key)
 
 
-def add_member(ws: Any, user: User | None = None, key: str = "member"):
+def add_member(ws: Any, user: User | None = None, key: str | list[str] = "member"):
+    """Makes `user` a member of `ws` with the role(s) named by system key (replacing any roles they had)."""
     from core.workspaces.models import WorkspaceMember
+    from core.workspaces.services import set_member_roles
 
     user = user or UserFactory()
-    WorkspaceMember.objects.update_or_create(workspace=ws, user=user, defaults={"role": role(ws, key)})
+    keys = [key] if isinstance(key, str) else key
+    member, _ = WorkspaceMember.objects.get_or_create(workspace=ws, user=user)
+    set_member_roles(member, [role(ws, k) for k in keys])
+    user.__dict__.pop("_lx_access_cache", None)
     return user
+
+
+def set_roles(ws: Any, user: User, *roles: Any) -> None:
+    """Gives an existing member exactly `roles` (Role objects or ids)."""
+    from core.access.models import Role
+    from core.workspaces.models import WorkspaceMember
+    from core.workspaces.services import set_member_roles
+
+    member = WorkspaceMember.objects.get(workspace=ws, user=user)
+    set_member_roles(member, [r if isinstance(r, Role) else Role.objects.get(pk=r) for r in roles])
+    user.__dict__.pop("_lx_access_cache", None)
+
+
+def make_member(ws: Any, user: User, *roles: Any, **fields: Any):
+    """Creates a membership holding `roles` (Role objects or ids)."""
+    from core.access.models import Role
+    from core.workspaces.services import add_workspace_member
+
+    return add_workspace_member(
+        ws, user, [r if isinstance(r, Role) else Role.objects.get(pk=r) for r in roles], **fields
+    )

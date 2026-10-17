@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "core.realtime",
     "modules.tracking.integrations",
     "core.channels",
+    "core.jobs",
     "modules.sales",
 ]
 
@@ -313,6 +314,11 @@ SSE_MAX_LIFETIME_SECONDS = env.float("SSE_MAX_LIFETIME_SECONDS", default=300.0)
 SSE_LIFETIME_JITTER_SECONDS = 30.0
 SSE_QUEUE_SIZE = 256
 SSE_TEST_MAX_EVENTS: int | None = None  # tests: end the stream after this many events
+
+# ───────────────────────── Scheduled jobs (sales S0) ─────────────────────────
+# POST /api/v1/internal/jobs/{name} needs the header X-Jobs-Secret equal to this. Empty: the endpoint refuses every
+# call (manage.py run_job and the Celery task still work). Use a long random value.
+JOBS_SECRET = env("JOBS_SECRET", default="")
 
 # ───────────────────────── Integrations (board 37) ─────────────────────────
 # docs/v2/37-integrations-github-gitlab.md §2.3. GitHub connects through a GitHub App; GitLab through an OAuth app

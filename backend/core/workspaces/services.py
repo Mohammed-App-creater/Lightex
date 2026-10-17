@@ -11,7 +11,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from core.access import services as access
-from core.access.catalogue import OWNER_PERMISSION, WORKSPACE
+from core.access.catalogue import OWNER_PERMISSION, WORKSPACE, role_precedence_key
 from core.access.models import Role
 from core.accounts.models import User
 from core.accounts.services import EMAIL_RE, normalize_email, password_problem
@@ -22,7 +22,15 @@ from core.modules.services import enable_initial_modules
 from core.teams.services import drop_workspace_member as drop_team_memberships
 from core.workspaces.hooks import member_removed
 
-from .models import Invitation, Workspace, WorkspaceAccessRequest, WorkspaceMember
+from .models import (
+    Invitation,
+    InvitationRole,
+    Workspace,
+    WorkspaceAccessRequest,
+    WorkspaceMember,
+    WorkspaceMemberRole,
+)
+from .timezone import is_valid_timezone
 
 RESERVED_SLUGS = {
     "admin", "lightex", "api", "app", "login", "register", "onboarding", "dev", "invite", "invites",
@@ -68,9 +76,7 @@ def create_workspace(user: User, *, name: str, slug: str | None = None, modules:
         raise invalid({"slug": f"lightex.app/{clean} is taken"}) from exc
     enable_initial_modules(user, ws, modules)
     roles = access.seed_default_roles(ws)
-    WorkspaceMember.objects.create(
-        workspace=ws, user=user, role=roles["owner"], joined_at=timezone.now(), last_active_at=timezone.now()
-    )
+    add_workspace_member(ws, user, [roles["owner"]], joined_at=timezone.now(), last_active_at=timezone.now())
     access.invalidate(user)
     record(workspace=ws, actor=user, action="core.workspace.created", target=ws.name, entity_id=ws.pk)
     return ws
@@ -97,6 +103,13 @@ def update_workspace(actor: User, ws: Workspace, data: dict[str, Any]) -> Worksp
             else:
                 changes.append(change("URL", ws.slug, clean))
                 ws.slug = clean
+    if "timezone" in data:
+        tz = data.get("timezone")
+        if not is_valid_timezone(tz):
+            fields["timezone"] = "Pick a valid time zone"
+        elif tz != ws.timezone:
+            changes.append(change("Time zone", ws.timezone, tz))
+            ws.timezone = tz
     policy = data.get("notificationPolicy")
     if policy is not None:  # board 38 §4.2 (the view already requires workspace.update)
         sms = policy.get("sms") if isinstance(policy, dict) else None
@@ -128,25 +141,49 @@ def delete_workspace(actor: User, ws: Workspace, confirm: str) -> None:
 # ───────────────────────── members ─────────────────────────
 
 
-def _role_codes(role: Role) -> set[str]:
-    return access.role_permission_codes(role)
+def add_workspace_member(ws: Workspace, user: User, roles: list[Role], **fields: Any) -> WorkspaceMember:
+    """Creates the membership with its roles (sales S0: one or more workspace roles)."""
+    member = WorkspaceMember.objects.create(workspace=ws, user=user, **fields)
+    set_member_roles(member, roles)
+    return member
 
 
-def _ensure_can_grant(actor: User, ws: Workspace, role: Role) -> None:
+def set_member_roles(member: WorkspaceMember, roles: list[Role]) -> None:
+    """Replaces the member's roles (no checks: the callers validate)."""
+    links = WorkspaceMemberRole.objects.for_workspace(member.workspace_id).filter(member=member)
+    keep = {r.pk for r in roles}
+    links.exclude(role_id__in=keep).delete()
+    have = set(links.values_list("role_id", flat=True))
+    WorkspaceMemberRole.objects.bulk_create(
+        [
+            WorkspaceMemberRole(workspace_id=member.workspace_id, member=member, role=r)
+            for r in roles
+            if r.pk not in have
+        ]
+    )
+    getattr(member, "_prefetched_objects_cache", {}).pop("role_links", None)
+
+
+def _codes_of(roles: list[Role]) -> set[str]:
+    codes: set[str] = set()
+    for r in roles:
+        codes |= access.role_permission_codes(r)
+    return codes
+
+
+def _ensure_can_grant(actor: User, ws: Workspace, roles: list[Role]) -> None:
     """No privilege escalation: you can only hand out (or take away) permissions you hold."""
     mine = access.workspace_permissions(actor, ws)
-    missing = _role_codes(role) - mine
+    missing = _codes_of(roles) - mine
     if missing:
         raise forbidden("You can’t assign a role with permissions you don’t have.", {"permission": sorted(missing)[0]})
 
 
 def _owner_count(ws: Workspace, *, excluding_user: Any = None) -> int:
-    qs = WorkspaceMember.objects.filter(
-        workspace=ws, status="active", role__permissions__code=OWNER_PERMISSION
-    ).distinct()
+    qs = WorkspaceMember.objects.for_workspace(ws).filter(status="active", roles__permissions__code=OWNER_PERMISSION)
     if excluding_user is not None:
         qs = qs.exclude(user_id=excluding_user)
-    return qs.count()
+    return qs.values("user_id").distinct().count()
 
 
 def _workspace_role(ws: Workspace, role_id: Any, field: str = "roleId") -> Role:
@@ -154,6 +191,25 @@ def _workspace_role(ws: Workspace, role_id: Any, field: str = "roleId") -> Role:
     if role is None:
         raise invalid({field: "Pick a workspace role"})
     return role
+
+
+def workspace_roles_from(ws: Workspace, data: dict[str, Any]) -> list[Role]:
+    """The roles a request names: `roleIds` (a non-empty list), else the old single `roleId`. In precedence order,
+    duplicates dropped. 422 for an empty list or an id that isn't a workspace role of `ws`."""
+    if "roleIds" in data:
+        raw = data.get("roleIds")
+        if not isinstance(raw, list) or not raw:
+            raise invalid({"roleIds": "Pick at least one role"})
+        ids = list(dict.fromkeys(str(r) for r in raw))
+        if not all(_is_uuid(i) for i in ids):
+            raise invalid({"roleIds": "Pick workspace roles"})
+        roles = list(Role.objects.filter(pk__in=ids, workspace=ws, scope=WORKSPACE))
+        if len(roles) != len(ids):
+            raise invalid({"roleIds": "Pick workspace roles"})
+        return sorted(roles, key=role_precedence_key)
+    if data.get("roleId") in (None, ""):
+        raise invalid({"roleIds": "Pick at least one role"})
+    return [_workspace_role(ws, data.get("roleId"))]
 
 
 def _is_uuid(value: Any) -> bool:
@@ -168,7 +224,7 @@ def _is_uuid(value: Any) -> bool:
 
 def get_member(ws: Workspace, user_id: Any) -> WorkspaceMember:
     member = (
-        WorkspaceMember.objects.select_related("user", "role").filter(workspace=ws, user_id=user_id).first()
+        WorkspaceMember.objects.for_workspace(ws).select_related("user").filter(user_id=user_id).first()
         if _is_uuid(user_id)
         else None
     )
@@ -177,31 +233,36 @@ def get_member(ws: Workspace, user_id: Any) -> WorkspaceMember:
     return member
 
 
+def _names(roles: list[Role]) -> str:
+    return ", ".join(r.name for r in roles)
+
+
 @transaction.atomic
-def change_member_role(actor: User, ws: Workspace, user_id: Any, role_id: Any) -> WorkspaceMember:
+def change_member_roles(actor: User, ws: Workspace, user_id: Any, data: dict[str, Any]) -> WorkspaceMember:
+    """Replaces the member's workspace roles with the request's `roleIds` (or the old single `roleId`)."""
     member = get_member(ws, user_id)
-    role = _workspace_role(ws, role_id)
-    if role.pk == member.role_id:
+    roles = workspace_roles_from(ws, data)
+    current = member.role_list()
+    before, after = {r.pk for r in current}, {r.pk for r in roles}
+    if before == after:
         return member
-    _ensure_can_grant(actor, ws, member.role)
-    _ensure_can_grant(actor, ws, role)
-    holds_owner = OWNER_PERMISSION in _role_codes(member.role)
+    _ensure_can_grant(actor, ws, [r for r in roles if r.pk not in before] + [r for r in current if r.pk not in after])
     if (
-        holds_owner
-        and OWNER_PERMISSION not in _role_codes(role)
+        OWNER_PERMISSION in _codes_of(current)
+        and OWNER_PERMISSION not in _codes_of(roles)
         and _owner_count(ws, excluding_user=member.user_id) == 0
     ):
         raise conflict("last_owner", "A workspace needs at least one owner. Make someone else an owner first.")
-    before = member.role.name
-    member.role = role
-    member.save(update_fields=["role", "updated_at"])
+    set_member_roles(member, roles)
+    member.save(update_fields=["updated_at"])
+    access.invalidate(member.user)
     record(
         workspace=ws,
         actor=actor,
         action="core.member.role_changed",
         target=member.user.name,
         entity_id=member.user_id,
-        changes=[change("Role", before, role.name)],
+        changes=[change("Roles", _names(current), _names(roles))],
     )
     return member
 
@@ -211,8 +272,9 @@ def remove_member(actor: User, ws: Workspace, user_id: Any) -> None:
     member = get_member(ws, user_id)
     if member.user_id == actor.pk:
         raise forbidden("You can’t remove yourself.")
-    _ensure_can_grant(actor, ws, member.role)
-    if OWNER_PERMISSION in _role_codes(member.role) and _owner_count(ws, excluding_user=member.user_id) == 0:
+    roles = member.role_list()
+    _ensure_can_grant(actor, ws, roles)
+    if OWNER_PERMISSION in _codes_of(roles) and _owner_count(ws, excluding_user=member.user_id) == 0:
         raise conflict("last_owner", "A workspace needs at least one owner.")
     member_removed(ws, member.user_id)  # modules drop what the member had in this workspace
     drop_team_memberships(ws, member.user_id)
@@ -243,24 +305,25 @@ def _send_invitation(inv: Invitation, raw_token: str) -> None:
             "inviter_email": inviter.email if inviter else "",
             "inviter_name": inviter.name if inviter else "A teammate",
             "recipient_email": inv.email,
-            "role": inv.role.name,
+            "role": _names(inv.role_list()),
             "workspace_name": inv.workspace.name,
         },
     )
 
 
 @transaction.atomic
-def create_invitations(actor: User, ws: Workspace, emails: Any, role_id: Any) -> list[Invitation]:
+def create_invitations(actor: User, ws: Workspace, emails: Any, data: dict[str, Any]) -> list[Invitation]:
+    """`data` names the roles: `roleIds` (one or more) or the old single `roleId`."""
     if not isinstance(emails, list) or not emails:
         raise invalid({"emails": "Add at least one email"})
-    role = _workspace_role(ws, role_id)
+    roles = workspace_roles_from(ws, data)
     cleaned = [normalize_email(e) for e in emails if isinstance(e, str)]
     bad = [e for e in cleaned if not EMAIL_RE.match(e)]
     if bad or len(cleaned) != len(emails):
         raise invalid({"emails": f"“{bad[0]}” isn’t an email" if len(bad) == 1 else "Some emails need fixing"})
     if len(cleaned) > MAX_INVITES_PER_REQUEST:
         raise invalid({"emails": f"Invite up to {MAX_INVITES_PER_REQUEST} people at a time"})
-    _ensure_can_grant(actor, ws, role)
+    _ensure_can_grant(actor, ws, roles)
     created: list[Invitation] = []
     expires = timezone.now() + dt.timedelta(days=settings.INVITATION_TTL_DAYS)
     for email in dict.fromkeys(cleaned):
@@ -274,8 +337,9 @@ def create_invitations(actor: User, ws: Workspace, emails: Any, role_id: Any) ->
         Invitation.objects.filter(workspace=ws, email=email, status="pending").update(status="revoked")
         raw, digest = new_token()
         inv = Invitation.objects.create(
-            workspace=ws, email=email, role=role, invited_by=actor, token_hash=digest, expires_at=expires
+            workspace=ws, email=email, invited_by=actor, token_hash=digest, expires_at=expires
         )
+        InvitationRole.objects.bulk_create([InvitationRole(workspace=ws, invitation=inv, role=r) for r in roles])
         _send_invitation(inv, raw)
         record(
             workspace=ws,
@@ -283,7 +347,7 @@ def create_invitations(actor: User, ws: Workspace, emails: Any, role_id: Any) ->
             action="core.member.invited",
             target=email,
             entity_id=inv.pk,
-            changes=[change("Email", None, email), change("Role", None, role.name)],
+            changes=[change("Email", None, email), change("Roles", None, _names(roles))],
         )
         _emit_invitation_event(actor, inv)
         created.append(inv)
@@ -303,7 +367,7 @@ def _emit_invitation_event(actor: User, inv: Invitation) -> None:
 
 def get_invitation(ws: Workspace, invite_id: Any) -> Invitation:
     inv = (
-        Invitation.objects.select_related("role", "invited_by", "workspace").filter(pk=invite_id, workspace=ws).first()
+        Invitation.objects.select_related("invited_by", "workspace").filter(pk=invite_id, workspace=ws).first()
         if _is_uuid(invite_id)
         else None
     )
@@ -337,7 +401,8 @@ def resend_invitation(actor: User, ws: Workspace, invite_id: Any) -> Invitation:
 
 def invitation_by_token(raw: str) -> Invitation:
     inv = (
-        Invitation.objects.select_related("workspace", "role", "invited_by")
+        Invitation.objects.unscoped()  # the token decides the workspace
+        .select_related("workspace", "invited_by")
         .filter(token_hash=hash_token(raw or ""), workspace__deleted_at__isnull=True)
         .first()
     )
@@ -349,7 +414,7 @@ def invitation_by_token(raw: str) -> Invitation:
 @transaction.atomic
 def accept_invitation(raw: str, *, request_user: Any, name: str, password: str) -> tuple[User, Workspace]:
     inv = invitation_by_token(raw)
-    inv = Invitation.objects.select_for_update().select_related("workspace", "role").get(pk=inv.pk)
+    inv = Invitation.objects.unscoped().select_for_update().select_related("workspace").get(pk=inv.pk)
     if inv.effective_status != "pending":
         raise ApiError(410, "invite_unavailable", "This invite has expired or was revoked.")
     user = User.objects.filter(email__iexact=inv.email).first()
@@ -371,9 +436,12 @@ def accept_invitation(raw: str, *, request_user: Any, name: str, password: str) 
         # Existing account: prove it with the account's password (no login by link alone).
         if not user.check_password(password or "") or not user.is_active:
             raise invalid({"password": "An account with this email already exists. Enter its password to join."})
-    member = WorkspaceMember.objects.filter(workspace=inv.workspace, user=user).first()
+    member = WorkspaceMember.objects.for_workspace(inv.workspace).filter(user=user).first()
     if member is None:
-        WorkspaceMember.objects.create(workspace=inv.workspace, user=user, role=inv.role, last_active_at=timezone.now())
+        roles = [r for r in inv.role_list() if r.scope == WORKSPACE]
+        if not roles:  # every role on the invite was deleted since: join as a plain member
+            roles = [Role.objects.get(workspace=inv.workspace, system_key="member")]
+        add_workspace_member(inv.workspace, user, roles, last_active_at=timezone.now())
     inv.status = "accepted"
     inv.accepted_by = user
     inv.accepted_at = timezone.now()

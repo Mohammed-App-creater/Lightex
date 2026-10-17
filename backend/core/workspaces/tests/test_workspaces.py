@@ -109,7 +109,7 @@ def test_member_list_pagination_and_filters(owner, ws):
     names = [m["user"]["name"] for m in page["data"] + rest["data"]]
     assert names == sorted(names)
     first = page["data"][0]
-    assert set(first) == {"userId", "workspaceId", "roleId", "user", "status", "joinedAt", "lastActiveAt"}
+    assert set(first) == {"userId", "workspaceId", "roleId", "roleIds", "user", "status", "joinedAt", "lastActiveAt"}
     q = client.get("/api/v1/workspaces/platform/members?q=member 3").json()
     assert [m["user"]["name"] for m in q["data"]] == ["Member 3"]
     owners = client.get(f"/api/v1/workspaces/platform/members?filter[role]={role(ws, 'owner').id}").json()
@@ -220,7 +220,7 @@ def test_invite_flow_new_user(owner, ws, api):
     assert ok.json()["workspaceSlug"] == "platform"
     assert ok.json()["accessToken"]
     member = WorkspaceMember.objects.get(workspace=ws, user__email="new@team.dev")
-    assert member.role.system_key == "admin"
+    assert [r.system_key for r in member.role_list()] == ["admin"]
     again = api.post(f"/api/v1/invites/{token}/accept", {"name": "New Person", "password": PASSWORD}, format="json")
     assert again.status_code == 410
     assert client.get("/api/v1/workspaces/platform/invites").json() == []

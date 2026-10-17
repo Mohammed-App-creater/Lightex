@@ -55,11 +55,11 @@ def build_world() -> World:
     invite = Invitation.objects.create(
         workspace=ws,
         email="invitee@x.dev",
-        role=ws.roles.get(system_key="member"),
         invited_by=owner,
         token_hash=digest,
         expires_at=timezone.now() + timezone.timedelta(days=7),
     )
+    invite.roles.add(ws.roles.get(system_key="member"), through_defaults={"workspace": ws})
     custom_role = Role.objects.create(workspace=ws, name="Custom", scope="project")
     world = World(ws=ws, other_ws=other_ws, users=users, invite=invite, invite_token=raw, custom_role=custom_role)
     from core.teams.models import Team, TeamMember

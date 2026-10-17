@@ -74,7 +74,7 @@ def test_seeded_roles_cover_every_default_role():
         user = User.objects.get(email=email)
         assert user.check_password(DEMO_PASSWORD)
         member = user.workspace_memberships.get(workspace__slug="platform")
-        assert member.role.name == ws_role
+        assert [r.name for r in member.role_list()] == [ws_role]
         if project_role != "not a member":
             assert user.project_memberships.get(project__key="PRJ").role.name == project_role
     # One account per default role: every workspace role and every project role is covered.

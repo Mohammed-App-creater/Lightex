@@ -159,20 +159,17 @@ def _name_taken(workspace: Any, scope: str, name: str, exclude: Any = None) -> b
 
 
 def _owner_holders_after(role: Role, new_codes: set[str]) -> int:
-    """How many active members would hold the owner permission if `role` had `new_codes`."""
-    from core.workspaces.models import WorkspaceMember
+    """How many active members would hold the owner permission if `role` had `new_codes` (members hold several roles:
+    an owner through another role still counts)."""
+    from core.workspaces.models import WorkspaceMemberRole
 
-    holders = (
-        WorkspaceMember.objects.filter(workspace=role.workspace, status="active")
-        .filter(role__permissions__code=OWNER_PERMISSION)
-        .exclude(role=role)
-        .values("user_id")
-        .distinct()
-        .count()
+    links = WorkspaceMemberRole.objects.for_workspace(role.workspace_id).filter(member__status="active")
+    holders = set(
+        links.filter(role__permissions__code=OWNER_PERMISSION).exclude(role=role).values_list("member_id", flat=True)
     )
     if OWNER_PERMISSION in new_codes:
-        holders += WorkspaceMember.objects.filter(role=role, status="active").count()
-    return holders
+        holders |= set(links.filter(role=role).values_list("member_id", flat=True))
+    return len(holders)
 
 
 @transaction.atomic
@@ -274,13 +271,13 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
 
 @transaction.atomic
 def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
-    from core.workspaces.models import Invitation, WorkspaceMember
+    from core.workspaces.models import Invitation, InvitationRole, WorkspaceMember, WorkspaceMemberRole
 
     from . import scopes
 
     if role.is_system:
         raise forbidden("System roles can’t be deleted.")
-    ws_members = WorkspaceMember.objects.filter(role=role)
+    ws_members = WorkspaceMember.objects.for_workspace(role.workspace_id).filter(roles=role)
     # Memberships in module scopes (project members) that use this role, from each scope provider.
     scope_members = [p.role_assignments(role) for p in scopes.providers()]
     in_use = ws_members.exists() or any(qs.exists() for qs in scope_members)
@@ -305,15 +302,21 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
         _ensure_no_escalation(actor, role.scope, role.workspace, target_codes)
         if (
             role.scope == WORKSPACE
-            and ws_members.filter(role__permissions__code=OWNER_PERMISSION).exists()
+            and OWNER_PERMISSION in visible_codes(role.workspace, role.permissions.values_list("code", flat=True))
             and OWNER_PERMISSION not in target_codes
             and _owner_holders_after(role, set()) == 0
         ):
             raise conflict("last_owner", "A workspace needs at least one owner.")
-        ws_members.update(role=target)
+        _move_links(WorkspaceMemberRole.objects.for_workspace(role.workspace_id), "member", role, target)
         for qs in scope_members:
             qs.update(role=target)
-        Invitation.objects.filter(role=role, status="pending").update(role=target)
+        pending = InvitationRole.objects.for_workspace(role.workspace_id).filter(invitation__status="pending")
+        _move_links(pending, "invitation", role, target)
+    # As before: an invitation whose only role is the deleted one goes with it.
+    with_role = InvitationRole.objects.for_workspace(role.workspace_id).filter(role=role).values("invitation_id")
+    invites = Invitation.objects.for_workspace(role.workspace_id)
+    sole = invites.filter(pk__in=with_role).annotate(n=Count("role_links")).filter(n=1).values_list("pk", flat=True)
+    invites.filter(pk__in=list(sole)).delete()
     record(
         workspace=role.workspace,
         actor=actor,
@@ -324,3 +327,11 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
     )
     role.delete()
     invalidate(actor)
+
+
+def _move_links(links: Any, parent: str, role: Role, target: Role) -> None:
+    """Role links (member or invitation → role) of `role` now point at `target`; a parent that already holds
+    `target` just loses the old link."""
+    has_target = links.filter(role=target).values(parent)
+    links.filter(role=role, **{f"{parent}__in": has_target}).delete()
+    links.filter(role=role).update(role=target)

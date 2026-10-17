@@ -3,7 +3,7 @@
 import pytest
 
 from core.access import catalogue
-from core.common.testing import UserFactory, add_member, client_for
+from core.common.testing import UserFactory, add_member, client_for, make_member
 from core.modules.registry import get_module
 from core.modules.services import set_module_enabled
 
@@ -40,9 +40,7 @@ def test_health_needs_the_module_and_the_permission(ws, owner):
         format="json",
     )
     guest = UserFactory()
-    from core.workspaces.models import WorkspaceMember
-
-    WorkspaceMember.objects.create(workspace=ws, user=guest, role_id=res.json()["id"])
+    make_member(ws, guest, res.json()["id"])
     denied = client_for(guest).get(URL)
     assert (denied.status_code, denied.json()["details"]) == (403, {"permission": "sales.health.view"})
 

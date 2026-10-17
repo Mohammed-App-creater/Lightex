@@ -302,6 +302,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Health'
           description: ''
+  /api/v1/internal/jobs/{name}:
+    post:
+      operationId: internal_jobs_run
+      parameters:
+      - in: header
+        name: X-Jobs-Secret
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - internal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRunInRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobRun'
+          description: ''
   /api/v1/invites/{token}:
     get:
       operationId: invites_retrieve
@@ -5435,7 +5463,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedRoleIdInRequest'
+              $ref: '#/components/schemas/PatchedMemberRolesInRequest'
       security:
       - bearerAuth: []
       - bearerAuth: []
@@ -7831,9 +7859,20 @@ components:
           maxLength: 254
         roleId:
           type: string
-          format: uuid
+          readOnly: true
         roleName:
           type: string
+          readOnly: true
+        roleIds:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        roleNames:
+          type: array
+          items:
+            type: string
+          readOnly: true
         invitedBy:
           type: object
           additionalProperties: {}
@@ -7856,7 +7895,9 @@ components:
       - id
       - invitedBy
       - roleId
+      - roleIds
       - roleName
+      - roleNames
       - status
       - workspaceId
       - workspaceName
@@ -7868,12 +7909,66 @@ components:
           items:
             type: string
             minLength: 1
+        roleIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          description: The roles the invitee gets (one or more).
         roleId:
           type: string
           minLength: 1
+          description: 'Deprecated: the same as roleIds: [roleId].'
       required:
       - emails
-      - roleId
+    JobRun:
+      type: object
+      properties:
+        job:
+          type: string
+        ran:
+          type: integer
+        skipped:
+          type: integer
+        failed:
+          type: integer
+        workspaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobRunWorkspace'
+      required:
+      - failed
+      - job
+      - ran
+      - skipped
+      - workspaces
+    JobRunInRequest:
+      type: object
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+          description: Only this workspace.
+    JobRunWorkspace:
+      type: object
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/JobRunWorkspaceStatusEnum'
+        error:
+          type: string
+          description: The exception class name (failed only).
+      required:
+      - status
+      - workspaceId
+    JobRunWorkspaceStatusEnum:
+      enum:
+      - ran
+      - skipped
+      - failed
+      type: string
     Label:
       type: object
       properties:
@@ -8220,6 +8315,11 @@ components:
       - counts
       - data
       - nextCursor
+    NotificationPolicyInRequest:
+      type: object
+      properties:
+        sms:
+          type: boolean
     NotificationPreferences:
       type: object
       properties:
@@ -8418,6 +8518,19 @@ components:
         roleId:
           type: string
           format: uuid
+    PatchedMemberRolesInRequest:
+      type: object
+      properties:
+        roleIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          description: Replaces the member's roles (one or more).
+        roleId:
+          type: string
+          minLength: 1
+          description: 'Deprecated: the same as roleIds: [roleId].'
     PatchedMilestoneInRequest:
       type: object
       properties:
@@ -8497,12 +8610,6 @@ components:
             type: string
             format: uuid
           description: '[] = all projects'
-    PatchedRoleIdInRequest:
-      type: object
-      properties:
-        roleId:
-          type: string
-          minLength: 1
     PatchedRoleInRequest:
       type: object
       properties:
@@ -8664,6 +8771,12 @@ components:
           type: string
         slug:
           type: string
+        timezone:
+          type: string
+          minLength: 1
+          description: An IANA time zone name, e.g. Africa/Addis_Ababa.
+        notificationPolicy:
+          $ref: '#/components/schemas/NotificationPolicyInRequest'
     PermissionInfo:
       type: object
       properties:
@@ -11265,6 +11378,9 @@ components:
           type: integer
           maximum: 32767
           minimum: 0
+        timezone:
+          type: string
+          maxLength: 64
         createdAt:
           type: string
           nullable: true
@@ -11275,6 +11391,12 @@ components:
         myRoleId:
           type: string
           nullable: true
+          description: The primary role (the first of `myRoleIds`).
+          readOnly: true
+        myRoleIds:
+          type: array
+          items:
+            type: string
           readOnly: true
         my_permissions:
           type: array
@@ -11303,6 +11425,7 @@ components:
       - memberCount
       - myDataScopes
       - myRoleId
+      - myRoleIds
       - my_permissions
       - name
       - notificationPolicy
@@ -11351,7 +11474,13 @@ components:
           format: uuid
         roleId:
           type: string
-          format: uuid
+          description: The primary role (the first of `roleIds`).
+          readOnly: true
+        roleIds:
+          type: array
+          items:
+            type: string
+          readOnly: true
         user:
           $ref: '#/components/schemas/User'
         status:
@@ -11368,6 +11497,7 @@ components:
       - joinedAt
       - lastActiveAt
       - roleId
+      - roleIds
       - user
       - userId
       - workspaceId

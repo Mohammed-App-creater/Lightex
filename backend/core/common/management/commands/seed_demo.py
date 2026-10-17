@@ -34,7 +34,8 @@ from core.common.seeding import SeedContext, seeders
 from core.common.tokens import new_token
 from core.modules.services import enable_initial_modules
 from core.teams.models import Team, TeamMember
-from core.workspaces.models import Invitation, Workspace, WorkspaceMember
+from core.workspaces.models import Invitation, InvitationRole, Workspace
+from core.workspaces.services import add_workspace_member
 
 DEMO_PASSWORD = "Lightex-demo-2026"
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "demo_seed.json"
@@ -117,10 +118,10 @@ class Command(BaseCommand, SeedContext):
             )
             self.roles[r["id"]] = role
         for m in data["wsMembers"]:
-            WorkspaceMember.objects.create(
-                workspace=self.workspaces[m["workspaceId"]],
-                user=self.users[m["userId"]],
-                role=self.roles[m["roleId"]],
+            add_workspace_member(
+                self.workspaces[m["workspaceId"]],
+                self.users[m["userId"]],
+                [self.roles[r] for r in m.get("roleIds") or [m["roleId"]]],
                 status=m["status"],
                 joined_at=self.moment(m["joinedAt"]),
                 last_active_at=self.ts(m["lastActiveAt"]),
@@ -131,13 +132,18 @@ class Command(BaseCommand, SeedContext):
         self.invite_links = []
         for inv in data["invites"]:
             raw, digest = new_token()
-            Invitation.objects.create(
+            invitation = Invitation.objects.create(
                 workspace=self.workspaces[inv["workspaceId"]],
                 email=inv["email"],
-                role=self.roles[inv["roleId"]],
                 invited_by=self.users.get(inv["invitedById"]),
                 token_hash=digest,
                 expires_at=timezone.now() + dt.timedelta(days=7),
+            )
+            InvitationRole.objects.bulk_create(
+                [
+                    InvitationRole(workspace=invitation.workspace, invitation=invitation, role=self.roles[r])
+                    for r in inv.get("roleIds") or [inv["roleId"]]
+                ]
             )
             self.invite_links.append((inv["email"], f"{settings.FRONTEND_URL}/invite/{raw}"))
 

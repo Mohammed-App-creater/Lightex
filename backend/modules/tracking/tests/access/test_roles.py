@@ -3,7 +3,7 @@ import pytest
 from core.access import catalogue
 from core.access.models import Role
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_member, client_for, role
+from core.common.testing import UserFactory, add_member, client_for, make_member, role, set_roles
 from core.workspaces.models import Invitation, WorkspaceMember
 from modules.tracking.projects.models import Project, ProjectMember
 
@@ -184,10 +184,11 @@ def test_delete_role_in_use_requires_reassignment(owner, ws):
         format="json",
     ).json()
     user = UserFactory()
-    WorkspaceMember.objects.create(workspace=ws, user=user, role_id=custom["id"])
-    Invitation.objects.create(
-        workspace=ws, email="p@x.dev", role_id=custom["id"], token_hash="h" * 64, expires_at="2099-01-01T00:00:00Z"
+    make_member(ws, user, custom["id"])
+    invite = Invitation.objects.create(
+        workspace=ws, email="p@x.dev", token_hash="h" * 64, expires_at="2099-01-01T00:00:00Z"
     )
+    invite.roles.add(custom["id"], through_defaults={"workspace": ws})
     res = client.delete(f"/api/v1/roles/{custom['id']}")
     assert res.status_code == 409
     assert res.json()["code"] == "role_in_use"
@@ -201,8 +202,8 @@ def test_delete_role_in_use_requires_reassignment(owner, ws):
     assert client.delete(f"/api/v1/roles/{custom['id']}", {"reassignTo": "nope"}, format="json").status_code == 422
     ok = client.delete(f"/api/v1/roles/{custom['id']}", {"reassignTo": str(role(ws, "member").id)}, format="json")
     assert ok.status_code == 204
-    assert WorkspaceMember.objects.get(user=user).role == role(ws, "member")
-    assert Invitation.objects.get(email="p@x.dev").role == role(ws, "member")
+    assert WorkspaceMember.objects.get(user=user).role_list() == [role(ws, "member")]
+    assert Invitation.objects.get(email="p@x.dev").role_list() == [role(ws, "member")]
     assert not Role.objects.filter(pk=custom["id"]).exists()
 
 
@@ -235,7 +236,7 @@ def test_last_owner_is_protected_through_roles(owner, ws):
         },
         format="json",
     ).json()
-    WorkspaceMember.objects.filter(user=owner).update(role_id=custom["id"])
+    set_roles(ws, owner, custom["id"])
     res = client.patch(f"/api/v1/roles/{custom['id']}", {"permissions": ["core.workspace.view"]}, format="json")
     assert res.status_code == 409
     assert res.json()["code"] == "last_owner"

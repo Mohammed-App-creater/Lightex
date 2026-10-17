@@ -17,7 +17,7 @@ from core.access.services import (
     sync_permission_catalogue,
     workspace_permissions,
 )
-from core.common.testing import UserFactory, add_member, make_workspace, role
+from core.common.testing import UserFactory, add_member, make_member, make_workspace, role
 from core.modules.services import code_enabled, visible_codes
 from core.workspaces.models import WorkspaceMember
 from modules.tracking.projects.models import Project, ProjectMember
@@ -68,7 +68,7 @@ def test_each_default_role_gets_exactly_its_catalogue_permissions(owner, ws):
     for rdef in catalogue.DEFAULT_ROLES:
         user = UserFactory()
         if rdef.scope == "workspace":
-            WorkspaceMember.objects.create(workspace=ws, user=user, role=role(ws, rdef.key))
+            make_member(ws, user, role(ws, rdef.key))
             # Only core's and the enabled modules' grants are seeded (sales is off here).
             assert set(workspace_permissions(user, ws)) == visible_codes(ws, rdef.permissions), rdef.key
         else:

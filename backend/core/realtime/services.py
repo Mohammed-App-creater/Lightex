@@ -125,7 +125,8 @@ def _publish_role_holders(row: Any) -> None:
     from core.access import scopes
     from core.workspaces.models import WorkspaceMember
 
-    users = set(WorkspaceMember.objects.filter(role_id=row.target_id).values_list("user_id", flat=True))
+    members = WorkspaceMember.objects.for_workspace(row.workspace_id).filter(roles=row.target_id)
+    users = set(members.values_list("user_id", flat=True))
     for provider in scopes.providers():
         users |= set(provider.role_assignments(row.target_id).values_list("user_id", flat=True))
     for user_id in sorted(users, key=str):

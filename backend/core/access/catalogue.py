@@ -97,6 +97,15 @@ def default_data_scope(role_key: str | None, grants: Any = None, code: str = "")
     return DEFAULT_DATA_SCOPE.get(role_key or "", OWN)
 
 
+#: Sales S0: the order of a member's roles (`roleIds`); the first is the "primary" role (`roleId`).
+ROLE_PRECEDENCE = {"owner": 0, "admin": 1, "member": 2}
+
+
+def role_precedence_key(role: Any) -> tuple[int, str, str]:
+    """Owner, Admin, Member, then every other role by name (case-insensitive)."""
+    return (ROLE_PRECEDENCE.get(role.system_key or "", 3), (role.name or "").lower(), str(role.pk))
+
+
 #: The default roles with core's own grants. Modules add theirs through `default_role_grants`.
 CORE_ROLES: list[RoleDef] = [
     RoleDef(
@@ -141,6 +150,8 @@ class _Catalogue:
     by_code: dict[str, PermissionDef]
     order_index: dict[str, int]
     roles: list[RoleDef]
+    #: Default roles contributed by modules (`ModuleDefinition.default_roles`), seeded while the module is on.
+    module_roles: list[tuple[str, RoleDef]]
 
 
 _built: tuple[int, _Catalogue] | None = None
@@ -185,7 +196,13 @@ def _build() -> _Catalogue:
                 scoped,
             )
         )
-    return _Catalogue(perms, by_code, order_index, roles)
+    module_roles: list[tuple[str, RoleDef]] = []
+    for d in defs:
+        for dr in d.default_roles:
+            codes = sorted(dr.grants, key=lambda c: order_index.get(c, 999))
+            scoped = {c: dr.grants[c] or OWN for c in codes if c in by_code and by_code[c].scopable}
+            module_roles.append((d.key, RoleDef(dr.key, dr.name, WORKSPACE, dr.description, codes, [], scoped)))
+    return _Catalogue(perms, by_code, order_index, roles, module_roles)
 
 
 def _catalogue() -> _Catalogue:
@@ -233,8 +250,19 @@ def default_roles() -> list[RoleDef]:
     return list(_catalogue().roles)
 
 
+def module_default_roles(module: str | None = None) -> list[RoleDef]:
+    """Default roles contributed by modules (all of them, or one module's)."""
+    return [r for m, r in _catalogue().module_roles if module is None or m == module]
+
+
 def role_def(key: str | None) -> RoleDef | None:
-    return next((r for r in _catalogue().roles if r.key == key), None) if key else None
+    """A core default role or a module-contributed one, by `system_key`."""
+    if not key:
+        return None
+    c = _catalogue()
+    return next((r for r in c.roles if r.key == key), None) or next(
+        (r for _, r in c.module_roles if r.key == key), None
+    )
 
 
 def __getattr__(name: str) -> Any:
