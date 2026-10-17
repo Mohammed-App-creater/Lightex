@@ -24,23 +24,35 @@ LOCK_KEY = 0x4C58_5254  # "LXRT"
 MAX_NOTIFY_BYTES = 7500
 RETRY_MS = 3000
 
-DURABLE_TYPES = (
-    "tracking.task.changed",
-    "tracking.tasks.bulk_changed",
-    "tracking.comment.changed",
-    "tracking.attachment.changed",
-    "tracking.project.changed",
-    "tracking.dashboard.changed",
+#: Event types. Core's are listed here; modules add theirs with `register_realtime_types()` in AppConfig.ready().
+DURABLE_TYPES: list[str] = [
     "core.inbox.changed",
     "core.access.changed",
-    "tracking.integration.changed",
-)
-#: Board 37: workspace-wide events (`projectId: null`) delivered to every member of the workspace.
-WORKSPACE_TYPES = ("tracking.integration.changed",)
-VOLATILE_TYPES = ("core.presence.updated", "tracking.import.progress")
+    "core.comment.created",
+    "core.comment.updated",
+    "core.comment.deleted",
+    "core.comment.restored",
+    "core.comment.purged",
+    "core.attachment.created",
+    "core.attachment.changed",
+    "core.attachment.deleted",
+]
+#: Workspace-wide events: with `projectId: null` they reach every member of the workspace. Comment and attachment
+#: hints on a target without a project scope are workspace-wide; with a project they stay project-scoped.
+WORKSPACE_TYPES: list[str] = [t for t in DURABLE_TYPES if t.startswith(("core.comment.", "core.attachment."))]
+VOLATILE_TYPES: list[str] = ["core.presence.updated"]
 CONTROL_TYPES = ("hello", "reset", "reconnect")
 #: Internal-only key: the target user of a user-scoped event.
 TARGET = "userId"
+
+
+def register_realtime_types(
+    durable: tuple[str, ...] = (), *, workspace: tuple[str, ...] = (), volatile: tuple[str, ...] = ()
+) -> None:
+    """Declares a module's stream event types (`workspace` ones are also durable)."""
+    for source, target in ((durable, DURABLE_TYPES), (workspace, DURABLE_TYPES), (workspace, WORKSPACE_TYPES)):
+        target.extend(t for t in source if t not in target)
+    VOLATILE_TYPES.extend(t for t in volatile if t not in VOLATILE_TYPES)
 
 
 def _str(value: Any) -> str | None:

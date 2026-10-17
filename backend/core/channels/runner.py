@@ -148,18 +148,9 @@ def recheck(d: ChannelDelivery) -> str:
         n = d.notification
         if n is None:
             return "stale"
-        from core.workspaces.models import Workspace
-        from modules.tracking.projects.models import Project, ProjectMember
-        from modules.tracking.tasks.models import Task
+        from core.notifications.services import still_visible
 
-        if (
-            not Project.objects.filter(pk=n.project_id).exists()
-            or not Workspace.objects.filter(pk=n.workspace_id).exists()
-        ):
-            return "stale"
-        if not ProjectMember.objects.filter(project_id=n.project_id, user_id=d.user_id).exists():
-            return "stale"
-        if n.task_id and not Task.objects.filter(pk=n.task_id).exists():
+        if not still_visible(n, d.user):
             return "stale"
     if not available(d.channel):
         return "unavailable"

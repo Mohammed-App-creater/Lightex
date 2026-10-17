@@ -15,7 +15,6 @@ from core.common.params import body, filter_value
 from core.common.throttles import PresenceThrottle, StreamThrottle
 from core.workspaces.selectors import workspace_for
 from core.workspaces.views import WorkspaceScopedView
-from modules.tracking.projects.selectors import project_for
 
 from . import presence
 from .hub import hub
@@ -95,17 +94,13 @@ class PresenceRosterView(WorkspaceScopedView):
         if not project_id:
             raise invalid({"filter[project]": "Pick a project"})
         try:
-            project = project_for(request.user, project_id)
+            project = presence.require_view(request.user, project_id)
         except ApiError as exc:
             if exc.status_code == 404:
                 raise not_found("Project not found.") from exc
             raise
         if project.workspace_id != self.scope.pk:
             raise not_found("Project not found.")
-        if not presence.access.can(request.user, "tracking.project.view", project):
-            from core.common.exceptions import forbidden
-
-            raise forbidden(details={"permission": "tracking.project.view"})
         return Response(presence.roster(project))
 
 

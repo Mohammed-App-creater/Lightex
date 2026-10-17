@@ -6,9 +6,10 @@ import pytest
 from django.db import connection
 
 from core.common.exceptions import ApiError
-from core.common.testing import UserFactory, make_project, make_workspace
+from core.common.testing import UserFactory, make_workspace
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task, update_task
+from modules.tracking.testing import make_project
 
 
 def _run_parallel(n, fn):

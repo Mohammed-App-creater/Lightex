@@ -4,9 +4,10 @@
 Publishing failures are logged and swallowed: a missed hint is healed by the client's refetch-on-focus and the
 `reset` paths, and must never fail a user's write.
 
-One hook covers almost every write: `audit.services.record()` calls `publish_for_audit()`, which maps the audit
-action to an event. Writes that need another event or audience publish explicitly and wrap their audited calls in
-`suppress_audit_events()` (board moves, bulk operations).
+One hook covers almost every write: `audit.services.record()` calls `publish_for_audit()`, which asks the
+registered module mappers (`register_audit_publisher`) to map the audit action to an event. Writes that need another
+event or audience publish explicitly and wrap their audited calls in `suppress_audit_events()` (board moves, bulk
+operations).
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import contextlib
 import contextvars
 import datetime as dt
 import logging
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Any
 
 from django.conf import settings
@@ -68,144 +69,43 @@ def suppress_audit_events() -> Iterator[None]:
 
 # ───────────────────────── the audit hook (§6.2) ─────────────────────────
 
-#: Audit change labels → camelCase `Task` field names.
-TASK_FIELDS = {
-    "Title": "title",
-    "Type": "type",
-    "Priority": "priority",
-    "Estimate": "estimate",
-    "Start date": "startDate",
-    "Due date": "dueDate",
-    "Epic": "epicId",
-    "Milestone": "milestoneId",
-    "Sprint": "sprintId",
-    "Description": "description",
-    "Status": "statusId",
-    "Assignee": "assigneeId",
-    "Labels": "labelIds",
-    "Objective": "objectiveIds",
-    "Time estimate": "timeEstimateMinutes",
-}
-#: Task actions whose fields are fixed, and actions that don't bump the task's version (sent as `version: null`).
-TASK_ACTION_FIELDS = {
-    "tracking.task.status_changed": ["statusId"],
-    "tracking.task.assigned": ["assigneeId"],
-    "tracking.task.objective_linked": ["objectiveIds"],
-    "tracking.task.dependency_added": ["dependencies"],
-    "tracking.task.dependency_removed": ["dependencies"],
-    "tracking.task.time_logged": ["loggedMinutes"],
-    "tracking.task.time_entry_deleted": ["loggedMinutes"],
-}
-UNVERSIONED = {
-    "tracking.task.dependency_added",
-    "tracking.task.dependency_removed",
-    "tracking.task.time_logged",
-    "tracking.task.time_entry_deleted",
-}
-TASK_OPS = {
-    "tracking.task.created": "created",
-    "tracking.task.deleted": "deleted",
-    "tracking.task.restored": "restored",
-}
-COMMENT_OPS = {
-    "tracking.comment.created": "created",
-    "tracking.comment.updated": "updated",
-    "tracking.comment.deleted": "deleted",
-    "tracking.comment.restored": "created",
-}
-ATTACHMENT_OPS = {"tracking.attachment.created": "created", "tracking.attachment.deleted": "deleted"}
-AREAS = {
-    "status": "statuses",
-    "label": "labels",
-    "sprint": "sprints",
-    "epic": "epics",
-    "objective": "objectives",
-    "milestone": "milestones",
-}
-SETTINGS_ACTIONS = {
-    "tracking.project.updated",
-    "tracking.project.archived",
-    "tracking.project.unarchived",
-    "tracking.project.deleted",
-    "tracking.project.restored",
-}
-CUSTOM_FIELD_ACTIONS = {
-    "tracking.project.custom_field_created",
-    "tracking.project.custom_field_updated",
-    "tracking.project.custom_field_deleted",
-    "tracking.project.custom_fields_reordered",
-}
-MEMBERSHIP_ACTIONS = {
-    "core.member.role_changed",
-    "tracking.project_member.added",
-    "tracking.project_member.removed",
-    "core.member.removed",
-}
+#: Module mappers: `fn(row, task) -> bool` publishes the event for an audit row it owns and returns True.
+AuditPublisher = Callable[[Any, Any], bool]
+#: Called by `publish_access()` after `core.access.changed` (modules add their own hints, e.g. project members).
+AccessHook = Callable[..., None]
+_AUDIT_PUBLISHERS: list[AuditPublisher] = []
+_ACCESS_HOOKS: list[AccessHook] = []
+
+MEMBERSHIP_ACTIONS = {"core.member.role_changed", "core.member.removed"}
 
 
-def _task_fields(row: Any) -> list[str]:
-    fixed = TASK_ACTION_FIELDS.get(row.action)
-    if fixed is not None:
-        return list(fixed)
-    labels = [c.get("field") for c in row.changes or [] if isinstance(c, dict)]
-    fields = [TASK_FIELDS[label] for label in labels if label in TASK_FIELDS]
-    unknown = [label for label in labels if label and label not in TASK_FIELDS]
-    if unknown and row.project_id:
-        from modules.tracking.projects.models import CustomField
+def register_audit_publisher(fn: AuditPublisher) -> None:
+    if fn not in _AUDIT_PUBLISHERS:
+        _AUDIT_PUBLISHERS.append(fn)
 
-        ids = dict(CustomField.objects.filter(project_id=row.project_id, name__in=unknown).values_list("name", "pk"))
-        fields += [f"customFields.{ids[label]}" for label in unknown if label in ids]
-    return list(dict.fromkeys(fields))
+
+def register_access_hook(fn: AccessHook) -> None:
+    if fn not in _ACCESS_HOOKS:
+        _ACCESS_HOOKS.append(fn)
 
 
 def publish_for_audit(row: Any, task: Any = None) -> None:
-    """Maps one audit row to its realtime event (§6.2). Dashboard writes publish explicitly (they need the owner and
-    the visibility); purges, views, invitations and workspace settings publish nothing."""
+    """Maps one audit row to its realtime event (§6.2): module mappers first, then core's own actions. Comments and
+    attachments publish explicitly (core.collab); purges, views, invitations and workspace settings publish nothing."""
     if _suppressed.get() or not settings.REALTIME_ENABLED:
         return
-    action, entity = row.action, row.entity_type
-    common = {"workspace": row.workspace_id, "project": row.project_id, "actor": row.actor_id}
-    if (
-        entity == "task"
-        and row.task_id
-        and (action in TASK_OPS or action in TASK_ACTION_FIELDS or action == "tracking.task.updated")
-    ):
-        op = TASK_OPS.get(action, "updated")
-        version = None if op == "deleted" or action in UNVERSIONED else getattr(task, "version", None)
-        data = {"taskId": str(row.task_id), "key": row.task_key or row.entity_key, "op": op, "version": version}
-        publish(
-            "tracking.task.changed", **common, data={**data, "fields": [] if op != "updated" else _task_fields(row)}
-        )
-    elif action in COMMENT_OPS and row.task_id:
-        key = row.task_key or row.entity_key
-        data = {"taskId": str(row.task_id), "key": key, "commentId": row.entity_id, "op": COMMENT_OPS[action]}
-        publish("tracking.comment.changed", **common, data=data)
-    elif action in ATTACHMENT_OPS and row.task_id:
-        key = row.task_key or row.entity_key
-        publish(
-            "tracking.attachment.changed",
-            **common,
-            data={"taskId": str(row.task_id), "key": key, "op": ATTACHMENT_OPS[action]},
-        )
-    elif entity in AREAS and row.project_id and not action.endswith(".purged"):
-        publish("tracking.project.changed", **common, data={"areas": [AREAS[entity]]})
-    elif action in SETTINGS_ACTIONS and row.project_id:
-        publish("tracking.project.changed", **common, data={"areas": ["settings"]})
-    elif action in CUSTOM_FIELD_ACTIONS and row.project_id:
-        publish("tracking.project.changed", **common, data={"areas": ["custom_fields"]})
-    elif action == "tracking.project.import_completed" and row.project_id:
-        publish("tracking.tasks.bulk_changed", **common, data={"taskIds": None, "op": "created"})
-    elif action == "tracking.project.created" and row.project_id and row.actor_id:
-        publish_access(row.workspace_id, row.actor_id, row.project_id, actor=row.actor_id)
-    elif action in MEMBERSHIP_ACTIONS and row.entity_id:
-        publish_access(row.workspace_id, row.entity_id, row.project_id, actor=row.actor_id)
-    elif action == "core.role.updated" and any(c.get("field") == "Permissions" for c in row.changes or []):
+    for fn in _AUDIT_PUBLISHERS:
+        if fn(row, task):
+            return
+    if row.action in MEMBERSHIP_ACTIONS and row.target_id:
+        publish_access(row.workspace_id, row.target_id, row.project_id, actor=row.actor_id)
+    elif row.action == "core.role.updated" and any(c.get("field") == "Permissions" for c in row.changes or []):
         _publish_role_holders(row)
 
 
 def publish_access(workspace: Any, user_id: Any, project_id: Any, *, actor: Any = None) -> None:
-    """`access.changed` to the affected user (their stream ends with `reconnect`), plus `project.changed`
-    `["members"]` to the project."""
+    """`access.changed` to the affected user (their stream ends with `reconnect`), plus whatever the registered access
+    hooks add (tracking: `project.changed` `["members"]` to the project)."""
     project = str(project_id) if project_id else None
     publish(
         "core.access.changed",
@@ -215,18 +115,17 @@ def publish_access(workspace: Any, user_id: Any, project_id: Any, *, actor: Any 
         actor=actor,
         data={"projectId": project},
     )
-    if project:
-        publish(
-            "tracking.project.changed", workspace=workspace, project=project, actor=actor, data={"areas": ["members"]}
-        )
+    for hook in _ACCESS_HOOKS:
+        hook(workspace, user_id, project, actor=actor)
 
 
 def _publish_role_holders(row: Any) -> None:
+    from core.access import scopes
     from core.workspaces.models import WorkspaceMember
-    from modules.tracking.projects.models import ProjectMember
 
-    users = set(ProjectMember.objects.filter(role_id=row.entity_id).values_list("user_id", flat=True))
-    users |= set(WorkspaceMember.objects.filter(role_id=row.entity_id).values_list("user_id", flat=True))
+    users = set(WorkspaceMember.objects.filter(role_id=row.target_id).values_list("user_id", flat=True))
+    for provider in scopes.providers():
+        users |= set(provider.role_assignments(row.target_id).values_list("user_id", flat=True))
     for user_id in sorted(users, key=str):
         publish(
             "core.access.changed",
@@ -238,27 +137,6 @@ def _publish_role_holders(row: Any) -> None:
 
 
 # ───────────────────────── explicit publication points ─────────────────────────
-
-
-def publish_task_moved(actor: Any, task: Any, fields: list[str]) -> None:
-    publish(
-        "tracking.task.changed",
-        workspace=task.project.workspace_id,
-        project=task.project_id,
-        actor=actor,
-        data={"taskId": str(task.pk), "key": task.key, "op": "moved", "version": task.version, "fields": fields},
-    )
-
-
-def publish_bulk(actor: Any, project: Any, task_ids: list[Any], op: str) -> None:
-    ids = [str(i) for i in task_ids]
-    publish(
-        "tracking.tasks.bulk_changed",
-        workspace=project.workspace_id,
-        project=project.pk,
-        actor=actor,
-        data={"taskIds": ids if len(ids) <= MAX_BULK_IDS else None, "op": op},
-    )
 
 
 def publish_inbox(user: Any, workspace_ids: list[Any] | None = None) -> None:

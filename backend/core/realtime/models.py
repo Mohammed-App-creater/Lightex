@@ -10,7 +10,6 @@ from django.db import models
 
 from core.common.models import BaseModel
 
-LOCATION_KINDS = [("board", "Board"), ("dashboard", "Dashboard"), ("task", "Task")]
 STATES = [("viewing", "Viewing"), ("editing", "Editing")]
 
 
@@ -38,7 +37,7 @@ class PresenceSession(BaseModel):
     session_id = models.UUIDField()
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")
-    location_kind = models.CharField(max_length=10, choices=LOCATION_KINDS)
+    location_kind = models.CharField(max_length=10)  # a registered presence location kind
     location_id = models.UUIDField()
     #: A personal dashboard: stored, never broadcast or listed.
     private = models.BooleanField(default=False)

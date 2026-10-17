@@ -9,7 +9,7 @@ from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from core.audit.models import AuditLog
-from core.common.testing import add_member, add_project_member, client_for, make_project
+from core.common.testing import add_member, client_for
 from core.realtime.protocol import matches
 from modules.tracking.integrations import processor, runner
 from modules.tracking.integrations.models import AutomationRule, Integration
@@ -17,6 +17,7 @@ from modules.tracking.integrations.providers.base import get_provider
 from modules.tracking.integrations.providers.fake import FAKE
 from modules.tracking.tasks.models import ExternalLink
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import add_project_member, make_project
 
 from .conftest import make_integration, track
 from .test_processing import pr

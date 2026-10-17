@@ -26,7 +26,8 @@ from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
 
-from core.access import services as access
+from core.access import scopes
+from core.access.catalogue import PROJECT
 from core.common.utils import iso
 
 from .hub import WAKE, Slot, hub
@@ -50,16 +51,9 @@ class StreamContext:
 
 
 def visible_project_ids(user: Any, workspace: Any) -> frozenset[str]:
-    """Projects of the workspace where the user has `project.view` (archived included, soft-deleted excluded)."""
-    from modules.tracking.projects.models import ProjectMember
-
-    ids = list(
-        ProjectMember.objects.filter(
-            user_id=user.pk, project__workspace=workspace, project__deleted_at__isnull=True
-        ).values_list("project_id", flat=True)
-    )
-    perms = access.prefetch_project_permissions(user, ids)
-    return frozenset(str(pid) for pid, codes in perms.items() if "tracking.project.view" in codes)
+    """Scope ids (projects) of the workspace the user may see, from the `project` scope provider."""
+    provider = scopes.provider(PROJECT)
+    return provider.visible_ids(user, workspace) if provider is not None else frozenset()
 
 
 def _row_event(row: RealtimeEvent) -> dict[str, Any]:
@@ -87,7 +81,7 @@ def replay(ctx: StreamContext) -> tuple[list[dict[str, Any]], str | None]:
     limit = settings.REALTIME_REPLAY_LIMIT
     rows = list(
         RealtimeEvent.objects.filter(workspace_id=ctx.workspace_id, id__gt=cursor)
-        .exclude(type__in=VOLATILE_TYPES)
+        .exclude(type__in=list(VOLATILE_TYPES))
         .filter(Q(user_id=ctx.user_id) | Q(user__isnull=True, project_id__in=list(ctx.project_ids)))
         .order_by("id")[: limit + 1]
     )

@@ -8,7 +8,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from core.audit.models import AuditLog
-from core.common.testing import add_project_member, client_for
+from core.common.testing import client_for
 from core.notifications.models import Notification
 from modules.tracking.integrations import fake_payloads, processor, runner
 from modules.tracking.integrations.models import AutomationRule, Integration, Repository, SyncRun, WebhookDelivery
@@ -24,6 +24,7 @@ from modules.tracking.integrations.providers.base import (
 from modules.tracking.integrations.providers.fake import FAKE
 from modules.tracking.tasks.models import ExternalLink, TaskStatusHistory
 from modules.tracking.tasks.services import create_task, update_task
+from modules.tracking.testing import add_project_member
 
 from .conftest import make_integration, track
 

@@ -4,11 +4,12 @@ import pytest
 from freezegun import freeze_time
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_project_member, client_for, make_project
+from core.common.testing import UserFactory, client_for
 from modules.tracking.planning.models import Epic, Milestone, Objective
 from modules.tracking.planning.selectors import expected_percent, progress
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task, delete_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

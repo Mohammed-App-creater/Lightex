@@ -175,13 +175,15 @@ def update_role(actor: Any, role: Role, data: dict[str, Any]) -> Role:
 @transaction.atomic
 def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
     from core.workspaces.models import Invitation, WorkspaceMember
-    from modules.tracking.projects.models import ProjectMember
+
+    from . import scopes
 
     if role.is_system:
         raise forbidden("System roles can’t be deleted.")
     ws_members = WorkspaceMember.objects.filter(role=role)
-    project_members = ProjectMember.objects.filter(role=role)
-    in_use = ws_members.exists() or project_members.exists()
+    # Memberships in module scopes (project members) that use this role, from each scope provider.
+    scope_members = [p.role_assignments(role) for p in scopes.providers()]
+    in_use = ws_members.exists() or any(qs.exists() for qs in scope_members)
     target = None
     if reassign_to:
         try:
@@ -194,7 +196,9 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
         if target is None:
             raise invalid({"reassignTo": "Pick another role in the same scope"})
     if in_use and target is None:
-        count = ws_members.values("user").distinct().count() + project_members.values("user").distinct().count()
+        count = ws_members.values("user").distinct().count() + sum(
+            qs.values("user").distinct().count() for qs in scope_members
+        )
         raise conflict("role_in_use", "Reassign members before deleting this role.", {"memberCount": count})
     if target is not None:
         target_codes = set(target.permissions.values_list("code", flat=True))
@@ -207,7 +211,8 @@ def delete_role(actor: Any, role: Role, reassign_to: Any = None) -> None:
         ):
             raise conflict("last_owner", "A workspace needs at least one owner.")
         ws_members.update(role=target)
-        project_members.update(role=target)
+        for qs in scope_members:
+            qs.update(role=target)
         Invitation.objects.filter(role=role, status="pending").update(role=target)
     record(
         workspace=role.workspace,

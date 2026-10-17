@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 
 
 @pytest.fixture(autouse=True)
@@ -12,24 +12,6 @@ def _fresh_hub():
     hub.reset()
     yield
     hub.reset()
-
-
-class World:
-    def __init__(self, ws, owner):
-        self.ws = ws
-        self.owner = owner
-        self.project = make_project(ws, owner, key="PRJ")
-        self.other = make_project(ws, owner, key="OPS", name="Ops")
-        self.sam = add_project_member(self.project, key="project_member")
-        self.viewer = add_project_member(self.project, key="viewer")
-        from core.realtime.models import RealtimeEvent
-
-        RealtimeEvent.objects.all().delete()  # the setup's own events
-
-
-@pytest.fixture
-def world(ws, owner):
-    return World(ws, owner)
 
 
 def parse_sse(chunks):

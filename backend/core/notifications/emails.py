@@ -28,9 +28,6 @@ TEMPLATES = {
 
 _ANCHOR = re.compile(r'<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S | re.I)
 
-PRIORITY_LABEL = {0: "No priority", 1: "Low", 2: "Medium", 3: "High", 4: "Urgent"}
-PRIORITY_COLOR = {0: "#8794B6", 1: "#8794B6", 2: "#3B7BFF", 3: "#E58A00", 4: "#E5484D"}
-
 
 def base_context(workspace_slug: str | None = None) -> dict[str, Any]:
     prefs = (

@@ -19,9 +19,11 @@ class AuditLog(BaseModel):
     # Board 37: "user" or "integration"; actor_ref holds the integration id for integration actors.
     actor_kind = models.CharField(max_length=12, default="user")
     actor_ref = models.CharField(max_length=64, blank=True, default="")
-    action = models.CharField(max_length=64)  # "<entity>.<verb>", e.g. task.status_changed
-    entity_type = models.CharField(max_length=32)
-    entity_id = models.CharField(max_length=64, blank=True, default="")
+    action = models.CharField(max_length=64)  # "<module>.<entity>.<verb>", e.g. tracking.task.status_changed
+    module = models.CharField(max_length=32, blank=True, default="")
+    # The record acted on: `<module>.<entity>` (tracking.task, core.comment, core.role, …) and its id.
+    target_type = models.CharField(max_length=64)
+    target_id = models.CharField(max_length=64, blank=True, default="")
     entity_key = models.CharField(max_length=40, null=True, blank=True)
     target = models.CharField(max_length=300, blank=True, default="")
     task_key = models.CharField(max_length=40, null=True, blank=True)

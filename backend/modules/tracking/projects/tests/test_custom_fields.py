@@ -3,11 +3,12 @@
 import pytest
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_project_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
 from modules.tracking.projects.custom_fields import MAX_FIELDS
 from modules.tracking.projects.models import CustomField, CustomFieldOption
 from modules.tracking.tasks.models import TaskFieldValue
 from modules.tracking.tasks.services import create_task, delete_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

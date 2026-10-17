@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from core.collab.storage import get_storage
-from core.common.testing import UserFactory, add_project_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
+from modules.tracking.testing import add_project_member, make_project
 
 DATA = Path(__file__).parent / "data"
 VECTORS: dict[str, Any] = json.loads((DATA / "import_vectors.json").read_text(encoding="utf-8"))

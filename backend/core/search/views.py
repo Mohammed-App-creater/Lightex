@@ -18,13 +18,13 @@ class WorkspaceSearchView(WorkspaceScopedView):
         tags=["search"],
         parameters=[
             OpenApiParameter("q", str),
-            OpenApiParameter("filter[type]", str, many=True, enum=["task", "project", "user"]),
+            OpenApiParameter("filter[type]", str, many=True, description="Registered result types (and user)"),
             OpenApiParameter("limit", int),
         ],
     )
     def get(self, request, slug):
         types = filter_values(request, "type")
-        if any(t not in ("task", "project", "user") for t in types):
+        if any(t not in services.workspace_types() for t in types):
             raise invalid({"filter[type]": "Search tasks, projects or users"})
         limit = parse_limit(request.query_params.get("limit"), 20, 50)
         return Response(
@@ -33,7 +33,7 @@ class WorkspaceSearchView(WorkspaceScopedView):
 
 
 class GlobalSearchView(APIView):
-    """GET search?q=&type=task|comment: full-text search across every project the user belongs to."""
+    """GET search?q=&type=: full-text search across every registered provider (tasks and comments for tracking)."""
 
     permission_classes = [IsAuthenticated]
 
@@ -41,7 +41,7 @@ class GlobalSearchView(APIView):
         tags=["search"],
         parameters=[
             OpenApiParameter("q", str, required=True),
-            OpenApiParameter("type", str, enum=["task", "comment"]),
+            OpenApiParameter("type", str, description="A registered global result type (task, comment, …)"),
             OpenApiParameter("limit", int),
         ],
     )
@@ -50,12 +50,8 @@ class GlobalSearchView(APIView):
         if len(q) < 2:
             raise invalid({"q": "Type at least 2 characters"})
         kind = request.query_params.get("type")
-        if kind not in (None, "", "task", "comment"):
+        if kind not in (None, "") and kind not in services.global_types():
             raise invalid({"type": "Search tasks or comments"})
         limit = parse_limit(request.query_params.get("limit"), 20, 50)
-        results: list[dict] = []
-        if kind in (None, "", "task"):
-            results.extend(services.task_result(t) for t in services.search_tasks(request.user, q, limit=limit))
-        if kind in (None, "", "comment"):
-            results.extend(services.comment_result(c) for c in services.search_comments(request.user, q, limit=limit))
+        results = services.global_search(request.user, q, kind or None, limit)
         return Response({"data": results, "nextCursor": None})

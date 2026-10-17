@@ -102,13 +102,13 @@ def _logged(t: Task) -> int:
 def _comments(t: Task) -> int:
     from core.collab.models import Comment
 
-    return Comment.objects.filter(task=t).count()
+    return Comment.objects.filter(target_type="tracking.task", target_id=t.pk).count()
 
 
 def _attachments(t: Task) -> int:
     from core.collab.models import Attachment
 
-    return Attachment.objects.filter(task=t, status="ready").count()
+    return Attachment.objects.filter(target_type="tracking.task", target_id=t.pk, status="ready").count()
 
 
 def _counter(t: Task, attr: str, fallback) -> int:

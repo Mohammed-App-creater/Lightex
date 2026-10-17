@@ -5,13 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from core.access.permissions import MEMBER, ScopedView
 from core.common.params import body
 from core.common.throttles import UploadThrottle
 from core.common.utils import iso
-from modules.tracking.tasks.views import TaskScopedView
 
 from . import services
 from .models import Attachment, Comment
@@ -21,7 +21,8 @@ from .storage import LocalStorage, expires_at, get_storage
 def comment_data(c: Comment) -> dict:
     return {
         "id": str(c.pk),
-        "taskId": str(c.task_id),
+        "targetType": c.target_type,
+        "targetId": str(c.target_id),
         "authorId": str(c.author_id) if c.author_id else None,
         "body": c.body,
         "mentions": [str(u) for u in c.mentions.values_list("id", flat=True)],
@@ -33,7 +34,8 @@ def comment_data(c: Comment) -> dict:
 def attachment_data(a: Attachment) -> dict:
     return {
         "id": str(a.pk),
-        "taskId": str(a.task_id),
+        "targetType": a.target_type,
+        "targetId": str(a.target_id),
         "uploaderId": str(a.uploader_id) if a.uploader_id else None,
         "fileName": a.file_name,
         "size": a.size,
@@ -48,7 +50,8 @@ CommentOut = inline_serializer(
     "Comment",
     {
         "id": serializers.UUIDField(),
-        "taskId": serializers.UUIDField(),
+        "targetType": serializers.CharField(),
+        "targetId": serializers.UUIDField(),
         "authorId": serializers.UUIDField(allow_null=True),
         "body": serializers.JSONField(),
         "mentions": serializers.ListField(child=serializers.UUIDField()),
@@ -61,7 +64,8 @@ AttachmentOut = inline_serializer(
     "Attachment",
     {
         "id": serializers.UUIDField(),
-        "taskId": serializers.UUIDField(),
+        "targetType": serializers.CharField(),
+        "targetId": serializers.UUIDField(),
         "uploaderId": serializers.UUIDField(allow_null=True),
         "fileName": serializers.CharField(),
         "size": serializers.IntegerField(),
@@ -84,60 +88,48 @@ UploadTicketOut = inline_serializer(
 )
 
 
-class TaskCommentsView(TaskScopedView):
-    required = {"GET": "tracking.project.view", "POST": "tracking.comment.create"}
+class TargetView(APIView):
+    """Base for `targets/{targetType}/{targetId}/…`: the target must exist and be visible (its resolver decides)."""
 
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.resolver, self.target_id = services.target(request.user, kwargs["target_type"], kwargs["target_id"])
+
+
+class TargetCommentsView(TargetView):
     @extend_schema(tags=["comments"], responses={200: CommentOut})
-    def get(self, request, task_id):
-        comments = Comment.objects.filter(task=self.task).prefetch_related("mentions").order_by("created_at")
-        return Response([comment_data(c) for c in comments])
+    def get(self, request, target_type, target_id):
+        return Response([comment_data(c) for c in services.list_comments(self.resolver, self.target_id)])
 
     @extend_schema(tags=["comments"], request=CommentIn, responses={201: CommentOut})
-    def post(self, request, task_id):
-        comment = services.create_comment(request.user, self.task, body(request).get("body"))
+    def post(self, request, target_type, target_id):
+        comment = services.create_comment(request.user, self.resolver.key, self.target_id, body(request).get("body"))
         return Response(comment_data(comment), status=status.HTTP_201_CREATED)
 
 
-class CommentDetailView(ScopedView):
-    required = {"PATCH": MEMBER, "DELETE": MEMBER}
-
-    def get_scope(self):
-        self.comment = services.get_comment(self.request.user, self.kwargs["comment_id"])
-        return self.comment.task.project
+class CommentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["comments"], request=CommentIn, responses={200: CommentOut})
     def patch(self, request, comment_id):
-        return Response(comment_data(services.update_comment(request.user, self.comment, body(request).get("body"))))
+        comment = services.get_comment(request.user, comment_id)
+        return Response(comment_data(services.update_comment(request.user, comment, body(request).get("body"))))
 
     @extend_schema(tags=["comments"], responses={204: None})
     def delete(self, request, comment_id):
-        services.delete_comment(request.user, self.comment)
+        services.delete_comment(request.user, services.get_comment(request.user, comment_id))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TaskAttachmentsView(TaskScopedView):
-    """GET the task's files; POST {uploadId} confirms an upload (client contract)."""
-
-    required = {"GET": "tracking.project.view", "POST": "tracking.attachment.upload"}
-
+class TargetAttachmentsView(TargetView):
     @extend_schema(tags=["attachments"], responses={200: AttachmentOut})
-    def get(self, request, task_id):
-        files = Attachment.objects.filter(task=self.task, status="ready").order_by("created_at")
-        return Response([attachment_data(a) for a in files])
-
-    @extend_schema(
-        tags=["attachments"],
-        request=inline_serializer("ConfirmUpload", {"uploadId": serializers.UUIDField()}),
-        responses={201: AttachmentOut},
-    )
-    def post(self, request, task_id):
-        attachment = services.pending_upload(request.user, self.task, body(request).get("uploadId"))
-        attachment = services.confirm_upload(request.user, attachment)
-        return Response(attachment_data(attachment), status=status.HTTP_201_CREATED)
+    def get(self, request, target_type, target_id):
+        return Response([attachment_data(a) for a in services.list_attachments(self.resolver, self.target_id)])
 
 
-class UploadUrlView(TaskScopedView):
-    required = {"POST": "tracking.attachment.upload"}
+class UploadUrlView(TargetView):
     throttle_classes = [UploadThrottle]
 
     @extend_schema(
@@ -152,8 +144,8 @@ class UploadUrlView(TaskScopedView):
         ),
         responses={200: UploadTicketOut},
     )
-    def post(self, request, task_id):
-        attachment, url, headers = services.start_upload(request.user, self.task, body(request))
+    def post(self, request, target_type, target_id):
+        attachment, url, headers = services.start_upload(request.user, self.resolver.key, self.target_id, body(request))
         return Response(
             {
                 "uploadId": str(attachment.pk),
@@ -165,35 +157,32 @@ class UploadUrlView(TaskScopedView):
         )
 
 
-class AttachmentScopedView(ScopedView):
-    def get_scope(self):
-        self.attachment = services.get_attachment(self.request.user, self.kwargs["attachment_id"])
-        return self.attachment.task.project
+class AttachmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.attachment = services.get_attachment(request.user, kwargs["attachment_id"])
 
 
-class AttachmentConfirmView(AttachmentScopedView):
-    """POST attachments/{id}/confirm (brief's form of the confirm step)."""
-
-    required = {"POST": "tracking.attachment.upload"}
+class AttachmentConfirmView(AttachmentView):
+    """POST attachments/{uploadId}/confirm: HEAD-verifies the upload and marks it ready."""
 
     @extend_schema(tags=["attachments"], request=None, responses={200: AttachmentOut})
     def post(self, request, attachment_id):
-        attachment = services.pending_upload(request.user, self.attachment.task, self.attachment.pk)
+        services.require_attach(request.user, self.attachment)
+        attachment = services.pending_upload(request.user, self.attachment)
         return Response(attachment_data(services.confirm_upload(request.user, attachment)))
 
 
-class AttachmentDetailView(AttachmentScopedView):
-    required = {"DELETE": MEMBER}
-
+class AttachmentDetailView(AttachmentView):
     @extend_schema(tags=["attachments"], responses={204: None})
     def delete(self, request, attachment_id):
         services.delete_attachment(request.user, self.attachment)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class AttachmentDownloadView(AttachmentScopedView):
-    required = {"GET": "tracking.project.view"}
-
+class AttachmentDownloadView(AttachmentView):
     @extend_schema(
         tags=["attachments"],
         responses=inline_serializer(

@@ -704,7 +704,7 @@ def test_more_than_20_labels(world):
 
 
 def test_no_notification_when_the_creator_left_the_project(world, settings, monkeypatch):
-    from core.notifications.events import emit
+    from modules.tracking.outbox import emit
     from modules.tracking.projects.models import ProjectMember
 
     client = world.client()
@@ -750,7 +750,7 @@ def test_purge_keeps_running_jobs(world, monkeypatch):
 
 
 def test_project_purge_removes_import_files(world):
-    from core.audit.trash import purge_project
+    from modules.tracking.hooks.trash import purge_project
 
     client = world.client()
     job = mapped_sample(world)

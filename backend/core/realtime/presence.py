@@ -15,16 +15,18 @@ import datetime as dt
 import re
 import uuid
 from collections import OrderedDict
+from collections.abc import Callable
 from typing import Any
 
 from django.conf import settings
 from django.db import IntegrityError, connection, transaction
 from django.utils import timezone
 
+from core.access import scopes
 from core.access import services as access
+from core.access.catalogue import PROJECT
 from core.common.exceptions import forbidden, invalid, not_found
 from core.common.utils import iso
-from modules.tracking.projects.selectors import project_for
 
 from .models import PresenceSession
 from .services import publish
@@ -34,6 +36,26 @@ TYPING_SECONDS = 8
 HEARTBEAT_SECONDS = 20
 TYPING_FIELDS = ("comment", "description")
 NOT_VISIBLE = "That location doesn’t exist, or you can’t see it."
+
+#: Location kind → `resolve(user, workspace, location_id) -> (scope object, private?)`, raising 404 when the
+#: location doesn't exist in the workspace. Modules register their kinds (tracking: board, dashboard, task).
+LocationResolver = Callable[[Any, Any, uuid.UUID], tuple[Any, bool]]
+_LOCATIONS: dict[str, LocationResolver] = {}
+
+
+def register_location(kind: str, resolve: LocationResolver) -> None:
+    _LOCATIONS[kind] = resolve
+
+
+def location_kinds() -> list[str]:
+    return list(_LOCATIONS)
+
+
+def _pick_kind() -> str:
+    kinds = location_kinds()
+    return (
+        f"Pick {', '.join(kinds[:-1])} or {kinds[-1]}" if len(kinds) > 1 else f"Pick {''.join(kinds) or 'a location'}"
+    )
 
 
 # ───────────────────────── validation ─────────────────────────
@@ -45,8 +67,8 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
     location: dict[str, Any] = raw_location if isinstance(raw_location, dict) else {}
     errors: dict[str, str] = {}
     kind = location.get("kind")
-    if kind not in ("board", "dashboard", "task"):
-        errors["location.kind"] = "Pick board, dashboard or task"
+    if kind not in _LOCATIONS:
+        errors["location.kind"] = _pick_kind()
     location_id = location.get("id")
     if not isinstance(location_id, str) or not location_id:
         errors["location.id"] = "Pick a location"
@@ -79,45 +101,25 @@ def _uuid(value: Any) -> uuid.UUID | None:
         return None
 
 
-def _require_view(user: Any, project: Any) -> Any:
-    project = project_for(user, project.pk)  # not on the project → v1 403 project_membership_required
-    if not access.can(user, "tracking.project.view", project):
-        raise forbidden(details={"permission": "tracking.project.view"})
-    return project
+def require_view(user: Any, scope_id: Any) -> Any:
+    """The scope (project) if the user may see it: the provider's 404 / 403 membership errors, then its view
+    permission (403)."""
+    provider = scopes.provider(PROJECT)
+    if provider is None:
+        raise not_found(NOT_VISIBLE)
+    scope = provider.get_visible(user, scope_id)
+    if not access.can(user, provider.view_permission, scope):
+        raise forbidden(details={"permission": provider.view_permission})
+    return scope
 
 
 def resolve_location(user: Any, workspace: Any, kind: str, raw_id: str) -> tuple[Any, bool]:
-    """A location → (its project, private?). Unknown or invisible → 404 (§2.8)."""
-    from modules.tracking.dashboards.models import Dashboard
-    from modules.tracking.projects.models import Project
-    from modules.tracking.tasks.models import Task
-
+    """A location → (its scope, private?). Unknown or invisible → 404 (§2.8)."""
     location_id = _uuid(raw_id)
-    if location_id is None:
+    if location_id is None or kind not in _LOCATIONS:
         raise not_found(NOT_VISIBLE)
-    alive = {"workspace": workspace, "deleted_at__isnull": True}
-    if kind == "board":
-        project = Project.objects.filter(pk=location_id, **alive).first()
-        if project is None:
-            raise not_found(NOT_VISIBLE)
-        return _require_view(user, project), False
-    if kind == "task":
-        task = (
-            Task.objects.select_related("project")
-            .filter(pk=location_id, project__workspace=workspace, project__deleted_at__isnull=True)
-            .first()
-        )
-        if task is None:
-            raise not_found(NOT_VISIBLE)
-        return _require_view(user, task.project), False
-    dashboard = (
-        Dashboard.objects.select_related("project")
-        .filter(pk=location_id, project__workspace=workspace, project__deleted_at__isnull=True)
-        .first()
-    )
-    if dashboard is None or (dashboard.visibility == "personal" and dashboard.owner_id != user.pk):
-        raise not_found(NOT_VISIBLE)
-    return _require_view(user, dashboard.project), dashboard.visibility == "personal"
+    scope, private = _LOCATIONS[kind](user, workspace, location_id)
+    return require_view(user, scope.pk), private
 
 
 # ───────────────────────── rosters ─────────────────────────

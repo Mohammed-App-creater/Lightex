@@ -369,7 +369,7 @@ def request_access(actor: Any, project: Project, message: str = "") -> AccessReq
             target=project.name,
             entity_id=req.pk,
         )
-        from core.notifications.events import emit
+        from modules.tracking.outbox import emit
 
         emit(
             "tracking.project.access_requested",

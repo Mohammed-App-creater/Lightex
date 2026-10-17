@@ -23,6 +23,8 @@ ignore = [
 "**/tests/**" = ["S101", "S105", "S106", "S311"]
 "conftest.py" = ["S101", "S105", "S106"]
 "core/common/management/commands/seed_demo.py" = ["S311", "S105"]
+"modules/tracking/hooks/seed.py" = ["S311", "S105"]
+"modules/tracking/testing.py" = ["S105"]
 "config/settings/*.py" = ["S105"]
 "core/common/testing.py" = ["S105"]
 
@@ -38,7 +40,7 @@ warn_unused_ignores = false
 exclude = ["migrations/", "[.]venv/"]
 
 [[tool.mypy.overrides]]
-module = ["core.*.tests.*", "modules.tracking.*.tests.*", "conftest", "core.common.testing"]
+module = ["core.*.tests.*", "core.tests.*", "modules.tracking.*.tests.*", "modules.tracking.tests.*", "conftest", "core.common.testing", "modules.tracking.testing"]
 ignore_errors = true
 
 [tool.django-stubs]
@@ -71,59 +73,7 @@ name = "Core never imports modules"
 type = "forbidden"
 source_modules = ["core"]
 forbidden_modules = ["modules"]
-ignore_imports = [
-  # Today's core -> tracking imports (docs/platform/stage1-contract.md §4). This list may shrink but never grow.
-  "core.access.roles -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.access.services -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.audit.trash -> modules.tracking.imports.services",  # Stage 2 removes
-  "core.audit.trash -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.audit.trash -> modules.tracking.projects.services",  # Stage 2 removes
-  "core.audit.trash -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.audit.trash -> modules.tracking.tasks.services",  # Stage 2 removes
-  "core.audit.views -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.audit.views -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.audit.views -> modules.tracking.tasks.selectors",  # Stage 2 removes
-  "core.channels.runner -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.channels.runner -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.collab.services -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.collab.services -> modules.tracking.tasks.selectors",  # Stage 2 removes
-  "core.collab.views -> modules.tracking.tasks.views",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.dashboards.models",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.dashboards.widgets",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.integrations.models",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.integrations.processor",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.integrations.runner",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.planning.models",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.tasks.services",  # Stage 2 removes
-  "core.common.management.commands.seed_demo -> modules.tracking.timetracking.models",  # Stage 2 removes
-  "core.common.testing -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.common.testing -> modules.tracking.projects.services",  # Stage 2 removes
-  "core.notifications.handlers -> modules.tracking.imports.models",  # Stage 2 removes
-  "core.notifications.handlers -> modules.tracking.planning.models",  # Stage 2 removes
-  "core.notifications.handlers -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.notifications.handlers -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.notifications.management.commands.send_due_soon -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.notifications.views -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.realtime.presence -> modules.tracking.dashboards.models",  # Stage 2 removes
-  "core.realtime.presence -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.realtime.presence -> modules.tracking.projects.selectors",  # Stage 2 removes
-  "core.realtime.presence -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.realtime.services -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.realtime.stream -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.realtime.views -> modules.tracking.projects.selectors",  # Stage 2 removes
-  "core.search.services -> modules.tracking.projects.models",  # Stage 2 removes
-  "core.search.services -> modules.tracking.projects.selectors",  # Stage 2 removes
-  "core.search.services -> modules.tracking.projects.serializers",  # Stage 2 removes
-  "core.search.services -> modules.tracking.tasks.models",  # Stage 2 removes
-  "core.search.services -> modules.tracking.tasks.selectors",  # Stage 2 removes
-  "core.search.services -> modules.tracking.tasks.serializers",  # Stage 2 removes
-  "core.workspaces.services -> modules.tracking.dashboards.models",  # Stage 2 removes
-  "core.workspaces.services -> modules.tracking.projects.models",  # Stage 2 removes
-  # Core's own tests build tracking fixtures (projects, tasks) to exercise core features.
-  "core.**.tests.** -> modules.**",  # Stage 2 removes
-]
+# No exceptions (platform Stage 2): modules plug into core through registries filled from AppConfig.ready().
 
 [[tool.importlinter.contracts]]
 name = "Modules are independent"

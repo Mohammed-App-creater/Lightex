@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from core.audit.services import change, record
 from core.common.exceptions import conflict, invalid
-from core.notifications.events import emit
+from modules.tracking.outbox import emit
 from modules.tracking.tasks.models import Task
 
 from .models import Sprint, SprintScopeChange

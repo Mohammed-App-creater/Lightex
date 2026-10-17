@@ -5,9 +5,10 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from core.audit.models import AuditLog
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.tasks.models import Task, TaskDependency
 from modules.tracking.tasks.services import DEPENDENCY_LIMIT, create_task, delete_task, restore_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

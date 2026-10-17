@@ -31,7 +31,7 @@ from core.collab.storage import get_storage
 from core.common import fractional
 from core.common.exceptions import ApiError
 from core.common.richtext import doc_text, plain_doc, sanitize_doc
-from core.notifications.events import emit
+from modules.tracking.outbox import emit
 from modules.tracking.planning.models import Epic, Sprint, SprintScopeChange
 from modules.tracking.projects.models import (
     FIELD_COLORS,

@@ -9,23 +9,32 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.access import scopes
+from core.access.catalogue import PROJECT
 from core.common.exceptions import invalid, not_found
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_value
 from core.common.utils import iso
+from core.events.registry import preference_types
 from core.realtime.services import publish_inbox
-from modules.tracking.projects.models import ProjectMember
 
 from .handlers import preferences_for
-from .models import CHANNELS, EVENTS, Notification
+from .models import CHANNELS, Notification
 
 TABS = {"all": Q(), "mentions": Q(type="mention"), "assigned": Q(type="assigned")}
 
 
 def inbox(user, workspace_id=None):
-    """In-app notifications for projects the user still belongs to."""
-    mine = ProjectMember.objects.filter(user=user, project__deleted_at__isnull=True).values("project_id")
-    qs = Notification.objects.filter(recipient=user, in_app=True, project_id__in=mine)
+    """In-app notifications the user may still see: rows scoped to a project need a live membership there (the
+    `project` scope provider decides); other rows need an active membership of their workspace."""
+    from core.workspaces.models import WorkspaceMember
+
+    workspaces = WorkspaceMember.objects.filter(user=user, status="active").values("workspace_id")
+    visible = Q(project_id__isnull=True, workspace_id__in=workspaces)
+    provider = scopes.provider(PROJECT)
+    if provider is not None:
+        visible |= Q(project_id__in=provider.member_scope_ids(user))
+    qs = Notification.objects.filter(recipient=user, in_app=True).filter(visible)
     if workspace_id:
         qs = qs.filter(workspace_id=workspace_id) if _uuid(workspace_id) else qs.none()
     return qs.select_related("project", "task")
@@ -46,14 +55,18 @@ def notification_data(n: Notification) -> dict:
         "id": str(n.pk),
         "type": n.type,
         "actorId": str(n.actor_id) if n.actor_id else None,
-        "projectId": str(n.project_id),
-        "projectName": n.project.name,
+        "projectId": str(n.project_id) if n.project_id else None,
+        "projectName": n.project.name if n.project is not None else None,
         "taskId": str(n.task_id) if n.task_id else None,
         "taskKey": n.task.key if n.task is not None else None,
         "taskTitle": n.task.title if n.task is not None else None,
         "payload": n.payload,
         "createdAt": iso(n.created_at),
         "readAt": iso(n.read_at),
+        "targetType": n.target_type or None,
+        "targetId": str(n.target_id) if n.target_id else None,
+        "title": n.title or None,
+        "link": n.link or None,
     }
 
 
@@ -65,14 +78,18 @@ NotificationOut = inline_serializer(
             choices=["assigned", "mention", "status", "comment", "due", "sprint", "access", "import"]
         ),
         "actorId": serializers.UUIDField(allow_null=True),
-        "projectId": serializers.UUIDField(),
-        "projectName": serializers.CharField(),
+        "projectId": serializers.UUIDField(allow_null=True),
+        "projectName": serializers.CharField(allow_null=True),
         "taskId": serializers.UUIDField(allow_null=True),
         "taskKey": serializers.CharField(allow_null=True),
         "taskTitle": serializers.CharField(allow_null=True),
         "payload": serializers.JSONField(),
         "createdAt": serializers.DateTimeField(),
         "readAt": serializers.DateTimeField(allow_null=True),
+        "targetType": serializers.CharField(allow_null=True),
+        "targetId": serializers.UUIDField(allow_null=True),
+        "title": serializers.CharField(allow_null=True),
+        "link": serializers.CharField(allow_null=True),
     },
 )
 QuietHoursSchema = inline_serializer(
@@ -92,6 +109,7 @@ PrefsSchema = inline_serializer(
         "events": serializers.DictField(child=serializers.DictField(child=serializers.BooleanField())),
         "emailDelivery": serializers.CharField(),
         "quietHours": QuietHoursSchema,
+        "labels": serializers.DictField(child=serializers.CharField(), read_only=True),
     },
 )
 _HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -102,6 +120,7 @@ def prefs_data(prefs) -> dict:
 
     return {
         "events": prefs.events,
+        "labels": {t.key: t.label for t in preference_types()},
         "emailDelivery": prefs.email_delivery,
         "quietHours": {
             "enabled": prefs.quiet_enabled,
@@ -276,7 +295,8 @@ class PreferencesView(APIView):
         quiet = _quiet_fields(data["quietHours"]) if "quietHours" in data else None
         prefs = preferences_for(request.user)
         clean = {k: dict(v) for k, v in (prefs.events or {}).items() if isinstance(v, dict)}
-        for key in EVENTS:  # only the channel keys present change (a v1 client keeps the board 38 keys)
+        # Only the channel keys present change (a v1 client keeps the board 38 keys).
+        for key in (t.key for t in preference_types()):
             value = events.get(key)
             if isinstance(value, dict):
                 row = clean.setdefault(key, {})

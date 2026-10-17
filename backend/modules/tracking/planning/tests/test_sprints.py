@@ -2,10 +2,11 @@ import pytest
 from freezegun import freeze_time
 
 from core.audit.models import AuditLog
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.planning.models import Sprint, SprintScopeChange
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

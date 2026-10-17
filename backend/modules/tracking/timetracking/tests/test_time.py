@@ -6,10 +6,11 @@ import pytest
 from freezegun import freeze_time
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_project_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
 from modules.tracking.projects.models import ProjectMember
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task, delete_task
+from modules.tracking.testing import add_project_member, make_project
 from modules.tracking.timetracking.models import RunningTimer, TimeEntry
 
 pytestmark = pytest.mark.django_db
@@ -119,7 +120,7 @@ def test_delete_own_any_and_forbidden(owner, project, task):
     assert client_for(member).delete(f"/api/v1/tracking/time-entries/{mine}").status_code == 204
     assert client_for(owner).delete(f"/api/v1/tracking/time-entries/{theirs}").status_code == 204  # time.delete_any
     assert not TimeEntry.objects.exists()
-    row = AuditLog.objects.get(action="tracking.task.time_entry_deleted", entity_id=theirs)
+    row = AuditLog.objects.get(action="tracking.task.time_entry_deleted", target_id=theirs)
     assert row.data == {"minutes": 90, "date": TODAY, "owner": other.name}
 
 

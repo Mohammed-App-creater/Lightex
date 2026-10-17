@@ -1,11 +1,12 @@
 import pytest
 from freezegun import freeze_time
 
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.planning.models import Milestone, Objective, Sprint
 from modules.tracking.planning.sprints import complete_sprint, start_sprint
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task, update_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

@@ -7,8 +7,9 @@ from django.test import override_settings
 
 from core.collab import storage as storage_module
 from core.collab.storage import get_storage
-from core.common.testing import UserFactory, add_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, add_member, client_for, make_workspace
 from modules.tracking.imports.models import ImportJob
+from modules.tracking.testing import make_project
 
 from .fixtures import JIRA, SAMPLE, analyzed, create, mapped_sample, sample_text, save_mapping, start, upload
 

@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.access.permissions import MEMBER, ScopedView
-from core.audit import selectors as audit_selectors
 from core.common.pagination import paginate_queryset
 from core.common.params import body, filter_values
 from core.workspaces.views import WorkspaceScopedView
@@ -14,6 +13,7 @@ from modules.tracking.projects.models import ProjectMember
 from modules.tracking.projects.services import record_recent
 from modules.tracking.projects.views import ProjectScopedView
 
+from . import activity as audit_selectors
 from . import selectors, services
 from .models import Task
 from .serializers import (

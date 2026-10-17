@@ -4,8 +4,9 @@ import pytest
 from django.db import IntegrityError, transaction
 
 from core.audit.models import AuditLog
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.planning.models import Epic
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 
@@ -110,7 +111,7 @@ def test_epic_date_changes_are_audited(owner, epic):
     client.patch(url(epic), {"startDate": "2026-09-01", "dueDate": "2026-10-30"}, format="json")
     client.patch(url(epic), {"dueDate": "2026-11-11"}, format="json")
     client.patch(url(epic), {"startDate": None, "dueDate": None}, format="json")
-    rows = list(AuditLog.objects.filter(action="tracking.epic.updated", entity_id=epic.pk).order_by("created_at"))
+    rows = list(AuditLog.objects.filter(action="tracking.epic.updated", target_id=epic.pk).order_by("created_at"))
     assert [r.changes for r in rows] == [
         [
             {"field": "Start date", "kind": "value", "before": None, "after": "2026-09-01"},

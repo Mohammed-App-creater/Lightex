@@ -1,10 +1,11 @@
 import pytest
 from django.utils import timezone
 
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.integrations import http
 from modules.tracking.integrations.models import Integration, Repository
 from modules.tracking.integrations.providers.fake import FAKE
+from modules.tracking.testing import add_project_member, make_project
 
 
 @pytest.fixture(autouse=True)

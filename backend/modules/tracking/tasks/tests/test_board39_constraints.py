@@ -3,10 +3,10 @@
 import pytest
 from django.db import IntegrityError, transaction
 
-from core.common.testing import make_project
 from modules.tracking.projects.models import CustomField, CustomFieldOption
 from modules.tracking.tasks.models import Task, TaskDependency, TaskFieldValue
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import make_project
 from modules.tracking.timetracking.models import RunningTimer, TimeEntry
 
 pytestmark = pytest.mark.django_db

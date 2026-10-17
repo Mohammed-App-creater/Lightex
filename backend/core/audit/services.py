@@ -17,13 +17,15 @@ from .models import AuditLog
 _SECRET = re.compile(r"pass(word)?|token|secret|hash|credentials|^code$", re.IGNORECASE)
 
 
-MODULES = ("core", "tracking")
-
-
-def entity_of(action: str) -> str:
-    """The entity of a namespaced action: `tracking.task.created` → `task` (entity types aren't namespaced yet)."""
+def target_type_of(action: str) -> str:
+    """The namespaced target type of an action: `tracking.task.created` → `tracking.task`."""
     parts = action.split(".")
-    return parts[1] if len(parts) > 2 and parts[0] in MODULES else parts[0]
+    return ".".join(parts[:2]) if len(parts) > 2 else parts[0]
+
+
+def module_of(action: str) -> str:
+    parts = action.split(".")
+    return parts[0] if len(parts) > 2 else ""
 
 
 def change(field: str, before: Any, after: Any, kind: str = "value") -> dict[str, Any]:
@@ -57,6 +59,8 @@ def record(
     entity_key: str | None = None,
     project: Any = None,
     task: Any = None,
+    task_key: str | None = None,
+    task_title: str | None = None,
     changes: list[dict[str, Any]] | None = None,
     data: dict[str, Any] | None = None,
     source: str = "web",
@@ -72,6 +76,8 @@ def record(
             entity_key=entity_key,
             project=project,
             task=task,
+            task_key=task_key,
+            task_title=task_title,
             changes=changes,
             data=data,
             source=source,
@@ -102,6 +108,8 @@ def _row(
     entity_key: str | None = None,
     project: Any = None,
     task: Any = None,
+    task_key: str | None = None,
+    task_title: str | None = None,
     changes: list[dict[str, Any]] | None = None,
     data: dict[str, Any] | None = None,
     source: str = "web",
@@ -111,6 +119,7 @@ def _row(
     # Board 37: a system actor (an integration) has `actor_kind = "integration"`, a `ref` and a display name.
     kind = getattr(actor, "actor_kind", "user")
     system = kind != "user"
+    title = getattr(task, "title", None) or task_title
     return {
         "workspace_id": getattr(workspace, "pk", workspace),
         "project_id": getattr(project, "pk", project),
@@ -120,12 +129,13 @@ def _row(
         "actor_kind": kind,
         "actor_ref": str(getattr(actor, "ref", "")) if system else "",
         "action": action,
-        "entity_type": entity_of(action),
-        "entity_id": str(entity_id or ""),
+        "module": module_of(action),
+        "target_type": target_type_of(action),
+        "target_id": str(entity_id or ""),
         "entity_key": entity_key,
         "target": (target or "")[:300],
-        "task_key": getattr(task, "key", None),
-        "task_title": (getattr(task, "title", None) or None) and task.title[:300],
+        "task_key": getattr(task, "key", None) or task_key,
+        "task_title": str(title)[:300] if title else None,
         "changes": _scrub(clean_changes),
         "data": _scrub(data or {}),
         "source": getattr(actor, "source", source) if system else source,

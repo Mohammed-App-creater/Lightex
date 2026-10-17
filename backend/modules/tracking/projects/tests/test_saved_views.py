@@ -3,9 +3,10 @@ import datetime as dt
 import pytest
 from django.utils import timezone
 
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import client_for
 from modules.tracking.projects.saved_views import clean_rules
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

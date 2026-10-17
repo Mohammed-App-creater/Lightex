@@ -8,7 +8,6 @@ paths:
   /api/v1/attachments/{attachment_id}:
     delete:
       operationId: attachments_destroy
-      description: Base for workspace- and project-scoped endpoints.
       parameters:
       - in: path
         name: attachment_id
@@ -24,7 +23,8 @@ paths:
   /api/v1/attachments/{attachment_id}/confirm:
     post:
       operationId: attachments_confirm_create
-      description: POST attachments/{id}/confirm (brief's form of the confirm step).
+      description: 'POST attachments/{uploadId}/confirm: HEAD-verifies the upload
+        and marks it ready.'
       parameters:
       - in: path
         name: attachment_id
@@ -44,7 +44,6 @@ paths:
   /api/v1/attachments/{attachment_id}/download-url:
     get:
       operationId: attachments_download_url_retrieve
-      description: Base for workspace- and project-scoped endpoints.
       parameters:
       - in: path
         name: attachment_id
@@ -221,7 +220,6 @@ paths:
   /api/v1/comments/{comment_id}:
     patch:
       operationId: comments_partial_update
-      description: Base for workspace- and project-scoped endpoints.
       parameters:
       - in: path
         name: comment_id
@@ -245,7 +243,6 @@ paths:
           description: ''
     delete:
       operationId: comments_destroy
-      description: Base for workspace- and project-scoped endpoints.
       parameters:
       - in: path
         name: comment_id
@@ -780,8 +777,8 @@ paths:
   /api/v1/search:
     get:
       operationId: search_retrieve
-      description: 'GET search?q=&type=task|comment: full-text search across every
-        project the user belongs to.'
+      description: 'GET search?q=&type=: full-text search across every registered
+        provider (tasks and comments for tracking).'
       parameters:
       - in: query
         name: limit
@@ -796,14 +793,127 @@ paths:
         name: type
         schema:
           type: string
-          enum:
-          - comment
-          - task
+        description: A registered global result type (task, comment, …)
       tags:
       - search
       responses:
         '200':
           description: No response body
+  /api/v1/targets/{target_type}/{target_id}/attachments:
+    get:
+      operationId: targets_attachments_retrieve
+      description: 'Base for `targets/{targetType}/{targetId}/…`: the target must
+        exist and be visible (its resolver decides).'
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - attachments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+  /api/v1/targets/{target_type}/{target_id}/attachments/upload-url:
+    post:
+      operationId: targets_attachments_upload_url_create
+      description: 'Base for `targets/{targetType}/{targetId}/…`: the target must
+        exist and be visible (its resolver decides).'
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - attachments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUrlInRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+          description: ''
+  /api/v1/targets/{target_type}/{target_id}/comments:
+    get:
+      operationId: targets_comments_retrieve
+      description: 'Base for `targets/{targetType}/{targetId}/…`: the target must
+        exist and be visible (its resolver decides).'
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - comments
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    post:
+      operationId: targets_comments_create
+      description: 'Base for `targets/{targetType}/{targetId}/…`: the target must
+        exist and be visible (its resolver decides).'
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
   /api/v1/tracking/custom-fields/{field_id}:
     patch:
       operationId: tracking_custom_fields_partial_update
@@ -3183,124 +3293,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ActivityOut'
           description: ''
-  /api/v1/tracking/tasks/{task_id}/attachments:
-    get:
-      operationId: tracking_tasks_attachments_retrieve
-      description: GET the task's files; POST {uploadId} confirms an upload (client
-        contract).
-      parameters:
-      - in: path
-        name: task_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - attachments
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Attachment'
-          description: ''
-    post:
-      operationId: tracking_tasks_attachments_create
-      description: GET the task's files; POST {uploadId} confirms an upload (client
-        contract).
-      parameters:
-      - in: path
-        name: task_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - attachments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConfirmUploadRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Attachment'
-          description: ''
-  /api/v1/tracking/tasks/{task_id}/attachments/upload-url:
-    post:
-      operationId: tracking_tasks_attachments_upload_url_create
-      description: Scope = the task's project (resolved from the task id in the URL).
-      parameters:
-      - in: path
-        name: task_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - attachments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UploadUrlInRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UploadTicket'
-          description: ''
-  /api/v1/tracking/tasks/{task_id}/comments:
-    get:
-      operationId: tracking_tasks_comments_retrieve
-      description: Scope = the task's project (resolved from the task id in the URL).
-      parameters:
-      - in: path
-        name: task_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - comments
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Comment'
-          description: ''
-    post:
-      operationId: tracking_tasks_comments_create
-      description: Scope = the task's project (resolved from the task id in the URL).
-      parameters:
-      - in: path
-        name: task_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - comments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommentInRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Comment'
-          description: ''
   /api/v1/tracking/tasks/{task_id}/dependencies:
     get:
       operationId: tracking_tasks_dependencies_retrieve
@@ -4415,15 +4407,7 @@ paths:
         name: filter[entity]
         schema:
           type: string
-          enum:
-          - comment
-          - member
-          - project
-          - role
-          - sprint
-          - task
-          - view
-          - workspace
+        description: An audit group (task, project, …) or workspace
       - in: query
         name: filter[since]
         schema:
@@ -4745,10 +4729,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - project
-            - task
-            - user
+        description: Registered result types (and user)
       - in: query
         name: limit
         schema:
@@ -5145,7 +5126,9 @@ components:
         id:
           type: string
           format: uuid
-        taskId:
+        targetType:
+          type: string
+        targetId:
           type: string
           format: uuid
         uploaderId:
@@ -5179,7 +5162,8 @@ components:
       - mimeType
       - previewUrl
       - size
-      - taskId
+      - targetId
+      - targetType
       - uploaderId
     AttachmentKindEnum:
       enum:
@@ -5405,7 +5389,9 @@ components:
         id:
           type: string
           format: uuid
-        taskId:
+        targetType:
+          type: string
+        targetId:
           type: string
           format: uuid
         authorId:
@@ -5432,7 +5418,8 @@ components:
       - editedAt
       - id
       - mentions
-      - taskId
+      - targetId
+      - targetType
     CommentInRequest:
       type: object
       properties:
@@ -5451,14 +5438,6 @@ components:
       required:
       - attempt
       - token
-    ConfirmUploadRequest:
-      type: object
-      properties:
-        uploadId:
-          type: string
-          format: uuid
-      required:
-      - uploadId
     CustomFieldInRequest:
       type: object
       properties:
@@ -6878,8 +6857,10 @@ components:
         projectId:
           type: string
           format: uuid
+          nullable: true
         projectName:
           type: string
+          nullable: true
         taskId:
           type: string
           format: uuid
@@ -6898,17 +6879,34 @@ components:
           type: string
           format: date-time
           nullable: true
+        targetType:
+          type: string
+          nullable: true
+        targetId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        link:
+          type: string
+          nullable: true
       required:
       - actorId
       - createdAt
       - id
+      - link
       - payload
       - projectId
       - projectName
       - readAt
+      - targetId
+      - targetType
       - taskId
       - taskKey
       - taskTitle
+      - title
       - type
     NotificationChannels:
       type: object
@@ -6955,9 +6953,15 @@ components:
               type: boolean
         emailDelivery:
           type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+          readOnly: true
       required:
       - emailDelivery
       - events
+      - labels
       - quietHours
     NotificationPreferencesRequest:
       type: object
@@ -9263,17 +9267,13 @@ components:
           $ref: '#/components/schemas/TrashRefRequest'
       required:
       - items
-    TrashRefKindEnum:
-      enum:
-      - task
-      - comment
-      - project
-      type: string
     TrashRefRequest:
       type: object
       properties:
         kind:
-          $ref: '#/components/schemas/TrashRefKindEnum'
+          type: string
+          minLength: 1
+          description: 'A registered trash kind: tracking.task, core.comment, …'
         id:
           type: string
           format: uuid

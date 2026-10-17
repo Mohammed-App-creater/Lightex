@@ -8,7 +8,6 @@ tracking_urlpatterns = [
     path("", include("modules.tracking.projects.urls")),
     path("", include("modules.tracking.imports.urls")),
     path("", include("modules.tracking.timetracking.urls")),  # tasks/<uuid>/… routes before tasks/<task_ref>
-    path("", include("core.collab.task_urls")),  # task-scoped comments and attachments (Stage 2 makes them generic)
     path("", include("modules.tracking.tasks.urls")),
     path("", include("modules.tracking.planning.urls")),
     path("", include("modules.tracking.reports.urls")),

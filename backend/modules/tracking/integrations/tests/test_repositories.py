@@ -6,11 +6,12 @@ import pytest
 from django.utils import timezone
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, add_member, client_for, make_workspace
 from modules.tracking.integrations.models import Integration, Repository, SyncRun, WebhookDelivery
 from modules.tracking.integrations.providers.fake import FAKE
 from modules.tracking.tasks.models import ExternalLink
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import make_project
 
 from .conftest import make_integration, track
 

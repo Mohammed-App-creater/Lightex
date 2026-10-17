@@ -1,25 +1,27 @@
 """Turns domain events into in-app notifications and emails, following each recipient's preferences.
 
-Invitation and password-reset emails are not routed through here: they carry single-use tokens,
-which must never be written to the outbox, so those services send them directly.
+Core handles the events it owns (comment and mention notifications, workspace access requests); modules register
+handlers for their own event types (core/events/registry.py) and call `deliver()`.
+
+Invitation and password-reset emails are not routed through here: they carry single-use tokens, which must never be
+written to the outbox, so those services send them directly.
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import Any
 
-from django.conf import settings
-from django.db import transaction
 from django.utils import timezone
 
-from core.access.catalogue import PROJECT_ADMIN_PERMISSION
 from core.accounts.models import User
-from modules.tracking.projects.models import ProjectMember
+from core.common.targets import get_resolver
+from core.events.models import DomainEvent
+from core.events.registry import event_type, register_event_type, register_handler
 
-from .emails import PRIORITY_COLOR, PRIORITY_LABEL, base_context, queue_email
-from .models import CHANNEL_TEMPLATES, DomainEvent, Notification, NotificationPreference, default_events
+from .emails import base_context, queue_email
+from .models import Notification, NotificationPreference, default_events
 
 logger = logging.getLogger("lightex.notifications")
 
@@ -29,44 +31,15 @@ def preferences_for(user: User) -> NotificationPreference:
     return prefs
 
 
-def _fmt(date: Any) -> str:
-    return f"{date:%b} {date.day}" if date else ""
-
-
-def _task_url(task: Any) -> str:
-    return f"{settings.FRONTEND_URL}/{task.project.workspace.slug}/tasks/{task.key}"
-
-
-def _task_context(task: Any) -> dict[str, Any]:
-    return {
-        **base_context(task.project.workspace.slug),
-        "cta_url": _task_url(task),
-        "task_key": task.key,
-        "task_title": task.title,
-        "project_name": task.project.name,
-        "workspace_name": task.project.workspace.name,
-        "priority": PRIORITY_LABEL.get(task.priority, ""),
-        "priority_color": PRIORITY_COLOR.get(task.priority, "#8794B6"),
-        "due_date": _fmt(task.due_date),
-        "sprint_name": task.sprint.name if task.sprint_id else "No sprint",
-    }
-
-
-def _recipients(event: DomainEvent, user_ids: Iterable[Any]) -> list[User]:
-    """Project members only, never the actor, each once."""
+def recipients(event: DomainEvent, user_ids: Iterable[Any], *, target: tuple[str, Any] | None = None) -> list[User]:
+    """Active users who may still see the target, never the actor, each once."""
     ids = {str(u) for u in user_ids if u} - {str(event.actor_id)}
     if not ids:
         return []
-    if event.project_id:
-        members = set(
-            map(
-                str,
-                ProjectMember.objects.filter(project_id=event.project_id, user_id__in=ids).values_list(
-                    "user_id", flat=True
-                ),
-            )
-        )
-        ids &= members
+    target_type, target_id = target or (event.target_type, event.target_id)
+    resolver = get_resolver(target_type) if target_type else None
+    if resolver is not None and target_id is not None:
+        ids = set(resolver.can_notify(ids, target_id))
     return list(User.objects.filter(pk__in=ids, is_active=True))
 
 
@@ -76,17 +49,24 @@ def deliver(
     *,
     kind: str,
     pref: str | None,
-    task: Any = None,
+    target: tuple[str, Any] | None = None,
     payload: dict | None = None,
     email_template: str = "",
     email_context: dict | None = None,
     channel_context: dict | None = None,
+    urgent: bool = False,
 ) -> Notification | None:
+    """One notification (in-app row, email and external channels) for `recipient`, idempotent per event.
+
+    `target` defaults to the event's target. Title, link and the scope hints (`projectId`, `taskId`) come from the
+    target resolver's `describe()`.
+    """
     from core.channels import dispatch as channels
 
-    if event.project_id is None:  # in-app rows always belong to a project
-        return None
-    project_id = event.project_id
+    target_type, target_id = target or (event.target_type, event.target_id)
+    resolver = get_resolver(target_type) if target_type else None
+    info = resolver.describe(target_id) if resolver is not None and target_id is not None else {}
+    project_id = info.get("projectId") or event.project_id
     prefs = preferences_for(recipient)
     channel = (prefs.events or {}).get(pref, {}) if pref else {"in_app": True, "email": True}
     in_app = bool(channel.get("in_app", True))
@@ -99,8 +79,12 @@ def deliver(
         recipient=recipient,
         defaults={
             "workspace_id": event.workspace_id,
+            "target_type": target_type or "",
+            "target_id": target_id,
+            "title": str(info.get("title") or "")[:300],
+            "link": str(info.get("link") or "")[:500],
             "project_id": project_id,
-            "task": task,
+            "task_id": info.get("taskId"),
             "type": kind,
             "actor_id": event.actor_id,
             "payload": payload or {},
@@ -122,260 +106,72 @@ def deliver(
         notification.save(update_fields=["emailed_at", "email_pending", "updated_at"])
     if created and external:
         assert pref is not None  # noqa: S101 - wanted() is empty without a preference key
+        etype = event_type(pref)
         channels.enqueue(
             notification,
             recipient,
             prefs,
             external,
-            template=CHANNEL_TEMPLATES[pref],
+            template=etype.channel_template if etype else "",
             context={**(email_context or {}), **(channel_context or {})},
-            urgent=bool(task is not None and task.priority == 4),
+            urgent=urgent,
         )
     return notification
 
 
-def _channel_context(event: DomainEvent, task: Any = None, **extra: Any) -> dict[str, Any]:
-    """Board 38 §6.4: the extra merge tags the Telegram, SMS and Push templates use."""
-    actor_name = event.actor.name if event.actor is not None else ""
-    ctx: dict[str, Any] = {"actor_name": actor_name, "workspace_slug": "", **extra}
-    if task is not None:
-        ctx.update(
-            {
-                **_task_context(task),
-                "task_id": str(task.pk),
-                "project_key": task.project.key,
-                "workspace_slug": task.project.workspace.slug,
-            }
-        )
-        ctx.update(extra)
-    return ctx
+def target_context(event: DomainEvent) -> dict[str, Any]:
+    """The target's template merge tags (resolver `context()`), plus the actor's name."""
+    resolver = get_resolver(event.target_type) if event.target_type else None
+    ctx = resolver.context(event.target_id) if resolver is not None and event.target_id is not None else {}
+    return {"actor_name": event.actor.name if event.actor is not None else "", "workspace_slug": "", **ctx}
 
 
-def _task(event: DomainEvent) -> Any:
-    from modules.tracking.tasks.models import Task
-
-    return (
-        Task.objects.select_related("project", "project__workspace", "sprint")
-        .filter(pk=event.payload.get("taskId"))
-        .first()
-    )
-
-
-# ───────────────────────── handlers ─────────────────────────
-
-
-def on_task_assigned(event: DomainEvent) -> None:
-    task = _task(event)
-    if task is None:
-        return
-    actor_name = event.actor.name if event.actor is not None else "Someone"
-    for user in _recipients(event, [event.payload.get("assigneeId")]):
-        deliver(
-            event,
-            user,
-            kind="assigned",
-            pref="tracking.task.assigned",
-            task=task,
-            email_template="task_assigned",
-            email_context={**_task_context(task), "assigner_name": actor_name},
-            channel_context=_channel_context(event, task),
-        )
-
-
-def on_status_change(event: DomainEvent) -> None:
-    task = _task(event)
-    if task is None:
-        return
-    payload = {"fromStatus": event.payload.get("fromStatus"), "toStatus": event.payload.get("toStatus")}
-    if event.payload.get("via"):  # board 37: a status change made by an integration's automation
-        payload["via"] = event.payload["via"]
-    for user in _recipients(event, [task.assignee_id, task.reporter_id]):
-        deliver(
-            event,
-            user,
-            kind="status",
-            pref="tracking.task.status_changed",
-            task=task,
-            payload=payload,
-            channel_context=_channel_context(
-                event, task, from_status=payload["fromStatus"], to_status=payload["toStatus"]
-            ),
-        )
+# ───────────────────────── core handlers ─────────────────────────
 
 
 def on_mentioned(event: DomainEvent) -> None:
-    task = _task(event)
-    if task is None:
+    """`core.comment.mentioned`: the users named in a comment (or any rich text) on a target."""
+    resolver = get_resolver(event.target_type)
+    if resolver is None or event.target_id is None or resolver.workspace_of(event.target_id) is None:
         return
     quote = str(event.payload.get("quote", ""))[:140]
     actor_name = event.actor.name if event.actor is not None else "Someone"
-    for user in _recipients(event, event.payload.get("userIds", [])):
+    ctx = target_context(event)
+    for user in recipients(event, event.payload.get("userIds", [])):
         deliver(
             event,
             user,
             kind="mention",
-            pref="tracking.comment.mentioned",
-            task=task,
+            pref="core.comment.mentioned",
             payload={"quote": quote},
             email_template="mentioned",
-            email_context={**_task_context(task), "author_name": actor_name, "comment_excerpt": quote},
-            channel_context=_channel_context(event, task, author_name=actor_name, comment_excerpt=quote),
+            email_context={**ctx, "author_name": actor_name, "comment_excerpt": quote},
+            channel_context={**ctx, "author_name": actor_name, "comment_excerpt": quote},
+            urgent=bool(ctx.get("urgent")),
         )
 
 
 def on_comment(event: DomainEvent) -> None:
-    task = _task(event)
-    if task is None:
+    """`core.comment.created`: the target's subscribers (resolver `subscribers()`), minus anyone mentioned."""
+    resolver = get_resolver(event.target_type)
+    if resolver is None or event.target_id is None or resolver.workspace_of(event.target_id) is None:
         return
     quote = str(event.payload.get("quote", ""))[:140]
-    for user in _recipients(event, event.payload.get("userIds", [])):
+    ctx = target_context(event)
+    for user in recipients(event, event.payload.get("userIds", [])):
         deliver(
             event,
             user,
             kind="comment",
-            pref="tracking.comment.created",
-            task=task,
+            pref="core.comment.created",
             payload={"quote": quote},
-            channel_context=_channel_context(event, task, comment_excerpt=quote),
-        )
-
-
-def _sprint(event: DomainEvent) -> Any:
-    from modules.tracking.planning.models import Sprint
-
-    return (
-        Sprint.objects.select_related("project", "project__workspace").filter(pk=event.payload.get("sprintId")).first()
-    )
-
-
-def _sprint_context(sprint: Any) -> dict[str, Any]:
-    project = sprint.project
-    return {
-        **base_context(project.workspace.slug),
-        "cta_url": f"{settings.FRONTEND_URL}/{project.workspace.slug}/projects/{project.key}/board",
-        "project_name": project.name,
-        "workspace_name": project.workspace.name,
-        "sprint_name": sprint.name,
-        "sprint_start": _fmt(sprint.start_date),
-        "sprint_end": _fmt(sprint.end_date),
-    }
-
-
-def on_sprint_started(event: DomainEvent) -> None:
-    from django.db.models import Sum
-
-    from modules.tracking.tasks.models import Task
-
-    sprint = _sprint(event)
-    if sprint is None:
-        return
-    tasks = Task.objects.filter(sprint=sprint).exclude(status__glyph="canceled")
-    context = {
-        **_sprint_context(sprint),
-        "task_count": tasks.count(),
-        "points_total": tasks.aggregate(p=Sum("estimate"))["p"] or 0,
-    }
-    members = ProjectMember.objects.filter(project=sprint.project).values_list("user_id", flat=True)
-    for user in _recipients(event, members):
-        deliver(
-            event,
-            user,
-            kind="sprint",
-            pref="tracking.sprint.started",
-            payload={"sprintName": sprint.name},
-            email_template="sprint_started",
-            email_context={**context, "your_task_count": tasks.filter(assignee=user).count()},
-            channel_context={
-                **_channel_context(event),
-                "sprint_id": str(sprint.pk),
-                "project_key": sprint.project.key,
-                "workspace_slug": sprint.project.workspace.slug,
-            },
-        )
-
-
-def on_sprint_completed(event: DomainEvent) -> None:
-    """Email only: the inbox has no "sprint completed" row type in v1."""
-    from modules.tracking.planning.models import Sprint
-
-    sprint = _sprint(event)
-    if sprint is None:
-        return
-    total = int(event.payload.get("total") or 0)
-    completed = int(event.payload.get("completed") or 0)
-    nxt = (
-        Sprint.objects.filter(pk=event.payload.get("nextSprintId")).first()
-        if event.payload.get("nextSprintId")
-        else None
-    )
-    context = {
-        **_sprint_context(sprint),
-        "task_count": total,
-        "completed_count": completed,
-        "completed_pct": round(completed * 100 / total) if total else 0,
-        "carried_count": int(event.payload.get("carried") or 0),
-        "next_sprint_name": nxt.name if nxt else "the backlog",
-    }
-    members = ProjectMember.objects.filter(project=sprint.project).values_list("user_id", flat=True)
-    for user in _recipients(event, members):
-        prefs = preferences_for(user)
-        if prefs.events.get("tracking.sprint.started", {}).get("email") and prefs.email_delivery == "instant":
-            queue_email(user.email, "sprint_completed", context)
-
-
-def _access_request_context(req: Any, *, project: Any, workspace: Any) -> dict[str, Any]:
-    scope = project.name if project is not None else f"a project in {workspace.name}"
-    cta = (
-        f"{settings.FRONTEND_URL}/{workspace.slug}/projects/{project.key}/settings?tab=members"
-        if project is not None
-        else f"{settings.FRONTEND_URL}/{workspace.slug}/settings/members"
-    )
-    return {
-        **base_context(workspace.slug),
-        "cta_url": cta,
-        "requester_name": req.user.name,
-        "requester_email": req.user.email,
-        "project_name": scope,
-        "scope_label": "Project" if project is not None else "Wants",
-        "workspace_name": workspace.name,
-        "message": getattr(req, "message", "") or "",
-    }
-
-
-def on_access_request(event: DomainEvent) -> None:
-    """Tells the people who can let the requester in: the project's member managers and its lead."""
-    from modules.tracking.projects.models import AccessRequest
-
-    req = (
-        AccessRequest.objects.select_related("user", "project", "project__workspace")
-        .filter(pk=event.payload.get("requestId"))
-        .first()
-    )
-    if req is None or req.status != "pending":
-        return
-    project = req.project
-    admins = list(
-        ProjectMember.objects.filter(project=project, role__permissions__code=PROJECT_ADMIN_PERMISSION).values_list(
-            "user_id", flat=True
-        )
-    )
-    if project.lead_id:
-        admins.append(project.lead_id)
-    context = _access_request_context(req, project=project, workspace=project.workspace)
-    for user in _recipients(event, admins):
-        deliver(
-            event,
-            user,
-            kind="access",
-            pref=None,
-            payload={"projectKey": project.key, **({"quote": req.message} if req.message else {})},
-            email_template="access_request",
-            email_context=context,
+            channel_context={**ctx, "comment_excerpt": quote},
+            urgent=bool(ctx.get("urgent")),
         )
 
 
 def on_workspace_access_request(event: DomainEvent) -> None:
-    """Emails the workspace's member managers (in-app rows always belong to a project, so email only)."""
+    """Emails the workspace's member managers (no in-app row: there is no target to open)."""
     from core.access import services as access
     from core.workspaces.models import WorkspaceAccessRequest, WorkspaceMember
 
@@ -387,7 +183,7 @@ def on_workspace_access_request(event: DomainEvent) -> None:
     if req is None:
         return
     ws = req.workspace
-    context = _access_request_context(req, project=None, workspace=ws)
+    context = workspace_access_context(req, ws)
     members = WorkspaceMember.objects.filter(workspace=ws, status="active", user__is_active=True).select_related("user")
     for m in members:
         if m.user_id == event.actor_id or not access.can(m.user, "core.workspace.manage_members", ws):
@@ -395,91 +191,41 @@ def on_workspace_access_request(event: DomainEvent) -> None:
         queue_email(m.user.email, "access_request", context)
 
 
-def on_due_soon(event: DomainEvent) -> None:
-    task = _task(event)
-    if task is None or task.assignee_id is None:
-        return
-    for user in _recipients(event, [task.assignee_id]):
-        deliver(
-            event,
-            user,
-            kind="due",
-            pref="tracking.task.due_soon",
-            task=task,
-            payload={"dueDate": task.due_date.isoformat() if task.due_date else None},
-            email_template="due_soon",
-            email_context={**_task_context(task), "due_relative": event.payload.get("relative", "soon")},
-            channel_context=_channel_context(event, task, due_relative=event.payload.get("relative", "soon")),
-        )
+def workspace_access_context(req: Any, workspace: Any) -> dict[str, Any]:
+    from django.conf import settings
+
+    return {
+        **base_context(workspace.slug),
+        "cta_url": f"{settings.FRONTEND_URL}/{workspace.slug}/settings/members",
+        "requester_name": req.user.name,
+        "requester_email": req.user.email,
+        "project_name": f"a project in {workspace.name}",
+        "scope_label": "Wants",
+        "workspace_name": workspace.name,
+        "message": getattr(req, "message", "") or "",
+    }
 
 
-def on_import_finished(event: DomainEvent) -> None:
-    """Board 40 §5.8: one in-app row to the job's creator (a system row: no actor, no task, no email, no
-    preference). Bypasses `_recipients` (which drops the actor) but still requires an active project member."""
-    from modules.tracking.imports.models import ImportJob
-
-    job = ImportJob.objects.select_related("project").filter(pk=event.payload.get("jobId")).first()
-    if job is None or job.created_by_id is None:
-        return
-    if not ProjectMember.objects.filter(project_id=job.project_id, user_id=job.created_by_id).exists():
-        return
-    user = User.objects.filter(pk=job.created_by_id, is_active=True).first()
-    if user is None:
-        return
-    deliver(
-        event,
-        user,
-        kind="import",
-        pref=None,
-        payload={
-            "importId": str(job.pk),
-            "projectKey": job.project.key,
-            "imported": job.imported,
-            "skipped": job.skipped,
-            "importStatus": job.status,
-        },
+def register() -> None:
+    """Core's event types and handlers (called from the notifications AppConfig)."""
+    register_event_type(
+        "core.comment.mentioned",
+        "Mentioned",
+        {"in_app": True, "email": True, "telegram": True, "sms": False, "push": True},
+        "core",
+        channel_template="mentioned",
+        position=10,
     )
-
-
-HANDLERS: dict[str, Callable[[DomainEvent], None]] = {
-    "tracking.task.assigned": on_task_assigned,
-    "tracking.task.status_changed": on_status_change,
-    "tracking.comment.mentioned": on_mentioned,
-    "tracking.comment.created": on_comment,
-    "tracking.sprint.started": on_sprint_started,
-    "tracking.sprint.completed": on_sprint_completed,
-    "tracking.project.access_requested": on_access_request,
-    "core.workspace.access_requested": on_workspace_access_request,
-    "tracking.task.due_soon": on_due_soon,
-    "tracking.import.finished": on_import_finished,
-    # Recorded for the outbox trail; the email itself is sent by the service (it carries a token).
-    "core.member.invited": lambda event: None,
-}
-
-
-def process_event(event_id: Any) -> bool:
-    """Processes one event exactly once. Returns True if it was handled now."""
-    try:
-        with transaction.atomic():
-            event = (
-                DomainEvent.objects.select_for_update(skip_locked=True, of=("self",))
-                .select_related("actor")
-                .filter(pk=event_id, processed_at__isnull=True)
-                .first()
-            )
-            if event is None:
-                return False
-            handler = HANDLERS.get(event.type)
-            if handler is not None:
-                handler(event)
-            event.processed_at = timezone.now()
-            event.attempts += 1
-            event.save(update_fields=["processed_at", "attempts", "updated_at"])
-        return True
-    except Exception as exc:
-        logger.exception("Processing event %s failed", event_id)
-        DomainEvent.objects.filter(pk=event_id).update(error=str(exc)[:2000])
-        from django.db.models import F
-
-        DomainEvent.objects.filter(pk=event_id).update(attempts=F("attempts") + 1)
-        return False
+    register_event_type(
+        "core.comment.created",
+        "New comment",
+        {"in_app": True, "email": False, "telegram": True, "sms": False, "push": True},
+        "core",
+        channel_template="comment",
+        position=30,
+    )
+    register_event_type("core.workspace.access_requested", "Workspace access requests", module="core", preference=False)
+    register_event_type("core.member.invited", "Invitations", module="core", preference=False)
+    register_handler("core.comment.mentioned", on_mentioned, module="core")
+    register_handler("core.comment.created", on_comment, module="core")
+    register_handler("core.workspace.access_requested", on_workspace_access_request, module="core")

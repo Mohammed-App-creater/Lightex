@@ -3,9 +3,10 @@
 import pytest
 from freezegun import freeze_time
 
-from core.common.testing import UserFactory, add_member, add_project_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, add_member, client_for, make_workspace
 from modules.tracking.projects.services import delete_project
 from modules.tracking.tasks.services import create_task, delete_task
+from modules.tracking.testing import add_project_member, make_project
 from modules.tracking.timetracking.models import TimeEntry
 
 pytestmark = pytest.mark.django_db

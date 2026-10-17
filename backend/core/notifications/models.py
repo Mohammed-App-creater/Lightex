@@ -5,67 +5,15 @@ from django.db import models
 
 from core.common.models import BaseModel
 
-# Preference keys are namespaced event types (platform Stage 1).
-EVENTS = [
-    "tracking.task.assigned",
-    "tracking.comment.mentioned",
-    "tracking.task.status_changed",
-    "tracking.comment.created",
-    "tracking.task.due_soon",
-    "tracking.sprint.started",
-]
-# The Telegram, SMS and Push template (templates/channels/<name>.<channel>.txt) for each preference key.
-CHANNEL_TEMPLATES = {
-    "tracking.task.assigned": "assigned",
-    "tracking.comment.mentioned": "mentioned",
-    "tracking.task.status_changed": "status_change",
-    "tracking.comment.created": "comment",
-    "tracking.task.due_soon": "due_soon",
-    "tracking.sprint.started": "sprint_started",
-}
 DELIVERY = [("instant", "Instant"), ("hourly", "Hourly digest"), ("daily", "Daily digest")]
-
-
 CHANNELS = ["in_app", "email", "telegram", "sms", "push"]
-# Board 38 §3.8: the design's DEF table (in_app and email are v1's, unchanged).
-CHANNEL_DEFAULTS = {
-    "tracking.task.assigned": {"telegram": True, "sms": False, "push": True},
-    "tracking.comment.mentioned": {"telegram": True, "sms": False, "push": True},
-    "tracking.task.status_changed": {"telegram": False, "sms": False, "push": False},
-    "tracking.comment.created": {"telegram": True, "sms": False, "push": True},
-    "tracking.task.due_soon": {"telegram": True, "sms": True, "push": True},
-    "tracking.sprint.started": {"telegram": False, "sms": False, "push": False},
-}
 
 
 def default_events() -> dict:
-    v1 = {
-        "tracking.task.assigned": {"in_app": True, "email": True},
-        "tracking.comment.mentioned": {"in_app": True, "email": True},
-        "tracking.task.status_changed": {"in_app": True, "email": False},
-        "tracking.comment.created": {"in_app": True, "email": False},
-        "tracking.task.due_soon": {"in_app": True, "email": True},
-        "tracking.sprint.started": {"in_app": True, "email": False},
-    }
-    return {event: {**row, **CHANNEL_DEFAULTS[event]} for event, row in v1.items()}
+    """The preference matrix defaults, one row per registered event type (core/events/registry.py)."""
+    from core.events.registry import preference_types
 
-
-class DomainEvent(BaseModel):
-    """Outbox row written by services inside their transaction; consumed by the notification handler."""
-
-    type = models.CharField(max_length=64)  # namespaced: "tracking.task.assigned"
-    workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
-    project = models.ForeignKey("projects.Project", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-    actor = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
-    )
-    payload = models.JSONField(default=dict)
-    processed_at = models.DateTimeField(null=True, blank=True)
-    attempts = models.PositiveSmallIntegerField(default=0)
-    error = models.TextField(blank=True, default="")
-
-    class Meta:
-        indexes = [models.Index(fields=["processed_at", "created_at"], name="event_unprocessed")]
+    return {t.key: {c: bool(t.default_channels.get(c, False)) for c in CHANNELS} for t in preference_types()}
 
 
 class Notification(BaseModel):
@@ -73,15 +21,21 @@ class Notification(BaseModel):
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     workspace = models.ForeignKey("workspaces.Workspace", on_delete=models.CASCADE, related_name="+")
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="+")
+    # The record the notification is about (core/common/targets.py); title and link come from its describe().
+    target_type = models.CharField(max_length=64, blank=True, default="")
+    target_id = models.UUIDField(null=True, blank=True)
+    title = models.CharField(max_length=300, blank=True, default="")
+    link = models.CharField(max_length=500, blank=True, default="")
+    # Scope hints copied from the target's describe() (projectId / taskId): inbox visibility and cascades.
+    project = models.ForeignKey("projects.Project", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
     task = models.ForeignKey("tasks.Task", null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-    type = models.CharField(max_length=16, choices=TYPES)
+    type = models.CharField(max_length=16)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
     payload = models.JSONField(default=dict)
     event = models.ForeignKey(
-        DomainEvent, null=True, blank=True, on_delete=models.SET_NULL, related_name="notifications"
+        "events.DomainEvent", null=True, blank=True, on_delete=models.SET_NULL, related_name="notifications"
     )
     read_at = models.DateTimeField(null=True, blank=True)
     # False for email-only deliveries (the user turned the in-app channel off for this event).

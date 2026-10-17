@@ -5,10 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from core.common.testing import UserFactory, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
 from modules.tracking.integrations import matching
 from modules.tracking.integrations.models import RepositoryProject
 from modules.tracking.tasks.services import create_task, delete_task
+from modules.tracking.testing import make_project
 
 from .conftest import track
 

@@ -11,11 +11,12 @@ from django.test.utils import CaptureQueriesContext
 from core.access.models import Permission, Role, RolePermission
 from core.audit.models import AuditLog
 from core.common.exceptions import ApiError
-from core.common.testing import UserFactory, add_member, add_project_member, client_for, make_project
+from core.common.testing import UserFactory, add_member, client_for
 from modules.tracking.planning.models import Epic, Sprint
 from modules.tracking.projects.models import ProjectMember
 from modules.tracking.tasks.models import Task
 from modules.tracking.tasks.services import create_task, delete_task, update_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 
@@ -304,13 +305,13 @@ def test_reschedule_is_audited_and_in_the_activity_feed(owner, project):
     task = dated(owner, project, "T", "2026-10-06", "2026-10-10")
     client = client_for(owner)
     patch(client, task, {"startDate": "2026-10-08", "dueDate": "2026-10-12"})
-    row = AuditLog.objects.filter(action="tracking.task.updated", entity_id=task.pk).latest("created_at")
+    row = AuditLog.objects.filter(action="tracking.task.updated", target_id=task.pk).latest("created_at")
     assert row.changes == [
         {"field": "Start date", "kind": "value", "before": "2026-10-06", "after": "2026-10-08"},
         {"field": "Due date", "kind": "value", "before": "2026-10-10", "after": "2026-10-12"},
     ]
     patch(client, task, {"startDate": None}, 2)
-    row = AuditLog.objects.filter(action="tracking.task.updated", entity_id=task.pk).latest("created_at")
+    row = AuditLog.objects.filter(action="tracking.task.updated", target_id=task.pk).latest("created_at")
     assert row.changes == [{"field": "Start date", "kind": "value", "before": "2026-10-08", "after": None}]
     feed = client.get(f"/api/v1/tracking/tasks/{task.id}/activity").json()
     items = feed["data"] if isinstance(feed, dict) else feed

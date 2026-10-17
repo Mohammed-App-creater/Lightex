@@ -1,16 +1,9 @@
 import pytest
 
 from core.audit.models import AuditLog
-from core.common.testing import (
-    UserFactory,
-    add_member,
-    add_project_member,
-    client_for,
-    make_project,
-    make_workspace,
-    role,
-)
+from core.common.testing import UserFactory, add_member, client_for, make_workspace, role
 from modules.tracking.projects.models import AccessRequest, Project, ProjectKeyAlias, ProjectMember, Status
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

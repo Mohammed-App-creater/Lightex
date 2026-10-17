@@ -388,7 +388,7 @@ def finish_one_disconnect() -> int:
             logger.exception("Revoking integration %s failed", integration.pk)
         Integration.objects.filter(pk=integration.pk).update(credentials="", webhook_secret="")
         row = (
-            AuditLog.objects.filter(action="tracking.integration.disconnected", entity_id=str(integration.pk))
+            AuditLog.objects.filter(action="tracking.integration.disconnected", target_id=str(integration.pk))
             .order_by("-created_at")
             .first()
         )

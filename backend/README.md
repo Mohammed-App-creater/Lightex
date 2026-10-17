@@ -195,7 +195,8 @@ Run these from cron, a platform scheduler, or a CI schedule:
 | `python manage.py send_notification_emails --delivery hourly` | hourly | Queued emails for people on hourly delivery |
 | `python manage.py send_notification_emails --delivery daily` | daily | Queued emails for people on daily delivery |
 | `python manage.py purge_trash` | daily | Deletes trash items older than 30 days, abandoned uploads and old outbox rows |
-| `python manage.py process_outbox` | every few minutes (optional) | Retries notification events that failed |
+| `python manage.py process_outbox` | every few minutes (optional) | Retries domain events whose handlers failed |
+| `python manage.py check_orphan_targets` | weekly (optional) | Reports comments, attachments, notifications and events whose target no longer exists |
 | `python manage.py purge_imports` | daily | Board 40: cancels untouched import drafts (24 h) and deletes import jobs and their files 30 days after they finish (imported tasks stay) |
 | `python manage.py resume_imports` | every minute (optional) | Board 40: re-dispatches imports whose runner stopped sending heartbeats (the import poll does this too) |
 | `python manage.py send_channel_deliveries` | every 5 minutes (recommended) | Board 38: retries and quiet-hours summaries left by a sleeping or restarted process |
@@ -308,27 +309,59 @@ The image (`Dockerfile`) runs migrations and then gunicorn on `$PORT` with gthre
   running, `ADMIN_ENABLED` off unless needed. Without Redis the cache is per process, so rate limits are counted
   per gunicorn worker; add Redis for exact limits.
 
+## Platform services
+
+Core never imports a module (`lint-imports` fails CI otherwise). Generic services refer to module records as
+`(target_type, target_id)` (`<module>.<entity>` plus the record's UUID) and ask registries that each module fills
+from its AppConfig `ready()`. Tracking does all of its registration in `modules/tracking/hooks/` (called from
+`modules.tracking.projects.apps`); the test-only `core/tests/fake_module` shows the minimum a module needs.
+
+| Registry | Register with | Used by |
+|---|---|---|
+| Targets (`core/common/targets.py`) | `register_target_type("tracking.task", TaskTarget())` | comments, attachments, notifications, audit hints, trash, `check_orphan_targets` |
+| Access scopes (`core/access/scopes.py`) | `register_scope_provider(ProjectScope())` | `can()` for the `project` scope, inbox and stream visibility, role deletion |
+| Event types and handlers (`core/events/registry.py`) | `register_event_type(key, label, default_channels, module)`, `register_handler(pattern, fn, module=...)` | the outbox dispatcher; the notification preference matrix (keys, labels, defaults) |
+| Search (`core/search/services.py`) | `register_search_provider("tracking", TrackingSearch())` | `GET /search`, `GET /workspaces/{slug}/search` |
+| Trash (`core/audit/trash.py`) | `register_trash_kind(TaskTrash())` | workspace trash list, restore, purge, `purge_trash` |
+| Audit groups (`core/audit/registry.py`) | `register_audit_group("task", ["tracking.task"])` | the audit view's `filter[entity]` |
+| Realtime (`core/realtime/`) | `register_realtime_types(...)`, `register_audit_publisher(fn)`, `register_access_hook(fn)`, `presence.register_location(kind, fn)` | the SSE stream and presence |
+| Workspace hooks (`core/workspaces/hooks.py`) | `register_member_removed(fn)` | removing a workspace member |
+| Demo seeders (`core/common/seeding.py`) | `register_seeder(TrackingSeeder)` | `manage.py seed_demo` |
+
+To plug a module in: subclass `TargetResolver` (`exists`, `can_view`, `can_comment`, `can_attach`, `describe`,
+`workspace_of`, optionally `subscribers`, `mentionable`, `context`, `storage_prefix`) and register it; it then gets
+`GET|POST /api/v1/targets/{targetType}/{targetId}/comments`, `GET …/attachments`, `POST …/attachments/upload-url`,
+comment and mention notifications (`core.comment.created`, `core.comment.mentioned`), audit rows and realtime hints
+(`core.comment.*`, `core.attachment.*`, payload `{targetType, targetId, commentId | attachmentId}`). Emit domain
+events with `core.events.services.emit(type, workspace=…, target_type=…, target_id=…, actor=…, payload=…)` inside
+the write's transaction; handlers run after commit (inline without a Celery worker), must be idempotent, and a
+failure records `attempts` and `error` for `process_outbox` to retry.
+
 ## Layout
 
 ```
 config/            settings (base, dev, test, prod), URLs, Celery app
 core/              the platform core (docs/platform-architecture.md); never imports modules/
   common/          base models (UUID, timestamps, soft delete), errors, pagination, rich-text sanitising,
-                   fractional index, throttles, health, seed_demo
+                   fractional index, throttles, health, the target registry, seed_demo (+ seeder registry)
   accounts/        users, auth (JWT + refresh cookie), password reset, profile
   access/          permission catalogue (core.* / tracking.* codes), roles, can(), DRF permission class
   workspaces/      workspaces, members, invitations, access requests
-  collab/          comments, attachments, storage backends
-  notifications/   outbox events, notifications, preferences, email templates
+  collab/          generic comments and attachments on any registered target, storage backends
+  events/          the DomainEvent outbox, event type and handler registries, process_outbox
+  notifications/   notifications, preferences (built from the event type registry), email templates
   channels/        board 38: Telegram, SMS and Web Push delivery
   realtime/        board 33: the SSE stream, the per-process hub and brokers, events, presence
-  audit/           audit log, activity feeds, trash
-  search/          PostgreSQL full-text search
+  audit/           audit log, trash (registered kinds)
+  search/          search provider registry and fan-out
+  tests/           fake_module: a test-only module proving the core is generic
 modules/
   tracking/        the tracking module, served under /api/v1/tracking/
     projects/      projects, members, statuses, labels, access requests, recents, saved views
     planning/      objectives, milestones, epics, sprints
-    tasks/         tasks, status history, board, backlog, bulk, activity
+    tasks/         tasks, status history, board, backlog, bulk, activity feeds, send_due_soon
+    hooks/         everything tracking registers with core (targets, scope provider, events, search, trash,
+                   realtime, workspace hooks, demo seeder)
     reports/       burndown, velocity, cycle time, throughput, progress, KPIs, workload
     dashboards/    board 33: project dashboards (shared / personal) and their widget layouts
     imports/       board 40: CSV / Jira / Trello / Asana imports
@@ -339,7 +372,7 @@ modules/
 
 Each app keeps its Django `AppConfig.label` (`projects`, `tasks`, …), so migrations and table names are unchanged.
 `lint-imports` (import-linter, configured in `pyproject.toml`) enforces that `core` never imports `modules` and that
-modules never import each other; today's core→tracking imports are listed there as `ignore_imports` until Stage 2.
+modules never import each other; there are no exceptions for production code (see "Platform services").
 
 Every app follows the same layering: `models.py` (fields and invariants), `selectors.py` (reads, always scoped
 through membership), `services.py` (writes and business rules; every mutation writes an audit row),

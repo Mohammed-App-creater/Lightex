@@ -2,8 +2,12 @@ from django.urls import path
 
 from . import views
 
-# Task-scoped routes live in task_urls.py (mounted under tracking/).
+T = "targets/<str:target_type>/<uuid:target_id>"
+
 urlpatterns = [
+    path(f"{T}/comments", views.TargetCommentsView.as_view(), name="target-comments"),
+    path(f"{T}/attachments", views.TargetAttachmentsView.as_view(), name="target-attachments"),
+    path(f"{T}/attachments/upload-url", views.UploadUrlView.as_view(), name="target-attachment-upload-url"),
     path("comments/<uuid:comment_id>", views.CommentDetailView.as_view(), name="comment-detail"),
     path("attachments/<uuid:attachment_id>", views.AttachmentDetailView.as_view(), name="attachment-detail"),
     path("attachments/<uuid:attachment_id>/confirm", views.AttachmentConfirmView.as_view(), name="attachment-confirm"),

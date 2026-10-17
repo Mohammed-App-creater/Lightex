@@ -20,20 +20,15 @@ from .providers import available
 logger = logging.getLogger("lightex.channels")
 
 EXTERNAL = ("telegram", "sms", "push")
-EVENTS = (
-    "tracking.task.assigned",
-    "tracking.comment.mentioned",
-    "tracking.task.status_changed",
-    "tracking.comment.created",
-    "tracking.task.due_soon",
-    "tracking.sprint.started",
-)
 _unavailable_logged: set[str] = set()
 
 
 def wanted(recipient: Any, prefs: Any, pref: str | None, event: Any = None) -> list[str]:
     """Channels switched on for this event (§6.2 #1). `access`, `import` and `sprint_completed` never fan out."""
-    if pref not in EVENTS:
+    from core.events.registry import event_type
+
+    etype = event_type(pref) if pref else None
+    if etype is None or not etype.preference or not etype.channel_template:
         return []
     row = (prefs.events or {}).get(pref) or {}
     return [c for c in EXTERNAL if row.get(c)]

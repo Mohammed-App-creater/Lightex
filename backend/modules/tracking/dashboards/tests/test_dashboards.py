@@ -7,11 +7,12 @@ from django.db import IntegrityError, transaction
 
 from core.access.models import Permission, Role, RolePermission
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_member, add_project_member, client_for, make_project
+from core.common.testing import UserFactory, add_member, client_for
 from core.realtime.models import RealtimeEvent
 from modules.tracking.dashboards import services
 from modules.tracking.dashboards.models import Dashboard, DashboardWidget
 from modules.tracking.planning.models import Sprint
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

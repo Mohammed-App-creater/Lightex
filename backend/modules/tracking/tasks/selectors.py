@@ -55,8 +55,8 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
         dev_commit_count=_count(links.filter(type="commit")),
         subtask_count=_count(live_subtasks, "parent"),
         subtask_done_count=_count(done_subtasks, "parent"),
-        comment_count=_count(Comment.objects.all()),
-        attachment_count=_count(Attachment.objects.filter(status="ready")),
+        comment_count=_count(Comment.objects.filter(target_type="tracking.task"), "target_id"),
+        attachment_count=_count(Attachment.objects.filter(target_type="tracking.task", status="ready"), "target_id"),
         logged_minutes=_sum_minutes(),
     ).prefetch_related(
         Prefetch("objectives", queryset=Objective.objects.only("id")),

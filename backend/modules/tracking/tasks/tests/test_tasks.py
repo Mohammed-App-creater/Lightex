@@ -1,10 +1,11 @@
 import pytest
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_project_member, client_for, make_project, make_workspace
+from core.common.testing import UserFactory, client_for, make_workspace
 from modules.tracking.planning.models import Epic, Objective, Sprint
 from modules.tracking.tasks.models import Task, TaskStatusHistory
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import add_project_member, make_project
 
 pytestmark = pytest.mark.django_db
 

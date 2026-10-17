@@ -6,13 +6,14 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
-from core.common.testing import UserFactory, add_project_member, client_for, make_project
+from core.common.testing import UserFactory, client_for
 from modules.tracking.planning.models import Milestone, Objective, Sprint
 from modules.tracking.projects.custom_fields import create_field
 from modules.tracking.projects.models import ProjectMember
 from modules.tracking.reports.services import nice_max
 from modules.tracking.tasks.models import Task, TaskFieldValue
 from modules.tracking.tasks.services import create_task
+from modules.tracking.testing import add_project_member, make_project
 from modules.tracking.timetracking.models import TimeEntry
 
 pytestmark = pytest.mark.django_db

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "modules.tracking.planning",
     "modules.tracking.tasks",
     "core.collab",
+    "core.events",
     "core.notifications",
     "modules.tracking.reports",
     "core.audit",

@@ -18,6 +18,7 @@ from core.accounts.services import EMAIL_RE, normalize_email, password_problem
 from core.audit.services import change, record
 from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.common.tokens import hash_token, new_token, token_matches
+from core.workspaces.hooks import member_removed
 
 from .models import Invitation, Workspace, WorkspaceAccessRequest, WorkspaceMember
 
@@ -209,20 +210,11 @@ def remove_member(actor: User, ws: Workspace, user_id: Any) -> None:
     _ensure_can_grant(actor, ws, member.role)
     if OWNER_PERMISSION in _role_codes(member.role) and _owner_count(ws, excluding_user=member.user_id) == 0:
         raise conflict("last_owner", "A workspace needs at least one owner.")
-    _remove_project_memberships(ws, member.user_id)
+    member_removed(ws, member.user_id)  # modules drop what the member had in this workspace
     WorkspaceAccessRequest.objects.filter(workspace=ws, user_id=member.user_id).delete()
     name = member.user.name
     member.delete()
     record(workspace=ws, actor=actor, action="core.member.removed", target=name, entity_id=user_id)
-
-
-def _remove_project_memberships(ws: Workspace, user_id: Any) -> None:
-    from modules.tracking.dashboards.models import Dashboard
-    from modules.tracking.projects.models import AccessRequest, ProjectMember
-
-    ProjectMember.objects.filter(project__workspace=ws, user_id=user_id).delete()
-    Dashboard.objects.filter(project__workspace=ws, owner_id=user_id, visibility="personal").delete()
-    AccessRequest.objects.filter(project__workspace=ws, user_id=user_id, status="pending").update(status="withdrawn")
 
 
 def touch_last_active(user: User) -> None:
@@ -294,7 +286,7 @@ def create_invitations(actor: User, ws: Workspace, emails: Any, role_id: Any) ->
 
 
 def _emit_invitation_event(actor: User, inv: Invitation) -> None:
-    from core.notifications.events import emit
+    from core.events.services import emit
 
     emit(
         "core.member.invited",
@@ -394,7 +386,7 @@ def request_workspace_access(user: User, ws: Workspace) -> WorkspaceAccessReques
         raise conflict("conflict", "You can create projects yourself.")
     req, created = WorkspaceAccessRequest.objects.get_or_create(workspace=ws, user=user)
     if created:
-        from core.notifications.events import emit
+        from core.events.services import emit
 
         emit("core.workspace.access_requested", workspace=ws, actor=user, payload={"requestId": str(req.pk)})
     return req

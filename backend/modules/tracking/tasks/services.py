@@ -22,8 +22,9 @@ from core.common import fractional
 from core.common.exceptions import ApiError, conflict, forbidden, invalid, not_found
 from core.common.richtext import doc_text, mention_ids, sanitize_doc
 from core.common.utils import iso_date
-from core.notifications.events import emit
-from core.realtime.services import publish_bulk, publish_task_moved, suppress_audit_events
+from core.realtime.services import suppress_audit_events
+from modules.tracking.hooks.realtime import publish_bulk, publish_task_moved
+from modules.tracking.outbox import emit
 from modules.tracking.planning.models import Epic, Milestone, Objective, Sprint, SprintScopeChange
 from modules.tracking.projects.models import CustomField, Label, Project, ProjectMember, Status
 
@@ -323,7 +324,7 @@ def _emit_mentions(task: Task, actor: Any, now: list[str], before: list[str]) ->
     new = [m for m in now if m not in before]
     if new:
         emit(
-            "tracking.comment.mentioned",
+            "core.comment.mentioned",
             workspace=task.project.workspace_id,
             project=task.project_id,
             actor=actor,

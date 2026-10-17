@@ -15,6 +15,7 @@ pytestmark = pytest.mark.django_db
 URL = "/api/v1/notification-preferences"
 migration = importlib.import_module("core.notifications.migrations.0004_board38_channel_preferences")
 namespace = importlib.import_module("core.notifications.migrations.0005_namespace_event_types")
+generic = importlib.import_module("core.notifications.migrations.0006_generic_targets")
 QUIET = {"enabled": True, "from": "22:00", "to": "08:00", "timezone": "Europe/Berlin",
          "days": [True] * 5 + [False] * 2, "urgentBypass": False}  # fmt: skip
 
@@ -52,8 +53,10 @@ def test_data_migration_merges_channel_keys(sam):
     old = {"assigned": {"in_app": False, "email": True}, "comment": {"in_app": True, "email": True, "push": False}}
     NotificationPreference.objects.create(user=sam, events=old)
     migration.add_channel_keys(django_apps, None)
-    namespace.forwards(django_apps, None)  # platform Stage 1 renames the keys
-    namespace.forwards(django_apps, None)  # idempotent
+    namespace._rename_keys(django_apps, namespace.PREFERENCE_KEYS)  # platform Stage 1 renames the keys
+    namespace._rename_keys(django_apps, namespace.PREFERENCE_KEYS)  # idempotent
+    generic.forwards(django_apps, None)  # Stage 2: comment keys move to the core namespace
+    generic.forwards(django_apps, None)
     events = NotificationPreference.objects.get(user=sam).events
     assert events["tracking.task.assigned"] == {
         "in_app": False,
@@ -62,7 +65,7 @@ def test_data_migration_merges_channel_keys(sam):
         "sms": False,
         "push": True,
     }
-    assert events["tracking.comment.created"]["push"] is False and events["tracking.comment.created"]["email"] is True
+    assert events["core.comment.created"]["push"] is False and events["core.comment.created"]["email"] is True
     assert set(events) == set(default_events())
 
 

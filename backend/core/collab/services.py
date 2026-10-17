@@ -1,4 +1,8 @@
-"""Comments (with mentions) and attachments (signed upload → verify → ready)."""
+"""Comments (with mentions) and attachments (signed upload → verify → ready) on any registered target.
+
+Every permission decision goes through the target's resolver (core/common/targets.py); core holds no module
+rules.
+"""
 
 from __future__ import annotations
 
@@ -11,12 +15,11 @@ from django.contrib.postgres.search import SearchVector
 from django.db import transaction
 from django.utils import timezone
 
-from core.access import services as access
 from core.audit.services import change, record
 from core.common.exceptions import ApiError, forbidden, invalid, not_found
 from core.common.richtext import doc_text, mention_ids, sanitize_doc
-from core.notifications.events import emit
-from modules.tracking.projects.models import ProjectMember
+from core.common.targets import TargetResolver, parse_id, resolver_for
+from core.events.services import emit
 
 from .models import Attachment, Comment, CommentMention
 from .storage import get_storage
@@ -86,27 +89,74 @@ def classify(file_name: str, mime: str, size: Any) -> tuple[str, str]:
     return ("text" if ext in TEXT_EXT else "code"), mime or "application/octet-stream"
 
 
+# ───────────────────────── targets ─────────────────────────
+
+
+def _deny(resolver: TargetResolver, action: str, message: str | None = None) -> ApiError:
+    code = resolver.permission_codes.get(action)
+    details = {"permission": code} if code else None
+    return forbidden(message, details) if message else forbidden(details=details)
+
+
+def target(user: Any, target_type: Any, target_id: Any) -> tuple[TargetResolver, uuid.UUID]:
+    """The resolver and id of a target the user may see (404 for unknown types or ids, else the module's errors)."""
+    resolver = resolver_for(target_type)
+    pk = parse_id(target_id)
+    if pk is None:
+        raise not_found(resolver.not_found_message)
+    resolver.require_view(user, pk)
+    return resolver, pk
+
+
+def _resolver(obj: Comment | Attachment) -> TargetResolver:
+    return resolver_for(obj.target_type)
+
+
+def _audit(obj: Comment | Attachment, actor: Any, action: str, **kwargs: Any) -> None:
+    """One audit row; the target's describe() supplies the title and the scope hints (key, project, task)."""
+    info = _resolver(obj).describe(obj.target_id)
+    record(
+        workspace=obj.workspace_id,
+        project=info.get("projectId"),
+        task=info.get("taskId"),
+        task_key=info.get("key") if info.get("taskId") else None,
+        task_title=info.get("title") if info.get("taskId") else None,
+        actor=actor,
+        action=action,
+        target=info.get("title", ""),
+        entity_id=obj.pk,
+        entity_key=info.get("key"),
+        **kwargs,
+    )
+
+
+def _publish(obj: Comment | Attachment, actor: Any, event_type: str) -> None:
+    """`core.comment.*` / `core.attachment.*` realtime hints: `{targetType, targetId, commentId | attachmentId}`."""
+    from core.realtime.services import publish
+
+    info = _resolver(obj).describe(obj.target_id)
+    id_key = "commentId" if isinstance(obj, Comment) else "attachmentId"
+    publish(
+        event_type,
+        workspace=obj.workspace_id,
+        project=info.get("projectId"),
+        actor=actor,
+        data={"targetType": obj.target_type, "targetId": str(obj.target_id), id_key: str(obj.pk)},
+    )
+
+
 # ───────────────────────── comments ─────────────────────────
 
 
-def _project_mentions(task: Any, doc: dict | None) -> list[str]:
-    """Only project members can be mentioned (and therefore notified)."""
+def _mentions(resolver: TargetResolver, target_id: Any, doc: dict | None) -> list[str]:
+    """Only people the resolver allows can be mentioned (and therefore notified)."""
     ids = [i for i in mention_ids(doc) if _is_uuid(i)]
-    members = set(
-        map(
-            str,
-            ProjectMember.objects.filter(project_id=task.project_id, user_id__in=ids).values_list("user_id", flat=True),
-        )
-    )
-    return [i for i in ids if i in members]
+    allowed = resolver.mentionable(target_id, ids) if ids else set()
+    return [i for i in ids if i in allowed]
 
 
 def _is_uuid(value: Any) -> bool:
-    try:
-        uuid.UUID(str(value))
-    except (TypeError, ValueError):
-        return False
-    return True
+    return parse_id(value) is not None
 
 
 def _comment_body(raw: Any) -> tuple[dict, str]:
@@ -128,70 +178,68 @@ def _refresh_comment_search(comment: Comment) -> None:
     Comment.all_objects.filter(pk=comment.pk).update(search_vector=SearchVector("body_text", config="english"))
 
 
-def _audit_comment(comment: Comment, actor: Any, action: str, changes: list | None = None) -> None:
-    task = comment.task
-    record(
-        workspace=task.project.workspace_id,
-        project=task.project_id,
-        task=task,
+def _emit(comment: Comment, actor: Any, event_type: str, user_ids: list[str], quote: str) -> None:
+    info = _resolver(comment).describe(comment.target_id)
+    hints = {k: info[k] for k in ("projectId", "taskId") if info.get(k)}
+    emit(
+        event_type,
+        workspace=comment.workspace_id,
+        target_type=comment.target_type,
+        target_id=comment.target_id,
         actor=actor,
-        action=action,
-        target=task.title,
-        entity_id=comment.pk,
-        entity_key=task.key,
-        changes=changes,
+        payload={"userIds": user_ids, "quote": quote, "commentId": str(comment.pk), **hints},
+    )
+
+
+def list_comments(resolver: TargetResolver, target_id: Any) -> Any:
+    return (
+        Comment.objects.filter(target_type=resolver.key, target_id=target_id)
+        .prefetch_related("mentions")
+        .order_by("created_at")
     )
 
 
 @transaction.atomic
-def create_comment(actor: Any, task: Any, raw: Any) -> Comment:
-    if not access.can(actor, "tracking.comment.create", task.project):
-        raise forbidden(details={"permission": "tracking.comment.create"})
+def create_comment(actor: Any, target_type: str, target_id: Any, raw: Any) -> Comment:
+    resolver = resolver_for(target_type)
+    if not resolver.can_comment(actor, target_id):
+        raise _deny(resolver, "comment")
     body, text = _comment_body(raw)
-    comment = Comment.objects.create(task=task, author=actor, body=body, body_text=text)
-    mentioned = _project_mentions(task, body)
+    comment = Comment.objects.create(
+        workspace_id=resolver.workspace_of(target_id),
+        target_type=resolver.key,
+        target_id=target_id,
+        author=actor,
+        body=body,
+        body_text=text,
+    )
+    mentioned = _mentions(resolver, target_id, body)
     _set_mentions(comment, mentioned)
     _refresh_comment_search(comment)
-    _audit_comment(comment, actor, "tracking.comment.created", [change("Comment", None, text[:200], "text")])
+    _audit(comment, actor, "core.comment.created", changes=[change("Comment", None, text[:200], "text")])
+    _publish(comment, actor, "core.comment.created")
     quote = text[:140]
     if mentioned:
-        emit(
-            "tracking.comment.mentioned",
-            workspace=task.project.workspace_id,
-            project=task.project_id,
-            actor=actor,
-            payload={"taskId": str(task.pk), "userIds": mentioned, "quote": quote, "commentId": str(comment.pk)},
-        )
-    watchers = [str(u) for u in {task.reporter_id, task.assignee_id} if u and str(u) not in mentioned]
+        _emit(comment, actor, "core.comment.mentioned", mentioned, quote)
+    watchers = [str(u) for u in resolver.subscribers(target_id) if u and str(u) not in mentioned]
     if watchers:
-        emit(
-            "tracking.comment.created",
-            workspace=task.project.workspace_id,
-            project=task.project_id,
-            actor=actor,
-            payload={"taskId": str(task.pk), "userIds": watchers, "quote": quote, "commentId": str(comment.pk)},
-        )
+        _emit(comment, actor, "core.comment.created", watchers, quote)
     return comment
 
 
 def get_comment(user: Any, comment_id: Any) -> Comment:
-    from modules.tracking.tasks.selectors import task_for
-
-    comment = (
-        Comment.objects.select_related("task", "task__project").filter(pk=comment_id).first()
-        if _is_uuid(comment_id)
-        else None
-    )
-    if comment is None or comment.task.deleted_at is not None:
+    comment = Comment.objects.filter(pk=comment_id).first() if _is_uuid(comment_id) else None
+    if comment is None or _resolver(comment).workspace_of(comment.target_id) is None:
         raise not_found("Comment not found.")
-    task_for(user, comment.task_id)
+    _resolver(comment).require_view(user, comment.target_id)
     return comment
 
 
 @transaction.atomic
 def update_comment(actor: Any, comment: Comment, raw: Any) -> Comment:
-    if comment.author_id != actor.pk or not access.can(actor, "tracking.comment.edit_own", comment.task.project):
-        raise forbidden("You can only edit your own comments.", {"permission": "tracking.comment.edit_own"})
+    resolver = _resolver(comment)
+    if comment.author_id != actor.pk or not resolver.can_edit_own_comment(actor, comment.target_id):
+        raise _deny(resolver, "edit_own_comment", "You can only edit your own comments.")
     before_mentions = set(map(str, CommentMention.objects.filter(comment=comment).values_list("user_id", flat=True)))
     body, text = _comment_body(raw)
     before = comment.body_text
@@ -199,33 +247,32 @@ def update_comment(actor: Any, comment: Comment, raw: Any) -> Comment:
     comment.body_text = text
     comment.edited_at = timezone.now()
     comment.save()
-    mentioned = _project_mentions(comment.task, body)
+    mentioned = _mentions(resolver, comment.target_id, body)
     _set_mentions(comment, mentioned)
     _refresh_comment_search(comment)
-    _audit_comment(comment, actor, "tracking.comment.updated", [change("Comment", before[:200], text[:200], "text")])
+    _audit(comment, actor, "core.comment.updated", changes=[change("Comment", before[:200], text[:200], "text")])
+    _publish(comment, actor, "core.comment.updated")
     new = [m for m in mentioned if m not in before_mentions]
     if new:
-        task = comment.task
-        emit(
-            "tracking.comment.mentioned",
-            workspace=task.project.workspace_id,
-            project=task.project_id,
-            actor=actor,
-            payload={"taskId": str(task.pk), "userIds": new, "quote": text[:140], "commentId": str(comment.pk)},
-        )
+        _emit(comment, actor, "core.comment.mentioned", new, text[:140])
     return comment
+
+
+def can_delete_comment(user: Any, comment: Comment) -> bool:
+    resolver = _resolver(comment)
+    own = comment.author_id == user.pk and resolver.can_edit_own_comment(user, comment.target_id)
+    return own or resolver.can_delete_any_comment(user, comment.target_id)
 
 
 @transaction.atomic
 def delete_comment(actor: Any, comment: Comment) -> None:
-    project = comment.task.project
-    own = comment.author_id == actor.pk and access.can(actor, "tracking.comment.edit_own", project)
-    if not own and not access.can(actor, "tracking.comment.delete_any", project):
-        raise forbidden("You can’t delete this comment.", {"permission": "tracking.comment.delete_any"})
+    if not can_delete_comment(actor, comment):
+        raise _deny(_resolver(comment), "delete_any_comment", "You can’t delete this comment.")
     comment.deleted_at = timezone.now()
     comment.deleted_by = actor
     comment.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
-    _audit_comment(comment, actor, "tracking.comment.deleted", [change("Comment", comment.body_text[:200], None)])
+    _audit(comment, actor, "core.comment.deleted", changes=[change("Comment", comment.body_text[:200], None)])
+    _publish(comment, actor, "core.comment.deleted")
 
 
 @transaction.atomic
@@ -233,46 +280,68 @@ def restore_comment(actor: Any, comment: Comment) -> Comment:
     comment.deleted_at = None
     comment.deleted_by = None
     comment.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
-    _audit_comment(comment, actor, "tracking.comment.restored")
+    _audit(comment, actor, "core.comment.restored")
+    _publish(comment, actor, "core.comment.restored")
     return comment
+
+
+@transaction.atomic
+def purge_comment(actor: Any, comment: Comment) -> None:
+    _audit(comment, actor, "core.comment.purged")
+    _publish(comment, actor, "core.comment.purged")
+    comment.delete()
 
 
 # ───────────────────────── attachments ─────────────────────────
 
 
-def storage_key(task: Any) -> str:
-    return f"ws/{task.project.workspace_id}/p/{task.project_id}/t/{task.pk}/{uuid.uuid4().hex}"
+def storage_key(resolver: TargetResolver, target_id: Any) -> str:
+    return f"{resolver.storage_prefix(target_id)}/{uuid.uuid4().hex}"
+
+
+def list_attachments(resolver: TargetResolver, target_id: Any) -> Any:
+    return Attachment.objects.filter(target_type=resolver.key, target_id=target_id, status="ready").order_by(
+        "created_at"
+    )
 
 
 @transaction.atomic
-def start_upload(actor: Any, task: Any, data: dict[str, Any]) -> tuple[Attachment, str, dict[str, str]]:
-    if not access.can(actor, "tracking.attachment.upload", task.project):
-        raise forbidden(details={"permission": "tracking.attachment.upload"})
+def start_upload(
+    actor: Any, target_type: str, target_id: Any, data: dict[str, Any]
+) -> tuple[Attachment, str, dict[str, str]]:
+    resolver = resolver_for(target_type)
+    if not resolver.can_attach(actor, target_id):
+        raise _deny(resolver, "attach")
     file_name = clean_file_name(data.get("fileName"))
     size = data.get("size")
     kind, content_type = classify(file_name, str(data.get("mimeType") or ""), size)
     attachment = Attachment.objects.create(
-        task=task,
+        workspace_id=resolver.workspace_of(target_id),
+        target_type=resolver.key,
+        target_id=target_id,
         uploader=actor,
         file_name=file_name,
         size=size,
         mime_type=content_type,
         kind=kind,
-        storage_key=storage_key(task),
+        storage_key=storage_key(resolver, target_id),
     )
     url, headers = get_storage().presigned_put(attachment.storage_key, content_type, settings.UPLOAD_URL_TTL_SECONDS)
     return attachment, url, headers
 
 
-def pending_upload(actor: Any, task: Any, upload_id: Any) -> Attachment:
-    attachment = (
-        Attachment.objects.filter(pk=upload_id, task=task, uploader=actor, status="pending").first()
-        if _is_uuid(upload_id)
-        else None
-    )
-    if attachment is None:
+def require_attach(actor: Any, attachment: Attachment) -> None:
+    resolver = _resolver(attachment)
+    if not resolver.can_attach(actor, attachment.target_id):
+        raise _deny(resolver, "attach")
+
+
+def pending_upload(actor: Any, attachment: Attachment) -> Attachment:
+    """The caller's own upload that hasn't been confirmed yet (400 `upload_missing` otherwise)."""
+    pending = Attachment.objects.filter(pk=attachment.pk, uploader=actor, status="pending").first()
+    if pending is None:
         raise ApiError(400, "upload_missing", "Upload not found or incomplete. Try again.")
-    return attachment
+    return pending
 
 
 def _verification_problem(attachment: Attachment, info: Any) -> str | None:
@@ -294,8 +363,9 @@ def _verification_problem(attachment: Attachment, info: Any) -> str | None:
 def confirm_upload(actor: Any, attachment: Attachment) -> Attachment:
     """HEAD the object and check real size and type (plus magic bytes for raster images).
     A mismatch deletes the object and rejects the upload."""
-    if not access.can(actor, "tracking.attachment.upload", attachment.task.project):
-        raise forbidden(details={"permission": "tracking.attachment.upload"})
+    resolver = _resolver(attachment)
+    if not resolver.can_attach(actor, attachment.target_id):
+        raise _deny(resolver, "attach")
     storage = get_storage()
     info = storage.head(attachment.storage_key)
     if info is None:
@@ -309,57 +379,55 @@ def confirm_upload(actor: Any, attachment: Attachment) -> Attachment:
     with transaction.atomic():
         attachment.status = "ready"
         attachment.save(update_fields=["status", "updated_at"])
-        task = attachment.task
-        record(
-            workspace=task.project.workspace_id,
-            project=task.project_id,
-            task=task,
-            actor=actor,
-            action="tracking.attachment.created",
-            target=task.title,
-            entity_id=attachment.pk,
-            entity_key=task.key,
+        _audit(
+            attachment,
+            actor,
+            "core.attachment.created",
             changes=[change("File", None, attachment.file_name)],
             data={"file": attachment.file_name},
         )
+        _publish(attachment, actor, "core.attachment.created")
     return attachment
 
 
 def get_attachment(user: Any, attachment_id: Any) -> Attachment:
-    from modules.tracking.tasks.selectors import task_for
-
-    attachment = (
-        Attachment.objects.select_related("task", "task__project").filter(pk=attachment_id).first()
-        if _is_uuid(attachment_id)
-        else None
-    )
-    if attachment is None or attachment.task.deleted_at is not None:
+    attachment = Attachment.objects.filter(pk=attachment_id).first() if _is_uuid(attachment_id) else None
+    if attachment is None or _resolver(attachment).workspace_of(attachment.target_id) is None:
         raise not_found("File not found.")
-    task_for(user, attachment.task_id)
+    _resolver(attachment).require_view(user, attachment.target_id)
     return attachment
 
 
 @transaction.atomic
 def delete_attachment(actor: Any, attachment: Attachment) -> None:
-    project = attachment.task.project
-    own = attachment.uploader_id == actor.pk and access.can(actor, "tracking.attachment.upload", project)
-    if not own and not access.can(actor, "tracking.attachment.delete_any", project):
-        raise forbidden("You can’t delete this file.", {"permission": "tracking.attachment.delete_any"})
+    resolver = _resolver(attachment)
+    own = attachment.uploader_id == actor.pk and resolver.can_attach(actor, attachment.target_id)
+    if not own and not resolver.can_delete_any_attachment(actor, attachment.target_id):
+        raise _deny(resolver, "delete_any_attachment", "You can’t delete this file.")
     attachment.deleted_at = timezone.now()
     attachment.deleted_by = actor
     attachment.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
-    task = attachment.task
-    record(
-        workspace=project.workspace_id,
-        project=project,
-        task=task,
-        actor=actor,
-        action="tracking.attachment.deleted",
-        target=task.title,
-        entity_id=attachment.pk,
-        entity_key=task.key,
-        changes=[change("File", attachment.file_name, None)],
-    )
+    _audit(attachment, actor, "core.attachment.deleted", changes=[change("File", attachment.file_name, None)])
+    _publish(attachment, actor, "core.attachment.deleted")
+
+
+def delete_target_records(target_type: str, target_ids: list[Any]) -> None:
+    """Hard-deletes the comments and attachments of purged targets; stored objects go after commit."""
+    attachments = Attachment.all_objects.filter(target_type=target_type, target_id__in=target_ids)
+    delete_files(attachments)
+    attachments.delete()
+    Comment.all_objects.filter(target_type=target_type, target_id__in=target_ids).delete()
+
+
+def delete_files(attachments: Any) -> None:
+    storage = get_storage()
+    keys = list(attachments.values_list("storage_key", flat=True))
+
+    def remove() -> None:
+        for key in keys:
+            storage.delete(key)
+
+    transaction.on_commit(remove)
 
 
 def download_urls(attachment: Attachment) -> dict[str, str | None]:

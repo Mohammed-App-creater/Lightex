@@ -208,7 +208,7 @@ class Hub:
 def _volatile_types() -> tuple[str, ...]:
     from .protocol import VOLATILE_TYPES
 
-    return VOLATILE_TYPES
+    return tuple(VOLATILE_TYPES)
 
 
 class Listener(threading.Thread):

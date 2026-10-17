@@ -106,3 +106,6 @@ CHANNELS_ENCRYPTION_KEY = ""
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].update(  # type: ignore[attr-defined]
     {"channel_connect": "100000/min", "channel_test": "100000/min"}
 )
+
+# Platform Stage 2: a test-only module proving core is generic (core/tests/fake_module, contract §5).
+INSTALLED_APPS = [*INSTALLED_APPS, "core.tests.fake_module"]  # noqa: F405

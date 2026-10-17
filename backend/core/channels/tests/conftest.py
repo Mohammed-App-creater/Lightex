@@ -9,7 +9,7 @@ from django.utils import timezone
 from core.channels import crypto
 from core.channels.models import PushSubscription, SmsConnection, TelegramConnection
 from core.channels.providers import get_push, get_sms, get_telegram
-from core.common.testing import add_project_member, client_for, make_project
+from core.common.testing import add_member, client_for
 
 P256DH = "BD7Xoo7GSO3OXVt-JS9rKq-7RINRFKJLPKqPcQ9kmTvCVxGjTNySKQgLY58Jl3_rfKkezOFkm_6orYXHKyBq3n4"
 AUTH = "5I2Bu2oKdyy9CwL8QVF0NQ"
@@ -46,15 +46,11 @@ def push():
 
 
 @pytest.fixture
-def project(ws, owner):
-    return make_project(ws, owner, key="PRJ", name="Platform Rebuild")
-
-
-@pytest.fixture
-def sam(project):
+def sam(ws):
+    """A workspace member (tracking's channel tests override this with a project member)."""
     from core.accounts.models import User
 
-    user = add_project_member(project, key="project_member")
+    user = add_member(ws)
     User.objects.filter(pk=user.pk).update(name="Sam Rivera")
     user.refresh_from_db()
     return user
