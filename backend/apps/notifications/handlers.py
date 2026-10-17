@@ -80,7 +80,10 @@ def deliver(
     payload: dict | None = None,
     email_template: str = "",
     email_context: dict | None = None,
+    channel_context: dict | None = None,
 ) -> Notification | None:
+    from apps.channels import dispatch as channels
+
     if event.project_id is None:  # in-app rows always belong to a project
         return None
     project_id = event.project_id
@@ -88,7 +91,8 @@ def deliver(
     channel = (prefs.events or {}).get(pref, {}) if pref else {"in_app": True, "email": True}
     in_app = bool(channel.get("in_app", True))
     email = bool(email_template) and bool(channel.get("email", False))
-    if not in_app and not email:
+    external = channels.wanted(recipient, prefs, pref, event)  # board 38 §6.1; [] when pref is None
+    if not in_app and not email and not external:
         return None
     notification, created = Notification.objects.get_or_create(
         event=event,
@@ -116,7 +120,35 @@ def deliver(
         else:
             notification.email_pending = True
         notification.save(update_fields=["emailed_at", "email_pending", "updated_at"])
+    if created and external:
+        assert pref is not None  # noqa: S101 - wanted() is empty without a preference key
+        channels.enqueue(
+            notification,
+            recipient,
+            prefs,
+            external,
+            template=pref,
+            context={**(email_context or {}), **(channel_context or {})},
+            urgent=bool(task is not None and task.priority == 4),
+        )
     return notification
+
+
+def _channel_context(event: DomainEvent, task: Any = None, **extra: Any) -> dict[str, Any]:
+    """Board 38 §6.4: the extra merge tags the Telegram, SMS and Push templates use."""
+    actor_name = event.actor.name if event.actor is not None else ""
+    ctx: dict[str, Any] = {"actor_name": actor_name, "workspace_slug": "", **extra}
+    if task is not None:
+        ctx.update(
+            {
+                **_task_context(task),
+                "task_id": str(task.pk),
+                "project_key": task.project.key,
+                "workspace_slug": task.project.workspace.slug,
+            }
+        )
+        ctx.update(extra)
+    return ctx
 
 
 def _task(event: DomainEvent) -> Any:
@@ -146,6 +178,7 @@ def on_task_assigned(event: DomainEvent) -> None:
             task=task,
             email_template="task_assigned",
             email_context={**_task_context(task), "assigner_name": actor_name},
+            channel_context=_channel_context(event, task),
         )
 
 
@@ -157,7 +190,17 @@ def on_status_change(event: DomainEvent) -> None:
     if event.payload.get("via"):  # board 37: a status change made by an integration's automation
         payload["via"] = event.payload["via"]
     for user in _recipients(event, [task.assignee_id, task.reporter_id]):
-        deliver(event, user, kind="status", pref="status_change", task=task, payload=payload)
+        deliver(
+            event,
+            user,
+            kind="status",
+            pref="status_change",
+            task=task,
+            payload=payload,
+            channel_context=_channel_context(
+                event, task, from_status=payload["fromStatus"], to_status=payload["toStatus"]
+            ),
+        )
 
 
 def on_mentioned(event: DomainEvent) -> None:
@@ -176,6 +219,7 @@ def on_mentioned(event: DomainEvent) -> None:
             payload={"quote": quote},
             email_template="mentioned",
             email_context={**_task_context(task), "author_name": actor_name, "comment_excerpt": quote},
+            channel_context=_channel_context(event, task, author_name=actor_name, comment_excerpt=quote),
         )
 
 
@@ -185,7 +229,15 @@ def on_comment(event: DomainEvent) -> None:
         return
     quote = str(event.payload.get("quote", ""))[:140]
     for user in _recipients(event, event.payload.get("userIds", [])):
-        deliver(event, user, kind="comment", pref="comment", task=task, payload={"quote": quote})
+        deliver(
+            event,
+            user,
+            kind="comment",
+            pref="comment",
+            task=task,
+            payload={"quote": quote},
+            channel_context=_channel_context(event, task, comment_excerpt=quote),
+        )
 
 
 def _sprint(event: DomainEvent) -> Any:
@@ -233,6 +285,12 @@ def on_sprint_started(event: DomainEvent) -> None:
             payload={"sprintName": sprint.name},
             email_template="sprint_started",
             email_context={**context, "your_task_count": tasks.filter(assignee=user).count()},
+            channel_context={
+                **_channel_context(event),
+                "sprint_id": str(sprint.pk),
+                "project_key": sprint.project.key,
+                "workspace_slug": sprint.project.workspace.slug,
+            },
         )
 
 
@@ -351,6 +409,7 @@ def on_due_soon(event: DomainEvent) -> None:
             payload={"dueDate": task.due_date.isoformat() if task.due_date else None},
             email_template="due_soon",
             email_context={**_task_context(task), "due_relative": event.payload.get("relative", "soon")},
+            channel_context=_channel_context(event, task, due_relative=event.payload.get("relative", "soon")),
         )
 
 

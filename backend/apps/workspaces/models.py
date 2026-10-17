@@ -11,6 +11,8 @@ class Workspace(SoftDeleteModel):
     slug = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=40)
     hue = models.PositiveSmallIntegerField(default=random_hue)
+    # Board 38 §3.9: `notificationPolicy.sms` (workspace.update). Off skips SMS for this workspace's events.
+    sms_enabled = models.BooleanField(default=True)
     deleted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )

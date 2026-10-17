@@ -1,0 +1,2 @@
+{% autoescape off %}{{ count }} updates while quiet hours were on
+{% for item in items %}{{ item.line }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if more %} · +{{ more }} more{% endif %}{% endautoescape %}

@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.db import models
 
@@ -7,8 +9,20 @@ EVENTS = ["assigned", "mentioned", "status_change", "comment", "due_soon", "spri
 DELIVERY = [("instant", "Instant"), ("hourly", "Hourly digest"), ("daily", "Daily digest")]
 
 
+CHANNELS = ["in_app", "email", "telegram", "sms", "push"]
+# Board 38 §3.8: the design's DEF table (in_app and email are v1's, unchanged).
+CHANNEL_DEFAULTS = {
+    "assigned": {"telegram": True, "sms": False, "push": True},
+    "mentioned": {"telegram": True, "sms": False, "push": True},
+    "status_change": {"telegram": False, "sms": False, "push": False},
+    "comment": {"telegram": True, "sms": False, "push": True},
+    "due_soon": {"telegram": True, "sms": True, "push": True},
+    "sprint_started": {"telegram": False, "sms": False, "push": False},
+}
+
+
 def default_events() -> dict:
-    return {
+    v1 = {
         "assigned": {"in_app": True, "email": True},
         "mentioned": {"in_app": True, "email": True},
         "status_change": {"in_app": True, "email": False},
@@ -16,6 +30,7 @@ def default_events() -> dict:
         "due_soon": {"in_app": True, "email": True},
         "sprint_started": {"in_app": True, "email": False},
     }
+    return {event: {**row, **CHANNEL_DEFAULTS[event]} for event, row in v1.items()}
 
 
 class DomainEvent(BaseModel):
@@ -79,3 +94,10 @@ class NotificationPreference(BaseModel):
     )
     events = models.JSONField(default=default_events)
     email_delivery = models.CharField(max_length=8, choices=DELIVERY, default="instant")
+    # Board 38 §3.8: quiet hours hold Telegram, SMS and Push; inactive while `timezone` is null.
+    quiet_enabled = models.BooleanField(default=True)
+    quiet_from = models.TimeField(default=datetime.time(22, 0))
+    quiet_to = models.TimeField(default=datetime.time(8, 0))
+    quiet_days = models.PositiveSmallIntegerField(default=127)  # bitmask, Mon = bit 0
+    quiet_urgent_bypass = models.BooleanField(default=True)
+    timezone = models.CharField(max_length=64, null=True, blank=True)

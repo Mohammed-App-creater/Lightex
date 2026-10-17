@@ -28,6 +28,17 @@ def post_worker_init(worker):
             previous(signum, frame)
 
     signal.signal(signal.SIGTERM, on_term)
+    _start_channel_sweeper()
+
+
+def _start_channel_sweeper() -> None:
+    """Board 38 §6.7: one event-driven sweeper per worker when channels send from a thread pool (no broker)."""
+    try:
+        from apps.channels.runner import start_sweeper
+
+        start_sweeper()
+    except Exception:  # noqa: S110 - never stop a worker from booting over notifications
+        pass
 
 
 def worker_int(worker):

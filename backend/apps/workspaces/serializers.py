@@ -12,10 +12,16 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     memberCount = serializers.SerializerMethodField()
     myRoleId = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
+    notificationPolicy = serializers.SerializerMethodField()
 
     class Meta:
         model = Workspace
-        fields = ["id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions"]
+        fields = [
+            "id", "slug", "name", "hue", "createdAt", "memberCount", "myRoleId", "my_permissions", "notificationPolicy",
+        ]  # fmt: skip
+
+    def get_notificationPolicy(self, obj) -> dict[str, bool]:
+        return {"sms": obj.sms_enabled}
 
     def get_createdAt(self, obj) -> str | None:
         return iso(obj.created_at)

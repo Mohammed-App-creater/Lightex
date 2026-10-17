@@ -163,8 +163,13 @@ export function RepoPicker({
                           Connected through another account
                         </span>
                       )}
-                      <span className="inline-flex h-[22px] items-center rounded-[6px] border border-line bg-raised px-2 font-mono text-[11.5px] text-fg-2">{r.visibility}</span>
-                      <span className="w-[26px] text-right text-[11.5px]">{r.updatedAt ? ago(r.updatedAt).replace("just now", "now") : ""}</span>
+                      <span className="inline-flex h-[22px] shrink-0 items-center rounded-[6px] border border-line bg-raised px-2 font-mono text-[11.5px] text-fg-2">{r.visibility}</span>
+                      <span
+                        className="min-w-[26px] shrink-0 whitespace-nowrap text-right text-[11.5px] tabular-nums"
+                        title={r.updatedAt ? new Date(r.updatedAt).toLocaleString() : undefined}
+                      >
+                        {r.updatedAt ? ago(r.updatedAt).replace("just now", "now") : ""}
+                      </span>
                     </label>
                   );
                   return r.trackedElsewhere ? (

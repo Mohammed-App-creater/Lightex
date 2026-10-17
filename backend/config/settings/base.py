@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apps.dashboards",
     "apps.realtime",
     "apps.integrations",
+    "apps.channels",
 ]
 
 MIDDLEWARE = [
@@ -313,6 +314,54 @@ INTEGRATION_BACKFILL_MAX_PRS = env.int("INTEGRATION_BACKFILL_MAX_PRS", default=2
 INTEGRATION_CATCHUP_MINUTES = env.int("INTEGRATION_CATCHUP_MINUTES", default=30)
 WEBHOOK_MAX_BODY_BYTES = env.int("WEBHOOK_MAX_BODY_BYTES", default=5 * 1024 * 1024)
 WEBHOOK_RETENTION_DAYS = env.int("WEBHOOK_RETENTION_DAYS", default=7)
+
+# ───────────────────────── Notification channels (board 38) ─────────────────────────
+# docs/v2/38-telegram-sms-push.md §2. Each channel has a real backend plus console / fake / disabled.
+
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="").lstrip("@")
+TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
+TELEGRAM_LINK_TTL_SECONDS = env.int("TELEGRAM_LINK_TTL_SECONDS", default=600)
+TELEGRAM_API_BASE = env("TELEGRAM_API_BASE", default="https://api.telegram.org")
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
+TWILIO_MESSAGING_SERVICE_SID = env("TWILIO_MESSAGING_SERVICE_SID", default="")
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+TWILIO_API_BASE = env("TWILIO_API_BASE", default="https://api.twilio.com")
+SMS_COUNTRIES: list[str] = [c.strip().upper() for c in env.list("SMS_COUNTRIES", default=["US", "GB", "DE"])]
+SMS_USER_DAILY_CAP = env.int("SMS_USER_DAILY_CAP", default=10)
+SMS_GLOBAL_DAILY_CAP = env.int("SMS_GLOBAL_DAILY_CAP", default=300)
+SMS_OTP_GLOBAL_DAILY_CAP = env.int("SMS_OTP_GLOBAL_DAILY_CAP", default=100)
+VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
+VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
+VAPID_SUBJECT = env("VAPID_SUBJECT", default="")
+# Fernet key(s), comma-separated, newest first. Empty: a dev key derived from DJANGO_SECRET_KEY.
+CHANNELS_ENCRYPTION_KEY = env("CHANNELS_ENCRYPTION_KEY", default="")
+_VAPID = bool(VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY)
+TELEGRAM_BACKEND = env("TELEGRAM_BACKEND", default="bot" if TELEGRAM_BOT_TOKEN else "disabled")
+SMS_BACKEND = env("SMS_BACKEND", default="twilio" if TWILIO_ACCOUNT_SID else "disabled")
+WEB_PUSH_BACKEND = env("WEB_PUSH_BACKEND", default="webpush" if _VAPID else "disabled")
+# "auto" (Celery with a broker, else a per-process sender pool), "thread", "celery" or "inline" (tests).
+CHANNEL_DISPATCH = env("CHANNEL_DISPATCH", default="auto")
+CHANNEL_SENDER_THREADS = env.int("CHANNEL_SENDER_THREADS", default=4)
+CHANNEL_MAX_ATTEMPTS = env.int("CHANNEL_MAX_ATTEMPTS", default=5)
+CHANNEL_HTTP_TIMEOUT = env.float("CHANNEL_HTTP_TIMEOUT", default=10.0)
+WEB_PUSH_ALLOWED_HOSTS: list[str] = env.list(
+    "WEB_PUSH_ALLOWED_HOSTS",
+    default=[
+        "fcm.googleapis.com",
+        "updates.push.services.mozilla.com",
+        "web.push.apple.com",
+        "*.notify.windows.com",
+        "*.push.apple.com",
+    ],
+)
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].update(  # type: ignore[attr-defined]
+    {
+        "channel_connect": env("THROTTLE_CHANNEL_CONNECT", default="20/hour"),
+        "channel_test": env("THROTTLE_CHANNEL_TEST", default="12/hour"),
+    }
+)
 
 # ───────────────────────── Logging ─────────────────────────
 

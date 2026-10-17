@@ -109,6 +109,37 @@ the repository. See [`.env.example`](.env.example).
 | `WEBHOOK_MAX_BODY_BYTES` / `WEBHOOK_RETENTION_DAYS` | `5242880` / `7` | Webhook body cap (413 above it) and delivery retention |
 | `THROTTLE_WEBHOOK` / `THROTTLE_INTEGRATION_CONNECT` / `THROTTLE_DEV_BRANCH` / `THROTTLE_DEV_LINK` | `1200/min` (per IP) / `10/hour` / `30/hour` / `60/hour` | Board 37 throttles |
 
+### Notification channels (board 38)
+
+Telegram, SMS and Web Push (`docs/v2/38-telegram-sms-push.md` §2). Each channel has a real backend plus `console`
+(dev: logs the message, and the OTP for SMS), `fake` (tests) and `disabled` (the API reports `available: false`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `TELEGRAM_BACKEND` | `bot` when `TELEGRAM_BOT_TOKEN` is set, else `disabled` (dev: `console`, tests: `fake`) | `bot` · `console` · `fake` · `disabled` |
+| `TELEGRAM_BOT_TOKEN` | — | **Secret.** From @BotFather |
+| `TELEGRAM_BOT_USERNAME` | — (dev: `lightex_dev_bot`) | Without `@`; shown in the dialog and deep links |
+| `TELEGRAM_WEBHOOK_SECRET` | — | **Secret.** 32–256 chars `[A-Za-z0-9_-]`; checked against `X-Telegram-Bot-Api-Secret-Token` |
+| `TELEGRAM_LINK_TTL_SECONDS` | `600` | Link code lifetime |
+| `SMS_BACKEND` | `twilio` when `TWILIO_ACCOUNT_SID` is set, else `disabled` (dev: `console`, tests: `fake`) | `twilio` · `console` · `fake` · `disabled`. Prod refuses `console` |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | — | Twilio account; the token (**secret**) also verifies both Twilio webhooks |
+| `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_FROM_NUMBER` | — | Sender: the Messaging Service (preferred, handles STOP) or a number |
+| `SMS_COUNTRIES` | `US,GB,DE` | Allow-list from the server table (`IN` needs DLT registration first) |
+| `SMS_USER_DAILY_CAP` / `SMS_GLOBAL_DAILY_CAP` / `SMS_OTP_GLOBAL_DAILY_CAP` | `10` / `300` / `100` | Per UTC day, counted in Postgres |
+| `WEB_PUSH_BACKEND` | `webpush` when both VAPID keys are set, else `disabled` (dev: `console`, tests: `fake`) | `webpush` · `console` · `fake` · `disabled` |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | — | `manage.py generate_vapid_keys`; the private key is **secret**; subject `mailto:` or `https:` |
+| `WEB_PUSH_ALLOWED_HOSTS` | FCM, Mozilla, Apple, `*.notify.windows.com`, `*.push.apple.com` | Push endpoint allow-list (SSRF guard) |
+| `CHANNELS_ENCRYPTION_KEY` | dev/test: derived from `DJANGO_SECRET_KEY` | **Secret.** Fernet key(s), newest first. `manage.py generate_channels_key`; rotate with `rotate_channels_key`. Required in prod with `SMS_BACKEND=twilio` |
+| `CHANNEL_DISPATCH` | `auto` | `auto` (Celery with `REDIS_URL`, else a per-process thread pool + sweeper) · `thread` · `celery` · `inline` |
+| `CHANNEL_SENDER_THREADS` / `CHANNEL_MAX_ATTEMPTS` / `CHANNEL_HTTP_TIMEOUT` | `4` / `5` / `10` | Pool size, attempts before `dead`, seconds per provider call |
+| `THROTTLE_CHANNEL_CONNECT` / `THROTTLE_CHANNEL_TEST` | `20/hour` / `12/hour` | Telegram link + SMS start; test sends (per user) |
+| `TELEGRAM_API_BASE` / `TWILIO_API_BASE` | the real APIs | Override only for local stubs |
+
+Webhooks: Telegram `<API_PUBLIC_URL>/api/v1/webhooks/telegram` (set by `manage.py telegram_setup`, once per deploy),
+Twilio inbound `<API_PUBLIC_URL>/api/v1/webhooks/twilio/sms`; the status callback is sent with each message.
+`API_PUBLIC_URL` must be the exact public origin Twilio calls (signatures cover the full URL). Local development with a
+real bot: `manage.py telegram_poll`; without one: `manage.py telegram_fake_start <code>`.
+
 GitHub App setup (callback `<API_PUBLIC_URL>/api/v1/integrations/github/callback`, Setup URL
 `<API_PUBLIC_URL>/api/v1/integrations/github/setup`, webhook `<API_PUBLIC_URL>/api/v1/webhooks/github`, permissions
 and events) and the GitLab OAuth app (redirect `<API_PUBLIC_URL>/api/v1/integrations/gitlab/callback`, scope `api`)
@@ -166,6 +197,8 @@ Run these from cron, a platform scheduler, or a CI schedule:
 | `python manage.py process_outbox` | every few minutes (optional) | Retries notification events that failed |
 | `python manage.py purge_imports` | daily | Board 40: cancels untouched import drafts (24 h) and deletes import jobs and their files 30 days after they finish (imported tasks stay) |
 | `python manage.py resume_imports` | every minute (optional) | Board 40: re-dispatches imports whose runner stopped sending heartbeats (the import poll does this too) |
+| `python manage.py send_channel_deliveries` | every 5 minutes (recommended) | Board 38: retries and quiet-hours summaries left by a sleeping or restarted process |
+| `python manage.py channel_deliveries --dead [--since 7d]` / `--retry <id>` / `--retry-dead` | by hand | Board 38: list or re-queue dead-letter deliveries (no message text, no phone numbers) |
 | `python manage.py sync_permissions` | after deploys (runs on `migrate` too) | Syncs the permission catalogue |
 
 Board 33 needs no scheduled command: each web process sweeps expired presence rows and old stream events while it

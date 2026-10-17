@@ -1,0 +1,2 @@
+{% autoescape off %}{{ task_key }} is due {{ due_relative|default:"soon" }}
+{{ task_title }}{% endautoescape %}

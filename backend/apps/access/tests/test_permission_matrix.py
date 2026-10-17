@@ -32,6 +32,7 @@ class Row:
     deny: tuple[str, ...] = ()
     body: Callable[[World], Any] | None = None
     query: str = ""
+    signed: bool = False  # a webhook whose missing signature is answered 403 (board 38 Twilio)
 
 
 def S(w):
@@ -213,7 +214,7 @@ def test_permission_matrix(row: Row, actor: str, allowed: bool):
     )
     if actor == PUBLIC:
         # No access control on public endpoints: they answer for themselves (401 = bad credentials).
-        assert res.status_code != 403 and res.status_code < 500, res.content[:300]
+        assert (res.status_code != 403 or row.signed) and res.status_code < 500, res.content[:300]
     elif allowed:
         assert res.status_code not in (401, 403, 404), f"{actor} should pass: {res.status_code} {res.content[:300]!r}"
     else:

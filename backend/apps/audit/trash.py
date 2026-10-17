@@ -303,4 +303,7 @@ def purge_expired(now: dt.datetime | None = None) -> dict[str, int]:
             purge_workspace(ws)
             counts["workspaces"] += 1
         counts["events"] = DomainEvent.objects.filter(processed_at__lt=cutoff).delete()[0]
+        from apps.channels.services import purge_channels
+
+        counts.update(purge_channels(now))
     return counts

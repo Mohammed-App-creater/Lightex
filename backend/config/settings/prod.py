@@ -33,3 +33,12 @@ if (env("GITHUB_APP_ID", default="") or env("GITLAB_CLIENT_ID", default="")) and
         "INTEGRATIONS_ENCRYPTION_KEYS is required when GitHub or GitLab is configured "
         "(python manage.py generate_integration_key)."
     )
+
+# Board 38 §2.1, §2.5: production never logs OTPs, and phone numbers at rest need a real key.
+_sms_backend = env("SMS_BACKEND", default="twilio" if env("TWILIO_ACCOUNT_SID", default="") else "disabled")
+if _sms_backend == "console":
+    raise ImproperlyConfigured("SMS_BACKEND=console logs one-time codes and is refused in production.")
+if _sms_backend == "twilio" and not env("CHANNELS_ENCRYPTION_KEY", default=""):
+    raise ImproperlyConfigured(
+        "CHANNELS_ENCRYPTION_KEY is required with SMS_BACKEND=twilio (python manage.py generate_channels_key)."
+    )

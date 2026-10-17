@@ -1,0 +1,3 @@
+<b>{{ task_key }}</b> assigned to you{% if actor_name %} by {{ actor_name }}{% endif %}
+{{ task_title }}
+<i>{{ project_name }}{% if priority_shown %} · {{ priority_shown }}{% endif %}{% if due_date %} · due {{ due_date }}{% endif %}</i>

@@ -1,0 +1,2 @@
+{% autoescape off %}{{ task_key }} → {{ to_status }}
+{{ task_title }}{% if actor_name %} · by {{ actor_name }}{% endif %}{% endautoescape %}

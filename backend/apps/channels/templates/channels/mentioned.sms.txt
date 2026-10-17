@@ -1,0 +1,1 @@
+{% autoescape off %}Lightex: {% if actor_first %}{{ actor_first }} mentioned you{% else %}You were mentioned{% endif %} on {{ task_key }}. {{ cta_url }} Reply STOP to opt out{% endautoescape %}
