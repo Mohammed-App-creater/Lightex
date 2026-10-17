@@ -216,6 +216,8 @@ SPECTACULAR_SETTINGS = {
         "SalesActivityLoggedTypeEnum": ["call", "visit", "meeting", "email", "note", "other"],
         "SalesTargetTypeEnum": ["sales.lead", "sales.opportunity", "sales.company", "sales.contact"],
         "SalesFollowUpTargetTypeEnum": ["sales.lead", "sales.opportunity", "sales.company"],
+        # Sales (S6)
+        "SalesReportPeriodEnum": ["today", "week", "month", "quarter", "year", "custom"],
     },
     # The root /health is the load balancer's probe; /api/v1/health is the documented one.
     "PREPROCESSING_HOOKS": ["core.common.schema.api_paths_only"],

@@ -257,6 +257,7 @@ EVENT_TYPES: tuple[EventTypeDef, ...] = (
     ),
     EventTypeDef("sales.dailyreport.reviewed", "My daily report reviewed", _IN_APP_EMAIL, email_templates=_NOTICE),
     EventTypeDef("sales.dailyreport.reminder", "Daily report reminder", _IN_APP_EMAIL, email_templates=_NOTICE),
+    EventTypeDef("sales.report.management", "Management daily sales report", _IN_APP_EMAIL, email_templates=_NOTICE),
 )
 
 DEFINITION = ModuleDefinition(

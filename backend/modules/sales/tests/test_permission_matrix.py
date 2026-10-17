@@ -280,6 +280,16 @@ ROWS: list[Row] = [
     Row("sales-daily-report-submit", "POST", REPORT, allow=("rep",)),
     Row("sales-daily-report-review", "POST", REPORT, allow=TARGET_MANAGERS, body=lambda w: {"comment": "Good"}),
     Row("sales-daily-report-reopen", "POST", REPORT, allow=TARGET_MANAGERS),
+    # ── dashboard and reports (S6) ──
+    Row("sales-dashboard", "GET", allow=EVERY_SALES_USER),
+    Row("sales-reports", "GET", allow=TARGET_MANAGERS),  # sales.report.view: everyone but the Salesperson
+    Row(
+        "sales-report",
+        "GET",
+        lambda w: {"slug": w.ws.slug, "report_key": "ranking"},
+        allow=TARGET_MANAGERS,
+        query="?format=csv",
+    ),
 ]
 
 

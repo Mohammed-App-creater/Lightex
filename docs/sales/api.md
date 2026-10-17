@@ -10,6 +10,7 @@ schema can't. Each stage appends its endpoints here.
 | S2 leads, opportunities and pipeline | §9–§13 (and the S2 notes in §1, §5, §6.4, §8) |
 | S3 activities and follow-ups | §14–§17 |
 | S4 targets and performance | §18–§19 |
+| S6 dashboard and reports | §21–§23 |
 
 ## 1. Conventions
 
@@ -860,3 +861,43 @@ Preference rows (in-app, plus the `sales_notice` email where on by default):
 - **Job `sales_report_reminder`** (schedule every 15 minutes): sends only in the hour before the cutoff (workspace
   time) on days that require a report, to holders of `sales.dailyreport.submit` without a submitted report; once per
   user and date; skipped where sales is off.
+
+## 21. Dashboard (S6) — `GET /sales/workspaces/{slug}/dashboard`
+
+- Needs `sales.dashboard.view`; the numbers cover the people its scope reaches (`own` → the caller, `team` → the
+  caller's teammates, `all` → every active member). `scope` and `userCount` say which.
+- Query: `period=today|week|month|quarter|year` (default `month`), `date` (anchor, default today in workspace time),
+  `userId`, `teamId`. A user or team **outside the scope is 403** `forbidden` (`details.permission:
+  sales.dashboard.view`), never an empty dashboard. `custom` is a report-only period (422 here).
+- Body: `kpis` and `previous` (the performance KPI shape, §19; `kpis.growth` compares with `previous`), `pipeline`
+  (`leads` = open leads count and estimated value; `stages` = open stages with count, value, weighted value),
+  `ranking` (as `/performance/ranking`), `followUps` (`overdue`, `today`, `upcoming`) and `attention`:
+  `overdueFollowUps`, `quotationsAwaitingResponse` (sent), `largeClosingThisWeek` (open, `expectedValue >=
+  largeDealThreshold`, closing this week), `noNextStep`, `stale` — each `{count, items}` with at most 10 items.
+- Target: the team's own target with `teamId` (when it has one), the company target for an `all` caller without
+  filters (when set), otherwise the sum of the people's own targets.
+
+## 22. Reports (S6)
+
+- `GET /sales/workspaces/{slug}/reports` — the catalogue: `key`, `title`, `description`, `defaultPeriod`, `periods`,
+  `columns` (`key`, `label`, `type` = `text|date|int|money|pct`). 18 keys (spec §7).
+- `GET /sales/workspaces/{slug}/reports/{key}` — `{key, title, period, columns, rows}`. Needs `sales.report.view`
+  (scope picks the people as in §21; `userId` / `teamId` outside it → 403). Unknown key → 404.
+  - `period=today|week|month|quarter|year|custom` (default per report), `date` anchors a named period; `from` + `to`
+    (or `from`/`to` without `period`) make a custom range: both required, `to >= from`, at most 366 days → else 422.
+  - Rows: money as decimal strings, percentages as numbers (one decimal), dates `YYYY-MM-DD`, null when there is no
+    value. `pipeline-analysis` is a snapshot of the open pipeline now (period ignored).
+  - `format=csv` needs `sales.report.export` (403 otherwise): `text/csv; charset=utf-8` attachment, UTF-8 BOM, header
+    row of labels, every cell quoted and formula-safe (`core/common/csvsafe.py`). `format` other than json/csv → 422.
+
+## 23. Management daily report (S6)
+
+- Built per recipient over their `sales.report.view` scope (spec §8): the day's target, actual, achievement, new
+  leads and opportunities, quotations sent, won and lost (KPI service); daily report submissions (§20); the month's
+  top performer and at-risk (red) people; the 5 largest open opportunities (`closingThisWeek` flag); attention
+  (overdue follow-ups, quotations awaiting response, large deals closing this week, `notSubmitted` people when the day
+  requires a report).
+- **Job `sales_management_daily_report`** (daily 20:00 workspace time, working days only): one
+  `sales.report.management` notification (in-app and email, preference row "Management daily sales report", kind
+  `report`, payload `{date, summary}`) to every active member whose `sales.report.view` scope is `team` or `all`;
+  once per recipient and date; skipped where sales is off.

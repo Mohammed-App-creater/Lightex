@@ -2710,6 +2710,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesTeamDailyReport'
           description: ''
+  /api/v1/sales/workspaces/{slug}/dashboard:
+    get:
+      operationId: sales_dashboard
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD inside the period; default today (workspace time)
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - month
+          - quarter
+          - today
+          - week
+          - year
+        description: default month
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: teamId
+        schema:
+          type: string
+        description: one team in your dashboard scope (403 outside it)
+      - in: query
+        name: userId
+        schema:
+          type: string
+        description: one person in your dashboard scope (403 outside it)
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesDashboard'
+          description: ''
   /api/v1/sales/workspaces/{slug}/follow-ups:
     get:
       operationId: sales_follow_ups_list
@@ -3591,6 +3639,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/SalesQuotation'
           description: ''
+  /api/v1/sales/workspaces/{slug}/reports:
+    get:
+      operationId: sales_reports
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesReportInfo'
+          description: ''
+  /api/v1/sales/workspaces/{slug}/reports/{report_key}:
+    get:
+      operationId: sales_report
+      description: Scope = the workspace named by the {slug} in the URL (404 for non-members).
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD inside the period; default today (workspace time)
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - csv
+          - json
+        description: csv needs sales.report.export
+      - in: query
+        name: from
+        schema:
+          type: string
+        description: custom period start (YYYY-MM-DD)
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - custom
+          - month
+          - quarter
+          - today
+          - week
+          - year
+        description: 'default: the report''s'
+      - in: path
+        name: report_key
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: teamId
+        schema:
+          type: string
+        description: one team in your report scope (403 outside it)
+      - in: query
+        name: to
+        schema:
+          type: string
+        description: custom period end (YYYY-MM-DD), at most 366 days after from
+      - in: query
+        name: userId
+        schema:
+          type: string
+        description: one person in your report scope (403 outside it)
+      tags:
+      - sales
+      security:
+      - bearerAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesReport'
+            text/csv:
+              schema:
+                type: string
+          description: JSON; with format=csv a text/csv attachment
   /api/v1/sales/workspaces/{slug}/settings:
     get:
       operationId: sales_settings_retrieve
@@ -12966,6 +13113,176 @@ components:
       - other
       - quotation
       type: string
+    SalesAttention:
+      type: object
+      properties:
+        overdueFollowUps:
+          $ref: '#/components/schemas/SalesAttentionFollowUps'
+        quotationsAwaitingResponse:
+          $ref: '#/components/schemas/SalesAttentionQuotations'
+        largeClosingThisWeek:
+          $ref: '#/components/schemas/SalesAttentionOpportunities'
+        noNextStep:
+          $ref: '#/components/schemas/SalesAttentionOpportunities'
+        stale:
+          $ref: '#/components/schemas/SalesAttentionOpportunities'
+      required:
+      - largeClosingThisWeek
+      - noNextStep
+      - overdueFollowUps
+      - quotationsAwaitingResponse
+      - stale
+    SalesAttentionFollowUp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        ownerName:
+          type: string
+          nullable: true
+        title:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        targetType:
+          type: string
+        targetId:
+          type: string
+          format: uuid
+      required:
+      - dueDate
+      - id
+      - ownerId
+      - ownerName
+      - targetId
+      - targetType
+      - title
+    SalesAttentionFollowUps:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: All matching records
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesAttentionFollowUp'
+      required:
+      - count
+      - items
+    SalesAttentionOpportunities:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: All matching records
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesAttentionOpportunity'
+      required:
+      - count
+      - items
+    SalesAttentionOpportunity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        ownerName:
+          type: string
+          nullable: true
+        title:
+          type: string
+        companyName:
+          type: string
+        stageName:
+          type: string
+        expectedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        expectedCloseDate:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - companyName
+      - expectedCloseDate
+      - expectedValue
+      - id
+      - ownerId
+      - ownerName
+      - stageName
+      - title
+    SalesAttentionQuotation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        ownerName:
+          type: string
+          nullable: true
+        number:
+          type: string
+        title:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        opportunityId:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+      required:
+      - amount
+      - companyName
+      - id
+      - number
+      - opportunityId
+      - ownerId
+      - ownerName
+      - sentAt
+      - title
+      - validUntil
+    SalesAttentionQuotations:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: All matching records
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesAttentionQuotation'
+      required:
+      - count
+      - items
     SalesBulkAssignResult:
       type: object
       properties:
@@ -13628,6 +13945,98 @@ components:
         comment:
           type: string
           maxLength: 2000
+    SalesDashboard:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/SalesPeriod'
+        scope:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SalesDashboardScopeEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        userCount:
+          type: integer
+          description: People the numbers cover
+        kpis:
+          $ref: '#/components/schemas/SalesKpis'
+        previous:
+          $ref: '#/components/schemas/SalesKpis'
+        pipeline:
+          $ref: '#/components/schemas/SalesDashboardPipeline'
+        ranking:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesRankingRow'
+        followUps:
+          $ref: '#/components/schemas/SalesFollowUpCounts'
+        attention:
+          $ref: '#/components/schemas/SalesAttention'
+      required:
+      - attention
+      - followUps
+      - kpis
+      - period
+      - pipeline
+      - previous
+      - ranking
+      - scope
+      - userCount
+    SalesDashboardLeads:
+      type: object
+      properties:
+        count:
+          type: integer
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+          description: Sum of the open leads' estimated values
+      required:
+      - count
+      - value
+    SalesDashboardPipeline:
+      type: object
+      properties:
+        leads:
+          $ref: '#/components/schemas/SalesDashboardLeads'
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesDashboardStage'
+      required:
+      - leads
+      - stages
+    SalesDashboardScopeEnum:
+      enum:
+      - own
+      - team
+      - all
+      type: string
+    SalesDashboardStage:
+      type: object
+      properties:
+        stageId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        count:
+          type: integer
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        weightedValue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+      required:
+      - count
+      - name
+      - stageId
+      - value
+      - weightedValue
     SalesDuplicateCheck:
       type: object
       properties:
@@ -15112,6 +15521,89 @@ components:
       - target
       - user
       - wonCount
+    SalesReport:
+      type: object
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        period:
+          $ref: '#/components/schemas/SalesPeriod'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesReportColumn'
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: 'One object per row, keyed by column key: money as decimal
+            strings, percentages as numbers, dates YYYY-MM-DD, counts as integers,
+            null when there is no value'
+      required:
+      - columns
+      - key
+      - period
+      - rows
+      - title
+    SalesReportColumn:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          $ref: '#/components/schemas/SalesReportColumnTypeEnum'
+      required:
+      - key
+      - label
+      - type
+    SalesReportColumnTypeEnum:
+      enum:
+      - text
+      - date
+      - int
+      - money
+      - pct
+      type: string
+    SalesReportInfo:
+      type: object
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        defaultPeriod:
+          $ref: '#/components/schemas/SalesReportPeriodEnum'
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesReportPeriodEnum'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesReportColumn'
+      required:
+      - columns
+      - defaultPeriod
+      - description
+      - key
+      - periods
+      - title
+    SalesReportPeriodEnum:
+      enum:
+      - today
+      - week
+      - month
+      - quarter
+      - year
+      - custom
+      type: string
     SalesSettings:
       type: object
       properties:

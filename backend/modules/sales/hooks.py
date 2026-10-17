@@ -579,6 +579,12 @@ def report_reminder_job(workspace: Any, *, now: Any) -> None:
     send_reminders(workspace, now=now)
 
 
+def management_report_job(workspace: Any, *, now: Any) -> None:
+    from .management_report import send
+
+    send(workspace, now=now)
+
+
 def register() -> None:
     register_target_type("sales.company", CompanyTarget())
     register_target_type("sales.contact", ContactTarget())
@@ -629,6 +635,17 @@ def register() -> None:
         schedule="every 15 minutes",
         description="Daily report reminder in the hour before the cutoff, on working days, to submitters who haven't "
         "submitted (workspace time; a no-op outside that hour)",
+    )
+    from . import management_report
+
+    management_report.register()
+    register_job(
+        management_report.JOB,
+        management_report_job,
+        module=KEY,
+        schedule="daily 20:00",
+        description="Management daily report to people with sales.report.view scope team or all, each limited to "
+        "their scope (working days, workspace time)",
     )
     register_audit_group(
         "sales_settings",

@@ -5,8 +5,10 @@ from django.urls import path
 
 from . import activity_views as av
 from . import daily_report_views as drv
+from . import dashboard_views as dbv
 from . import performance_views as perf
 from . import pipeline_views as pv
+from . import report_views as rv
 from . import target_views as tv
 from . import views
 
@@ -108,4 +110,8 @@ urlpatterns = [
         drv.DailyReportReopenView.as_view(),
         name="sales-daily-report-reopen",
     ),
+    # S6: dashboard and reports
+    path(f"{W}/dashboard", dbv.DashboardView.as_view(), name="sales-dashboard"),
+    path(f"{W}/reports", rv.ReportCatalogueView.as_view(), name="sales-reports"),
+    path(f"{W}/reports/<str:report_key>", rv.ReportView.as_view(), name="sales-report"),
 ]
