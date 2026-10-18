@@ -53,7 +53,8 @@ export const FIELD_LABEL: Record<string, string> = {
   title: "Title",
   description: "Description",
   statusId: "Status",
-  assigneeId: "Assignee",
+  assigneeIds: "Assignees",
+  checklist: "Checklist",
   dueDate: "Due",
   startDate: "Start",
   priority: "Priority",
@@ -110,6 +111,12 @@ export function createEventApplier(qc: QueryClient, ctx: ApplyContext, schedule:
     }
     // Board 37: linked PRs / branches / commits changed (version null): the Development section refetches.
     if (d.fields?.includes("development")) invalidate(qk.development(d.taskId));
+    // Checklist writes (version null, no version bump): the task detail refetches, and the lists for their x/y badge.
+    if (d.op === "updated" && d.fields?.length === 1 && d.fields[0] === "checklist") {
+      if (isRemote(ev) && ctx.openTaskId?.() === d.taskId) remoteMarks.set(`t:${d.taskId}`, { actorId: ev.actorId!, fields: d.fields });
+      invalidate(qk.task(ctx.slug, d.key), ["p", pid, "board"], qk.taskList(pid), qk.backlog(pid), qk.myTasks(ctx.slug));
+      return;
+    }
     if (d.op === "deleted") patchTasks(qc, (t) => (t.id === d.taskId ? null : t), pid);
     if (isRemote(ev)) {
       remoteMarks.set(`p:${pid}`, { actorId: ev.actorId!, fields: d.fields });

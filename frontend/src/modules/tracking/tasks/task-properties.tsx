@@ -3,7 +3,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import { CalendarRange, ChevronRight, Plus, Search, Target, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
-import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { Avatar } from "@/ui/avatar";
 import { Checkbox } from "@/ui/choice";
 import { DateChip, DatePicker } from "@/ui/date-picker";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
@@ -14,7 +14,9 @@ import { useCustomFields } from "@/modules/tracking/fields/queries";
 import { CF_TYPE_ICON } from "@/modules/tracking/filters/filter-bar";
 import { RunningTimerChip } from "@/modules/tracking/time/task-time";
 import { useEpics, useLabels, useMilestones, useObjectives, useProjectMembers, useSprints } from "@/modules/tracking/projects/queries";
-import type { Priority, Status, TaskDetail, TaskPatch, TaskType } from "@/api/types";
+import type { Priority, Status, TaskDetail, TaskPatch, TaskType, User } from "@/api/types";
+import { AssigneePicker } from "./assignee-picker";
+import { AssigneeAvatars, assigneeNames, assigneesOf } from "./task-bits";
 import { cn } from "@/lib/utils/cn";
 import { addDaysISO, shortDate, todayISO } from "@/lib/utils/dates";
 import { daysUntil } from "@/lib/domain/progress";
@@ -58,7 +60,7 @@ function Chip({ editable, ghost, children, label }: { editable: boolean; ghost?:
 export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPatch }: Props) {
   const { data: members = [] } = useProjectMembers(task.projectId);
   const status = statuses.find((s) => s.id === task.statusId);
-  const assignee = members.find((m) => m.userId === task.assigneeId)?.user;
+  const assignees = assigneesOf(task.assigneeIds, new Map(members.map((m) => [m.userId, m.user])));
   return (
     <div className="flex flex-wrap items-center gap-1.5 max-[760px]:flex-nowrap max-[760px]:overflow-x-auto">
       <PresenceField field="statusId" as="span" className="inline-flex">
@@ -107,39 +109,19 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
         </PresenceField>
       )}
 
-      {(assignee || canAssign) && (
-        <PresenceField field="assigneeId" as="span" className="inline-flex">
-        <Menu>
-          <Chip editable={canAssign} ghost={!assignee} label={`Assignee: ${assignee?.name ?? "Unassigned"}`}>
-            {assignee ? (
-              <>
-                <Avatar name={assignee.name} hue={assignee.hue} size={20} decorative />
-                {assignee.name}
-              </>
-            ) : (
-              <>
-                <Plus size={12} aria-hidden /> Assign
-              </>
-            )}
-          </Chip>
-          <MenuContent align="start" width={240} aria-label="Assignee">
-            <MenuRadioGroup value={task.assigneeId ?? ""} onValueChange={(v) => onPatch({ assigneeId: v || null })}>
-              {members.map((m) => (
-                <MenuRadioItem key={m.userId} value={m.userId} icon={<Avatar name={m.user.name} hue={m.user.hue} size={20} decorative />}>
-                  {m.user.name}
-                </MenuRadioItem>
-              ))}
-            </MenuRadioGroup>
-            {task.assigneeId && (
-              <>
-                <MenuSeparator />
-                <MenuItem icon={<UnassignedAvatar size={18} />} onSelect={() => onPatch({ assigneeId: null })}>
-                  Unassign
-                </MenuItem>
-              </>
-            )}
-          </MenuContent>
-        </Menu>
+      {(assignees.length > 0 || canAssign) && (
+        <PresenceField field="assigneeIds" as="span" className="inline-flex">
+          {canAssign ? (
+            <AssigneePicker people={members.map((m) => m.user)} value={task.assigneeIds} onChange={(ids) => onPatch({ assigneeIds: ids })}>
+              <button type="button" aria-label={`Assignees: ${assigneeNames(assignees)}. Change`} className={cn(chipBase, chipEdit, !assignees.length && ghostChip)}>
+                <AssigneeChipBody assignees={assignees} />
+              </button>
+            </AssigneePicker>
+          ) : (
+            <span className={cn(chipBase, "cursor-default")} aria-label={`Assignees: ${assigneeNames(assignees)}`}>
+              <AssigneeChipBody assignees={assignees} />
+            </span>
+          )}
         </PresenceField>
       )}
       {/* Board 32: the task's span when it has both dates. */}
@@ -153,6 +135,33 @@ export function TaskChips({ task, statuses, canEdit, canStatus, canAssign, onPat
       <BlockedChip task={task} />
       <RunningTimerChip taskId={task.id} />
     </div>
+  );
+}
+
+/** One person: avatar + name; several: the stack + "First +N"; nobody: "+ Assign". */
+function AssigneeChipBody({ assignees }: { assignees: Pick<User, "name" | "hue">[] }) {
+  if (!assignees.length) {
+    return (
+      <>
+        <Plus size={12} aria-hidden /> Assign
+      </>
+    );
+  }
+  if (assignees.length === 1) {
+    return (
+      <>
+        <Avatar name={assignees[0]!.name} hue={assignees[0]!.hue} size={20} decorative />
+        {assignees[0]!.name}
+      </>
+    );
+  }
+  return (
+    <>
+      <AssigneeAvatars users={assignees} size={20} max={3} />
+      <span>
+        {assignees[0]!.name.split(" ")[0]} <span className="text-fg-3">+{assignees.length - 1}</span>
+      </span>
+    </>
   );
 }
 

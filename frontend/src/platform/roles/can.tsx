@@ -97,14 +97,14 @@ export function useDataScope(code: string): DataScope | null {
   return dataScopeOf(code, ws?.myDataScopes ?? project?.myDataScopes);
 }
 
-/** Edit rule for a task: edit_any, or edit_own on tasks you reported or are assigned. */
+/** Edit rule for a task: edit_any, or edit_own on tasks you reported or are one of the assignees of. */
 export function canEditTask(
-  task: Pick<Task, "assigneeId" | "reporterId">,
+  task: Pick<Task, "assigneeIds" | "reporterId">,
   perms: readonly string[] | undefined,
   userId: string | undefined,
 ) {
   if (can("tracking.task.edit_any", perms)) return true;
-  return can("tracking.task.edit_own", perms) && !!userId && (task.assigneeId === userId || task.reporterId === userId);
+  return can("tracking.task.edit_own", perms) && !!userId && (task.assigneeIds.includes(userId) || task.reporterId === userId);
 }
 
 /*

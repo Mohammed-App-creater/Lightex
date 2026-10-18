@@ -19,12 +19,25 @@ import { useRoles, useWsMembers } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
+import type { WorkspacePatch } from "@/api/types";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { routes } from "@/platform/routes";
 import { cn } from "@/lib/utils/cn";
-import { confirmState, slugError, slugSegments, URL_HOST, WS_NAME_MAX, workspaceIcon, workspaceNameError } from "./lib";
+import {
+  confirmState,
+  DEFAULT_TIMEZONE,
+  slugError,
+  slugSegments,
+  timeZoneLabel,
+  timeZoneOffset,
+  URL_HOST,
+  WS_NAME_MAX,
+  workspaceIcon,
+  workspaceNameError,
+} from "./lib";
 import { SaveBar, type SaveState } from "./save-bar";
 import { SettingsPage, SettingsSection } from "./settings-shell";
+import { TimezoneSelect } from "./timezone-select";
 import { useLeaveGuard } from "./use-leave-guard";
 
 type SlugCheck = { slug: string; status: "checking" | "available" | "taken" } | null;
@@ -60,6 +73,9 @@ function WorkspaceForm() {
   const router = useRouter();
   const [name, setName] = useState(ws.name);
   const [slug, setSlug] = useState(ws.slug);
+  const savedTz = ws.timezone || DEFAULT_TIMEZONE;
+  const [timezone, setTimezone] = useState(savedTz);
+  const [tzErr, setTzErr] = useState<{ tz: string; message: string } | null>(null);
   const [check, setCheck] = useState<SlugCheck>(null);
   const [phase, setPhase] = useState<"edit" | "saving" | "error" | "saved">("edit");
   const [shake, setShake] = useState(0);
@@ -71,7 +87,9 @@ function WorkspaceForm() {
   const taken = slugChanged && check?.slug === slug && check.status === "taken";
   const checking = slugChanged && !localSlugErr && (check?.slug !== slug || check.status === "checking");
   const slugErr = localSlugErr ?? (taken ? "Already taken" : null);
-  const dirty = name !== ws.name || slugChanged;
+  const tzChanged = timezone !== savedTz;
+  const timezoneErr = tzErr?.tz === timezone ? tzErr.message : null;
+  const dirty = name !== ws.name || slugChanged || tzChanged;
 
   useEffect(() => {
     if (!slugChanged || localSlugErr) return;
@@ -102,17 +120,19 @@ function WorkspaceForm() {
   const discard = () => {
     setName(ws.name);
     setSlug(ws.slug);
+    setTimezone(savedTz);
     setCheck(null);
     setPhase("edit");
   };
 
   const save = async () => {
-    if (!dirty || nameErr || slugErr || checking) return;
+    if (!dirty || nameErr || slugErr || timezoneErr || checking) return;
     setPhase("saving");
     try {
-      const body: { name?: string; slug?: string } = {};
+      const body: WorkspacePatch = {};
       if (name !== ws.name) body.name = name.trim();
       if (slugChanged) body.slug = slug;
+      if (tzChanged) body.timezone = timezone;
       const next = await api.workspaces.update(ws.slug, body);
       qc.setQueryData(qk.workspace(next.slug), next);
       void qc.invalidateQueries({ queryKey: qk.workspaces() });
@@ -120,11 +140,13 @@ function WorkspaceForm() {
       if (next.slug !== ws.slug) router.replace(routes.settings(next.slug, "general"));
       setName(next.name);
       setSlug(next.slug);
+      setTimezone(next.timezone || DEFAULT_TIMEZONE);
     } catch (e) {
       setPhase("error");
       if (isApiError(e) && e.fieldErrors.slug) setCheck({ slug, status: "taken" });
       if (isApiError(e) && e.fieldErrors.name) setServerNameErr({ name, message: e.fieldErrors.name });
-      if (!isApiError(e) || (!e.fieldErrors.slug && !e.fieldErrors.name)) toast.error("Couldn’t save workspace", { body: errorMessage(e) });
+      if (isApiError(e) && e.fieldErrors.timezone) setTzErr({ tz: timezone, message: e.fieldErrors.timezone });
+      if (!isApiError(e) || (!e.fieldErrors.slug && !e.fieldErrors.name && !e.fieldErrors.timezone)) toast.error("Couldn’t save workspace", { body: errorMessage(e) });
     }
   };
 
@@ -132,7 +154,7 @@ function WorkspaceForm() {
   if (phase === "saving") state = "saving";
   else if (phase === "error") state = "error";
   else if (phase === "saved") state = "saved";
-  else if (dirty) state = nameErr || slugErr ? "invalid" : checking ? "pending" : "dirty";
+  else if (dirty) state = nameErr || slugErr || timezoneErr ? "invalid" : checking ? "pending" : "dirty";
 
   let help: { text: string; tone?: "err" | "ok" } = { text: "a–z, 0–9, hyphens" };
   if (slugErr) help = { text: slugErr, tone: "err" };
@@ -209,6 +231,19 @@ function WorkspaceForm() {
             {help.text}
           </span>
         </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="ws-timezone" className="text-meta font-medium text-fg-2">
+            Time zone
+          </label>
+          <TimezoneSelect id="ws-timezone" value={timezone} onChange={setTimezone} invalid={Boolean(timezoneErr)} describedBy="ws-timezone-help" />
+          <span
+            id="ws-timezone-help"
+            role={timezoneErr ? "alert" : undefined}
+            className={cn("min-h-4 text-[12px] leading-4", timezoneErr ? "text-danger" : "text-fg-3")}
+          >
+            {timezoneErr ?? "Sets the workspace’s business day for dates, reports and scheduled jobs"}
+          </span>
+        </div>
       </SettingsSection>
       <SaveBar state={state} shake={shake} onSave={() => void save()} onDiscard={discard} className="order-last" />
     </>
@@ -222,7 +257,7 @@ function WorkspaceReadOnly() {
   const [copied, setCopied] = useState(false);
   const owner = useMemo(() => {
     const ownerIds = new Set((roles.data ?? []).filter(isOwnerRole).map((r) => r.id));
-    return members.data?.find((m) => ownerIds.has(m.roleId))?.user;
+    return members.data?.find((m) => m.roleIds.some((id) => ownerIds.has(id)))?.user;
   }, [members.data, roles.data]);
   const url = `https://${URL_HOST}${ws.slug}`;
   return (
@@ -266,6 +301,13 @@ function WorkspaceReadOnly() {
             {copied ? <Check size={13} className="text-ok" aria-hidden /> : <Copy size={13} aria-hidden />}
             {copied ? "Copied" : "Copy"}
           </Button>
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5 pt-2.5">
+          <span className="text-[12px] text-fg-3">Time zone</span>
+          <span className="truncate text-[13px] font-medium">
+            {timeZoneLabel(ws.timezone || DEFAULT_TIMEZONE)}
+            <span className="ml-2 font-mono text-[11.5px] font-normal text-fg-3">{timeZoneOffset(ws.timezone || DEFAULT_TIMEZONE)}</span>
+          </span>
         </div>
       </SettingsSection>
     </>

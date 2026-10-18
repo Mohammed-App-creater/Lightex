@@ -55,11 +55,11 @@ def build_world() -> World:
     invite = Invitation.objects.create(
         workspace=ws,
         email="invitee@x.dev",
-        role=ws.roles.get(system_key="member"),
         invited_by=owner,
         token_hash=digest,
         expires_at=timezone.now() + timezone.timedelta(days=7),
     )
+    invite.roles.add(ws.roles.get(system_key="member"), through_defaults={"workspace": ws})
     custom_role = Role.objects.create(workspace=ws, name="Custom", scope="project")
     world = World(ws=ws, other_ws=other_ws, users=users, invite=invite, invite_token=raw, custom_role=custom_role)
     from core.teams.models import Team, TeamMember
@@ -169,7 +169,7 @@ def _add_board39(w: World) -> None:
     """Custom field, dependency, time entry and a running timer (board 39)."""
     from core.common.utils import today
     from modules.tracking.projects.custom_fields import create_field
-    from modules.tracking.tasks.services import add_dependency, create_task
+    from modules.tracking.tasks.services import add_checklist_item, add_dependency, create_task
     from modules.tracking.timetracking.models import RunningTimer
     from modules.tracking.timetracking.services import log_time
 
@@ -181,6 +181,7 @@ def _add_board39(w: World) -> None:
     )
     blocker = create_task(owner, w.project, {"title": "Blocker"})
     w.extra["dependency"] = add_dependency(owner, w.task, {"relation": "blocked_by", "taskId": str(blocker.id)})
+    w.extra["checklist_item"] = add_checklist_item(owner, w.task, {"text": "Check the logs"})
     w.extra["entry"] = log_time(w.users["pmember"], w.task, {"minutes": 30, "date": today().isoformat()})
     RunningTimer.objects.create(user=owner, task=w.task, started_at=w.task.created_at)
 

@@ -527,6 +527,30 @@ ROWS = [
         allow=("manager",),
         deny=("pmember", "viewer", "outsider"),
     ),
+    # ── task checklist ──
+    _row(
+        "task-checklist",
+        "POST",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"text": "Write the migration"},
+    ),
+    _row(
+        "task-checklist-item",
+        "PATCH",
+        lambda w: {"task_id": w.task.id, "checklist_item_id": w.checklist_item.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"done": True},
+    ),
+    _row(
+        "task-checklist-item",
+        "DELETE",
+        lambda w: {"task_id": w.task.id, "checklist_item_id": w.checklist_item.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
     _row("task-time-entries", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
     _row(
         "task-time-entries",
@@ -718,4 +742,6 @@ ROWS = [
     _row("webhook-telegram", "POST", allow=(PUBLIC,)),
     _row("webhook-twilio-sms", "POST", allow=(PUBLIC,), signed=True),
     _row("webhook-twilio-status", "POST", allow=(PUBLIC,), signed=True),
+    # Sales S0: external cron; the shared X-Jobs-Secret header (none here) is the only credential, so 403.
+    _row("internal-job-run", "POST", lambda w: {"name": "nope"}, allow=(PUBLIC,), signed=True),
 ]  # fmt: skip

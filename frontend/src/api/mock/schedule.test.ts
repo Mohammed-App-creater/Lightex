@@ -80,7 +80,7 @@ describe("range filter (L1)", () => {
   it("combines with v1 filters and pages up to 500", async () => {
     const r = await list({ from: D("2026-09-01"), to: D("2026-11-30"), assignee: "u_sam" });
     expect(r.data.length).toBeGreaterThan(0);
-    expect(r.data.every((x) => x.assigneeId === "u_sam")).toBe(true);
+    expect(r.data.every((x) => x.assigneeIds.includes("u_sam"))).toBe(true);
     const paged = await req<Paginated<Task>>("GET", "/tracking/projects/p_prj/tasks", undefined, { filter: { from: D("2026-09-01"), to: D("2026-11-30") }, sort: "startDate", limit: 3 });
     expect(paged.data).toHaveLength(3);
     expect(paged.nextCursor).toBe("3");

@@ -8,7 +8,7 @@ import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
 import { Tooltip } from "@/ui/tooltip";
 import type { Label, PresencePerson, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { AssigneeAvatar, DueText, SubtaskRing, useSparking } from "@/modules/tracking/tasks/task-bits";
+import { AssigneeAvatars, ChecklistBadge, DueText, SubtaskRing, useSparking } from "@/modules/tracking/tasks/task-bits";
 import { BlockedBadge, blockedTitle } from "@/modules/tracking/dependencies/blocked-badge";
 import { PrChip } from "@/modules/tracking/development/pr-chip";
 import { cardChip } from "@/modules/tracking/fields/field-lib";
@@ -19,7 +19,8 @@ import { elapsed, useMyTimer, useNow, useStopTimer } from "@/modules/tracking/ti
 export type CardProps = {
   task: Task;
   status: Status | undefined;
-  assignee: User | null;
+  /** The task's assignees in order (`assigneeIds` resolved to users). */
+  assignees: User[];
   labels: Label[];
   selected?: boolean;
   /** Board 33: other people with this task open (avatars on the card's top-right edge, live border). */
@@ -42,7 +43,7 @@ export type CardProps = {
 export const TaskCard = memo(function TaskCard({
   task,
   status,
-  assignee,
+  assignees,
   labels,
   selected,
   present,
@@ -109,7 +110,7 @@ export const TaskCard = memo(function TaskCard({
       )}
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] font-medium text-fg-3">{task.key}</span>
-        <AssigneeAvatar user={assignee} />
+        <AssigneeAvatars users={assignees} />
       </div>
       <p className={cn("m-0 line-clamp-3 text-[13px] font-medium leading-5 text-fg", done && status?.glyph === "done" && "text-fg-3 line-through")}>
         {task.title}
@@ -157,6 +158,7 @@ export const TaskCard = memo(function TaskCard({
         <span className="ml-auto flex flex-none items-center gap-2 whitespace-nowrap">
           <DueText due={task.dueDate} done={done} />
           <SubtaskRing done={task.subtaskDoneCount} total={task.subtaskCount} />
+          <ChecklistBadge done={task.checklistDoneCount} total={task.checklistCount} />
         </span>
       </div>
     </div>

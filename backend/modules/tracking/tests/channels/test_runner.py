@@ -123,7 +123,7 @@ def test_send_time_rechecks_mark_rows_stale(owner, project, sam, tg):
     from modules.tracking.tasks.models import Task
 
     connect_telegram(sam)
-    task = create_task(owner, project, {"title": "Gone", "assigneeId": str(sam.pk)})
+    task = create_task(owner, project, {"title": "Gone", "assigneeIds": [str(sam.pk)]})
     row = ChannelDelivery.objects.get(user=sam)
     assert row.status == "sent"
 

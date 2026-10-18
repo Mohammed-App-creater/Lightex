@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, X } from "lucide-react";
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "@/ui/button";
-import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
+import { Menu, MenuContent, MenuTrigger } from "@/ui/menu";
 import { DialogClose, Modal, Sheet } from "@/ui/modal";
 import { toast } from "@/ui/toast";
 import { api } from "@/api/endpoints";
@@ -20,9 +20,12 @@ import {
   consumeTyping,
   inviteHint,
   inviteMessage,
+  roleNamesOf,
+  rolesLabel,
   sendLabel,
   splitEmails,
 } from "./lib";
+import { RoleCheckboxItems } from "./parts";
 
 /** Invite dialog (board 18 A.6). Modal on desktop, bottom sheet ≤ 760px. */
 export function InviteDialog({
@@ -31,6 +34,7 @@ export function InviteDialog({
   slug,
   workspaceName,
   roles,
+  myPermissions,
   defaultRoleId,
   knownEmails,
 }: {
@@ -40,6 +44,8 @@ export function InviteDialog({
   workspaceName: string;
   /** Assignable roles (Owner excluded). */
   roles: Role[];
+  /** The inviter's workspace permissions: a role granting more is disabled (the server answers 403). */
+  myPermissions: readonly string[];
   defaultRoleId: string | undefined;
   /** Members and pending invites: chips matching these are skipped. */
   knownEmails: string[];
@@ -51,6 +57,7 @@ export function InviteDialog({
       slug={slug}
       workspaceName={workspaceName}
       roles={roles}
+      myPermissions={myPermissions}
       defaultRoleId={defaultRoleId}
       knownEmails={knownEmails}
       onDone={() => onOpenChange(false)}
@@ -79,6 +86,7 @@ function InviteForm({
   slug,
   workspaceName,
   roles,
+  myPermissions,
   defaultRoleId,
   knownEmails,
   onDone,
@@ -86,6 +94,7 @@ function InviteForm({
   slug: string;
   workspaceName: string;
   roles: Role[];
+  myPermissions: readonly string[];
   defaultRoleId: string | undefined;
   knownEmails: string[];
   onDone: () => void;
@@ -94,7 +103,11 @@ function InviteForm({
   const [emails, setEmails] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(true);
-  const [roleId, setRoleId] = useState(defaultRoleId ?? roles[0]?.id ?? "");
+  // Sales S0: one or more roles; every invitee gets all of them.
+  const [roleIds, setRoleIds] = useState<string[]>(() => {
+    const first = defaultRoleId ?? roles[0]?.id;
+    return first ? [first] : [];
+  });
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -103,8 +116,9 @@ function InviteForm({
   const anyBad = chips.some((c) => c.state === "bad");
   const msg = inviteMessage(chips, workspaceName);
   const hint = inviteHint(chips);
-  const role = roles.find((r) => r.id === roleId);
-  const canSend = valid.length > 0 && !anyBad && Boolean(roleId);
+  const picked = roleNamesOf(roleIds, roles);
+  const one = roleIds.length === 1 ? roles.find((r) => r.id === roleIds[0]) : undefined;
+  const canSend = valid.length > 0 && !anyBad && roleIds.length > 0;
 
   const commit = (raw: string) => {
     const parts = splitEmails(raw);
@@ -115,7 +129,7 @@ function InviteForm({
     if (!canSend || sending) return;
     setSending(true);
     try {
-      const created = await api.workspaces.invite(slug, valid, roleId);
+      const created = await api.workspaces.invite(slug, valid, roleIds);
       await Promise.all([
         qc.invalidateQueries({ queryKey: qk.invites(slug) }),
         qc.invalidateQueries({ queryKey: qk.wsMembers(slug) }),
@@ -224,7 +238,7 @@ function InviteForm({
       </p>
 
       <span className="text-[12px] font-medium text-fg-2" id="invite-role-label">
-        Role
+        Roles
       </span>
       <Menu>
         <MenuTrigger asChild>
@@ -233,22 +247,15 @@ function InviteForm({
             aria-labelledby="invite-role-label invite-role-value"
             className="flex h-[38px] w-full items-center gap-2.5 rounded-md border border-line-2 bg-bg pl-3 pr-2.5 text-left text-[13px] font-medium transition-[border-color] hover:border-control data-[state=open]:border-accent max-[760px]:h-11"
           >
-            <span id="invite-role-value">{role?.name ?? "Choose a role"}</span>
-            <span className="min-w-0 flex-1 truncate text-[12px] font-normal text-fg-3">{role?.description}</span>
+            <span id="invite-role-value" className="min-w-0 truncate">
+              {rolesLabel(picked)}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[12px] font-normal text-fg-3">{one?.description}</span>
             <ChevronDown size={14} className="text-fg-3" aria-hidden />
           </button>
         </MenuTrigger>
         <MenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)]">
-          <MenuRadioGroup value={roleId} onValueChange={setRoleId}>
-            {roles.map((r) => (
-              <MenuRadioItem key={r.id} value={r.id} className="h-auto min-h-[30px] py-1.5">
-                <span className="flex min-w-0 items-baseline gap-2.5">
-                  <span>{r.name}</span>
-                  <span className="truncate text-[12px] font-normal text-fg-3">{r.description}</span>
-                </span>
-              </MenuRadioItem>
-            ))}
-          </MenuRadioGroup>
+          <RoleCheckboxItems roles={roles} value={roleIds} onChange={setRoleIds} myPermissions={myPermissions} describe />
         </MenuContent>
       </Menu>
 

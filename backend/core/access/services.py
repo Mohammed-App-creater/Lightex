@@ -1,6 +1,7 @@
 """Access decisions. `can()` is the only function that decides whether a user may do something.
 
-Workspace permissions come only from the user's WorkspaceMember role; permissions of a module scope (`project`)
+Workspace permissions come only from the user's WorkspaceMember roles (the union of all of them; sales S0);
+permissions of a module scope (`project`)
 only from the role the module's scope provider loads (core/access/scopes.py). Neither scope grants anything in the
 other. Results are cached per request on the user instance (DRF builds a fresh user object for every request).
 
@@ -21,7 +22,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import Q, QuerySet
 
-from core.modules.services import code_enabled, visible_codes, workspace_id_of
+from core.modules.services import code_enabled, is_enabled, visible_codes, workspace_id_of
 
 from . import catalogue, scopes
 from .catalogue import ALL, OWN, PROJECT, TEAM, WORKSPACE
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
     from core.accounts.models import User
 
 _CACHE_ATTR = "_lx_access_cache"
+_SCOPE_RANK = {scope: i for i, scope in enumerate(catalogue.DATA_SCOPES)}  # own < team < all
 
 
 def _cache(user: Any) -> dict[str, dict]:
@@ -61,7 +63,7 @@ def workspace_permissions(user: Any, workspace: Any) -> frozenset[str]:
 
         rows = WorkspaceMember.objects.filter(
             user_id=user.pk, workspace_id=wid, status="active", workspace__deleted_at__isnull=True
-        ).values_list("role__permissions__code", "role__permissions__scope")
+        ).values_list("roles__permissions__code", "roles__permissions__scope")
         cache[wid] = frozenset(visible_codes(wid, (code for code, scope in rows if code and scope == WORKSPACE)))
     return cache[wid]
 
@@ -77,7 +79,8 @@ def is_workspace_member(user: Any, workspace: Any) -> bool:
 
 
 def my_data_scopes(user: Any, workspace: Any) -> dict[str, str]:
-    """{code: scope} for the scopable workspace codes the user's role grants (disabled modules left out)."""
+    """{code: scope} for the scopable workspace codes the user's roles grant (disabled modules left out). With several
+    roles granting a code, the widest scope wins (`all` > `team` > `own`)."""
     if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
         return {}
     wid = _key(workspace)
@@ -94,7 +97,10 @@ def my_data_scopes(user: Any, workspace: Any) -> dict[str, str]:
             permission__scopable=True,
             data_scope__isnull=False,
         ).values_list("permission__code", "data_scope")
-        found = dict(rows)
+        found: dict[str, str] = {}
+        for code, scope in rows:
+            if _SCOPE_RANK[scope] > _SCOPE_RANK.get(found.get(code, ""), -1):
+                found[code] = scope
         visible = visible_codes(wid, found)
         cache[wid] = {c: found[c] for c in catalogue.ordered(visible)}
     return dict(cache[wid])
@@ -300,13 +306,66 @@ def seed_default_roles(workspace: Any) -> dict[str, Any]:
             if code_enabled(workspace, c)
         )
     RolePermission.objects.bulk_create(links)
+    from core.modules.registry import definitions
+
+    for defn in definitions():
+        if defn.default_roles and is_enabled(workspace, defn.key):
+            roles.update(seed_module_roles(workspace, defn))
     return roles
 
 
+def seed_module_roles(workspace: Any, defn: Any) -> dict[str, Any]:
+    """Creates the module's contributed default roles (`ModuleDefinition.default_roles`) that the workspace lacks.
+    A role that exists (by `system_key`) is left exactly as it is, so admin edits survive and re-enabling is a no-op.
+    Returns {system_key: Role} of the roles created."""
+    from .models import Permission, Role, RolePermission
+
+    rdefs = catalogue.module_default_roles(defn.key)
+    if not rdefs:
+        return {}
+    wanted = {c for r in rdefs for c in r.permissions}
+    bad = [c for c in wanted if catalogue.scope_of(c) != WORKSPACE]
+    if bad:
+        raise LookupError(f"Module {defn.key} default roles grant {sorted(bad)[0]}, not a workspace permission")
+    if Permission.objects.filter(code__in=wanted).count() < len(wanted):
+        sync_permission_catalogue()
+    perms = {p.code: p for p in Permission.objects.filter(code__in=wanted)}
+    existing = set(
+        Role.objects.for_workspace(workspace).filter(system_key__isnull=False).values_list("system_key", flat=True)
+    )
+    names = {
+        n.lower() for n in Role.objects.for_workspace(workspace).filter(scope=WORKSPACE).values_list("name", flat=True)
+    }
+    created: dict[str, Any] = {}
+    links: list[Any] = []
+    for r in rdefs:
+        if r.key in existing:
+            continue
+        name = r.name if r.name.lower() not in names else f"{r.name} ({defn.name})"[:40]
+        if name.lower() in names:
+            continue
+        names.add(name.lower())
+        role = Role.objects.create(
+            workspace=workspace, name=name, description=r.description[:120], scope=WORKSPACE, is_system=True,
+            system_key=r.key,
+        )  # fmt: skip
+        created[r.key] = role
+        links.extend(
+            RolePermission(
+                role=role, permission=perms[c], data_scope=r.data_scopes.get(c) if perms[c].scopable else None
+            )
+            for c in r.permissions
+        )
+    RolePermission.objects.bulk_create(links)
+    return created
+
+
 def seed_module_grants(workspace: Any, defn: Any) -> int:
-    """Gives the workspace's system roles a module's default grants (on enable). Idempotent: existing rows are kept,
-    missing ones added. Returns how many were added."""
+    """Gives the workspace's system roles a module's default grants (on enable) and creates the module's own default
+    roles. Idempotent: existing rows are kept, missing ones added. Returns how many grants were added."""
     from .models import Permission, RolePermission
+
+    seed_module_roles(workspace, defn)
 
     if any(catalogue.get(c) is None for codes in defn.default_role_grants.values() for c in codes):
         raise LookupError(f"Module {defn.key} grants a permission missing from the catalogue")

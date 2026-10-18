@@ -72,7 +72,7 @@ describe("the module guard", () => {
 
     const m = await setSales(true);
     expect(m).toMatchObject({ key: "sales", enabled: true, enabledBy: "u_alex" });
-    expect(m.navItems).toEqual([{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.health.view" }]);
+    expect(m.navItems).toEqual([{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.dashboard.view" }]);
     expect(await req("GET", "/sales/workspaces/platform/health")).toEqual({ status: "ok", module: "sales", workspace: "platform" });
   });
 
@@ -80,10 +80,10 @@ describe("the module guard", () => {
     await setSales(true);
     as("u_drew");
     expect((await rejects(req("GET", "/sales/workspaces/platform/health"))).status).toBe(404);
-    // A custom workspace role without sales.health.view.
+    // A custom workspace role without sales.dashboard.view.
     as("u_alex");
     const role = await req<Role>("POST", "/workspaces/platform/roles", { name: "Limited", scope: "workspace", permissions: ["core.workspace.view"] });
-    getDB().wsMembers.find((m) => m.userId === "u_sam" && m.workspaceId === "ws_platform")!.roleId = role.id;
+    getDB().wsMembers.find((m) => m.userId === "u_sam" && m.workspaceId === "ws_platform")!.roleIds = [role.id];
     as("u_sam");
     expect((await rejects(req("GET", "/sales/workspaces/platform/health"))).code).toBe("forbidden");
   });
@@ -143,34 +143,34 @@ describe("hiding effects", () => {
   it("hides a disabled module's permissions from my_permissions and roles, keeps the stored grants, and restores them", async () => {
     const perms = async () => (await req<Workspace>("GET", "/workspaces/platform")).my_permissions;
     const ownerRole = async () => (await req<Role[]>("GET", "/workspaces/platform/roles")).find((r) => r.id === "ws_platform-role-owner")!;
-    expect(await perms()).not.toContain("sales.health.view");
-    expect((await ownerRole()).permissions).not.toContain("sales.health.view");
+    expect(await perms()).not.toContain("sales.dashboard.view");
+    expect((await ownerRole()).permissions).not.toContain("sales.dashboard.view");
 
     await setSales(true);
-    expect(await perms()).toContain("sales.health.view");
-    expect((await ownerRole()).permissions).toContain("sales.health.view");
+    expect(await perms()).toContain("sales.dashboard.view");
+    expect((await ownerRole()).permissions).toContain("sales.dashboard.view");
 
     // A custom role granted sales, saved while sales is off: the hidden grant survives.
-    const custom = await req<Role>("POST", "/workspaces/platform/roles", { name: "Sales lead", scope: "workspace", permissions: ["core.workspace.view", "sales.health.view"] });
+    const custom = await req<Role>("POST", "/workspaces/platform/roles", { name: "Sales lead", scope: "workspace", permissions: ["core.workspace.view", "sales.dashboard.view"], dataScopes: { "sales.dashboard.view": "own" } });
     await setSales(false);
     const saved = await req<Role>("PATCH", `/roles/${custom.id}`, { permissions: ["core.workspace.view", "core.audit.view"] });
     expect(saved.permissions).toEqual(["core.workspace.view", "core.audit.view"]);
-    expect(getDB().roles.find((r) => r.id === custom.id)!.permissions).toContain("sales.health.view");
+    expect(getDB().roles.find((r) => r.id === custom.id)!.permissions).toContain("sales.dashboard.view");
     // The global catalogue still lists everything, with module.
     const catalogue = await req<{ key: string; module: string }[]>("GET", "/permissions");
-    expect(catalogue.find((p) => p.key === "sales.health.view")).toMatchObject({ module: "sales" });
+    expect(catalogue.find((p) => p.key === "sales.dashboard.view")).toMatchObject({ module: "sales" });
 
     await setSales(true);
-    expect((await req<Role[]>("GET", "/workspaces/platform/roles")).find((r) => r.id === custom.id)!.permissions).toContain("sales.health.view");
+    expect((await req<Role[]>("GET", "/workspaces/platform/roles")).find((r) => r.id === custom.id)!.permissions).toContain("sales.dashboard.view");
   });
 
   it("enabling re-seeds the default grants on system roles idempotently", async () => {
     const owner = getDB().roles.find((r) => r.id === "ws_platform-role-owner")!;
-    owner.permissions = owner.permissions.filter((p) => p !== "sales.health.view");
+    owner.permissions = owner.permissions.filter((p) => p !== "sales.dashboard.view");
     await setSales(true);
     await setSales(false);
     await setSales(true);
-    expect(owner.permissions.filter((p) => p === "sales.health.view")).toHaveLength(1);
+    expect(owner.permissions.filter((p) => p === "sales.dashboard.view")).toHaveLength(1);
   });
 });
 
@@ -178,7 +178,7 @@ describe("POST workspaces with modules", () => {
   it("enables tracking plus the requested modules", async () => {
     const ws = await req<Workspace>("POST", "/workspaces", { name: "Revenue team", slug: "revenue-team", modules: ["sales"] });
     expect(ws.enabledModules).toEqual(["core", "tracking", "sales"]);
-    expect(ws.my_permissions).toContain("sales.health.view");
+    expect(ws.my_permissions).toContain("sales.dashboard.view");
     const plain = await req<Workspace>("POST", "/workspaces", { name: "Plain team", slug: "plain-team" });
     expect(plain.enabledModules).toEqual(["core", "tracking"]);
     expect((await rejects(req("POST", "/workspaces", { name: "Odd team", slug: "odd-team", modules: ["nope"] }))).status).toBe(422);

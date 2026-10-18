@@ -756,7 +756,8 @@ function importRow(db: MockDB, rec: ImportJobRec, project: ProjectRec, r: PlanRe
     type: r.values.type === "epic" ? "feature" : r.values.type,
     priority: r.values.priority,
     statusId,
-    assigneeId,
+    // The CSV assignee column maps to one person, who becomes the only assignee.
+    assigneeIds: assigneeId ? [assigneeId] : [],
     reporterId: creator,
     estimate: r.values.estimate,
     startDate: r.values.startDate,

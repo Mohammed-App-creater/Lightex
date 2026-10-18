@@ -643,6 +643,80 @@ result, presence locations, workload rows, the `DevItem` union, quiet-hours `day
 `TrashKind` (client-computed). `ProjectAccessInfo` stays hand-written: it is the 403's `details.project`, and the schema
 has no components for error details.
 
+### Sales S0: several roles per member, workspace time zone
+
+From `docs/sales/s0-contract.md` §1, §2 and §4 (repo root). Delivered by the backend and in `docs/openapi.yaml`;
+implemented in the mock (SCHEMA 8):
+
+- `WorkspaceMember.roleIds`, `Workspace.myRoleIds`, `Invite.roleIds` / `roleNames` (precedence order; the single
+  fields are the primary role). The mock stores `roleIds` on members and invites, unions the roles' grants into
+  `my_permissions`, keeps the widest data scope per code, counts every holder in `Role.memberCount` and matches
+  `filter[role]` on any role.
+- `PATCH …/members/:userId {roleIds}` and `POST …/invites {emails, roleIds}` (old `roleId` accepted), with the 422
+  shapes, 403 escalation (`details.permission`) and 409 `last_owner` from the contract; `DELETE /roles/:id
+  {reassignTo}` moves holders and pending invites without duplicates.
+- `Workspace.timezone` (IANA, default `Africa/Addis_Ababa`) shown and edited in Settings → General with a searchable
+  select over `Intl.supportedValuesOf("timeZone")` (a short fallback list when the browser lacks it).
+- Module default roles: enabling sales seeds Sales Admin, CEO / GM, Sales Manager and Salesperson as system roles
+  (only `core.workspace.view` and `sales.dashboard.view` so far, scoped all / all / team / own).
+- UI: the members list shows every role as chips; changing roles is a multi-select (a role whose permissions you
+  don't hold, the last remaining role and Owner are disabled with the reason); the invite dialog picks one or more
+  roles; Remove is hidden when a member holds a role you couldn't grant. The optimistic role change used to write an
+  array into the paginated members cache (it threw before the request); it now updates the page.
+- **Ahead of the backend:** the client gates Sales on `sales.dashboard.view` (scopable), which replaces the skeleton
+  `sales.health.view` in S1. Until the backend ships S1, live mode hides the Sales nav item (its `my_permissions`
+  still carry `sales.health.view`).
+
+### Sales sync (backend S1–S6)
+
+- Types regenerated from the full sales API in `docs/openapi.yaml`; no sales endpoints are wired yet (the screens come later).
+- Catalogue: the backend's 46 `sales.*` codes, groups and scopable flags (`SALES_PERMISSIONS` in `platform/roles/catalogue.ts`).
+- Mock (SCHEMA 9): the four sales default roles use the backend's GRANT_TABLE; Owner / Admin get every sales code (scope `all`) except `sales.dailyreport.submit`; Member gets none.
+- Role editor and mock: system roles' permissions are editable (as on the backend), except Owner; renaming, re-describing and deleting system roles stay refused.
+- `GET sales/workspaces/{slug}/health` left the backend schema; `SalesHealth` is now a client-only type and only the mock answers it, until the sales screens replace the placeholder.
+- Role grants (backend S7): `sales.dailyreport.submit` is self-service, so no-escalation lets anyone who may assign roles grant it without holding it; assigning roles (member changes, invites, removal, delete-with-reassign) also can't hand out a data scope wider than the actor's own (403 `data_scope_exceeds_own`, owners exempt). Mirrored in the mock's `ensureCanGrant` and in the UI's `canGrantRole` (self-service only).
+
+### Tracking: multiple assignees and task checklists
+
+From `docs/tracking/checklist-assignees.md` (repo root). Delivered by the backend and in `docs/openapi.yaml`
+(`tasks.0002`); implemented in the mock without a SCHEMA bump (`handlers/checklist.ts`, `ensureExtChecklist`):
+
+- **`assigneeIds: string[]` replaces `assigneeId`** on `Task`, `TaskDetail`, `DependencyTask` and every write
+  (`POST …/tasks`, `PATCH /tracking/tasks/{ref}`, bulk `patch`): 0–10 people in order, replace semantics, `[]` / `null`
+  unassigns everyone, duplicates dropped. 422 `assigneeIds` "Send a list of ids" · "Assign up to 10 people" · "Assign
+  people on this project"; the old `assigneeId` on PATCH is 422 "This field can’t be changed here". Create: anyone
+  but yourself needs `tracking.task.assign` (403 "You can’t assign tasks to others."); update / bulk: changing the set
+  needs it (403 "You can’t reassign tasks."), a reorder alone doesn't. `edit_own` covers the reporter or any assignee.
+- `filter[assignee]=<id>|me|none` (project, workspace and `/me` task lists) and saved-view `assignee` rules match when
+  **any** assignee matches; `none` / `empty` = nobody. Workload and the sprint contributors count a multi-assignee
+  task in full for each person; list / timeline group-by-assignee lists it under each.
+- Notifications: `tracking.task.assigned` once per newly added person; status changes to every assignee and the
+  reporter; comments to the reporter and every assignee. Audit `tracking.task.assigned` (one `Assignee` `person`
+  change per person added or removed), activity `data.assignee` (names joined with ", " or "nobody") and
+  `data.assigneeCount`; realtime `fields: ["assigneeIds"]`. Import is unchanged (the CSV person becomes the only
+  assignee; the import preview row keeps its single `assigneeId`).
+- **Checklist:** `ChecklistItem {id, taskId, text, done, position, doneAt, doneById, createdAt, createdById}`,
+  `TaskDetail.checklist` (position order), `Task.checklistCount` / `checklistDoneCount` (derived in the mock);
+  `POST /tracking/tasks/{taskId}/checklist {text, position?}`, `PATCH …/checklist/{checklistItemId} {text?, done?,
+  position?}`, `DELETE …/checklist/{checklistItemId}` (`api.tasks.checklist.add / update / remove`). Task edit rule
+  (403 "You can only edit tasks you reported or are assigned."), 422 `text` "Write what needs doing" · "Up to 500
+  characters", `position` "Invalid position", `done` "Send true or false", unknown keys; 409 `checklist_limit` at 100,
+  409 `task_deleted`, 404 for another task's item. No `version` bump; audit `tracking.task.checklist_updated`
+  `{op, text}` only (no activity row); realtime `tracking.task.changed {fields: ["checklist"], version: null}`, which
+  the client applies by refetching the task detail and the lists' x/y badges.
+- UI: the task panel's assignee chip opens a people picker (search, a checkbox per project member, the current
+  assignees with remove buttons; the 11th person is disabled with "Up to 10 people. Remove someone to add another.");
+  without `tracking.task.assign` the chip is read-only. The create dialog and the list cell are multi-selects too; the
+  list's bulk Assign sets exactly the picked person (replace). Cards, rows, backlog, sprint board, calendar, agenda,
+  timeline tray, goals and epics show an overlapping avatar stack (up to 3, then "+N"). The panel's Checklist section
+  (after Sub-tasks) has a progress bar and x/y, check / inline rename (Enter saves, Escape cancels) / delete, drag or
+  keyboard reorder (dnd-kit, fractional positions), an "Add an item" input that stays open, and "Hide checked";
+  read-only users see the list without controls. Board cards and list rows show "☑ 2/5".
+- Mock: cached databases with `assigneeId` are migrated on load (every task record, trashed projects too); the seed
+  gives PRJ-42, PRJ-33 and PRJ-57 co-assignees and PRJ-42 / PRJ-33 checklists.
+- **Deviation:** bulk `patch.assigneeId` answers the backend's 422 `patch.assigneeId` "This field can’t be bulk-edited"
+  (what `services.bulk` sends) rather than the contract's "This field can’t be changed here".
+
 ---
 
 ## 6. Known gaps
@@ -657,7 +731,6 @@ each with a commented `SchemaGap` or extension type in `src/api/types.ts`, to re
 - `ProjectDirectoryEntry` has only `id` (the server sends the access info plus `isMember` and `status`).
 - `ReportKpis` lists only `completedThisSprint` (the server sends the sprint, planned, cycle-time, overdue and
   scope-change figures too).
-- `PatchedWorkspaceUpdateInRequest` lacks `notificationPolicy` (board 38's SMS switch, which PATCH accepts).
 - Loose types the client narrows: unions sent as `string` (activity verbs, audit `source`, invite / access-request
   `status`, `PermissionInfo.module|scope|group`, saved-view filter `field` / `op`), JSON as `unknown` (rich-text
   bodies, payloads, widget config, import job parts, presence locations, workload rows, `TaskDetail.project`), and

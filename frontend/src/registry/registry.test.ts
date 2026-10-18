@@ -18,7 +18,7 @@ describe("registry filtering", () => {
   });
 
   it("hides a disabled module's nav items, project nav and overlays", () => {
-    expect(ids(moduleNavItems(ctx(["core", "tracking"], ["core.workspace.view", "sales.health.view"])))).toEqual(["my-tasks", "timesheet"]);
+    expect(ids(moduleNavItems(ctx(["core", "tracking"], ["core.workspace.view", "sales.dashboard.view"])))).toEqual(["my-tasks", "timesheet"]);
     expect(ids(moduleNavItems(ctx(["core"])))).toEqual([]);
     expect(projectNavItems(ctx(["core"]))).toEqual([]);
     expect(shellOverlays(ctx(["core"]))).toEqual([]);
@@ -28,13 +28,13 @@ describe("registry filtering", () => {
   it("shows an enabled module's items only with their permission", () => {
     const on = ["core", "tracking", "sales"];
     expect(ids(moduleNavItems(ctx(on, ["core.workspace.view"])))).toEqual(["my-tasks", "timesheet"]);
-    expect(ids(moduleNavItems(ctx(on, ["core.workspace.view", "sales.health.view"])))).toEqual(["my-tasks", "timesheet", "sales"]);
+    expect(ids(moduleNavItems(ctx(on, ["core.workspace.view", "sales.dashboard.view"])))).toEqual(["my-tasks", "timesheet", "sales"]);
   });
 
   it("guards routes: disabled module, missing permission, or open", () => {
-    const perms: WorkspacePermission[] = ["core.workspace.view", "sales.health.view"];
+    const perms: WorkspacePermission[] = ["core.workspace.view", "sales.dashboard.view"];
     expect(routeAccess(ctx(["core", "tracking"], perms), "sales")).toMatchObject({ kind: "disabled", module: { key: "sales", name: "Sales" } });
-    expect(routeAccess(ctx(["core", "tracking", "sales"], ["core.workspace.view"]), "sales")).toMatchObject({ kind: "forbidden", permission: "sales.health.view" });
+    expect(routeAccess(ctx(["core", "tracking", "sales"], ["core.workspace.view"]), "sales")).toMatchObject({ kind: "forbidden", permission: "sales.dashboard.view" });
     expect(routeAccess(ctx(["core", "tracking", "sales"], perms), "sales")).toEqual({ kind: "ok" });
     expect(routeAccess(ctx(["core"]), "projects")).toMatchObject({ kind: "disabled", module: { key: "tracking" } });
     // Core routes are never guarded.

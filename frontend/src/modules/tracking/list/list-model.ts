@@ -67,7 +67,7 @@ export function sortValue(t: Task, col: ColumnId, ctx: Ctx): string | number {
     case "pri":
       return t.priority;
     case "asg":
-      return t.assigneeId ? ctx.users.get(t.assigneeId)?.name ?? "~" : "~";
+      return t.assigneeIds.length ? ctx.users.get(t.assigneeIds[0]!)?.name ?? "~" : "~";
     case "sprint":
       return ctx.sprints.find((s) => s.id === t.sprintId)?.number ?? 99_999;
     case "ms": {
@@ -118,11 +118,12 @@ export function groupTasks(tasks: Task[], by: GroupBy, ctx: Ctx): Group[] {
     groups.push({ id: "none", name: "No sprint", tasks: tasks.filter((t) => !t.sprintId) });
     return groups;
   }
-  const ids = [...new Set(tasks.map((t) => t.assigneeId).filter((x): x is string => Boolean(x)))];
+  // A task with several assignees appears under each of them.
+  const ids = [...new Set(tasks.flatMap((t) => t.assigneeIds))];
   const groups: Group[] = ids
-    .map((id) => ({ id, name: ctx.users.get(id)?.name ?? "Former member", user: ctx.users.get(id) ?? null, tasks: tasks.filter((t) => t.assigneeId === id) }))
+    .map((id) => ({ id, name: ctx.users.get(id)?.name ?? "Former member", user: ctx.users.get(id) ?? null, tasks: tasks.filter((t) => t.assigneeIds.includes(id)) }))
     .sort((a, b) => a.name.localeCompare(b.name));
-  groups.push({ id: "none", name: "Unassigned", user: null, tasks: tasks.filter((t) => !t.assigneeId) });
+  groups.push({ id: "none", name: "Unassigned", user: null, tasks: tasks.filter((t) => t.assigneeIds.length === 0) });
   return groups;
 }
 

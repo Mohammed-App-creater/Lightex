@@ -59,6 +59,20 @@ class NavItem:
 
 
 @dataclass(frozen=True)
+class DefaultRole:
+    """A workspace-scope default role a module contributes (sales S0): seeded when a workspace is created with the
+    module and whenever the module is enabled, only if no role with this `key` (its `system_key`) exists yet."""
+
+    #: The role's `system_key`; prefix it with the module key (`sales_salesperson`).
+    key: str
+    name: str
+    description: str = ""
+    #: code → data scope (`own`, `team`, `all`) for scopable codes, None otherwise. The module's own workspace codes
+    #: and core codes only.
+    grants: Mapping[str, str | None] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class ModuleDefinition:
     key: str
     name: str
@@ -72,6 +86,8 @@ class ModuleDefinition:
     default_role_grants: Mapping[str, list[str] | dict[str, str]] = field(default_factory=dict)
     #: Default role (`system_key`) → codes that system role can never lose (a subset of its grants).
     locked_role_grants: dict[str, list[str]] = field(default_factory=dict)
+    #: Extra default roles the module contributes (sales: Sales Admin, Salesperson, …).
+    default_roles: tuple[DefaultRole, ...] = ()
     event_types: tuple[EventTypeDef, ...] = ()
     #: Target types (`<module>.<entity>`) the module registers resolvers for (core/common/targets.py).
     target_types: tuple[str, ...] = ()
@@ -101,6 +117,7 @@ def register_module(defn: ModuleDefinition) -> ModuleDefinition:
     for grants in defn.default_role_grants.values():
         if isinstance(grants, dict) and any(s not in DATA_SCOPES for s in grants.values()):
             raise ValueError(f"Module {defn.key!r} gives a default grant an unknown data scope")
+    _validate_default_roles(defn)
     _MODULES[defn.key] = defn
     for et in defn.event_types:
         register_event_type(
@@ -117,6 +134,26 @@ def register_module(defn: ModuleDefinition) -> ModuleDefinition:
         )
     _version += 1
     return defn
+
+
+def _validate_default_roles(defn: ModuleDefinition) -> None:
+    from core.access.catalogue import CORE_ROLES, DATA_SCOPES
+
+    taken = {r.key for r in CORE_ROLES} | {
+        r.key for d in _MODULES.values() if d.key != defn.key for r in d.default_roles
+    }
+    seen: set[str] = set()
+    for r in defn.default_roles:
+        if not r.key or r.key in taken or r.key in seen:
+            raise ValueError(f"Module {defn.key!r}: default role key {r.key!r} is empty or already used")
+        seen.add(r.key)
+        if not r.name.strip():
+            raise ValueError(f"Module {defn.key!r}: default role {r.key!r} needs a name")
+        for code, scope in r.grants.items():
+            if code.split(".", 1)[0] not in (defn.key, CORE):
+                raise ValueError(f"Module {defn.key!r}: default role {r.key!r} grants another module's {code}")
+            if scope is not None and scope not in DATA_SCOPES:
+                raise ValueError(f"Module {defn.key!r}: default role {r.key!r} gives {code} an unknown data scope")
 
 
 def unregister_module(key: str) -> None:

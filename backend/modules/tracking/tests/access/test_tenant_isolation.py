@@ -22,7 +22,7 @@ from django.urls import URLResolver, get_resolver
 from core.access.permissions import ScopedView
 from core.common import scoping
 from core.common.models import WorkspaceScopedMixin
-from core.common.testing import client_for
+from core.common.testing import client_for, shared_world
 
 from .matrix_world import build_world
 
@@ -80,6 +80,56 @@ def _routes():
 ROUTES = _routes()
 
 
+def _sales_objects(w) -> dict:
+    """Workspace B's sales records (built through the app registry: tracking never imports the sales module)."""
+    if "sales" not in w.extra:
+        get = apps.get_model
+        owner = w.users["owner"]
+        company = get("sales", "Company").objects.create(workspace=w.ws, owner=owner, name="Abay Trading")
+        stage = get("sales", "PipelineStage").objects.create(workspace=w.ws, name="Discovery")
+        opportunity = get("sales", "Opportunity").objects.create(
+            workspace=w.ws, owner=owner, company=company, title="Abay deal", stage=stage
+        )
+        w.extra["sales"] = {
+            "stage_id": stage.pk,
+            "lead_id": get("sales", "Lead").objects.create(workspace=w.ws, owner=owner, contact_name="Abebe").pk,
+            "opportunity_id": opportunity.pk,
+            "quotation_id": get("sales", "Quotation")
+            .objects.create(opportunity=opportunity, owner=owner, number="Q-2026-0001", title="Offer")
+            .pk,
+            "product_id": get("sales", "Product").objects.create(workspace=w.ws, name="Switch").pk,
+            "lost_reason_id": get("sales", "LostReason").objects.create(workspace=w.ws, name="Price").pk,
+            "holiday_id": get("sales", "Holiday").objects.create(workspace=w.ws, date="2026-09-11", name="New year").pk,
+            "company_id": company.pk,
+            "contact_id": get("sales", "Contact").objects.create(company=company, owner=owner, name="Hana").pk,
+        }
+        on_company = {"target_type": "sales.company", "target_id": company.pk, "target_company": company}
+        w.extra["sales"]["activity_id"] = (
+            get("sales", "Activity")
+            .objects.create(workspace=w.ws, owner=owner, occurred_at=company.created_at, company=company, **on_company)
+            .pk
+        )
+        w.extra["sales"]["sales_target_id"] = (
+            get("sales", "Target")
+            .objects.create(
+                workspace=w.ws, subject_type="company", period_type="year", period_start="2026-01-01", amount=1
+            )
+            .pk
+        )
+        w.extra["sales"]["follow_up_id"] = (
+            get("sales", "FollowUp")
+            .objects.create(
+                workspace=w.ws, owner=owner, title="Call", due_date="2099-01-01", company=company, **on_company
+            )
+            .pk
+        )
+        w.extra["sales"]["daily_report_id"] = (
+            get("sales", "DailyReport").objects.create(workspace=w.ws, user=owner, report_date="2026-09-01").pk
+        )
+        w.extra["sales"]["report_key"] = "daily-sales"
+    return w.extra["sales"]
+
+
 def _kwargs(name: str, route: str, w) -> dict:
     """URL kwargs that point at workspace B's objects."""
     items = {"objective": w.objective, "milestone": w.milestone, "epic": w.epic, "sprint": w.sprint}
@@ -96,6 +146,7 @@ def _kwargs(name: str, route: str, w) -> dict:
         "import_id": w.import_job.pk,
         "entry_id": w.entry.pk,
         "dependency_id": w.dependency.pk,
+        "checklist_item_id": w.checklist_item.pk,
         "sprint_id": w.sprint.pk,
         "dashboard_id": w.dashboard.pk,
         "integration_id": w.integration.pk,
@@ -121,17 +172,32 @@ def _kwargs(name: str, route: str, w) -> dict:
             out[kw] = {"workspace-module": "sales", "workspace-project-by-key": w.project.key}.get(name, w.task.key)
         elif kw in values:
             out[kw] = values[kw]
+        elif route.startswith("api/v1/sales/") and kw in _sales_objects(w):
+            out[kw] = _sales_objects(w)[kw]
         else:
             raise AssertionError(f"{name}: no tenant-isolation kwargs for {kw!r}; add them or list a skip")
     return out
 
 
+def _shared_world():
+    w = build_world()
+    _sales_objects(w)  # created up front: a lazily added object would vanish with the first test's rollback
+    return w
+
+
+@pytest.fixture(scope="module")
+def isolation_world(django_db_setup, django_db_blocker):
+    """Built once for the module; every test runs in a savepoint and is rolled back to it."""
+    with shared_world(django_db_blocker) as build:
+        yield build(_shared_world)
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(("route", "name", "method"), ROUTES)
-def test_a_user_of_another_workspace_gets_404(route, name, method):
+def test_a_user_of_another_workspace_gets_404(isolation_world, route, name, method):
     if name in SKIPS:
         pytest.skip(SKIPS[name])
-    w = build_world()
+    w = isolation_world
     path = "/" + re.sub(r"<(?:\w+:)?(\w+)>", lambda m: str(_kwargs(name, route, w)[m.group(1)]), route)
     client = client_for(w.users["outsider"])  # owns workspace `elsewhere`, not a member of `platform`
     call = getattr(client, method)
@@ -141,15 +207,23 @@ def test_a_user_of_another_workspace_gets_404(route, name, method):
 
 def test_the_walk_covers_the_module_and_core_routes():
     names = {p.values[1] for p in ROUTES}
-    expected = {"project-detail", "task-detail", "sales-health", "workspace-audit", "team-detail", "comment-detail"}
+    expected = {
+        "project-detail",
+        "task-detail",
+        "sales-company-detail",
+        "workspace-audit",
+        "team-detail",
+        "comment-detail",
+    }
+    assert {"sales-companies", "sales-contact-detail", "sales-stage-detail", "sales-settings"} <= names
     assert expected <= names
     assert len(ROUTES) > 150
 
 
 @pytest.mark.django_db
-def test_user_level_routes_never_show_another_workspace():
+def test_user_level_routes_never_show_another_workspace(isolation_world):
     """The explicit cases for the skipped user-level routes: B's tasks, recents and timer never reach A."""
-    w = build_world()
+    w = isolation_world
     outsider = client_for(w.users["outsider"])
     owner = client_for(w.users["owner"])
     owner.get(f"/api/v1/tracking/tasks/{w.task.pk}")  # puts the task in the owner's recents
@@ -211,10 +285,10 @@ def test_workspace_tables_use_the_scoped_manager():
 
 
 @pytest.mark.django_db
-def test_scoped_manager_policy():
+def test_scoped_manager_policy(isolation_world):
     from modules.tracking.tasks.models import Task
 
-    w = build_world()
+    w = isolation_world
     with scoping.strict():
         with pytest.raises(scoping.UnscopedQueryError):
             Task.objects.filter(pk=w.task.pk).exists()

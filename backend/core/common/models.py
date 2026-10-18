@@ -3,6 +3,7 @@
 import uuid
 from typing import Any, ClassVar
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -175,3 +176,18 @@ class WorkspaceScopedSoftDeleteModel(WorkspaceScopedMixin, SoftDeleteModel):
         abstract = True
         default_manager_name = "objects"
         base_manager_name = "base_objects"
+
+
+class OwnedModel(models.Model):
+    """Sales S0: a record with an owner, read through data scope (`core.access.services.visible_to`). Combine with
+    `WorkspaceScopedModel` or `WorkspaceScopedSoftDeleteModel`, listed first so its Meta is inherited:
+    `class Lead(WorkspaceScopedModel, OwnedModel)`."""
+
+    data_scope_owner_field: ClassVar[str] = "owner"
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        abstract = True

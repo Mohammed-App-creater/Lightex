@@ -135,7 +135,6 @@ ROWS: list[Row] = [
     Row(
         "team-member-detail", "DELETE", TEAM_MEMBER, allow=("owner", "ws_admin"), deny=("ws_member", "outsider", "anon")
     ),
-    Row("sales-health", "GET", S, allow=("owner", "ws_admin", "ws_member"), deny=("outsider", "anon")),
     Row("workspace-slug-availability", "GET", S, allow=("owner", "ws_member"), deny=("outsider",), query="?q=abc"),
     Row("workspace-members", "GET", S, allow=("owner", "ws_member", "viewer"), deny=("outsider", "anon")),
     Row(
@@ -228,6 +227,8 @@ def _api_routes() -> set[tuple[str, str]]:
             if isinstance(p, URLResolver):
                 walk(p.url_patterns, prefix + str(p.pattern))
             elif isinstance(p, URLPattern) and (prefix + str(p.pattern)).startswith("api/v1/"):
+                if (prefix + str(p.pattern)).startswith("api/v1/sales/"):
+                    continue  # the sales module's own matrix (modules/sales/tests/test_permission_matrix.py)
                 view = getattr(p.callback, "view_class", None) or getattr(p.callback, "cls", None)
                 methods = getattr(p.callback, "actions", None)
                 if view is None:

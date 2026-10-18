@@ -1,7 +1,7 @@
 import { DATA_SCOPES, type DataScope, type DataScopeMap } from "@/api/types";
 import { PERMISSION_CATALOGUE, isScopable } from "@/platform/roles/catalogue";
 import type { MockDB, RoleRec } from "./db-types";
-import { wsMembership, wsPermissions } from "./derive";
+import { rolesOf, wsMembership, wsPermissions } from "./derive";
 import { onlyEnabled } from "./modules";
 import { fail, invalid } from "./router";
 
@@ -53,14 +53,28 @@ export function roleDataScopes(db: MockDB, r: RoleRec): DataScopeMap {
   return out;
 }
 
-/** `myDataScopes`: the scopable codes the user holds in the workspace (disabled modules excluded). */
+const RANK: Record<DataScope, number> = { own: 0, team: 1, all: 2 };
+
+/**
+ * `myDataScopes`: the scopable codes the user holds in the workspace (disabled modules excluded). Sales S0: with
+ * several roles, the widest scope across them wins (`all` > `team` > `own`).
+ */
 export function myDataScopes(db: MockDB, userId: string, workspaceId: string): DataScopeMap {
   const m = wsMembership(db, userId, workspaceId);
-  const role = m && db.roles.find((r) => r.id === m.roleId);
-  return role ? roleDataScopes(db, role) : {};
+  return m ? widestScopes(rolesOf(db, m.roleIds).map((r) => roleDataScopes(db, r))) : {};
 }
 
-const RANK: Record<DataScope, number> = { own: 0, team: 1, all: 2 };
+/** Merges scope maps, keeping the widest scope per code. */
+export function widestScopes(maps: readonly DataScopeMap[]): DataScopeMap {
+  const out: DataScopeMap = {};
+  for (const map of maps) {
+    for (const [code, scope] of Object.entries(map)) {
+      const have = out[code];
+      if (!have || RANK[scope] > RANK[have]) out[code] = scope;
+    }
+  }
+  return out;
+}
 /** The workspace owner's permission (the backend's OWNER_PERMISSION): owners are exempt from the widening rule. */
 const OWNER_PERMISSION = "core.workspace.delete";
 

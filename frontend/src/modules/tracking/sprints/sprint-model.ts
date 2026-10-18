@@ -73,11 +73,13 @@ export function addedMidSprint(sprint: Pick<Sprint, "startDate">, t: Pick<Task, 
 export function contributors(done: Task[]) {
   const by = new Map<string, { userId: string; n: number; pts: number }>();
   for (const t of done) {
-    if (!t.assigneeId) continue;
-    const c = by.get(t.assigneeId) ?? { userId: t.assigneeId, n: 0, pts: 0 };
-    c.n += 1;
-    c.pts += pts(t);
-    by.set(t.assigneeId, c);
+    // A task with several assignees counts in full for each of them.
+    for (const userId of t.assigneeIds) {
+      const c = by.get(userId) ?? { userId, n: 0, pts: 0 };
+      c.n += 1;
+      c.pts += pts(t);
+      by.set(userId, c);
+    }
   }
   return [...by.values()].sort((a, b) => b.pts - a.pts || b.n - a.n);
 }

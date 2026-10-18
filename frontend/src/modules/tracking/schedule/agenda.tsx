@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { Avatar } from "@/ui/avatar";
+import { AssigneeAvatars } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
@@ -26,7 +26,7 @@ export function Agenda({
   loading,
   tasksOn,
   statusOf,
-  userOf,
+  usersOf,
   epicOf,
   timelineHref,
   canCreate,
@@ -43,7 +43,7 @@ export function Agenda({
   loading: boolean;
   tasksOn: (day: ISODate) => Task[];
   statusOf: (id: string) => Status | undefined;
-  userOf: (id: string | null) => User | undefined;
+  usersOf: (ids: readonly string[]) => User[];
   epicOf: (id: string | null) => Epic | undefined;
   timelineHref: string;
   canCreate: boolean;
@@ -130,7 +130,7 @@ export function Agenda({
                     {list.map((t) => {
                       const s = statusOf(t.statusId);
                       const e = epicOf(t.epicId);
-                      const u = userOf(t.assigneeId);
+                      const u = usersOf(t.assigneeIds);
                       return (
                         <li key={t.id}>
                           <button
@@ -155,7 +155,7 @@ export function Agenda({
                               ) : (
                                 <span className="flex-1 text-[12px] text-fg-3">No epic</span>
                               )}
-                              {u && <Avatar name={u.name} hue={u.hue} size={20} ring={false} decorative />}
+                              <AssigneeAvatars users={u} size={20} hideEmpty />
                             </span>
                           </button>
                         </li>

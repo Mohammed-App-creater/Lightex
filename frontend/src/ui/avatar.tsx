@@ -93,16 +93,19 @@ export function AvatarStack({
   max = 3,
   size = 24,
   className,
+  label,
 }: {
   people: { id: string; name: string; hue?: number }[];
   max?: number;
   size?: AvatarSize;
   className?: string;
+  /** Accessible name for the group (default "N people"). */
+  label?: string;
 }) {
   const shown = people.slice(0, max);
   const rest = people.length - shown.length;
   return (
-    <span className={cn("flex pl-1.5", className)} aria-label={`${people.length} people`} role="group">
+    <span className={cn("flex pl-1.5", className)} aria-label={label ?? `${people.length} people`} role="group">
       {shown.map((p) => (
         <Avatar key={p.id} name={p.name} hue={p.hue} size={size} className="-ml-1.5" />
       ))}

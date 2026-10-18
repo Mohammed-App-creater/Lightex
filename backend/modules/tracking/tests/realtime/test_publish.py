@@ -113,14 +113,14 @@ def test_task_writes(world, task):
         f"/api/v1/tracking/tasks/{task.pk}", {"dueDate": "2026-12-01", "priority": 1, "version": 1}, format="json"
     )
     owner.patch(f"/api/v1/tracking/tasks/{task.pk}", {"statusId": str(done.pk), "version": 2}, format="json")
-    owner.patch(f"/api/v1/tracking/tasks/{task.pk}", {"assigneeId": str(world.sam.pk), "version": 3}, format="json")
+    owner.patch(f"/api/v1/tracking/tasks/{task.pk}", {"assigneeIds": [str(world.sam.pk)], "version": 3}, format="json")
     owner.delete(f"/api/v1/tracking/tasks/{task.pk}")
     owner.post(f"/api/v1/tracking/tasks/{task.pk}/restore")
     got = [(e["data"]["op"], e["data"]["version"], e["data"]["fields"]) for e in _events("tracking.task.changed")]
     assert got == [
         ("updated", 2, ["priority", "dueDate"]),
         ("updated", 3, ["statusId"]),
-        ("updated", 4, ["assigneeId"]),
+        ("updated", 4, ["assigneeIds"]),
         ("deleted", None, []),
         ("restored", 6, []),
     ]
@@ -321,7 +321,7 @@ def test_more_than_200_ids_are_sent_as_many(world):
 
 def test_notifications_publish_the_unread_count(world, task):
     client_for(world.owner).patch(
-        f"/api/v1/tracking/tasks/{task.pk}", {"assigneeId": str(world.sam.pk), "version": 1}, format="json"
+        f"/api/v1/tracking/tasks/{task.pk}", {"assigneeIds": [str(world.sam.pk)], "version": 1}, format="json"
     )
     (event,) = _events("core.inbox.changed")
     assert event["userId"] == str(world.sam.pk) and event["data"] == {"unread": 1} and event["projectId"] is None

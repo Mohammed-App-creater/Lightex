@@ -84,14 +84,19 @@ def workspace_search(user: Any, workspace: Any, q: str, types: list[str], limit:
         if asked:
             out.extend(provider.search(user, workspace, q, limit, asked))
     if "user" in want:
-        members = WorkspaceMember.objects.filter(workspace=workspace, status="active").select_related("user", "role")
+        members = (
+            WorkspaceMember.objects.for_workspace(workspace)
+            .filter(status="active")
+            .select_related("user")
+            .prefetch_related("role_links__role")
+        )
         if q:
             members = members.filter(Q(user__name__icontains=q) | Q(user__email__icontains=q))
         out.extend(
             {
                 "type": "user",
                 "user": UserSerializer(m.user).data,
-                "roleName": m.role.name,
+                "roleName": m.role_list()[0].name if m.role_list() else "",
                 "targetType": "core.user",
                 "targetId": str(m.user_id),
                 "title": m.user.name,

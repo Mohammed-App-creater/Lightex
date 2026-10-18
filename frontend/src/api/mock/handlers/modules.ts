@@ -59,7 +59,7 @@ export function registerModules() {
   /* Sales skeleton (§4): a workspace path segment so the guard resolves the workspace like tracking routes. */
   route("GET", "/sales/workspaces/:slug/health", (ctx) => {
     const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "sales.health.view");
+    requireWs(ctx, ws.id, "sales.dashboard.view");
     return { status: "ok", module: "sales", workspace: ws.slug };
   });
 }

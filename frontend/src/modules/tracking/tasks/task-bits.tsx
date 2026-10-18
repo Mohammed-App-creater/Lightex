@@ -1,7 +1,8 @@
 "use client";
 
+import { ListChecks } from "lucide-react";
 import { useSyncExternalStore } from "react";
-import { Avatar, UnassignedAvatar, type AvatarSize } from "@/ui/avatar";
+import { Avatar, AvatarStack, UnassignedAvatar, type AvatarSize } from "@/ui/avatar";
 import { StatusGlyph } from "@/ui/glyphs";
 import type { Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
@@ -27,6 +28,47 @@ export function TaskStatusGlyph({ task, status }: { task: Pick<Task, "id">; stat
 export function AssigneeAvatar({ user, size = 20 }: { user: Pick<User, "name" | "hue"> | null | undefined; size?: AvatarSize }) {
   if (!user) return <UnassignedAvatar size={size} />;
   return <Avatar name={user.name} hue={user.hue} size={size} />;
+}
+
+type Person = Pick<User, "name" | "hue">;
+
+/** The users behind `assigneeIds`, in order (ids the lookup doesn't know are skipped). */
+export function assigneesOf<U extends Person>(ids: readonly string[], users: { get(id: string): U | undefined }): U[] {
+  return ids.map((id) => users.get(id)).filter((u): u is U => Boolean(u));
+}
+
+/** "Alex Kim, Sam Patel and 1 more" (for labels and tooltips). */
+export function assigneeNames(users: readonly Pick<User, "name">[], max = 3) {
+  if (!users.length) return "Unassigned";
+  const shown = users.slice(0, max).map((u) => u.name);
+  const rest = users.length - shown.length;
+  if (rest > 0) return `${shown.join(", ")} and ${rest} more`;
+  return shown.length > 1 ? `${shown.slice(0, -1).join(", ")} and ${shown.at(-1)}` : shown[0]!;
+}
+
+/**
+ * Multiple assignees: one avatar, or an overlapping stack (up to `max`, then "+N"); the dashed
+ * "unassigned" circle when there is nobody (unless `hideEmpty`).
+ */
+export function AssigneeAvatars({ users, size = 20, max = 3, hideEmpty }: { users: readonly Person[]; size?: AvatarSize; max?: number; hideEmpty?: boolean }) {
+  if (!users.length) return hideEmpty ? null : <UnassignedAvatar size={size} />;
+  if (users.length === 1) return <Avatar name={users[0]!.name} hue={users[0]!.hue} size={size} />;
+  const people = users.map((u, i) => ({ id: `${i}:${u.name}`, name: u.name, hue: u.hue }));
+  return <AvatarStack people={people} size={size} max={max} label={`Assignees: ${assigneeNames(users, max)}`} className="flex-none" />;
+}
+
+/** "☑ 2/5" checklist progress on cards and rows; nothing when the task has no checklist. */
+export function ChecklistBadge({ done, total, className }: { done: number; total: number; className?: string }) {
+  if (!total) return null;
+  return (
+    <span
+      className={cn("inline-flex items-center gap-1 font-mono text-[11px] tabular-nums", done === total ? "text-ok" : "text-fg-2", className)}
+      aria-label={`${done} of ${total} checklist items done`}
+    >
+      <ListChecks size={13} strokeWidth={1.8} aria-hidden />
+      {done}/{total}
+    </span>
+  );
 }
 
 export function DueText({ due, done, className }: { due: string | null; done: boolean; className?: string }) {

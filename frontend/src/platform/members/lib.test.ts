@@ -4,6 +4,13 @@ import { PERMISSION_CATALOGUE } from "@/platform/roles/catalogue";
 import {
   addChips,
   assignableRoles,
+  canGrantRole,
+  canRemoveMember,
+  filterMembers,
+  roleNamesOf,
+  rolesLabel,
+  roleToggleBlock,
+  toggleRoleId,
   changeCount,
   changedKeys,
   classifyChips,
@@ -97,7 +104,9 @@ describe("permission matrix", () => {
     expect(off.map((m) => m.module)).toEqual(["core", "tracking"]);
     const on = groupCatalogueByModule(PERMISSION_CATALOGUE, "workspace", ["core", "tracking", "sales"], order);
     expect(on.map((m) => m.module)).toEqual(["core", "tracking", "sales"]);
-    expect(on.at(-1)!.groups.flatMap((g) => g.items.map((p) => p.key))).toEqual(["sales.health.view"]);
+    const salesKeys = on.at(-1)!.groups.flatMap((g) => g.items.map((p) => p.key));
+    expect(salesKeys).toHaveLength(46);
+    expect(salesKeys[0]).toBe("sales.dashboard.view");
     expect(groupCatalogueByModule(PERMISSION_CATALOGUE, "project", ["core", "tracking"], order).map((m) => m.module)).toEqual(["tracking"]);
     expect(enabledCatalogue(PERMISSION_CATALOGUE, ["core", "tracking"]).some((p) => p.module === "sales")).toBe(false);
   });
@@ -144,5 +153,50 @@ describe("lastActiveLabel", () => {
     expect(lastActiveLabel(ago(120), now)).toBe("2h ago");
     expect(lastActiveLabel(ago(60 * 26), now)).toBe("Yesterday");
     expect(lastActiveLabel(ago(60 * 72), now)).toBe("3d ago");
+  });
+});
+
+describe("several roles per member (sales S0)", () => {
+  const owner = role("owner", "workspace", true, ["core.workspace.view", "core.workspace.delete"]);
+  const admin = role("admin", "workspace", true, ["core.workspace.view", "core.workspace.manage_members"]);
+  const member = role("member", "workspace", true, ["core.workspace.view"]);
+  const seller = role("seller", "workspace", true, ["core.workspace.view", "sales.dashboard.view"]);
+  const roles = [owner, admin, member, seller];
+  const adminPerms = ["core.workspace.view", "core.workspace.manage_members", "sales.dashboard.view"];
+
+  it("can grant a role only when every permission is the viewer's", () => {
+    expect(canGrantRole(seller, adminPerms)).toBe(true);
+    expect(canGrantRole(owner, adminPerms)).toBe(false);
+    // Sales S7: a self-service code (sales.dailyreport.submit) can be granted without holding it.
+    expect(canGrantRole({ permissions: ["core.workspace.view", "sales.dailyreport.submit"] as Permission[] }, ["core.workspace.view"])).toBe(true);
+  });
+
+  it("explains why a checkbox is locked: Owner, the last role, then escalation", () => {
+    expect(roleToggleBlock(owner, ["owner"], adminPerms)).toMatch(/Owner role/);
+    expect(roleToggleBlock(member, ["member"], adminPerms)).toBe("Keep at least one role");
+    expect(roleToggleBlock(member, ["member", "seller"], adminPerms)).toBeNull();
+    expect(roleToggleBlock(seller, ["member"], ["core.workspace.view"])).toBe("It has permissions you don’t have");
+    expect(roleToggleBlock(seller, ["member"], adminPerms)).toBeNull();
+  });
+
+  it("toggles ids in the roles' order", () => {
+    expect(toggleRoleId(["seller"], "member", true, roles)).toEqual(["member", "seller"]);
+    expect(toggleRoleId(["member", "seller"], "member", false, roles)).toEqual(["seller"]);
+    expect(toggleRoleId(["member"], "member", true, roles)).toEqual(["member"]);
+  });
+
+  it("names, labels, filters and removal", () => {
+    expect(roleNamesOf(["member", "gone", "seller"], roles)).toEqual(["member", "seller"]);
+    expect(rolesLabel([])).toBe("Choose a role");
+    expect(rolesLabel(["Member", "Salesperson"])).toBe("Member + Salesperson");
+    expect(rolesLabel(["Admin", "Member", "Salesperson"])).toBe("Admin + 2 more");
+    const people = [
+      { userId: "a", roleId: "member", roleIds: ["member", "seller"], user: { name: "Ann", email: "ann@x.dev" } },
+      { userId: "b", roleId: "member", roleIds: ["member"], user: { name: "Bob", email: "bob@x.dev" } },
+    ] as unknown as Parameters<typeof filterMembers>[0];
+    expect(filterMembers(people, "", "seller").map((m) => m.userId)).toEqual(["a"]);
+    expect(filterMembers(people, "", "member").map((m) => m.userId)).toEqual(["a", "b"]);
+    expect(canRemoveMember({ roleIds: ["owner", "member"] }, roles, adminPerms)).toBe(false);
+    expect(canRemoveMember({ roleIds: ["member", "seller"] }, roles, adminPerms)).toBe(true);
   });
 });

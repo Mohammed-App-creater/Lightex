@@ -40,12 +40,12 @@ def test_saved_view_lifecycle_and_counts(owner, project):
     bug = project.labels.get(name="bug")
     done = project.statuses.get(glyph="done")
     today = timezone.now().date()
-    create_task(owner, project, {"title": "Mine bug", "assigneeId": str(owner.id), "labelIds": [str(bug.id)]})
-    create_task(owner, project, {"title": "Mine done", "assigneeId": str(owner.id), "statusId": str(done.id)})
+    create_task(owner, project, {"title": "Mine bug", "assigneeIds": [str(owner.id)], "labelIds": [str(bug.id)]})
+    create_task(owner, project, {"title": "Mine done", "assigneeIds": [str(owner.id)], "statusId": str(done.id)})
     create_task(
         owner,
         project,
-        {"title": "Theirs", "assigneeId": str(member.id), "dueDate": (today + dt.timedelta(days=3)).isoformat()},
+        {"title": "Theirs", "assigneeIds": [str(member.id)], "dueDate": (today + dt.timedelta(days=3)).isoformat()},
     )
     create_task(owner, project, {"title": "Nobody", "priority": 3})
     client = client_for(owner)

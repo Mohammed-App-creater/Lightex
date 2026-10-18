@@ -28,13 +28,23 @@ import { useRoles, useWsMembers } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
 import { qk } from "@/api/query-keys";
-import type { Invite, Role, WorkspaceMember } from "@/api/types";
+import type { Invite, Paginated, Role, WorkspaceMember } from "@/api/types";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useCan, useCurrentWorkspace } from "@/platform/roles/can";
 import { cn } from "@/lib/utils/cn";
 import { InviteDialog } from "./invite-dialog";
-import { assignableRoles, defaultRole, filterMembers, isOwnerRole, lastActiveLabel, monthDay, rolesFor } from "./lib";
-import { InviteAvatar, RolePicker, RoleRadioItems, StateBox, StatusPill, Tag } from "./parts";
+import {
+  assignableRoles,
+  canRemoveMember,
+  defaultRole,
+  filterMembers,
+  isOwnerRole,
+  lastActiveLabel,
+  monthDay,
+  roleNamesOf,
+  rolesFor,
+} from "./lib";
+import { InviteAvatar, RoleCheckboxItems, RoleChips, RoleMultiPicker, StateBox, StatusPill, Tag } from "./parts";
 
 const ROW =
   "grid items-center gap-x-3 border-b border-line pl-3.5 pr-2.5 last:border-b-0 " +
@@ -75,18 +85,18 @@ export function MembersScreen() {
   const wsRoles = useMemo(() => rolesFor(roles.data ?? [], "workspace"), [roles.data]);
   const pickable = useMemo(() => assignableRoles(roles.data ?? [], "workspace"), [roles.data]);
   const roleName = (id: string) => wsRoles.find((r) => r.id === id)?.name ?? "—";
-  const isOwnerId = (id: string) => {
-    const r = wsRoles.find((x) => x.id === id);
-    return r ? isOwnerRole(r) : false;
-  };
+  /** Sales S0: the roles a member's picker lists: every workspace role, Owner only for those who hold it. */
+  const pickerRoles = (held: string[]) => wsRoles.filter((r) => !isOwnerRole(r) || held.includes(r.id));
+  const inviteRoleNames = (inv: Invite) => (inv.roleNames.length ? inv.roleNames : [inv.roleName]);
 
   const all = members.data ?? [];
   const pending = canManage ? (invites.data ?? []) : [];
   const shown = filterMembers(all, q, roleFilter);
   const needle = q.trim().toLowerCase();
-  const shownInvites = pending.filter((i) => (!roleFilter || i.roleId === roleFilter) && (!needle || i.email.includes(needle)));
+  const shownInvites = pending.filter((i) => (!roleFilter || i.roleIds.includes(roleFilter)) && (!needle || i.email.includes(needle)));
   const filtering = Boolean(needle || roleFilter);
-  const counts = (id: string) => all.filter((m) => m.roleId === id).length + pending.filter((i) => i.roleId === id).length;
+  // Sales S0: someone holding several roles counts under each of them.
+  const counts = (id: string) => all.filter((m) => m.roleIds.includes(id)).length + pending.filter((i) => i.roleIds.includes(id)).length;
 
   const refresh = () =>
     Promise.all([
@@ -94,25 +104,29 @@ export function MembersScreen() {
       qc.invalidateQueries({ queryKey: qk.roles(ws.slug) }),
     ]);
 
-  // Optimistic: the picker shows the new role at once and rolls back if the server refuses.
-  const changeRole = async (m: WorkspaceMember, roleId: string, undo = false) => {
-    const prev = m.roleId;
-    if (roleId === prev) return;
+  // Sales S0: sends the member's whole role set (`roleIds`). Optimistic: the chips change at once and roll back if
+  // the server refuses (403 escalation, 409 last_owner, 422).
+  const changeRoles = async (m: WorkspaceMember, roleIds: string[], undo = false) => {
+    const prev = m.roleIds;
+    if (!roleIds.length || (roleIds.length === prev.length && roleIds.every((id) => prev.includes(id)))) return;
     const key = qk.wsMembers(ws.slug);
     await qc.cancelQueries({ queryKey: key });
-    const snapshot = qc.getQueryData<WorkspaceMember[]>(key);
-    qc.setQueryData<WorkspaceMember[]>(key, (list) => list?.map((x) => (x.userId === m.userId ? { ...x, roleId } : x)));
+    // The cache holds the API's page (`useWsMembers` selects `.data`).
+    const snapshot = qc.getQueryData<Paginated<WorkspaceMember>>(key);
+    qc.setQueryData<Paginated<WorkspaceMember>>(key, (page) =>
+      page && { ...page, data: page.data.map((x) => (x.userId === m.userId ? { ...x, roleIds, roleId: roleIds[0]! } : x)) },
+    );
     try {
-      await api.workspaces.updateMember(ws.slug, m.userId, roleId);
+      await api.workspaces.updateMember(ws.slug, m.userId, roleIds);
       await refresh();
       if (undo) return;
-      toast.success(`${m.user.name} is now ${roleName(roleId)}`, {
-        action: { label: "Undo", key: "Z", onClick: () => void changeRole({ ...m, roleId }, prev, true) },
+      toast.success(`${m.user.name}: ${roleNamesOf(roleIds, wsRoles).join(", ")}`, {
+        action: { label: "Undo", key: "Z", onClick: () => void changeRoles({ ...m, roleIds }, prev, true) },
       });
     } catch (e) {
       if (snapshot) qc.setQueryData(key, snapshot);
       void refresh();
-      toast.error("Couldn’t change role", { body: errorMessage(e) });
+      toast.error("Couldn’t change roles", { body: errorMessage(e) });
     }
   };
 
@@ -152,7 +166,7 @@ export function MembersScreen() {
           key: "Z",
           onClick: async () => {
             try {
-              await api.workspaces.invite(ws.slug, [inv.email], inv.roleId);
+              await api.workspaces.invite(ws.slug, [inv.email], inv.roleIds.length ? inv.roleIds : [inv.roleId]);
               await qc.invalidateQueries({ queryKey: qk.invites(ws.slug) });
             } catch (e) {
               toast.error("Couldn’t restore invite", { body: errorMessage(e) });
@@ -252,17 +266,20 @@ export function MembersScreen() {
       <>
         {shown.map((m) => {
           const isMe = m.userId === me.id;
-          const editable = canManage && !isMe && !isOwnerId(m.roleId);
+          // Sales S0: managers edit everyone else's roles; each role is gated in the picker (no escalation).
+          const editable = canManage && !isMe;
           return (
             <MemberRow
               key={m.userId}
               member={m}
               isMe={isMe}
-              roleName={roleName(m.roleId)}
+              roleNames={roleNamesOf(m.roleIds, wsRoles)}
               editable={editable}
-              roles={pickable}
+              removable={editable && canRemoveMember(m, wsRoles, ws.my_permissions)}
+              roles={pickerRoles(m.roleIds)}
+              myPermissions={ws.my_permissions}
               mobile={mobile}
-              onChangeRole={(rid) => void changeRole(m, rid)}
+              onChangeRoles={(ids) => void changeRoles(m, ids)}
               onRemove={() => setRemoving(m)}
             />
           );
@@ -272,6 +289,7 @@ export function MembersScreen() {
             key={inv.id}
             invite={inv}
             mobile={mobile}
+            roleNames={inviteRoleNames(inv)}
             busy={busyInvites[inv.id] ?? null}
             onResend={() => void resend(inv)}
             onRevoke={() => void revoke(inv)}
@@ -352,7 +370,7 @@ export function MembersScreen() {
                 >
                   <InviteAvatar email={inv.email} />
                   <span className="min-w-0 flex-1 truncate max-[760px]:basis-[calc(100%-44px)]">{inv.email}</span>
-                  <span className="text-fg-2">{roleName(inv.roleId) === "—" ? inv.roleName : roleName(inv.roleId)}</span>
+                  <span className="min-w-0 truncate text-fg-2">{inviteRoleNames(inv).join(", ")}</span>
                   <span className="w-[76px] font-mono text-[12px] text-fg-3">{inv.createdAt ? monthDay(inv.createdAt) : "—"}</span>
                   <span className="ml-auto flex items-center gap-1">
                     {sent[inv.id] ? (
@@ -410,6 +428,7 @@ export function MembersScreen() {
           slug={ws.slug}
           workspaceName={ws.name}
           roles={pickable}
+          myPermissions={ws.my_permissions}
           defaultRoleId={defaultRole(roles.data ?? [], "workspace")?.id}
           knownEmails={[...all.map((m) => m.user.email), ...pending.map((i) => i.email)]}
         />
@@ -430,26 +449,31 @@ export function MembersScreen() {
 function MemberRow({
   member: m,
   isMe,
-  roleName,
+  roleNames,
   editable,
+  removable,
   roles,
+  myPermissions,
   mobile,
-  onChangeRole,
+  onChangeRoles,
   onRemove,
 }: {
   member: WorkspaceMember;
   isMe: boolean;
-  roleName: string;
+  roleNames: string[];
   editable: boolean;
+  /** Every one of the member's roles is one the viewer could grant. */
+  removable: boolean;
   roles: Role[];
+  myPermissions: readonly string[];
   mobile: boolean;
-  onChangeRole: (roleId: string) => void;
+  onChangeRoles: (roleIds: string[]) => void;
   onRemove: () => void;
 }) {
   const role = editable ? (
-    <RolePicker roles={roles} value={m.roleId} onChange={onChangeRole} label={`Role for ${m.user.name}`} />
+    <RoleMultiPicker roles={roles} value={m.roleIds} onChange={onChangeRoles} label={`Roles for ${m.user.name}`} myPermissions={myPermissions} />
   ) : (
-    <span className="truncate text-fg-2">{roleName}</span>
+    <RoleChips names={roleNames} />
   );
   const menu = editable ? (
     <Menu>
@@ -460,15 +484,19 @@ function MemberRow({
       </MenuTrigger>
       <MenuContent align="end" width={220}>
         <MenuSub>
-          <MenuSubTrigger>Change role</MenuSubTrigger>
-          <MenuSubContent className="w-[220px]">
-            <RoleRadioItems roles={roles} value={m.roleId} onChange={onChangeRole} />
+          <MenuSubTrigger>Change roles</MenuSubTrigger>
+          <MenuSubContent className="w-[260px]">
+            <RoleCheckboxItems roles={roles} value={m.roleIds} onChange={onChangeRoles} myPermissions={myPermissions} />
           </MenuSubContent>
         </MenuSub>
-        <MenuSeparator />
-        <MenuItem danger onSelect={onRemove}>
-          Remove from workspace
-        </MenuItem>
+        {removable && (
+          <>
+            <MenuSeparator />
+            <MenuItem danger onSelect={onRemove}>
+              Remove from workspace
+            </MenuItem>
+          </>
+        )}
       </MenuContent>
     </Menu>
   ) : null;
@@ -527,12 +555,15 @@ function MemberRow({
 
 function InviteRow({
   invite,
+  roleNames,
   mobile,
   busy,
   onResend,
   onRevoke,
 }: {
   invite: Invite;
+  /** Sales S0: every role on the invite. */
+  roleNames: string[];
   mobile: boolean;
   /** The action in flight for this invite, if any. */
   busy: "resend" | "revoke" | null;
@@ -577,7 +608,7 @@ function InviteRow({
         <div className="min-w-0">{who}</div>
         <div className="flex justify-end">{menu}</div>
         <div className="col-span-2 flex items-center gap-2 pl-[38px]">
-          <span className="text-fg-2">{invite.roleName}</span>
+          <RoleChips names={roleNames} className="flex-none" />
           <StatusPill kind="invited" />
           <span className="ml-auto text-[12px] text-fg-3">—</span>
         </div>
@@ -592,8 +623,8 @@ function InviteRow({
       <span role="cell" className="hidden truncate text-fg-2 @min-[720px]:block">
         Invited {invite.createdAt ? monthDay(invite.createdAt) : "—"}
       </span>
-      <span role="cell" className="truncate text-fg-2">
-        {invite.roleName}
+      <span role="cell" className="min-w-0">
+        <RoleChips names={roleNames} />
       </span>
       <span role="cell">
         <StatusPill kind="invited" />

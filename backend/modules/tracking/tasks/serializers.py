@@ -9,7 +9,7 @@ from modules.tracking.integrations.payloads import task_dev
 from modules.tracking.integrations.serializers import TaskDevSummaryOut
 
 from . import selectors
-from .models import Task, TaskDependency, TaskFieldValue
+from .models import ChecklistItem, Task, TaskAssignee, TaskDependency, TaskFieldValue
 
 
 def _id(value) -> str | None:
@@ -27,7 +27,7 @@ def task_data(t: Task) -> dict:
         "type": t.type,
         "priority": t.priority,
         "statusId": str(t.status_id),
-        "assigneeId": _id(t.assignee_id),
+        "assigneeIds": assignee_ids(t),
         "reporterId": _id(t.reporter_id) or "",
         "estimate": t.estimate,
         "startDate": iso(t.start_date),
@@ -52,8 +52,35 @@ def task_data(t: Task) -> dict:
         ),
         "commentCount": _counter(t, "comment_count", lambda: _comments(t)),
         "attachmentCount": _counter(t, "attachment_count", lambda: _attachments(t)),
+        "checklistCount": _counter(t, "checklist_count", lambda: ChecklistItem.objects.filter(task=t).count()),
+        "checklistDoneCount": _counter(
+            t, "checklist_done_count", lambda: ChecklistItem.objects.filter(task=t, done=True).count()
+        ),
         **_board39(t),
         "dev": task_dev(t),
+    }
+
+
+def assignee_ids(t: Task) -> list[str]:
+    """Assignee user ids in order. Uses the selectors.annotated() prefetch (falls back to a query)."""
+    rows = getattr(t, "ordered_assignees", None)
+    if rows is None:
+        rows = TaskAssignee.objects.filter(task=t).order_by("position", "created_at")
+    return [str(a.user_id) for a in rows]
+
+
+def checklist_item_data(item: ChecklistItem) -> dict:
+    """The client's `ChecklistItem` shape."""
+    return {
+        "id": str(item.pk),
+        "taskId": str(item.task_id),
+        "text": item.text,
+        "done": item.done,
+        "position": item.position,
+        "doneAt": iso(item.done_at),
+        "doneById": _id(item.done_by_id),
+        "createdAt": iso(item.created_at),
+        "createdById": _id(item.created_by_id),
     }
 
 
@@ -123,7 +150,7 @@ def dependency_task_data(t: Task) -> dict:
         "title": t.title,
         "statusId": str(t.status_id),
         "status": {"name": t.status.name, "glyph": t.status.glyph, "category": t.status.category},
-        "assigneeId": _id(t.assignee_id),
+        "assigneeIds": assignee_ids(t),
     }
 
 
@@ -154,6 +181,9 @@ def task_detail_data(t: Task, user, subtasks) -> dict:
         **task_data(t),
         "description": t.description,
         "subtasks": [task_data(s) for s in subtasks],
+        "checklist": [
+            checklist_item_data(i) for i in ChecklistItem.objects.filter(task=t).order_by("position", "created_at")
+        ],
         "dependencies": dependencies_data(t),
         "project": {
             "id": str(project.pk),
@@ -180,7 +210,7 @@ class DependencyStatusOut(serializers.Serializer):
 class DependencyTaskOut(TaskRefOut):
     statusId = serializers.UUIDField()
     status = DependencyStatusOut()
-    assigneeId = serializers.UUIDField(allow_null=True)
+    assigneeIds = serializers.ListField(child=serializers.UUIDField())
 
 
 class DependencyItemOut(serializers.Serializer):
@@ -213,7 +243,9 @@ class TaskOut(serializers.Serializer):
     type = serializers.ChoiceField(choices=["feature", "bug", "chore", "spike"])
     priority = serializers.IntegerField(min_value=0, max_value=4)
     statusId = serializers.UUIDField()
-    assigneeId = serializers.UUIDField(allow_null=True)
+    assigneeIds = serializers.ListField(
+        child=serializers.UUIDField(), help_text="Assignees in order (0–10). Replaced the single `assigneeId`."
+    )
     reporterId = serializers.UUIDField()
     estimate = serializers.IntegerField(allow_null=True)
     startDate = serializers.DateField(
@@ -236,6 +268,8 @@ class TaskOut(serializers.Serializer):
     subtaskDoneCount = serializers.IntegerField()
     commentCount = serializers.IntegerField()
     attachmentCount = serializers.IntegerField()
+    checklistCount = serializers.IntegerField()
+    checklistDoneCount = serializers.IntegerField()
     customFields = serializers.DictField(
         help_text="Set values only, keyed by custom field id: select → option id, user → user id, "
         "date → ISO date, number → number, text → string."
@@ -252,9 +286,33 @@ class TaskPageOut(serializers.Serializer):
     nextCursor = serializers.CharField(allow_null=True)
 
 
+class ChecklistItemOut(serializers.Serializer):
+    id = serializers.UUIDField()
+    taskId = serializers.UUIDField()
+    text = serializers.CharField()
+    done = serializers.BooleanField()
+    position = serializers.CharField(help_text="Base-62 fractional index, like Task.position.")
+    doneAt = serializers.DateTimeField(allow_null=True)
+    doneById = serializers.UUIDField(allow_null=True)
+    createdAt = serializers.DateTimeField()
+    createdById = serializers.UUIDField(allow_null=True)
+
+
+class ChecklistItemIn(serializers.Serializer):
+    text = serializers.CharField(max_length=500)
+    position = serializers.CharField(required=False, allow_null=True, help_text="Omitted or null: last.")
+
+
+class ChecklistItemPatchIn(serializers.Serializer):
+    text = serializers.CharField(required=False, max_length=500)
+    done = serializers.BooleanField(required=False)
+    position = serializers.CharField(required=False)
+
+
 class TaskDetailOut(TaskOut):
     description = serializers.JSONField(allow_null=True)
     subtasks = TaskOut(many=True)
+    checklist = ChecklistItemOut(many=True, help_text="In position order.")
     project = serializers.JSONField()
     dependencies = TaskDependenciesOut()
 
@@ -264,7 +322,12 @@ class TaskWriteIn(serializers.Serializer):
     statusId = serializers.UUIDField(required=False)
     type = serializers.ChoiceField(choices=["feature", "bug", "chore", "spike"], required=False)
     priority = serializers.IntegerField(required=False, min_value=0, max_value=4)
-    assigneeId = serializers.UUIDField(required=False, allow_null=True)
+    assigneeIds = serializers.ListField(
+        child=serializers.UUIDField(),
+        required=False,
+        allow_null=True,
+        help_text="Replaces the assignees (project members, up to 10, in order); [] or null unassigns everyone.",
+    )
     sprintId = serializers.UUIDField(required=False, allow_null=True)
     epicId = serializers.UUIDField(required=False, allow_null=True)
     milestoneId = serializers.UUIDField(required=False, allow_null=True)

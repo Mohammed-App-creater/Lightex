@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
-import { Avatar } from "@/ui/avatar";
+import { AssigneeAvatars } from "@/modules/tracking/tasks/task-bits";
 import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta } from "@/ui/glyphs";
 import type { ISODate, Status, Task, User } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
@@ -19,7 +19,8 @@ export type ChipProps = {
   task: Task;
   due: ISODate;
   status: Status | undefined;
-  user: User | null | undefined;
+  /** The task's assignees in order. */
+  users: User[];
   lg?: boolean;
   avatar?: boolean;
   editable: boolean;
@@ -106,7 +107,7 @@ export function CalendarChip(p: ChipProps) {
             <span className="flex-none font-mono text-[10.5px] text-fg-3">{task.key}</span>
             <span className="flex-1" />
             {pending && <span aria-hidden className="sch-sync" />}
-            {p.user && <Avatar name={p.user.name} hue={p.user.hue} size={18} ring={false} decorative />}
+            <AssigneeAvatars users={p.users} size={18} max={2} hideEmpty />
           </span>
           <span className={cn("line-clamp-2 text-[12.5px] leading-[17px]", done && "text-fg-3")}>{task.title}</span>
         </>
@@ -117,7 +118,7 @@ export function CalendarChip(p: ChipProps) {
           <span className="flex-none font-mono text-[10.5px] text-fg-3 max-[760px]:hidden">{task.key}</span>
           <span className={cn("min-w-0 flex-1 truncate", done && "text-fg-3")}>{task.title}</span>
           {pending && <span aria-hidden className="sch-sync" />}
-          {p.avatar && p.user && <Avatar name={p.user.name} hue={p.user.hue} size={18} ring={false} decorative />}
+          {p.avatar && <AssigneeAvatars users={p.users} size={18} max={2} hideEmpty />}
         </span>
       )}
     </div>

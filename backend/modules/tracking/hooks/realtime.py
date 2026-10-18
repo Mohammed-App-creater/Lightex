@@ -30,7 +30,7 @@ TASK_FIELDS = {
     "Sprint": "sprintId",
     "Description": "description",
     "Status": "statusId",
-    "Assignee": "assigneeId",
+    "Assignee": "assigneeIds",
     "Labels": "labelIds",
     "Objective": "objectiveIds",
     "Time estimate": "timeEstimateMinutes",
@@ -38,7 +38,8 @@ TASK_FIELDS = {
 #: Task actions whose fields are fixed, and actions that don't bump the task's version (sent as `version: null`).
 TASK_ACTION_FIELDS = {
     "tracking.task.status_changed": ["statusId"],
-    "tracking.task.assigned": ["assigneeId"],
+    "tracking.task.assigned": ["assigneeIds"],
+    "tracking.task.checklist_updated": ["checklist"],
     "tracking.task.objective_linked": ["objectiveIds"],
     "tracking.task.dependency_added": ["dependencies"],
     "tracking.task.dependency_removed": ["dependencies"],
@@ -46,6 +47,7 @@ TASK_ACTION_FIELDS = {
     "tracking.task.time_entry_deleted": ["loggedMinutes"],
 }
 UNVERSIONED = {
+    "tracking.task.checklist_updated",
     "tracking.task.dependency_added",
     "tracking.task.dependency_removed",
     "tracking.task.time_logged",

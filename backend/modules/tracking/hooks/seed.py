@@ -40,6 +40,7 @@ from modules.tracking.projects.models import (
 )
 from modules.tracking.tasks.models import (
     Task,
+    TaskAssignee,
     TaskDependency,
     TaskFieldValue,
     TaskLabel,
@@ -194,7 +195,6 @@ class TrackingSeeder(Seeder):
                 type=t["type"],
                 priority=t["priority"],
                 status=status,
-                assignee=self.users.get(t["assigneeId"]),
                 reporter=self.users.get(t["reporterId"]),
                 estimate=t["estimate"],
                 start_date=self.date(t.get("startDate")),
@@ -210,6 +210,13 @@ class TrackingSeeder(Seeder):
                 deleted_at=self.ts(t.get("deletedAt")),
             )
             self.tasks[t["id"]] = task
+            TaskAssignee.objects.bulk_create(
+                [
+                    TaskAssignee(task=task, user=self.users[u], position=i)
+                    for i, u in enumerate(_assignee_ids(t))
+                    if u in self.users
+                ]
+            )
             if t["parentId"]:
                 pending_parents.append((task, t["parentId"]))
             TaskObjective.objects.bulk_create(
@@ -259,7 +266,7 @@ class TrackingSeeder(Seeder):
                     to_status=b,
                     from_category=a.category if a else None,
                     to_category=b.category,
-                    changed_by=task.assignee or task.reporter,
+                    changed_by=task.assignees.first() or task.reporter,
                     at=at,
                 )
                 for a, b, at in rows
@@ -561,12 +568,14 @@ class TrackingSeeder(Seeder):
             created = timezone.now() - dt.timedelta(days=12)
             task = Task.objects.create(
                 project=project, number=number, key=f"{project.key}-{number}", title=title, type="feature",
-                priority=priority, status=status, assignee=self.users.get(assignee),
+                priority=priority, status=status,
                 reporter=self.users.get("u_jordan"),
                 estimate=2, position=last_position(project.pk, status.pk), created_at=created,
                 started_at=timezone.now() - dt.timedelta(days=6),
                 completed_at=timezone.now() - dt.timedelta(days=done_days) if done_days else None,
             )  # fmt: skip
+            if assignee in self.users:
+                TaskAssignee.objects.create(task=task, user=self.users[assignee])
             self.history(task, list(project.statuses.all()))
             refresh_search_vector(task)
             self.tasks[f"p_prj-t{number}"] = task
@@ -602,7 +611,7 @@ class TrackingSeeder(Seeder):
                     self.tasks[t["id"]]
                     for t in data["tasks"]
                     if t["projectId"] == project_id
-                    and t["assigneeId"] == m["userId"]
+                    and m["userId"] in _assignee_ids(t)
                     and not t.get("deletedAt")
                     and t["statusId"] not in done
                     and t["id"] not in skip
@@ -697,6 +706,13 @@ EPIC_DATES = {
 # ───────────────────────── board 39 seed data ─────────────────────────
 
 FILL_NOTES = ["Implementation", "Review fixes", "Pairing", "Investigation", "Tests"]
+
+
+def _assignee_ids(t: dict[str, Any]) -> list[str]:
+    """A fixture task's assignees: `assigneeIds`, or the older single `assigneeId`."""
+    if "assigneeIds" in t:
+        return list(t["assigneeIds"] or [])
+    return [t["assigneeId"]] if t.get("assigneeId") else []
 
 
 def mix(*numbers: int) -> int:

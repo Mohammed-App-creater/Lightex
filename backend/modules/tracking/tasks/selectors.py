@@ -15,7 +15,7 @@ from modules.tracking.planning.models import Objective
 from modules.tracking.projects.models import Label, ProjectMember
 from modules.tracking.projects.selectors import project_for
 
-from .models import ExternalLink, Task, TaskDependency, TaskFieldValue
+from .models import ChecklistItem, ExternalLink, Task, TaskAssignee, TaskDependency, TaskFieldValue
 
 
 def _count(qs: QuerySet, fk: str = "task") -> Coalesce:
@@ -57,10 +57,17 @@ def annotated(qs: QuerySet[Task]) -> QuerySet[Task]:
         subtask_done_count=_count(done_subtasks, "parent"),
         comment_count=_count(Comment.objects.filter(target_type="tracking.task"), "target_id"),
         attachment_count=_count(Attachment.objects.filter(target_type="tracking.task", status="ready"), "target_id"),
+        checklist_count=_count(ChecklistItem.objects.all()),
+        checklist_done_count=_count(ChecklistItem.objects.filter(done=True)),
         logged_minutes=_sum_minutes(),
     ).prefetch_related(
         Prefetch("objectives", queryset=Objective.objects.only("id")),
         Prefetch("labels", queryset=Label.objects.only("id")),
+        Prefetch(
+            "task_assignees",
+            queryset=TaskAssignee.objects.only("id", "task", "user").order_by("position", "created_at"),
+            to_attr="ordered_assignees",
+        ),
         Prefetch(
             "field_values",
             queryset=TaskFieldValue.objects.only("id", "task", "field", "text", "number", "date", "option", "user"),
@@ -176,16 +183,25 @@ def _ids(values: list[str], field: str, *, allow: tuple[str, ...] = ()) -> list[
     return values
 
 
+def assigned_to(values: list[str], user: Any) -> Q:
+    """Tasks with any of these assignees (`me` is the caller); `none` matches tasks with nobody assigned."""
+    ids = [user.pk if v == "me" else v for v in values if v != "none"]
+    cond = Q(Exists(TaskAssignee.objects.filter(task=OuterRef("pk"), user_id__in=ids))) if ids else Q()
+    if "none" in values:
+        cond |= ~Q(Exists(TaskAssignee.objects.filter(task=OuterRef("pk"))))
+    return cond
+
+
 def filter_tasks(qs: QuerySet[Task], params: Any, user: Any) -> QuerySet[Task]:
     def values(key: str) -> list[str]:
         return [v for v in params.getlist(f"filter[{key}]") if v != ""]
 
     def nullable(field: str, key: str, model_field: str) -> None:
         nonlocal qs
-        raw = _ids(values(key), key, allow=("none", "me") if key == "assignee" else ("none",))
+        raw = _ids(values(key), key, allow=("none",))
         if not raw:
             return
-        ids = [user.pk if v == "me" else v for v in raw if v != "none"]
+        ids = [v for v in raw if v != "none"]
         cond = Q(**{f"{model_field}__in": ids}) if ids else Q()
         if "none" in raw:
             cond = cond | Q(**{f"{model_field}__isnull": True}) if ids else Q(**{f"{model_field}__isnull": True})
@@ -194,7 +210,9 @@ def filter_tasks(qs: QuerySet[Task], params: Any, user: Any) -> QuerySet[Task]:
     status = _ids(values("status"), "status")
     if status:
         qs = qs.filter(status_id__in=status)
-    nullable("assignee", "assignee", "assignee_id")
+    assignees = _ids(values("assignee"), "assignee", allow=("none", "me"))
+    if assignees:
+        qs = qs.filter(assigned_to(assignees, user))
     nullable("sprint", "sprint", "sprint_id")
     nullable("epic", "epic", "epic_id")
     nullable("milestone", "milestone", "milestone_id")

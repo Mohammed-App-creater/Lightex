@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.utils import timezone
 
 from core.audit.models import AuditLog
-from core.common.testing import UserFactory, add_member, client_for, make_workspace
+from core.common.testing import UserFactory, add_member, client_for, make_workspace, set_roles
 from modules.tracking.integrations.models import ConnectAttempt, Integration
 from modules.tracking.integrations.providers.fake import FAKE
 from modules.tracking.integrations.services import purge
@@ -101,7 +101,7 @@ def test_confirm_checks_user_token_expiry_and_permission(ws, owner):
     ConnectAttempt.objects.filter(pk=attempt_id).update(expires_at=timezone.now() + dt.timedelta(minutes=5))
     member_role = ws.roles.get(system_key="admin")
     member_role.permissions.remove(member_role.permissions.get(code="tracking.integration.manage"))
-    owner.workspace_memberships.filter(workspace=ws).update(role=member_role)
+    set_roles(ws, owner, member_role)
     assert client_for(owner).post(url, {"attempt": attempt_id, "token": token}, format="json").status_code == 404
 
 

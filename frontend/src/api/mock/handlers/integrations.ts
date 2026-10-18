@@ -29,7 +29,7 @@ import { projectPermissions, statusesOf, wsMembership, wsPermissions } from "../
 import { mockBus, publishProject, publishTask } from "../realtime";
 import { fail, invalid, requireProject, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 import { notify } from "./common";
-import { applyStatusSideEffects, lastPosition } from "./tasks";
+import { applyStatusSideEffects, lastPosition, taskWatchers } from "./tasks";
 
 /*
  * Board 37 mock backend (docs/v2/37-integrations-github-gitlab.md §5): G1–G13, D1–D4, A1–A2, with the
@@ -162,7 +162,7 @@ function ensureDesignTasks(db: MockDB) {
       type: "feature",
       priority: pri,
       statusId,
-      assigneeId: asg,
+      assigneeIds: asg ? [asg] : [],
       reporterId: "u_jordan",
       estimate: 2,
       dueDate: null,
@@ -727,7 +727,7 @@ export function applyAutomation(db: MockDB, integ: Pick<IntegrationRec, "id" | "
     changes: [{ field: "Status", kind: "text", before: statusName(db, from), after: statusName(db, t.statusId) }],
   });
   const payload = { fromStatus: statusName(db, from), toStatus: statusName(db, t.statusId), via: integ.provider };
-  for (const r of new Set([t.assigneeId, t.reporterId].filter((x): x is string => Boolean(x)))) notify(db, r, "status", null, t, t.projectId, payload);
+  for (const r of taskWatchers(t)) notify(db, r, "status", null, t, t.projectId, payload);
   publishTask(db, null, t, "updated", ["statusId"]);
   return true;
 }

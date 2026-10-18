@@ -26,7 +26,8 @@ def test_catalogue_and_orders(owner):
     assert (entry.scope, entry.group, entry.label) == ("workspace", "Administration", "Manage integrations")
     link = catalogue.BY_CODE["tracking.development.link"]
     assert (link.scope, link.group, link.label) == ("project", "Tasks", "Link code")
-    assert catalogue.WORKSPACE_ORDER == [
+    sales_codes = [c for c in catalogue.WORKSPACE_ORDER if c.startswith("sales.")]
+    assert [
         "core.workspace.view",
         "core.workspace.update",
         "core.workspace.delete",
@@ -39,8 +40,10 @@ def test_catalogue_and_orders(owner):
         "tracking.project.create",
         "tracking.project.assign_admin",
         "tracking.integration.manage",
-        "sales.health.view",
-    ]
+        # Sales S1: the sales catalogue follows (modules/sales/tests/test_definition.py checks its own order).
+        *sales_codes,
+    ] == catalogue.WORKSPACE_ORDER
+    assert catalogue.WORKSPACE_ORDER.index("sales.dashboard.view") == len(catalogue.CORE_WORKSPACE_CODES) + 3
     order = catalogue.PROJECT_ORDER
     assert order[order.index("tracking.project.import") + 1] == "tracking.development.link"
     assert order[order.index("tracking.development.link") + 1] == "tracking.time.log"

@@ -2,49 +2,10 @@
 
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { Menu, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
+import { Menu, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuTrigger } from "@/ui/menu";
 import type { Role } from "@/api/types";
 import { cn } from "@/lib/utils/cn";
-import { emailInitials } from "./lib";
-
-/** Inline role picker (board 18 .mm-rp): role name + chevron, popover listbox of roles. */
-export function RolePicker({
-  roles,
-  value,
-  onChange,
-  label,
-  className,
-}: {
-  roles: Role[];
-  value: string;
-  onChange: (roleId: string) => void;
-  /** Accessible name, e.g. "Role for Sam Patel". */
-  label: string;
-  className?: string;
-}) {
-  const current = roles.find((r) => r.id === value);
-  return (
-    <Menu>
-      <MenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`${label}: ${current?.name ?? "No role"}`}
-          className={cn(
-            "-ml-2 inline-flex h-7 max-w-[calc(100%+8px)] items-center gap-1.5 rounded-sm border border-transparent pl-2 pr-1.5 text-[13px] font-medium text-fg",
-            "transition-[background-color,border-color] duration-[var(--dur-fast)] hover:border-line-2 hover:bg-raised data-[state=open]:border-line-2 data-[state=open]:bg-raised max-[760px]:h-10",
-            className,
-          )}
-        >
-          <span className="truncate">{current?.name ?? "—"}</span>
-          <ChevronDown size={12} className="flex-none text-fg-3" aria-hidden />
-        </button>
-      </MenuTrigger>
-      <MenuContent align="start" width={240}>
-        <RoleRadioItems roles={roles} value={value} onChange={onChange} />
-      </MenuContent>
-    </Menu>
-  );
-}
+import { emailInitials, rolesLabel, roleNamesOf, roleToggleBlock, toggleRoleId } from "./lib";
 
 export function RoleRadioItems({ roles, value, onChange }: { roles: Role[]; value: string; onChange: (roleId: string) => void }) {
   return (
@@ -55,6 +16,103 @@ export function RoleRadioItems({ roles, value, onChange }: { roles: Role[]; valu
         </MenuRadioItem>
       ))}
     </MenuRadioGroup>
+  );
+}
+
+/**
+ * Sales S0: checkbox items for a member's (or an invite's) workspace roles. The menu stays open while toggling.
+ * A role that can't be toggled is disabled with its reason under the name.
+ */
+export function RoleCheckboxItems({
+  roles,
+  value,
+  onChange,
+  myPermissions,
+  describe,
+}: {
+  roles: Role[];
+  value: string[];
+  onChange: (roleIds: string[]) => void;
+  myPermissions: readonly string[];
+  /** Show each role's description (the invite dialog). */
+  describe?: boolean;
+}) {
+  return (
+    <>
+      {roles.map((r) => {
+        const on = value.includes(r.id);
+        const block = roleToggleBlock(r, value, myPermissions);
+        const sub = block ?? (describe ? r.description : "");
+        return (
+          <MenuCheckboxItem
+            key={r.id}
+            checked={on}
+            disabled={Boolean(block)}
+            title={block ?? undefined}
+            onSelect={(e) => e.preventDefault()}
+            onCheckedChange={(c) => onChange(toggleRoleId(value, r.id, c === true, roles))}
+            className="h-auto min-h-[30px] py-1.5"
+          >
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate">{r.name}</span>
+              {sub && <span className="truncate text-[11.5px] font-normal text-fg-3">{sub}</span>}
+            </span>
+          </MenuCheckboxItem>
+        );
+      })}
+    </>
+  );
+}
+
+/** Sales S0: a member's roles as chips (board 18 role cell, one chip per role). */
+export function RoleChips({ names, className }: { names: string[]; className?: string }) {
+  return (
+    <span className={cn("flex min-w-0 flex-wrap items-center gap-1", className)}>
+      {names.length === 0 && <span className="text-fg-3">—</span>}
+      {names.map((n) => (
+        <span key={n} className="inline-flex h-[22px] max-w-full items-center truncate rounded-sm border border-line-2 bg-raised px-1.5 text-[12px] font-medium text-fg-2">
+          <span className="truncate">{n}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Sales S0: the member row's role control: the chips open a multi-select of workspace roles. */
+export function RoleMultiPicker({
+  roles,
+  value,
+  onChange,
+  label,
+  myPermissions,
+}: {
+  roles: Role[];
+  value: string[];
+  onChange: (roleIds: string[]) => void;
+  /** Accessible name, e.g. "Roles for Sam Patel". */
+  label: string;
+  myPermissions: readonly string[];
+}) {
+  const names = roleNamesOf(value, roles);
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${label}: ${rolesLabel(names)}`}
+          className={cn(
+            "-ml-1.5 inline-flex min-h-7 max-w-[calc(100%+6px)] items-center gap-1 rounded-sm border border-transparent py-0.5 pl-1.5 pr-1 text-left",
+            "transition-[background-color,border-color] duration-[var(--dur-fast)] hover:border-line-2 hover:bg-raised data-[state=open]:border-line-2 data-[state=open]:bg-raised max-[760px]:min-h-10",
+          )}
+        >
+          <RoleChips names={names} />
+          <ChevronDown size={12} className="flex-none text-fg-3" aria-hidden />
+        </button>
+      </MenuTrigger>
+      <MenuContent align="start" width={260}>
+        <RoleCheckboxItems roles={roles} value={value} onChange={onChange} myPermissions={myPermissions} />
+      </MenuContent>
+    </Menu>
   );
 }
 

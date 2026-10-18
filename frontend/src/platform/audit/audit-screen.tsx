@@ -539,7 +539,7 @@ function AdminsOnly() {
   const myRole = roles.data?.find((r) => r.id === ws.myRoleId);
   const adminRoleIds = new Set((roles.data ?? []).filter((r) => r.permissions.includes("core.audit.view")).map((r) => r.id));
   const admins = (members.data ?? [])
-    .filter((m) => m.status === "active" && adminRoleIds.has(m.roleId))
+    .filter((m) => m.status === "active" && m.roleIds.some((id) => adminRoleIds.has(id)))
     .map((m) => ({ id: m.userId, name: m.user.name, hue: m.user.hue }));
   return (
     <section aria-label="Audit log" className="flex h-full min-h-0 flex-col bg-bg">

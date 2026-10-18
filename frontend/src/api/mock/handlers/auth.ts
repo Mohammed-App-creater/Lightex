@@ -1,7 +1,7 @@
 import type { AcceptInviteResult, Invite, Me } from "@/api/types";
 import { mockSession, nowISO, uid } from "../db";
 import type { MockDB } from "../db-types";
-import { toMe } from "../derive";
+import { rolesOf, sortRoleIds, toMe } from "../derive";
 import { defaultPrefs } from "../seed";
 import { fail, invalid, requireUser, route, str } from "../router";
 
@@ -14,15 +14,18 @@ export function passwordProblems(pw: string) {
 
 function toInvite(db: MockDB, inv: MockDB["invites"][number]): Invite {
   const ws = db.workspaces.find((w) => w.id === inv.workspaceId)!;
-  const role = db.roles.find((r) => r.id === inv.roleId)!;
+  // Sales S0: every role on the invite, in precedence order; roleId / roleName are the primary one.
+  const roles = rolesOf(db, inv.roleIds);
   const by = db.users.find((u) => u.id === inv.invitedById)!;
   return {
     id: inv.id,
     workspaceId: ws.id,
     workspaceName: ws.name,
     email: inv.email,
-    roleId: role.id,
-    roleName: role.name,
+    roleId: roles[0]?.id ?? "",
+    roleName: roles[0]?.name ?? "",
+    roleIds: roles.map((r) => r.id),
+    roleNames: roles.map((r) => r.name),
     invitedBy: { id: by.id, name: by.name, hue: by.hue },
     createdAt: inv.createdAt,
     expiresAt: inv.expiresAt,
@@ -187,7 +190,7 @@ export function registerAuth() {
         db.prefs.push({ userId: user.id, prefs: defaultPrefs() });
       }
       if (!db.wsMembers.some((m) => m.userId === user.id && m.workspaceId === inv.workspaceId)) {
-        db.wsMembers.push({ workspaceId: inv.workspaceId, userId: user.id, roleId: inv.roleId, status: "active", joinedAt: nowISO(), lastActiveAt: nowISO() });
+        db.wsMembers.push({ workspaceId: inv.workspaceId, userId: user.id, roleIds: sortRoleIds(db, inv.roleIds), status: "active", joinedAt: nowISO(), lastActiveAt: nowISO() });
       }
       inv.status = "accepted";
       mockSession.set(user.id);

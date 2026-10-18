@@ -19,6 +19,12 @@ urlpatterns = [
     path(f"{T}/objectives", views.TaskObjectivesView.as_view(), name="task-objectives"),
     path(f"{T}/labels", views.TaskLabelsView.as_view(), name="task-labels"),
     path(f"{T}/activity", views.TaskActivityView.as_view(), name="task-activity"),
+    path(f"{T}/checklist", views.TaskChecklistView.as_view(), name="task-checklist"),
+    path(
+        f"{T}/checklist/<uuid:checklist_item_id>",
+        views.TaskChecklistItemView.as_view(),
+        name="task-checklist-item",
+    ),
     path(f"{T}/dependencies", views.TaskDependenciesView.as_view(), name="task-dependencies"),
     path(
         f"{T}/dependencies/<uuid:dependency_id>",

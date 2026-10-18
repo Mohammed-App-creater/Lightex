@@ -371,7 +371,8 @@ def workload(project: Any, sprint_id: str | None, unit: str | None, person: str 
 
     def with_person(qs):
         if field is None:
-            return qs.annotate(person=F("assignee_id"))
+            # A task with several assignees counts in full for each of them; none → unassigned.
+            return qs.annotate(person=F("task_assignees__user_id"))
         value = TaskFieldValue.objects.filter(task=OuterRef("pk"), field=field).values("user_id")[:1]
         return qs.annotate(person=Subquery(value))
 

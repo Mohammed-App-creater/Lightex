@@ -20,12 +20,16 @@ from .models import Task
 from .serializers import (
     ActivityOut,
     BulkIn,
+    ChecklistItemIn,
+    ChecklistItemOut,
+    ChecklistItemPatchIn,
     DependencyIn,
     TaskDependenciesOut,
     TaskDetailOut,
     TaskOut,
     TaskPageOut,
     TaskWriteIn,
+    checklist_item_data,
     dependencies_data,
     task_data,
     task_detail_data,
@@ -250,6 +254,33 @@ class TaskDependencyDetailView(TaskScopedView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class TaskChecklistView(TaskScopedView):
+    """A task's checklist. Writes need task edit rights (edit_any, or edit_own as reporter or an assignee)."""
+
+    required = {"POST": MEMBER}
+    include_deleted = True  # writes on a deleted task are 409 `task_deleted`
+
+    @extend_schema(tags=["tasks"], request=ChecklistItemIn, responses={201: ChecklistItemOut})
+    def post(self, request, task_id):
+        item = services.add_checklist_item(request.user, self.task, body(request))
+        return Response(checklist_item_data(item), status=status.HTTP_201_CREATED)
+
+
+class TaskChecklistItemView(TaskScopedView):
+    required = {"PATCH": MEMBER, "DELETE": MEMBER}
+    include_deleted = True
+
+    @extend_schema(tags=["tasks"], request=ChecklistItemPatchIn, responses={200: ChecklistItemOut})
+    def patch(self, request, task_id, checklist_item_id):
+        item = services.update_checklist_item(request.user, self.task, checklist_item_id, body(request))
+        return Response(checklist_item_data(item))
+
+    @extend_schema(tags=["tasks"], responses={204: None})
+    def delete(self, request, task_id, checklist_item_id):
+        services.delete_checklist_item(request.user, self.task, checklist_item_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class TaskActivityView(TaskScopedView):
     required = {"GET": "tracking.project.view"}
 
@@ -318,7 +349,7 @@ def _assigned_tasks(user, assignees, workspace=None):
 
         raise invalid({"filter[assignee]": "Pick a person"})
     if ids:
-        qs = qs.filter(assignee_id__in=ids)
+        qs = qs.filter(selectors.assigned_to(ids, user))
     return qs
 
 

@@ -20,6 +20,7 @@ import { registerIntegrations } from "./handlers/integrations";
 import { registerChannels } from "./handlers/channels";
 import { registerModules } from "./handlers/modules";
 import { registerTeams } from "./handlers/teams";
+import { registerChecklist } from "./handlers/checklist";
 import { mockBus } from "./realtime";
 import { prepareRoutePublish } from "./publish-routes";
 import { match } from "./router";
@@ -47,6 +48,7 @@ function ensureRoutes() {
   registerChannels();
   registerModules();
   registerTeams();
+  registerChecklist();
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>

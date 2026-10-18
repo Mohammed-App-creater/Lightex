@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { pushUrl } from "@/platform/routes";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { EmptyState, ErrorState, Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph, glyphLabel, priorityMeta, type GlyphKind, type PriorityLevel } from "@/ui/glyphs";
@@ -550,7 +551,7 @@ function EpicDetail({
                 {isOpen && (
                   <ul id={id} className="m-0 list-none p-0">
                     {g.rows.map((t) => {
-                      const a = t.assigneeId ? people.get(t.assigneeId) : undefined;
+                      const a = assigneesOf(t.assigneeIds, people);
                       return (
                         <motion.li
                           key={t.id}
@@ -572,7 +573,7 @@ function EpicDetail({
                             {t.title}
                           </button>
                           <PriorityIcon level={t.priority as PriorityLevel} label={`${priorityMeta[t.priority as PriorityLevel].label} priority`} />
-                          {a ? <Avatar name={a.name} hue={a.hue} size={20} ring={false} /> : <UnassignedAvatar size={20} />}
+                          <AssigneeAvatars users={a} size={20} />
                           <span className="relative z-[1] flex w-7 justify-end max-[760px]:w-11">
                             {canAssign && !archived && (
                               <Button

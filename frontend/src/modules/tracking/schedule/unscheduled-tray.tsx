@@ -3,7 +3,7 @@
 import { CalendarPlus, X } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { Avatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { ErrorState, Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph } from "@/ui/glyphs";
@@ -75,7 +75,7 @@ export function UnscheduledTray({
                 key={t.id}
                 task={t}
                 status={statuses.find((s) => s.id === t.statusId)}
-                user={t.assigneeId ? users.get(t.assigneeId) : undefined}
+                users={assigneesOf(t.assigneeIds, users)}
                 editable={canEdit(t)}
                 onOpen={() => onOpen(t)}
                 onAddDates={() => onAddDates(t)}
@@ -95,7 +95,7 @@ export function UnscheduledTray({
 function TrayItem({
   task,
   status,
-  user,
+  users,
   editable,
   onOpen,
   onAddDates,
@@ -105,7 +105,7 @@ function TrayItem({
 }: {
   task: Task;
   status: Status | undefined;
-  user: User | undefined;
+  users: User[];
   editable: boolean;
   onOpen: () => void;
   onAddDates: () => void;
@@ -135,7 +135,7 @@ function TrayItem({
         <span className="flex-none font-mono text-[11.5px] font-medium text-fg-3">{task.key}</span>
         <span className="flex-1" />
         {task.priority > 0 && <PriorityIcon level={task.priority} label={`Priority ${task.priority}`} />}
-        {user && <Avatar name={user.name} hue={user.hue} size={18} ring={false} />}
+        <AssigneeAvatars users={users} size={18} max={2} hideEmpty />
       </span>
       <span className="line-clamp-2 text-[12.5px] leading-[17px] text-fg">{task.title}</span>
     </>

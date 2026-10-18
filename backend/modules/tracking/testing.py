@@ -26,5 +26,5 @@ def make_project(
     from modules.tracking.projects.services import create_project
 
     if creator is None:
-        creator = WorkspaceMember.objects.filter(workspace=ws, role__system_key="owner").first().user
+        creator = WorkspaceMember.objects.filter(workspace=ws, roles__system_key="owner").first().user
     return create_project(creator, ws, {"name": name, "key": key, "template": template})

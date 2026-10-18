@@ -21,7 +21,7 @@ from .serializers import (
     ConfirmIn,
     InviteIn,
     InviteSerializer,
-    RoleIdIn,
+    MemberRolesIn,
     WorkspaceCreateIn,
     WorkspaceMemberSerializer,
     WorkspaceSerializer,
@@ -50,6 +50,7 @@ class WorkspaceListView(APIView):
     def get(self, request):
         items = list(selectors.workspaces_for(request.user))
         prime_modules(items)
+        selectors.prime_my_roles(request.user, items)
         return Response(WorkspaceSerializer(items, many=True, context={"user": request.user}).data)
 
     @extend_schema(tags=["workspaces"], request=WorkspaceCreateIn, responses={201: WorkspaceSerializer})
@@ -125,9 +126,9 @@ class MemberListView(WorkspaceScopedView):
 class MemberDetailView(WorkspaceScopedView):
     required = {"PATCH": "core.workspace.manage_members", "DELETE": "core.workspace.manage_members"}
 
-    @extend_schema(tags=["members"], request=RoleIdIn, responses={200: WorkspaceMemberSerializer})
+    @extend_schema(tags=["members"], request=MemberRolesIn, responses={200: WorkspaceMemberSerializer})
     def patch(self, request, slug, user_id):
-        member = services.change_member_role(request.user, self.scope, user_id, body(request).get("roleId"))
+        member = services.change_member_roles(request.user, self.scope, user_id, body(request))
         return Response(WorkspaceMemberSerializer(member).data)
 
     @extend_schema(tags=["members"], responses={204: None})
@@ -149,7 +150,7 @@ class InviteListView(WorkspaceScopedView):
     @extend_schema(tags=["invites"], request=InviteIn, responses={201: InviteSerializer(many=True)})
     def post(self, request, slug):
         data = body(request)
-        invites = services.create_invitations(request.user, self.scope, data.get("emails"), data.get("roleId"))
+        invites = services.create_invitations(request.user, self.scope, data.get("emails"), data)
         return Response(InviteSerializer(invites, many=True).data, status=status.HTTP_201_CREATED)
 
 

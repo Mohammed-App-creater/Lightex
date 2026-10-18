@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from typing import Any
 
 import factory
@@ -50,9 +52,76 @@ def role(ws: Any, key: str):
     return ws.roles.get(system_key=key)
 
 
-def add_member(ws: Any, user: User | None = None, key: str = "member"):
+def add_member(ws: Any, user: User | None = None, key: str | list[str] = "member"):
+    """Makes `user` a member of `ws` with the role(s) named by system key (replacing any roles they had)."""
     from core.workspaces.models import WorkspaceMember
+    from core.workspaces.services import set_member_roles
 
     user = user or UserFactory()
-    WorkspaceMember.objects.update_or_create(workspace=ws, user=user, defaults={"role": role(ws, key)})
+    keys = [key] if isinstance(key, str) else key
+    member, _ = WorkspaceMember.objects.get_or_create(workspace=ws, user=user)
+    set_member_roles(member, [role(ws, k) for k in keys])
+    user.__dict__.pop("_lx_access_cache", None)
     return user
+
+
+def set_roles(ws: Any, user: User, *roles: Any) -> None:
+    """Gives an existing member exactly `roles` (Role objects or ids)."""
+    from core.access.models import Role
+    from core.workspaces.models import WorkspaceMember
+    from core.workspaces.services import set_member_roles
+
+    member = WorkspaceMember.objects.get(workspace=ws, user=user)
+    set_member_roles(member, [r if isinstance(r, Role) else Role.objects.get(pk=r) for r in roles])
+    user.__dict__.pop("_lx_access_cache", None)
+
+
+def make_member(ws: Any, user: User, *roles: Any, **fields: Any):
+    """Creates a membership holding `roles` (Role objects or ids)."""
+    from core.access.models import Role
+    from core.workspaces.services import add_workspace_member
+
+    return add_workspace_member(
+        ws, user, [r if isinstance(r, Role) else Role.objects.get(pk=r) for r in roles], **fields
+    )
+
+
+@contextmanager
+def shared_world(django_db_blocker: Any) -> Iterator[Callable[..., Any]]:
+    """Build test data once for a whole module or class, and roll every test back to it.
+
+    For a `scope="module"` (or `"class"`) fixture: opens an outer transaction, yields `build(func, *args)` which runs
+    `func` inside it (database access unblocked, `on_commit` callbacks run at once, as the root conftest does for
+    tests), and rolls the whole transaction back when the scope ends. Each test still uses the `db` fixture: its own
+    transaction becomes a savepoint inside the outer one, so whatever a test writes is undone before the next test,
+    and every test sees exactly the data `build` created.
+
+        @pytest.fixture(scope="module")
+        def matrix_world(django_db_setup, django_db_blocker):
+            with shared_world(django_db_blocker) as build:
+                yield build(build_world)
+
+    Python objects are shared too: tests should read ids and names from the world and fetch fresh rows, not rely on
+    in-memory state another test may have changed. Not for `transactional_db` tests (they flush the tables).
+    """
+    from unittest import mock
+
+    from django.db import transaction
+
+    def run_now(func: Callable[[], Any], using: Any = None, robust: bool = False) -> None:
+        func()
+
+    with django_db_blocker.unblock():
+        outer = transaction.atomic()
+        outer.__enter__()
+
+    def build(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+        with django_db_blocker.unblock(), mock.patch.object(transaction, "on_commit", run_now):
+            return func(*args, **kwargs)
+
+    try:
+        yield build
+    finally:
+        with django_db_blocker.unblock():
+            transaction.set_rollback(True)
+            outer.__exit__(None, None, None)
