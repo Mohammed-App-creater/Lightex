@@ -66,7 +66,17 @@ def test_comment_crud_and_mentions(owner, project, task):
     assert res.status_code == 201
     body = res.json()
     assert body["mentions"] == [str(member.id)]  # people outside the project can't be mentioned
-    assert set(body) == {"id", "targetType", "targetId", "authorId", "body", "mentions", "createdAt", "editedAt"}
+    assert set(body) == {
+        "id",
+        "targetType",
+        "targetId",
+        "authorId",
+        "body",
+        "mentions",
+        "mentionsAll",
+        "createdAt",
+        "editedAt",
+    }
     assert body["targetType"] == "tracking.task" and body["targetId"] == str(task.id)
     assert all(n["type"] != "script" for n in body["body"]["content"][0]["content"])
     listed = client.get(f"/api/v1/targets/tracking.task/{task.id}/comments").json()

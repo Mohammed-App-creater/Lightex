@@ -154,3 +154,18 @@ def test_module_disabled_answers_403_and_keeps_data(world):
     set_module_enabled(owner, world.ws, "sales", True)
     assert world.client("rep").get(f"/api/v1/sales/companies/{company.pk}").status_code == 200
     assert len(world.client("rep").get(comments_url("company", company)).json()) == 1
+
+
+def test_all_mention_respects_the_data_scope(world):
+    from core.notifications.models import Notification
+
+    company = world.companies["rep"]
+    body = {"type": "doc", "content": [{"type": "paragraph", "content": [
+        {"type": "mention", "attrs": {"id": "all", "label": "all"}}]}]}  # fmt: skip
+    res = world.client("rep").post(comments_url("company", company), {"body": body}, format="json")
+    assert res.status_code == 201 and res.json()["mentionsAll"] is True
+    notified = set(Notification.objects.unscoped().filter(kind="mention").values_list("recipient_id", flat=True))
+    assert set(map(str, notified)) == set(res.json()["mentions"])
+    assert world.users["manager"].pk in notified and world.users["ceo"].pk in notified
+    for actor in ("rep", "rep3", "member", "outsider"):
+        assert world.users[actor].pk not in notified, actor

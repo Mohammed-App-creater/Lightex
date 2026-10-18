@@ -9877,6 +9877,9 @@ components:
           items:
             type: string
             format: uuid
+        mentionsAll:
+          type: boolean
+          description: The body has an `@all` mention (id `all`).
         createdAt:
           type: string
           format: date-time
@@ -9891,6 +9894,7 @@ components:
       - editedAt
       - id
       - mentions
+      - mentionsAll
       - targetId
       - targetType
     CommentInRequest:

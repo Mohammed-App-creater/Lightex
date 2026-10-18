@@ -29,6 +29,7 @@ def comment_data(c: Comment) -> dict:
         "authorId": str(c.author_id) if c.author_id else None,
         "body": c.body,
         "mentions": [str(u) for u in c.mentions.values_list("id", flat=True)],
+        "mentionsAll": services.mentions_all(c.body),
         "createdAt": iso(c.created_at),
         "editedAt": iso(c.edited_at),
     }
@@ -58,6 +59,7 @@ CommentOut = inline_serializer(
         "authorId": serializers.UUIDField(allow_null=True),
         "body": serializers.JSONField(),
         "mentions": serializers.ListField(child=serializers.UUIDField()),
+        "mentionsAll": serializers.BooleanField(help_text="The body has an `@all` mention (id `all`)."),
         "createdAt": serializers.DateTimeField(),
         "editedAt": serializers.DateTimeField(allow_null=True),
     },

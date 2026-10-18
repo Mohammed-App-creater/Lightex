@@ -149,11 +149,42 @@ def _publish(obj: Comment | Attachment, actor: Any, event_type: str) -> None:
 # ───────────────────────── comments ─────────────────────────
 
 
-def _mentions(resolver: TargetResolver, target_id: Any, doc: dict | None) -> list[str]:
-    """Only people the resolver allows can be mentioned (and therefore notified)."""
-    ids = [i for i in mention_ids(doc) if _is_uuid(i)]
+MENTION_ALL = "all"
+
+
+def mentions_all(doc: dict | None) -> bool:
+    """Whether the document carries an `@all` mention (node `{id: "all"}`)."""
+    return MENTION_ALL in mention_ids(doc)
+
+
+def _everyone(resolver: TargetResolver, target_id: Any, author: Any) -> list[str]:
+    """`@all`: the target workspace's active members the resolver lets us mention and notify, minus the author."""
+    from core.workspaces.models import WorkspaceMember
+
+    members = [
+        str(u)
+        for u in WorkspaceMember.objects.filter(
+            workspace_id=resolver.workspace_of(target_id), status="active"
+        ).values_list("user_id", flat=True)
+        if str(u) != str(getattr(author, "pk", ""))
+    ]
+    if not members:
+        return []
+    allowed = resolver.mentionable(target_id, members)
+    allowed &= resolver.can_notify(allowed, target_id) if allowed else set()
+    return sorted(m for m in members if m in allowed)
+
+
+def _mentions(resolver: TargetResolver, target_id: Any, doc: dict | None, author: Any = None) -> list[str]:
+    """Only people the resolver allows can be mentioned (and therefore notified). `@all` expands to everyone who
+    can see the target (except the author), merged with the explicit mentions."""
+    raw = mention_ids(doc)
+    ids = [i for i in raw if _is_uuid(i)]
     allowed = resolver.mentionable(target_id, ids) if ids else set()
-    return [i for i in ids if i in allowed]
+    out = [i for i in ids if i in allowed]
+    if MENTION_ALL in raw:
+        out += [i for i in _everyone(resolver, target_id, author) if i not in out]
+    return out
 
 
 def _is_uuid(value: Any) -> bool:
@@ -214,7 +245,7 @@ def create_comment(actor: Any, target_type: str, target_id: Any, raw: Any) -> Co
         body=body,
         body_text=text,
     )
-    mentioned = _mentions(resolver, target_id, body)
+    mentioned = _mentions(resolver, target_id, body, actor)
     _set_mentions(comment, mentioned)
     _refresh_comment_search(comment)
     _audit(comment, actor, "core.comment.created", changes=[change("Comment", None, text[:200], "text")])
@@ -248,7 +279,7 @@ def update_comment(actor: Any, comment: Comment, raw: Any) -> Comment:
     comment.body_text = text
     comment.edited_at = timezone.now()
     comment.save()
-    mentioned = _mentions(resolver, comment.target_id, body)
+    mentioned = _mentions(resolver, comment.target_id, body, actor)
     _set_mentions(comment, mentioned)
     _refresh_comment_search(comment)
     _audit(comment, actor, "core.comment.updated", changes=[change("Comment", before[:200], text[:200], "text")])
