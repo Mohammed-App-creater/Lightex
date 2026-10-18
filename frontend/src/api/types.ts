@@ -555,11 +555,6 @@ export interface Session {
   user: SessionUser;
 }
 
-/**
- * Client-only: the Stage 3 placeholder's `GET sales/workspaces/{slug}/health`, which the backend dropped with the
- * real sales API (S1+). Only the mock answers it; the sales screens replace the placeholder (final-report §6).
- */
-export type SalesHealth = { status: string; module: string; workspace: string };
 export type DownloadUrl = Wire<S["DownloadUrl"]>;
 
 /* ───────────────────────── Saved views (board 30) ───────────────────────── */
@@ -906,3 +901,6 @@ export type TaskDevSummary = Wire<S["TaskDevSummaryOut"]>;
 
 export type DevTrigger = S["TriggerEnum"];
 export type DevAutomationRule = Wire<S["AutomationRuleSchema"]>;
+
+/* Sales module (docs/sales/api.md): aliased in `sales-types.ts`. */
+export type * from "./sales-types";

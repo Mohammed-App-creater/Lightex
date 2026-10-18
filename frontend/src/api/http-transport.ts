@@ -81,6 +81,8 @@ export class HttpTransport implements Transport {
   private async parse<T>(res: Response, { method, path }: RequestOptions): Promise<T> {
     if (res.status === 204) return undefined as T;
     const text = await res.text();
+    // Sales report exports (`format=csv`) answer text/csv: hand the text back as is.
+    if (res.ok && res.headers.get("content-type")?.startsWith("text/csv")) return text as T;
     const data = text ? safeJson(text) : undefined;
     if (res.ok) return data as T;
     const body = (data ?? {}) as { code?: string; message?: string; details?: Record<string, unknown> };

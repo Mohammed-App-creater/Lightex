@@ -197,6 +197,8 @@ export interface MockDB {
   viewPins?: { userId: string; viewId: string; position: number }[];
   /** Trash (board 29). Optional: created lazily by handlers/trash.ts, so no SCHEMA bump. */
   trash?: TrashStore;
+  /** Sales mock (docs/sales/api.md, SCHEMA 10). Optional: `salesStore()` creates it for older caches. */
+  sales?: import("./sales/store").SalesStore;
   /* Board 39 (v2). Optional, created by ensureExt39 (handlers/extensions.ts), so no SCHEMA bump. */
   customFields?: CustomFieldRec[];
   dependencies?: DependencyRec[];

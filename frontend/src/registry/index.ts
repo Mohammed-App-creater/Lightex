@@ -32,6 +32,8 @@ export interface ModuleNavItem {
   keys?: string[];
   /** Workspace permission needed to see the item (and open its route). */
   permission?: Permission;
+  /** Collapsed rail only: the expanded sidebar shows the module's own section instead (sales). */
+  railOnly?: boolean;
 }
 
 /** A first path segment under `/[workspace]/` owned by a module (`sales`, `projects`…). */
@@ -104,8 +106,9 @@ export const activeModules = (ctx: ModuleContext, modules: readonly ModuleDefini
 
 const allowed = (ctx: ModuleContext, permission?: Permission) => !permission || (ctx.my_permissions as readonly string[]).includes(permission);
 
-export const moduleNavItems = (ctx: ModuleContext, modules: readonly ModuleDefinition[] = MODULES) =>
-  activeModules(ctx, modules).flatMap((m) => m.nav.filter((i) => allowed(ctx, i.permission)));
+/** `where = "expanded"` leaves out rail-only items (a module that shows its own sidebar section instead). */
+export const moduleNavItems = (ctx: ModuleContext, modules: readonly ModuleDefinition[] = MODULES, where: "rail" | "expanded" = "rail") =>
+  activeModules(ctx, modules).flatMap((m) => m.nav.filter((i) => allowed(ctx, i.permission) && !(where === "expanded" && i.railOnly)));
 export const projectNavItems = (ctx: ModuleContext) => activeModules(ctx).flatMap((m) => m.projectNav);
 export const sidebarSections = (ctx: ModuleContext) => activeModules(ctx).flatMap((m) => m.sidebarSections ?? []);
 export const sidebarProjectCards = (ctx: ModuleContext) => activeModules(ctx).flatMap((m) => m.sidebarProjectCards ?? []);

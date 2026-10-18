@@ -353,7 +353,7 @@ export function Sidebar({ rail, touch, onClose }: { rail?: boolean; touch?: bool
           }
         />
         {/* Module links come from the registry (src/registry), filtered by enabledModules and my_permissions. */}
-        {moduleNavItems(ws).map((item) => (
+        {moduleNavItems(ws, undefined, "expanded").map((item) => (
           <NavItem
             key={item.id}
             href={item.href(ws.slug)}

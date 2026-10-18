@@ -1,5 +1,6 @@
 import { apiUrl } from "@/lib/env";
 import { enc, http } from "./client";
+import { sales } from "./sales-endpoints";
 import type { ListQuery } from "./transport";
 import type {
   ChecklistItem,
@@ -81,7 +82,6 @@ import type {
   Role,
   RoleCreate,
   RolePatch,
-  SalesHealth,
   SavedView,
   SavedViewInput,
   SavedViewPatch,
@@ -630,10 +630,8 @@ export const teams = {
   removeMember: (id: string, userId: string) => http.del(`/teams/${enc(id)}/members/${enc(userId)}`),
 };
 
-/** Platform Stage 3: the sales module's placeholder endpoint (behind the module guard). */
-export const sales = {
-  health: (slug: string) => http.get<SalesHealth>(`/sales/workspaces/${enc(slug)}/health`),
-};
+/** Sales (behind the module guard): the whole client lives in `sales-endpoints.ts` (docs/sales/api.md). */
+export { sales };
 
 /** S1. The stream is not a JSON request: src/platform/realtime opens it. The path is kept here for the paper trail. */
 export const realtime = { streamPath: (slug: string) => `/workspaces/${enc(slug)}/stream` };

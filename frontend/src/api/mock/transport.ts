@@ -21,6 +21,7 @@ import { registerChannels } from "./handlers/channels";
 import { registerModules } from "./handlers/modules";
 import { registerTeams } from "./handlers/teams";
 import { registerChecklist } from "./handlers/checklist";
+import { registerSales } from "./sales";
 import { mockBus } from "./realtime";
 import { prepareRoutePublish } from "./publish-routes";
 import { match } from "./router";
@@ -49,6 +50,7 @@ function ensureRoutes() {
   registerModules();
   registerTeams();
   registerChecklist();
+  registerSales();
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>
@@ -117,7 +119,8 @@ export class MockTransport implements Transport {
       if (method !== "GET") persist();
       mockBus.commit(batch);
       afterCommit?.();
-      return (result === undefined ? undefined : structuredClone(result)) as T;
+      // Blobs (sales report CSV) are immutable and don't survive jsdom's structuredClone.
+      return (result === undefined || result instanceof Blob ? result : structuredClone(result)) as T;
     } catch (e) {
       mockBus.rollback(batch);
       if (e instanceof ApiError) {

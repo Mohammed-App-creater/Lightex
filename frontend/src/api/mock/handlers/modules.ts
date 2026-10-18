@@ -5,7 +5,7 @@ import { mockBus } from "../realtime";
 
 /*
  * Platform Stage 3 (docs/platform/stage3-contract.md §3, §4): the workspace's modules, and the sales module's
- * placeholder endpoint. The module guard (403 `module_disabled`) lives in `../router.ts`.
+ * dashboard. The module guard (403 `module_disabled`) lives in `../router.ts`.
  */
 
 /**
@@ -55,13 +55,7 @@ export function registerModules() {
     }
     return toWorkspaceModule(ctx.db, ws.id, def);
   });
-
-  /* Sales skeleton (§4): a workspace path segment so the guard resolves the workspace like tracking routes. */
-  route("GET", "/sales/workspaces/:slug/health", (ctx) => {
-    const ws = wsBySlug(ctx, ctx.params.slug!);
-    requireWs(ctx, ws.id, "sales.dashboard.view");
-    return { status: "ok", module: "sales", workspace: ws.slug };
-  });
+  // The sales dashboard lives with the rest of the sales mock (`../sales/handlers-insights.ts`).
 }
 
 const names = (keys: string[]) => keys.map((k) => moduleDef(k)?.name ?? k).join(", ");
