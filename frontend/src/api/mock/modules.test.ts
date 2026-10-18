@@ -5,6 +5,7 @@ import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
 import { MODULE_DEFS } from "./modules";
 import { mockBus } from "./realtime";
+import { removeSalesDemo } from "./sales/seed";
 import { MockTransport } from "./transport";
 
 /* Platform Stage 3 (docs/platform/stage3-contract.md §3–§4): modules API, guard and hiding effects in the mock. */
@@ -26,6 +27,7 @@ const setSales = (enabled: boolean) => req<WorkspaceModule>("PUT", "/workspaces/
 
 beforeEach(() => {
   resetDB();
+  removeSalesDemo(getDB()); // these suites start from "sales was never turned on"
   mockControls.set((c) => ({ ...c, errorRate: 0, latencyMin: 0, latencyMax: 0, offline: false, teammates: false }));
   as("u_alex");
 });
@@ -65,7 +67,7 @@ describe("core.module.changed (Stage 5)", () => {
 
 describe("the module guard", () => {
   it("returns 403 module_disabled for a disabled module's routes, and serves them once it's on", async () => {
-    const e = await rejects(req("GET", "/sales/workspaces/platform/health"));
+    const e = await rejects(req("GET", "/sales/workspaces/platform/dashboard"));
     expect(e.status).toBe(403);
     expect(e.code).toBe("module_disabled");
     expect(e.details).toEqual({ module: "sales" });
@@ -73,19 +75,19 @@ describe("the module guard", () => {
     const m = await setSales(true);
     expect(m).toMatchObject({ key: "sales", enabled: true, enabledBy: "u_alex" });
     expect(m.navItems).toEqual([{ key: "sales", label: "Sales", icon: "briefcase", path: "sales", permission: "sales.dashboard.view" }]);
-    expect(await req("GET", "/sales/workspaces/platform/health")).toEqual({ status: "ok", module: "sales", workspace: "platform" });
+    expect(await req("GET", "/sales/workspaces/platform/dashboard")).toMatchObject({ scope: "all", period: { kind: "month" } });
   });
 
   it("still 404s for workspaces the user isn't in, and requires the route's permission when on", async () => {
     await setSales(true);
     as("u_drew");
-    expect((await rejects(req("GET", "/sales/workspaces/platform/health"))).status).toBe(404);
+    expect((await rejects(req("GET", "/sales/workspaces/platform/dashboard"))).status).toBe(404);
     // A custom workspace role without sales.dashboard.view.
     as("u_alex");
     const role = await req<Role>("POST", "/workspaces/platform/roles", { name: "Limited", scope: "workspace", permissions: ["core.workspace.view"] });
     getDB().wsMembers.find((m) => m.userId === "u_sam" && m.workspaceId === "ws_platform")!.roleIds = [role.id];
     as("u_sam");
-    expect((await rejects(req("GET", "/sales/workspaces/platform/health"))).code).toBe("forbidden");
+    expect((await rejects(req("GET", "/sales/workspaces/platform/dashboard"))).code).toBe("forbidden");
   });
 
   it("resolves the workspace from objects in the path (projects, tasks) for tracking routes", async () => {

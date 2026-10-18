@@ -5,6 +5,7 @@ import type { AuditPage, Invite, Paginated, Role, Workspace, WorkspaceMember } f
 import { mockControls } from "./controls";
 import { getDB, mockSession, resetDB } from "./db";
 import { SCHEMA } from "./seed";
+import { removeSalesDemo } from "./sales/seed";
 import { MockTransport } from "./transport";
 
 /* Sales S0 mock (docs/sales/s0-contract.md §1, §2, §4): several workspace roles, the workspace time zone, module roles. */
@@ -31,13 +32,14 @@ const enableSales = () => call("PUT", "/workspaces/platform/modules/sales", { en
 
 beforeEach(() => {
   resetDB();
+  removeSalesDemo(getDB()); // these suites start from "sales was never turned on"
   mockControls.set((c) => ({ ...c, errorRate: 0, latencyMin: 0, latencyMax: 0, offline: false, teammates: false, realtime: "polling" }));
   as("u_alex");
 });
 
 describe("seed", () => {
   it("bumps the schema, gives every member a role list and every workspace the default time zone", async () => {
-    expect(SCHEMA).toBe(9);
+    expect(SCHEMA).toBe(10);
     expect(getDB().wsMembers.every((m) => m.roleIds.length === 1)).toBe(true);
     const ws = await workspace();
     expect(ws).toMatchObject({ timezone: "Africa/Addis_Ababa", myRoleId: R("owner"), myRoleIds: [R("owner")] });
@@ -125,6 +127,7 @@ describe("several roles per member", () => {
 
     // A custom role carrying the owner permission: the last holder can't lose it through a role edit.
     resetDB();
+    removeSalesDemo(getDB());
     as("u_alex");
     const co = await call<Role>("POST", "/workspaces/platform/roles", { name: "Co-owner", scope: "workspace", permissions: ["core.workspace.view", "core.workspace.delete"] });
     await setRoles("u_jordan", [R("admin"), co.id]);
@@ -221,9 +224,9 @@ describe("module default roles", () => {
     expect(sys).toEqual(["Sales Admin", "CEO / GM", "Salesperson (Sales)"]);
   });
 
-  it("gates the Sales placeholder on sales.dashboard.view", async () => {
+  it("gates the Sales dashboard on sales.dashboard.view", async () => {
     await enableSales();
-    expect(await call("GET", "/sales/workspaces/platform/health")).toMatchObject({ status: "ok" });
+    expect(await call("GET", "/sales/workspaces/platform/dashboard")).toMatchObject({ scope: "all" });
     const ws = await workspace();
     expect(ws.my_permissions).toContain("sales.dashboard.view");
   });

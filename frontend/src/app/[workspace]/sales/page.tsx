@@ -1,7 +1,7 @@
 "use client";
 
-import { SalesScreen } from "@/modules/sales/sales-screen";
+import { DashboardScreen } from "@/modules/sales/dashboard/dashboard-screen";
 
 export default function Page() {
-  return <SalesScreen />;
+  return <DashboardScreen />;
 }

@@ -54,7 +54,7 @@ describe("TeamsScreen", () => {
   it("lets a member read teams but blocks writes with a disabledReason", async () => {
     await mount("u_sam");
     const nav = await screen.findByRole("navigation", { name: "Teams" });
-    expect(within(nav).getAllByRole("button").map((b) => b.textContent)).toEqual(["Backend3", "Frontend3", "Infrastructure2"]);
+    expect(within(nav).getAllByRole("button").map((b) => b.textContent)).toEqual(["Backend3", "Frontend3", "Infrastructure2", "North3", "South3"]);
     // The first team opens with its members; leads show as a badge.
     const panel = await screen.findByRole("region", { name: "Backend team" });
     expect(await within(panel).findByText("Jordan Lee")).toBeInTheDocument();

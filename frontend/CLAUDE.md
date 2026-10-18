@@ -99,7 +99,7 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
     notifications, search, audit, trash, onboarding, palette, presence.
   - `src/modules/tracking/` — the tracking module: projects, board, list, tasks, sprints, epics, goals, filters,
     schedule, reports, dashboards, fields, dependencies, time, import, integrations, development, my-tasks,
-    project-settings. `src/modules/sales/` is the Stage 3 placeholder (`module.tsx`, a health-check page).
+    project-settings. `src/modules/sales/` is the sales module (`module.tsx`, a read-only dashboard preview).
   - `src/registry/` — the module registry. `index.ts` lists each module's `module.tsx` (nav items, project nav,
     sidebar sections and cards, shell overlays, palette actions); `services.ts` lists each module's `services.ts`
     (comment / attachment target types with the queries a collab event touches, notification text). Platform code

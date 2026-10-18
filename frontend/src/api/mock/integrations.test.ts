@@ -143,7 +143,7 @@ describe("seed + upgrade (§9.8)", () => {
     expect(p.devEnabled).toBe(true);
     as("u_alex");
     const w = await req<Workspace>("GET", "/workspaces/platform");
-    expect(w.my_permissions.slice(-4)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage"]);
+    expect(w.my_permissions.filter((x) => !x.startsWith("sales.")).slice(-4)).toEqual(["tracking.integration.manage", "core.audit.view", "core.modules.manage", "core.teams.manage"]);
   });
 });
 

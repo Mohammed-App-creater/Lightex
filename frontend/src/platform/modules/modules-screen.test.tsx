@@ -10,6 +10,7 @@ import { ApiError } from "@/api/errors";
 import type { Workspace, WorkspaceModule } from "@/api/types";
 import { mockControls } from "@/api/mock/controls";
 import { getDB, mockSession, resetDB } from "@/api/mock/db";
+import { removeSalesDemo } from "@/api/mock/sales/seed";
 import { MockTransport } from "@/api/mock/transport";
 import { WorkspaceScope } from "@/platform/roles/can";
 import { moduleToggleError } from "./lib";
@@ -24,6 +25,7 @@ const salesRow = () => getDB().workspaceModules.find((r) => r.workspaceId === "w
 
 beforeEach(() => {
   resetDB();
+  removeSalesDemo(getDB()); // starts from "sales was never turned on"
   mockControls.set((c) => ({ ...c, errorRate: 0, latencyMin: 0, latencyMax: 0, offline: false, teammates: false, realtime: "polling" }));
   setTransport(transport);
 });

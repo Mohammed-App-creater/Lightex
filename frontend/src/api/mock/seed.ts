@@ -8,6 +8,7 @@ import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
 import { ensureExt38 } from "./handlers/channels";
 import { ensureExtChecklist } from "./handlers/checklist";
+import { seedSales } from "./sales/seed";
 import { defaultPreferences } from "@/platform/notifications/channels/model";
 import type {
   AttachmentRec,
@@ -30,8 +31,10 @@ import type {
  *    workspaces (Africa/Addis_Ababa) and the scopable `sales.dashboard.view` in place of `sales.health.view`.
  * 9: Sales sync: the backend's 46 `sales.*` codes (Owner / Admin all but `sales.dailyreport.submit`, scope `all`;
  *    Member none) and the four sales default roles' real grants.
+ * 10: Sales mock (`db.sales`): sales on in Platform team with the demo people (Sales Admin, CEO / GM, North and South
+ *     teams), customers, pipeline, activities, follow-ups, targets and daily reports (`mock/sales/seed.ts`).
  */
-export const SCHEMA = 9;
+export const SCHEMA = 10;
 
 /*
  * Seed data. Copy comes from the design boards (PRJ-42 "Fix flaky board reflow…", Sprint 14,
@@ -774,6 +777,8 @@ export function createSeed(): MockDB {
   }
   /* ── end board 27 ── */
 
+  // Sales mock: sales on in Platform team, its people, teams and demo records.
+  seedSales(db, MOCK_PASSWORD);
   db.prefs = db.users.map((u) => ({ userId: u.id, prefs: defaultPrefs() }));
   // Board 39 (v2): custom fields, dependencies, time entries and the "Blocked" pinned view.
   ensureExt39(db);
