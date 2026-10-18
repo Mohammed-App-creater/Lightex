@@ -126,12 +126,29 @@ export function Onboarding() {
   async function submitModules() {
     if (ws) return go(2);
     if (workspaceNameError(wsName)) return go(0);
+    if (await createWorkspace()) go(2);
+  }
+
+  /** Skipping keeps a typed workspace name: the workspace is created, only the optional steps are skipped. */
+  async function skip() {
+    if (busy) return;
+    if (!ws && wsName.trim()) {
+      if (workspaceNameError(wsName)) {
+        setWsShow(true);
+        return go(0);
+      }
+      if (!(await createWorkspace())) return;
+    }
+    go(READY);
+  }
+
+  async function createWorkspace(): Promise<boolean> {
     setBusy(true);
     try {
       const created = await api.workspaces.create({ name: wsName.trim(), slug, modules: modulesFor(moduleChoice) });
       setWs(created);
       void qc.invalidateQueries({ queryKey: qk.workspaces() });
-      go(2);
+      return true;
     } catch (err) {
       if (isApiError(err) && err.status === 422 && (err.fieldErrors.slug || err.fieldErrors.name)) {
         // The name is on the first step: go back there with the server's message.
@@ -139,6 +156,7 @@ export function Onboarding() {
         setWsShow(true);
         go(0);
       } else setAlert(errorMessage(err));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -238,13 +256,13 @@ export function Onboarding() {
         <Wordmark size={17} />
         <span className="flex-1" />
         {step < READY && (
-          <Button variant="ghost" size="sm" onClick={() => go(READY)} className="max-[760px]:h-11">
+          <Button variant="ghost" size="sm" onClick={() => void skip()} disabled={busy} className="max-[760px]:h-11">
             Skip for now
           </Button>
         )}
       </header>
 
-      <Progress step={step} />
+      <Progress step={step} completed={[Boolean(ws), Boolean(ws), Boolean(project), Boolean(invited)]} />
 
       <form noValidate onSubmit={onSubmit} aria-labelledby={`${uid}-h`} className="flex min-h-0 flex-1 flex-col">
         <main className="flex min-h-0 flex-1 justify-center overflow-y-auto px-6 pb-6 pt-9 max-[760px]:px-4 max-[760px]:py-6">
@@ -540,7 +558,8 @@ function SummaryRow({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-function Progress({ step }: { step: Step }) {
+/** On the ready step only what was actually created counts as done; the rest shows as skipped. */
+function Progress({ step, completed }: { step: Step; completed: boolean[] }) {
   const fin = step === READY;
   return (
     <div
@@ -553,7 +572,8 @@ function Progress({ step }: { step: Step }) {
       className="mx-auto mt-2 grid w-[460px] max-w-[calc(100%-32px)] flex-none grid-cols-4 gap-2 max-[760px]:mx-4 max-[760px]:w-auto max-[760px]:max-w-none"
     >
       {STEP_LABELS.map((label, i) => {
-        const done = fin || i < step;
+        const done = fin ? completed[i] : i < step;
+        const skipped = fin && !done;
         const current = i === step;
         return (
           <div key={label} className="flex flex-col gap-2">
@@ -573,10 +593,13 @@ function Progress({ step }: { step: Step }) {
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden className="text-ok">
                   <path d="M2.5 6.2l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
+              ) : skipped ? (
+                <span aria-hidden className="font-mono text-[11px] font-semibold">–</span>
               ) : (
                 <span className="font-mono text-[11px] font-semibold">{i + 1}</span>
               )}
               <span className="max-[760px]:sr-only">{label}</span>
+              {skipped && <span className="font-normal text-fg-3 max-[760px]:sr-only">· skipped</span>}
             </span>
           </div>
         );

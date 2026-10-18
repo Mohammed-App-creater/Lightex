@@ -75,4 +75,15 @@ describe("onboarding: What do you need?", () => {
     expect(await screen.findByRole("heading", { name: "Create your first project" })).toBeInTheDocument();
     expect(create).toHaveBeenCalledWith({ name: "Plain team", slug: "plain-team", modules: [] });
   });
+
+  it("Skip for now keeps the typed workspace and marks the optional steps skipped", async () => {
+    mount();
+    await toModulesStep("Skip team");
+    await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+    expect(await screen.findByText("You’re ready")).toBeInTheDocument();
+    expect(getDB().workspaces.some((w) => w.slug === "skip-team")).toBe(true);
+    expect(screen.getByText("lightex.app/skip-team")).toBeInTheDocument();
+    expect(screen.getAllByText("· skipped")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: /Open workspace/ })).toBeInTheDocument();
+  });
 });
