@@ -1,4 +1,5 @@
 import type {
+  ChecklistItem,
   AccessRequest,
   ActivityEntry,
   AuditEntry,
@@ -125,7 +126,19 @@ export type EpicRec = Omit<Epic, "progress" | "ownerId" | "milestoneId" | "archi
 export type SprintRec = Omit<Sprint, "progress">;
 export type TaskRec = Omit<
   Task,
-  "subtaskCount" | "subtaskDoneCount" | "commentCount" | "attachmentCount" | "customFields" | "isBlocked" | "openBlockers" | "timeEstimateMinutes" | "loggedMinutes" | "startDate" | "dev"
+  | "subtaskCount"
+  | "subtaskDoneCount"
+  | "commentCount"
+  | "attachmentCount"
+  | "customFields"
+  | "isBlocked"
+  | "openBlockers"
+  | "timeEstimateMinutes"
+  | "loggedMinutes"
+  | "startDate"
+  | "dev"
+  | "checklistCount"
+  | "checklistDoneCount"
 > & {
   /** Board 32 (optional so v1-cached records still load; toTask normalizes to null). */
   startDate?: string | null;
@@ -223,6 +236,10 @@ export interface MockDB {
   channelThrottle?: { userId: string; scope: "connect" | "test"; at: string }[];
   /** Board 38 upgrade marker (u_alex's Telegram + push, preference keys, quiet hours). */
   ext38?: boolean;
+  /* Task checklists (docs/tracking/checklist-assignees.md). Optional, created by ensureExtChecklist (handlers/checklist.ts), so no SCHEMA bump. */
+  checklist?: ChecklistItem[];
+  /** Upgrade marker: `assigneeIds` on cached task records, the seeded co-assignees and checklists. */
+  extChecklist?: boolean;
 }
 
 /* Board 38: notification channels. */

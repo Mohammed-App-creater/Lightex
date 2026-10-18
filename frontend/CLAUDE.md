@@ -128,6 +128,10 @@ Expected lint state: 0 errors and 1 warning (React Compiler `incompatible-librar
   (SCHEMA 9 since the sales sync) enforces the 422 shapes, no escalation (403) and `last_owner` (409); module default roles are seeded on
   enable (`MockModuleDef.defaultRoles`: the four sales roles). `Workspace.timezone` is edited in Settings → General
   (`platform/settings/timezone-select.tsx`).
+- **Multiple assignees and checklists (`docs/tracking/checklist-assignees.md`).** `Task.assigneeIds` (0–10, ordered)
+  replaced `assigneeId`; render people with `AssigneeAvatars` / `assigneesOf` (`tracking/tasks/task-bits.tsx`) and pick
+  them with `AssigneePicker` / `AssigneeMenuItems` (`assignee-picker.tsx`). The panel's Checklist is `task-checklist.tsx`
+  (`useChecklistMutations`); the mock's `handlers/checklist.ts` migrates cached `assigneeId` records on load.
 - **Stage 5 (cleanup, `docs/platform/stage5-contract.md` §2).** Generated API types (above). `Notification.type` is a
   plain string: `NotificationKind` lists the kinds the inbox draws, `eventMeta()` falls back for others, and
   `eventType` carries the registry key. A non-owner widening a role's data scope beyond their own gets 403

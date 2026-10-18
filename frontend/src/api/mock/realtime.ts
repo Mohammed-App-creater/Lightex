@@ -130,6 +130,16 @@ export function publishTask(db: MockDB, actorId: string | null, t: TaskRec, op: 
   });
 }
 
+/** Checklist writes don't bump the task's version: `tracking.task.changed` `{fields: ["checklist"], version: null}`. */
+export function publishChecklist(db: MockDB, actorId: string | null, t: TaskRec) {
+  mockBus.publish("tracking.task.changed", {
+    workspaceId: wsOf(db, t.projectId),
+    projectId: t.projectId,
+    actorId,
+    data: { taskId: t.id, key: t.key, op: "updated", version: null, fields: ["checklist"] },
+  });
+}
+
 export function publishBulk(db: MockDB, actorId: string | null, projectId: string, taskIds: string[] | null, op: "updated" | "deleted" | "restored" | "created") {
   mockBus.publish("tracking.tasks.bulk_changed", {
     workspaceId: wsOf(db, projectId),

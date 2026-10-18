@@ -51,7 +51,7 @@ def enable(user, *channels, event="tracking.task.assigned"):
 
 
 def assign(owner, project, user, priority=3, title="Fix flaky board reflow"):
-    return create_task(owner, project, {"title": title, "assigneeId": str(user.pk), "priority": priority})
+    return create_task(owner, project, {"title": title, "assigneeIds": [str(user.pk)], "priority": priority})
 
 
 def rows(user, channel):

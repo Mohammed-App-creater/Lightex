@@ -36,7 +36,7 @@ def inbox(user, tab="all"):
 
 def test_assignment_notifies_assignee_in_app_and_by_email(owner, project, sam):
     mail.outbox.clear()
-    task = create_task(owner, project, {"title": "Fix reflow", "assigneeId": str(sam.id), "priority": 3})
+    task = create_task(owner, project, {"title": "Fix reflow", "assigneeIds": [str(sam.id)], "priority": 3})
     data = inbox(sam)
     assert data["counts"] == {"all": 1, "mentions": 0, "assigned": 1, "unread": 1}
     n = data["data"][0]
@@ -100,7 +100,7 @@ def test_mentions_and_comments(owner, project, sam):
 
 def test_status_change_notifies_assignee_and_reporter(owner, project, sam, st):
     reporter = add_project_member(project, key="manager")
-    task = create_task(reporter, project, {"title": "Ship", "assigneeId": str(sam.id)})
+    task = create_task(reporter, project, {"title": "Ship", "assigneeIds": [str(sam.id)]})
     client_for(owner).patch(
         f"/api/v1/tracking/tasks/{task.id}", {"statusId": str(st["progress"].id), "version": 1}, format="json"
     )
@@ -150,21 +150,21 @@ def test_preferences_control_channels(owner, project, sam):
         == 422
     )
     mail.outbox.clear()
-    create_task(owner, project, {"title": "Email only", "assigneeId": str(sam.id)})
+    create_task(owner, project, {"title": "Email only", "assigneeIds": [str(sam.id)]})
     assert inbox(sam)["counts"]["all"] == 0
     assert len(mail.outbox) == 1
     # Both channels off: nothing at all.
     prefs["events"]["tracking.task.assigned"] = {"in_app": False, "email": False}
     client.put("/api/v1/notification-preferences", prefs, format="json")
     mail.outbox.clear()
-    create_task(owner, project, {"title": "Silent", "assigneeId": str(sam.id)})
+    create_task(owner, project, {"title": "Silent", "assigneeIds": [str(sam.id)]})
     assert len(mail.outbox) == 0
 
 
 def test_digest_delivery_queues_emails(owner, project, sam):
     NotificationPreference.objects.update_or_create(user=sam, defaults={"email_delivery": "hourly"})
     mail.outbox.clear()
-    create_task(owner, project, {"title": "Later", "assigneeId": str(sam.id)})
+    create_task(owner, project, {"title": "Later", "assigneeIds": [str(sam.id)]})
     assert len(mail.outbox) == 0
     assert Notification.objects.filter(recipient=sam, email_pending=True).count() == 1
     call_command("send_notification_emails", "--delivery", "daily")
@@ -187,7 +187,9 @@ def test_sprint_started_and_completed(owner, project, sam):
     sprint = Sprint.objects.create(
         project=project, name="Sprint 14", number=14, start_date="2026-10-01", end_date="2026-10-14"
     )
-    create_task(owner, project, {"title": "Mine", "sprintId": str(sprint.id), "assigneeId": str(sam.id), "estimate": 3})
+    create_task(
+        owner, project, {"title": "Mine", "sprintId": str(sprint.id), "assigneeIds": [str(sam.id)], "estimate": 3}
+    )
     mail.outbox.clear()
     client = client_for(owner)
     client.post(f"/api/v1/tracking/sprints/{sprint.id}/start", {}, format="json")
@@ -230,11 +232,16 @@ def test_workspace_access_request_emails_workspace_admins(owner, ws):
 
 def test_due_soon_command_is_idempotent(owner, project, sam, st):
     tomorrow = timezone.now().date() + dt.timedelta(days=1)
-    task = create_task(owner, project, {"title": "Due", "assigneeId": str(sam.id), "dueDate": tomorrow.isoformat()})
+    task = create_task(owner, project, {"title": "Due", "assigneeIds": [str(sam.id)], "dueDate": tomorrow.isoformat()})
     create_task(
         owner,
         project,
-        {"title": "Done", "assigneeId": str(sam.id), "dueDate": tomorrow.isoformat(), "statusId": str(st["done"].id)},
+        {
+            "title": "Done",
+            "assigneeIds": [str(sam.id)],
+            "dueDate": tomorrow.isoformat(),
+            "statusId": str(st["done"].id),
+        },
     )
     create_task(owner, project, {"title": "Nobody", "dueDate": tomorrow.isoformat()})
     mail.outbox.clear()
@@ -251,7 +258,7 @@ def test_due_soon_command_is_idempotent(owner, project, sam, st):
 
 def test_read_unread_read_all_and_undo(owner, project, sam):
     for i in range(3):
-        create_task(owner, project, {"title": f"T{i}", "assigneeId": str(sam.id)})
+        create_task(owner, project, {"title": f"T{i}", "assigneeIds": [str(sam.id)]})
     client = client_for(sam)
     rows = inbox(sam)["data"]
     one = client.post(f"/api/v1/notifications/{rows[0]['id']}/read", {"read": True}, format="json").json()
@@ -273,7 +280,7 @@ def test_read_unread_read_all_and_undo(owner, project, sam):
 
 
 def test_workspace_filter_and_removed_members(owner, ws, project, sam):
-    create_task(owner, project, {"title": "T", "assigneeId": str(sam.id)})
+    create_task(owner, project, {"title": "T", "assigneeIds": [str(sam.id)]})
     client = client_for(sam)
     assert client.get(f"/api/v1/notifications?filter[workspace]={ws.id}").json()["counts"]["all"] == 1
     assert (
@@ -291,7 +298,7 @@ def test_workspace_filter_and_removed_members(owner, ws, project, sam):
 
 
 def test_comment_text_quote_is_plain(owner, project, sam):
-    task = create_task(owner, project, {"title": "T", "assigneeId": str(sam.id)})
+    task = create_task(owner, project, {"title": "T", "assigneeIds": [str(sam.id)]})
     client_for(owner).post(
         f"/api/v1/targets/tracking.task/{task.id}/comments", {"body": plain_doc("<b>not html</b>")}, format="json"
     )

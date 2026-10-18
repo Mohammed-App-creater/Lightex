@@ -43,7 +43,14 @@ from modules.tracking.projects.models import (
     Status,
 )
 from modules.tracking.tasks.domain import apply_status
-from modules.tracking.tasks.models import Task, TaskDependency, TaskFieldValue, TaskLabel, TaskStatusHistory
+from modules.tracking.tasks.models import (
+    Task,
+    TaskAssignee,
+    TaskDependency,
+    TaskFieldValue,
+    TaskLabel,
+    TaskStatusHistory,
+)
 from modules.tracking.tasks.services import DEPENDENCY_LIMIT, rebalance_column
 
 from . import services
@@ -448,6 +455,7 @@ def _rows(ctx: Context, job: ImportJob) -> None:
     recent: list[dict[str, Any]] = []
     counts = {"imported": 0, "epics": 0, "skipped": 0, "warnings": 0}
     drafts: list[tuple[PlannedRow, Task, list[dict[str, Any]], list[str], dict[str, Any]]] = []
+    assignees: dict[Any, Any] = {}  # task id → its one imported assignee
 
     for r in batch:
         if r.row in done:
@@ -528,7 +536,6 @@ def _rows(ctx: Context, job: ImportJob) -> None:
             description=_description(r.description),
             type=values["type"] if values["type"] in ("feature", "bug", "chore", "spike") else "feature",
             priority=values["priority"],
-            assignee_id=assignee,
             reporter=creator,
             estimate=values["estimate"],
             time_estimate_minutes=values["timeEstimateMinutes"],
@@ -540,6 +547,8 @@ def _rows(ctx: Context, job: ImportJob) -> None:
             version=1,
             created_at=now,
         )
+        if assignee:
+            assignees[task.id] = assignee  # a TaskAssignee row after the bulk insert
         apply_status(task, status, creator, at=now)
         counts["imported"] += 1
         counts["warnings"] += sum(1 for i in issues if i["severity"] == "warning")
@@ -581,6 +590,9 @@ def _rows(ctx: Context, job: ImportJob) -> None:
         ]
     )
     TaskLabel.objects.bulk_create([TaskLabel(task=t, label_id=i) for _, t, _, ids, _ in drafts for i in ids])
+    TaskAssignee.objects.bulk_create(
+        [TaskAssignee(task=t, user_id=assignees[t.id]) for t in tasks if t.id in assignees]
+    )
     empty = {"text": None, "number": None, "date": None, "option_id": None, "user_id": None}
     TaskFieldValue.objects.bulk_create(
         [

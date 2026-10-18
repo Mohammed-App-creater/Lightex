@@ -7,6 +7,7 @@ import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
 import { ensureExt38 } from "./handlers/channels";
+import { ensureExtChecklist } from "./handlers/checklist";
 import { defaultPreferences } from "@/platform/notifications/channels/model";
 import type {
   AttachmentRec,
@@ -525,7 +526,7 @@ export function createSeed(): MockDB {
         type: s.type ?? (s.labels?.includes("bug") ? "bug" : "feature"),
         priority: s.pri,
         statusId: sid(projectId, s.st),
-        assigneeId: s.asg,
+        assigneeIds: s.asg ? [s.asg] : [],
         reporterId: s.rep ?? (s.asg === AK ? JL : AK),
         estimate: s.est ?? null,
         dueDate: s.due ? D(s.due) : null,
@@ -786,6 +787,8 @@ export function createSeed(): MockDB {
   ensureExt37(db);
   // Board 38 (v2): u_alex's Telegram + push device, the channel preference keys and quiet hours.
   ensureExt38(db);
+  // Task checklists and multiple assignees: PRJ-42, PRJ-33 and PRJ-57 get co-assignees; PRJ-42 and PRJ-33 checklists.
+  ensureExtChecklist(db);
   return db;
 }
 

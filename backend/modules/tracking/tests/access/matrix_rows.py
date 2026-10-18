@@ -527,6 +527,30 @@ ROWS = [
         allow=("manager",),
         deny=("pmember", "viewer", "outsider"),
     ),
+    # ── task checklist ──
+    _row(
+        "task-checklist",
+        "POST",
+        T("task"),
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"text": "Write the migration"},
+    ),
+    _row(
+        "task-checklist-item",
+        "PATCH",
+        lambda w: {"task_id": w.task.id, "checklist_item_id": w.checklist_item.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+        body=lambda w: {"done": True},
+    ),
+    _row(
+        "task-checklist-item",
+        "DELETE",
+        lambda w: {"task_id": w.task.id, "checklist_item_id": w.checklist_item.id},
+        allow=("manager",),
+        deny=("pmember", "viewer", "outsider"),
+    ),
     _row("task-time-entries", "GET", T("task"), allow=("viewer",), deny=("ws_member", "outsider")),
     _row(
         "task-time-entries",

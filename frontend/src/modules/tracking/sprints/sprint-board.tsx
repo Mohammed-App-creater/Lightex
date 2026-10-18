@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, Plus, Target } from "lucide-react";
 import { motion } from "motion/react";
-import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { AssigneeAvatars, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { ErrorState, Skeleton } from "@/ui/feedback";
 import { PriorityIcon, StatusGlyph, priorityMeta, type PriorityLevel } from "@/ui/glyphs";
@@ -124,7 +124,7 @@ export function SprintBoard({ sprint, onBack, onComplete }: { sprint: Sprint; on
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {ts.map((t) => (
-                    <Card key={t.id} task={t} sprint={sprint} assignee={t.assigneeId ? people.get(t.assigneeId) : undefined} done={col.kind === "done"} onOpen={() => openTask(t.key)} />
+                    <Card key={t.id} task={t} sprint={sprint} assignees={assigneesOf(t.assigneeIds, people)} done={col.kind === "done"} onOpen={() => openTask(t.key)} />
                   ))}
                   {ts.length === 0 && <div className="flex h-14 items-center justify-center rounded-lg border border-dashed border-line-2 text-[12px] text-fg-3">No tasks</div>}
                 </div>
@@ -140,13 +140,13 @@ export function SprintBoard({ sprint, onBack, onComplete }: { sprint: Sprint; on
 function Card({
   task: t,
   sprint,
-  assignee,
+  assignees,
   done,
   onOpen,
 }: {
   task: Task;
   sprint: Sprint;
-  assignee?: { name: string; hue: number };
+  assignees: { name: string; hue: number }[];
   done: boolean;
   onOpen: () => void;
 }) {
@@ -168,7 +168,7 @@ function Card({
           </span>
         )}
         <span className="flex-1" />
-        {assignee ? <Avatar name={assignee.name} hue={assignee.hue} size={20} ring={false} /> : <UnassignedAvatar size={20} />}
+        <AssigneeAvatars users={assignees} size={20} />
       </span>
       <span className={cn("line-clamp-2 text-[13px] font-medium leading-[18px]", done && "text-fg-2")}>{t.title}</span>
       <span className="flex w-full items-center gap-2">

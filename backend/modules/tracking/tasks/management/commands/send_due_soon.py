@@ -28,13 +28,14 @@ class Command(BaseCommand):
         tasks = (
             Task.objects.filter(
                 due_date=target,
-                assignee__isnull=False,
+                task_assignees__isnull=False,
                 project__deleted_at__isnull=True,
                 project__status="active",
                 project__workspace__deleted_at__isnull=True,
             )
             .exclude(status__category="done")
             .select_related("project")
+            .distinct()
         )
         sent = 0
         for task in tasks:

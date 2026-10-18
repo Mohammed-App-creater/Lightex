@@ -81,9 +81,9 @@ def test_shared_span_vectors(owner, project, case):
 def test_range_combines_with_filters_and_excludes_deleted(owner, ws, project, st):
     sam = add_project_member(project, UserFactory(name="Sam"))
     epic = Epic.objects.create(project=project, name="Auth")
-    a = dated(owner, project, "Session modal", "2026-10-06", "2026-10-10", assigneeId=str(sam.id))
+    a = dated(owner, project, "Session modal", "2026-10-06", "2026-10-10", assigneeIds=[str(sam.id)])
     b = dated(owner, project, "Token race", None, "2026-10-09", epicId=str(epic.id))
-    dated(owner, project, "Outside", None, "2026-12-09", assigneeId=str(sam.id))
+    dated(owner, project, "Outside", None, "2026-12-09", assigneeIds=[str(sam.id)])
     canceled = dated(owner, project, "Dropped", "2026-10-01", "2026-10-02", statusId=str(st["canceled"].id))
     gone = dated(owner, project, "Gone", "2026-10-01", "2026-10-02")
     delete_task(owner, gone)
@@ -264,7 +264,7 @@ def test_version_is_checked_first(owner, project):
 
 def test_edit_rights(owner, ws, project):
     sam = add_project_member(project, UserFactory())
-    own = dated(owner, project, "Mine", None, "2026-10-10", assigneeId=str(sam.id))
+    own = dated(owner, project, "Mine", None, "2026-10-10", assigneeIds=[str(sam.id)])
     other = dated(owner, project, "Not mine", None, "2026-10-10")
     client = client_for(sam)
     assert patch(client, own, {"startDate": "2026-10-08"}).status_code == 200
@@ -384,7 +384,7 @@ def test_start_date_in_every_task_payload(owner, ws, project):
     sprint = Sprint.objects.create(
         project=project, name="S1", number=1, start_date="2026-10-01", end_date="2026-10-14", state="active"
     )
-    task = dated(owner, project, "Searchable timeline task", "2026-10-06", "2026-10-10", assigneeId=str(owner.id))
+    task = dated(owner, project, "Searchable timeline task", "2026-10-06", "2026-10-10", assigneeIds=[str(owner.id)])
     assert task.sprint_id == sprint.pk
     client = client_for(owner)
 

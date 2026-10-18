@@ -120,7 +120,7 @@ describe("tasks", () => {
       filter: { assignee: "me", priority: [3, 4] },
     });
     expect(res.data.length).toBeGreaterThan(0);
-    expect(res.data.every((x) => x.assigneeId === "u_alex" && x.priority >= 3)).toBe(true);
+    expect(res.data.every((x) => x.assigneeIds.includes("u_alex") && x.priority >= 3)).toBe(true);
   });
 
   it("validates uploads server-side (10 MB, types)", async () => {

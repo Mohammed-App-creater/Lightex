@@ -99,7 +99,7 @@ export type MatchCtx = {
 };
 
 /** The task fields filters read. Board 39 adds customFields and isBlocked (derived by the server). */
-export type Filterable = Pick<Task, "statusId" | "priority" | "assigneeId" | "labelIds" | "sprintId" | "epicId" | "dueDate"> &
+export type Filterable = Pick<Task, "statusId" | "priority" | "assigneeIds" | "labelIds" | "sprintId" | "epicId" | "dueDate"> &
   Partial<Pick<Task, "customFields" | "isBlocked">>;
 
 export const DUE_TOKENS = ["today", "tomorrow", "week", "sprint"] as const;
@@ -120,7 +120,8 @@ function taskValues(t: Filterable, field: BaseFilterField): string[] {
     case "priority":
       return t.priority ? [String(t.priority)] : [];
     case "assignee":
-      return t.assigneeId ? [t.assigneeId] : [];
+      // Any assignee matches (`is` / `any`); `not` = none of them; `empty` = nobody assigned.
+      return t.assigneeIds;
     case "label":
       return t.labelIds;
     case "sprint":

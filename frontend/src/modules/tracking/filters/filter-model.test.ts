@@ -4,12 +4,12 @@ import { applyFilters, cleanRulesFor, completeRules, fieldLabel, matchRule, opsF
 
 const ctx: MatchCtx = { meId: "u1", today: "2026-10-07", sprintEnd: "2026-10-14" };
 const t = (n: number, over: Partial<Task> = {}): Task =>
-  ({ id: `t${n}`, number: n, statusId: "todo", priority: 0, assigneeId: null, labelIds: [], dueDate: null, epicId: null, sprintId: null, ...over }) as Task;
+  ({ id: `t${n}`, number: n, statusId: "todo", priority: 0, assigneeIds: [], labelIds: [], dueDate: null, epicId: null, sprintId: null, ...over }) as Task;
 
 describe("filter model", () => {
   const tasks = [
-    t(1, { statusId: "prog", assigneeId: "u1", labelIds: ["bug"], priority: 4, dueDate: "2026-10-09" }),
-    t(2, { statusId: "review", assigneeId: "u2", labelIds: ["perf"], priority: 2, dueDate: "2026-10-20" }),
+    t(1, { statusId: "prog", assigneeIds: ["u1"], labelIds: ["bug"], priority: 4, dueDate: "2026-10-09" }),
+    t(2, { statusId: "review", assigneeIds: ["u2"], labelIds: ["perf"], priority: 2, dueDate: "2026-10-20" }),
     t(3, { statusId: "done", labelIds: [], priority: 3 }),
   ];
   const ids = (rules: FilterRule[]) => applyFilters(tasks, rules, ctx).map((x) => x.number);
@@ -27,6 +27,16 @@ describe("filter model", () => {
     expect(matchRule(tasks[2]!, { field: "due", op: "before", values: ["2030-01-01"] }, ctx)).toBe(false);
     expect(resolveDate("tomorrow", ctx)).toBe("2026-10-08");
     expect(resolveDate("sprint", { ...ctx, sprintEnd: null })).toBeNull();
+  });
+
+  it("matches a task when any of its assignees matches", () => {
+    const multi = [...tasks, t(4, { assigneeIds: ["u2", "u1"] }), t(5, { assigneeIds: ["u3", "u2"] })];
+    const run = (rules: FilterRule[]) => applyFilters(multi, rules, ctx).map((x) => x.number);
+    expect(run([{ field: "assignee", op: "is", values: ["me"] }])).toEqual([1, 4]);
+    expect(run([{ field: "assignee", op: "any", values: ["u3"] }])).toEqual([5]);
+    // `not` keeps tasks where none of the assignees matches; `empty` = nobody assigned.
+    expect(run([{ field: "assignee", op: "not", values: ["u2"] }])).toEqual([1, 3]);
+    expect(run([{ field: "assignee", op: "empty", values: [] }])).toEqual([3]);
   });
 
   it("round-trips through the URL and drops junk", () => {

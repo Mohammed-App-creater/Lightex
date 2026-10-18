@@ -6,6 +6,7 @@ import { ArrowRight, Check, ListTodo, Play, RefreshCcw, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useId, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Avatar, UnassignedAvatar } from "@/ui/avatar";
+import { assigneeNames, assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/choice";
 import { ErrorState, Skeleton } from "@/ui/feedback";
@@ -632,7 +633,9 @@ function CarryStep({
         {items.map((t) => {
           const on = Boolean(keep[t.id]);
           const goesNext = toNext.has(t.id);
-          const a = t.assigneeId ? people.get(t.assigneeId) : undefined;
+          const all = assigneesOf(t.assigneeIds, people);
+          // The column fits one avatar: the first assignee, with every name in the tooltip.
+          const a = all[0];
           return (
             <label
               key={t.id}
@@ -643,7 +646,7 @@ function CarryStep({
               <span className="font-mono text-[11.5px] font-medium text-fg-3 max-[760px]:hidden">{t.key}</span>
               <span className={cn("min-w-0 truncate font-medium", !on && "text-fg-2")}>{t.title}</span>
               <span className="text-right font-mono text-[11.5px] text-fg-3 max-[760px]:hidden">{t.estimate ?? "–"}</span>
-              <span className="flex max-[760px]:hidden">
+              <span className="flex max-[760px]:hidden" title={all.length > 1 ? assigneeNames(all) : undefined}>
                 {a ? <Avatar name={a.name} hue={a.hue} size={20} ring={false} decorative /> : <UnassignedAvatar size={20} />}
               </span>
               <span className={cn("inline-flex items-center justify-end gap-1.5 overflow-hidden whitespace-nowrap font-mono text-[11.5px] font-medium", goesNext ? "text-accent-t" : "text-fg-3")}>

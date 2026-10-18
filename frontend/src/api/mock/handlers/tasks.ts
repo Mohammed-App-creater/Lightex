@@ -3,9 +3,9 @@ import { validateUpload } from "@/lib/files";
 import { comparePosition, keyBetween } from "@/lib/utils/fractional-index";
 import { nowISO, uid } from "../db";
 import type { ActivityRec, AttachmentRec, MockDB, TaskRec } from "../db-types";
-import { projectPermissions, statusesOf, toActivity, toProject, toStatus, toTask } from "../derive";
+import { checklistOf, projectPermissions, statusesOf, toActivity, toProject, toStatus, toTask } from "../derive";
 import { logActivity, notify } from "./common";
-import { dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
+import { auditTask, dependenciesOf, ensureExt39, prepareTaskExtPatch } from "./extensions";
 import { memberProject } from "./projects";
 import { checkBulkDates, checkTaskDates, dateSortValue, ensureExt32, scheduleFilter } from "./schedule";
 import { markTaskDeleted, trashComment } from "./trash";
@@ -41,10 +41,51 @@ function targetTask(ctx: Ctx) {
   return taskById(ctx, ctx.params.id!);
 }
 
-/** edit_any, or edit_own when the user reported or is assigned the task. */
+/** edit_any, or edit_own when the user reported the task or is one of its assignees. */
 export function canEditTask(db: MockDB, userId: string, t: TaskRec) {
   const perms = projectPermissions(db, userId, t.projectId);
-  return perms.includes("tracking.task.edit_any") || (perms.includes("tracking.task.edit_own") && (t.assigneeId === userId || t.reporterId === userId));
+  return perms.includes("tracking.task.edit_any") || (perms.includes("tracking.task.edit_own") && (t.assigneeIds.includes(userId) || t.reporterId === userId));
+}
+
+/* ───────── assignees (docs/tracking/checklist-assignees.md §1) ───────── */
+
+export const MAX_ASSIGNEES = 10;
+
+/** `assigneeIds` → project members' ids in the order sent, duplicates dropped; null means nobody. */
+export function parseAssignees(db: MockDB, projectId: string, value: unknown, field = "assigneeIds"): string[] {
+  if (value === null || value === undefined) return [];
+  if (!Array.isArray(value) || !value.every((v) => typeof v === "string" && v.length > 0)) invalid({ [field]: "Send a list of ids" });
+  const ids = [...new Set(value as string[])];
+  if (ids.length > MAX_ASSIGNEES) invalid({ [field]: `Assign up to ${MAX_ASSIGNEES} people` });
+  if (!ids.every((id) => db.projectMembers.some((m) => m.projectId === projectId && m.userId === id))) invalid({ [field]: "Assign people on this project" });
+  return ids;
+}
+
+/** Same people, ignoring order (a reorder alone is not a change). */
+export const sameAssignees = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((id) => b.includes(id));
+
+/** People told about a status change or a comment: every assignee and the reporter. */
+export const taskWatchers = (t: TaskRec) => [...new Set([...t.assigneeIds, t.reporterId].filter((x): x is string => Boolean(x)))];
+
+/**
+ * Replaces the set (the caller has checked permissions). A real change writes one activity row and one
+ * `tracking.task.assigned` audit row (a `person` change per person added or removed) and notifies each newly
+ * added person; a reorder only stores the new order.
+ */
+export function setAssignees(db: MockDB, actorId: string, t: TaskRec, next: string[]) {
+  const before = t.assigneeIds;
+  t.assigneeIds = [...next];
+  if (sameAssignees(before, next)) return false;
+  const names = next.map((id) => db.users.find((u) => u.id === id)?.name ?? "Someone");
+  logActivity(db, actorId, "assigned", t.projectId, t, { assignee: names.length ? names.join(", ") : "nobody", assigneeCount: names.length });
+  const added = next.filter((id) => !before.includes(id));
+  const changes = [
+    ...before.filter((id) => !next.includes(id)).map((id) => ({ field: "Assignee", kind: "person" as const, before: id, after: null })),
+    ...added.map((id) => ({ field: "Assignee", kind: "person" as const, before: null, after: id })),
+  ];
+  auditTask(db, t.projectId, actorId, "tracking.task.assigned", t.title, { key: t.key, targetId: t.id, changes });
+  for (const id of added) notify(db, id, "assigned", actorId, t, t.projectId);
+  return true;
 }
 
 function checkVersion(t: TaskRec, version: unknown, db: MockDB) {
@@ -83,6 +124,7 @@ export function toDetail(db: MockDB, t: TaskRec, userId: string): TaskDetail {
       .map((x) => toTask(db, x)),
     project: { id: p.id, key: p.key, name: p.name, hue: p.hue, my_permissions: proj.my_permissions },
     dependencies: dependenciesOf(db, t.id),
+    checklist: checklistOf(db, t.id),
   };
 }
 
@@ -194,7 +236,7 @@ export function registerTasks() {
       .filter((t) => t.projectId === p.id && !t.deletedAt)
       .filter((t) => !q || t.title.toLowerCase().includes(q) || t.key.toLowerCase().includes(q))
       .filter((t) => !status.length || status.includes(t.statusId))
-      .filter((t) => !assignee.length || assignee.includes(t.assigneeId ?? "none"))
+      .filter((t) => !assignee.length || matchesAssignee(t, assignee))
       .filter((t) => !sprint.length || sprint.includes(t.sprintId ?? "none"))
       .filter((t) => !epic.length || epic.includes(t.epicId ?? "none"))
       .filter((t) => !milestone.length || milestone.includes(t.milestoneId ?? "none"))
@@ -228,7 +270,8 @@ export function registerTasks() {
     if (!title) invalid({ title: "Give the task a title" });
     const statuses = statusesOf(ctx.db, p.id);
     const statusId = b.statusId && statuses.some((s) => s.id === b.statusId) ? b.statusId : statuses.find((s) => s.glyph === "todo")!.id;
-    if (b.assigneeId && b.assigneeId !== ctx.userId && !perms.includes("tracking.task.assign")) {
+    const assigneeIds = parseAssignees(ctx.db, p.id, (b as { assigneeIds?: unknown }).assigneeIds);
+    if (assigneeIds.some((id) => id !== ctx.userId) && !perms.includes("tracking.task.assign")) {
       fail(403, "forbidden", "You can’t assign tasks to others.", { permission: "tracking.task.assign" });
     }
     // Board 32: startDate / dueDate format and order (same messages as PATCH).
@@ -244,7 +287,7 @@ export function registerTasks() {
       type: b.type ?? "feature",
       priority: (b.priority ?? 0) as TaskRec["priority"],
       statusId,
-      assigneeId: b.assigneeId ?? null,
+      assigneeIds,
       reporterId: ctx.userId!,
       estimate: b.estimate ?? null,
       startDate: b.startDate ?? null,
@@ -273,7 +316,7 @@ export function registerTasks() {
     applyStatusSideEffects(ctx.db, t, statusId);
     ctx.db.tasks.push(t);
     logActivity(ctx.db, ctx.userId, "created", p.id, t);
-    if (t.assigneeId) notify(ctx.db, t.assigneeId, "assigned", ctx.userId, t, p.id);
+    for (const id of t.assigneeIds) notify(ctx.db, id, "assigned", ctx.userId, t, p.id);
     publishTask(ctx.db, ctx.userId, t, "created");
     return toTask(ctx.db, t);
   });
@@ -296,6 +339,8 @@ export function registerTasks() {
     const b = (ctx.body ?? {}) as TaskPatch & { version?: number };
     checkVersion(t, b.version, ctx.db);
     if (t.deletedAt) fail(409, "task_deleted", "This task was deleted. Restore it to make changes.");
+    // Multiple assignees replaced the single field; the old key is refused like any unknown one.
+    if ("assigneeId" in b) invalid({ assigneeId: "This field can’t be changed here" });
     const keys = Object.keys(b).filter((k) => k !== "version") as (keyof TaskPatch)[];
     const onlyStatus = keys.length === 1 && keys[0] === "statusId";
     const canEdit = canEditTask(ctx.db, userId, t);
@@ -304,7 +349,8 @@ export function registerTasks() {
     } else if (!canEdit) {
       fail(403, "forbidden", "You can only edit tasks you reported or are assigned.", { permission: "tracking.task.edit_any" });
     }
-    if ("assigneeId" in b && b.assigneeId !== t.assigneeId && !perms.includes("tracking.task.assign")) {
+    const nextAssignees = "assigneeIds" in b ? parseAssignees(ctx.db, t.projectId, b.assigneeIds) : null;
+    if (nextAssignees && !sameAssignees(nextAssignees, t.assigneeIds) && !perms.includes("tracking.task.assign")) {
       fail(403, "forbidden", "You can’t reassign tasks.", { permission: "tracking.task.assign" });
     }
     // Board 39: customFields / timeEstimateMinutes are validated before anything is written.
@@ -323,7 +369,6 @@ export function registerTasks() {
     }
     if (b.type !== undefined) t.type = b.type;
     if (b.priority !== undefined) t.priority = b.priority;
-    if (b.assigneeId !== undefined) t.assigneeId = b.assigneeId;
     if (b.estimate !== undefined) t.estimate = b.estimate === null ? null : Math.max(0, Math.min(99, Math.round(b.estimate)));
     if (b.startDate !== undefined) t.startDate = b.startDate;
     if (b.dueDate !== undefined) t.dueDate = b.dueDate;
@@ -333,18 +378,14 @@ export function registerTasks() {
     if (b.objectiveIds !== undefined) t.objectiveIds = [...new Set(b.objectiveIds)];
     if (b.labelIds !== undefined) t.labelIds = [...new Set(b.labelIds)];
     if (b.description !== undefined) t.description = b.description;
+    if (nextAssignees) setAssignees(ctx.db, userId, t, nextAssignees);
     applyExt?.(userId);
     t.version += 1;
     t.updatedAt = nowISO();
 
     if (before.statusId !== t.statusId) {
       logActivity(ctx.db, userId, "status_changed", t.projectId, t, { from: statusName(ctx.db, before.statusId), to: statusName(ctx.db, t.statusId) });
-      if (t.assigneeId) notify(ctx.db, t.assigneeId, "status", userId, t, t.projectId, { fromStatus: statusName(ctx.db, before.statusId), toStatus: statusName(ctx.db, t.statusId) });
-    }
-    if (before.assigneeId !== t.assigneeId) {
-      const name = ctx.db.users.find((u) => u.id === t.assigneeId)?.name ?? "nobody";
-      logActivity(ctx.db, userId, "assigned", t.projectId, t, { assignee: name });
-      if (t.assigneeId) notify(ctx.db, t.assigneeId, "assigned", userId, t, t.projectId);
+      for (const r of taskWatchers(t)) notify(ctx.db, r, "status", userId, t, t.projectId, { fromStatus: statusName(ctx.db, before.statusId), toStatus: statusName(ctx.db, t.statusId) });
     }
     if (b.objectiveIds && b.objectiveIds.some((o) => !before.objectiveIds.includes(o))) {
       const added = ctx.db.objectives.find((o) => b.objectiveIds!.includes(o.id) && !before.objectiveIds.includes(o.id));
@@ -410,8 +451,10 @@ export function registerTasks() {
     if ("timeEstimateMinutes" in patch) invalid({ timeEstimateMinutes: "This field can’t be bulk-edited" });
     // Board 32: startDate isn't bulk-editable; a due date before a selected task's start fails the whole request.
     checkBulkDates(patch as Record<string, unknown>, tasks);
+    if ("assigneeId" in patch) invalid({ "patch.assigneeId": "This field can’t be bulk-edited" });
     const perms = projectPermissions(ctx.db, userId, p.id);
-    if ("assigneeId" in patch && !perms.includes("tracking.task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "tracking.task.assign" });
+    if ("assigneeIds" in patch && !perms.includes("tracking.task.assign")) fail(403, "forbidden", "You can’t reassign tasks.", { permission: "tracking.task.assign" });
+    const bulkAssignees = "assigneeIds" in patch ? parseAssignees(ctx.db, p.id, patch.assigneeIds, "patch.assigneeIds") : null;
     const statusOnly = Object.keys(patch).every((k) => k === "statusId");
     for (const t of tasks) {
       if (!(statusOnly ? perms.includes("tracking.task.move") || canEditTask(ctx.db, userId, t) : canEditTask(ctx.db, userId, t))) {
@@ -424,7 +467,8 @@ export function registerTasks() {
         t.statusId = patch.statusId;
         t.position = lastPosition(ctx.db, p.id, patch.statusId);
       }
-      if (patch.assigneeId !== undefined) t.assigneeId = patch.assigneeId;
+      // Replace semantics, like PATCH.
+      if (bulkAssignees) setAssignees(ctx.db, userId, t, bulkAssignees);
       if (patch.labelIds) t.labelIds = [...new Set([...t.labelIds, ...patch.labelIds])];
       if (patch.sprintId !== undefined) t.sprintId = patch.sprintId;
       if (patch.priority !== undefined) t.priority = patch.priority;
@@ -486,7 +530,7 @@ export function registerTasks() {
     t.updatedAt = nowISO();
     if (from !== t.statusId) {
       logActivity(ctx.db, ctx.userId, "status_changed", t.projectId, t, { from: statusName(ctx.db, from), to: statusName(ctx.db, t.statusId) });
-      if (t.assigneeId) notify(ctx.db, t.assigneeId, "status", ctx.userId, t, t.projectId, { fromStatus: statusName(ctx.db, from), toStatus: statusName(ctx.db, t.statusId) });
+      for (const r of taskWatchers(t)) notify(ctx.db, r, "status", ctx.userId, t, t.projectId, { fromStatus: statusName(ctx.db, from), toStatus: statusName(ctx.db, t.statusId) });
     }
     publishTask(ctx.db, ctx.userId, t, "moved", ["statusId", "position", ...(b.sprintId !== undefined ? ["sprintId"] : [])]);
     return toTask(ctx.db, t);
@@ -524,7 +568,7 @@ export function registerTasks() {
     logActivity(ctx.db, ctx.userId, "commented", t.projectId, t);
     const quote = text.slice(0, 140);
     c.mentions.forEach((m) => notify(ctx.db, m, "mention", ctx.userId, t, t.projectId, { quote }));
-    new Set([t.assigneeId, t.reporterId].filter((x): x is string => Boolean(x) && !c.mentions.includes(x!))).forEach((r) =>
+    taskWatchers(t).filter((x) => !c.mentions.includes(x)).forEach((r) =>
       notify(ctx.db, r, "comment", ctx.userId, t, t.projectId, { quote }),
     );
     publishComment(ctx.db, ctx.userId, t, c.id, "created");
@@ -633,6 +677,11 @@ function importedActivity(db: MockDB, t: TaskRec): ActivityRec | null {
     data: { fileName: job.file.name, row: row.row },
     createdAt: t.createdAt,
   };
+}
+
+/** `filter[assignee]`: any assignee matches; "none" = nobody assigned. */
+export function matchesAssignee(t: Pick<TaskRec, "assigneeIds">, wanted: readonly string[]) {
+  return wanted.some((a) => (a === "none" ? t.assigneeIds.length === 0 : t.assigneeIds.includes(a)));
 }
 
 export function recordRecent(db: MockDB, userId: string, kind: "task" | "project", id: string) {

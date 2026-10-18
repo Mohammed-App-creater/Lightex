@@ -2,6 +2,9 @@ import { apiUrl } from "@/lib/env";
 import { enc, http } from "./client";
 import type { ListQuery } from "./transport";
 import type {
+  ChecklistItem,
+  ChecklistItemCreate,
+  ChecklistItemPatch,
   AcceptInviteResult,
   AccessRequest,
   AccessRequestWithUser,
@@ -287,6 +290,13 @@ export const tasks = {
   bulk: (projectId: string, body: TaskBulk) =>
     http.post<Task[]>(`/tracking/projects/${enc(projectId)}/tasks/bulk`, body),
   activity: (id: string) => http.get<ActivityEntry[]>(`/tracking/tasks/${enc(id)}/activity`),
+  /** Task checklist (docs/tracking/checklist-assignees.md §2). Writes don't bump the task's `version`. */
+  checklist: {
+    add: (taskId: string, body: ChecklistItemCreate) => http.post<ChecklistItem>(`/tracking/tasks/${enc(taskId)}/checklist`, body),
+    update: (taskId: string, itemId: string, patch: ChecklistItemPatch) =>
+      http.patch<ChecklistItem>(`/tracking/tasks/${enc(taskId)}/checklist/${enc(itemId)}`, patch),
+    remove: (taskId: string, itemId: string) => http.del(`/tracking/tasks/${enc(taskId)}/checklist/${enc(itemId)}`),
+  },
   /** Board 32 (requested addition): tasks whose effective span overlaps [from, to] (inclusive), one page. */
   range: (projectId: string, from: string, to: string, cursor?: string | null) =>
     http.get<Paginated<Task>>(`/tracking/projects/${enc(projectId)}/tasks`, { filter: { from, to }, sort: "startDate", limit: 500, cursor }),

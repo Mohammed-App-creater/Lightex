@@ -38,6 +38,7 @@ import { useFilterOptions, useUrlFilters } from "@/modules/tracking/filters/use-
 import { useLabels, useProjectMembers } from "@/modules/tracking/projects/queries";
 import { useMoveTask, useUpdateTask } from "@/modules/tracking/tasks/mutations";
 import { rememberOrigin, triggerSpark } from "@/modules/tracking/tasks/task-origin";
+import { assigneesOf } from "@/modules/tracking/tasks/task-bits";
 import { POLL_MS } from "@/platform/workspace/queries";
 import { NO_PEOPLE, peopleAt, taskViewers } from "@/platform/presence/presence-lib";
 import { PresenceStack } from "@/platform/presence/presence-stack";
@@ -123,8 +124,8 @@ export function BoardScreen() {
   const visibleTasks = useMemo(() => {
     const all = (board.data?.tasks ?? []).filter((t) => !t.deletedAt);
     const byPill = all.filter((t) => {
-      if (pill === "mine" && t.assigneeId !== me.id) return false;
-      if (pill === "unassigned" && t.assigneeId) return false;
+      if (pill === "mine" && !t.assigneeIds.includes(me.id)) return false;
+      if (pill === "unassigned" && t.assigneeIds.length > 0) return false;
       return true;
     });
     return applyFilters(byPill, rules, filterOpts.ctx);
@@ -145,7 +146,7 @@ export function BoardScreen() {
 
   const counts = useMemo(() => {
     const all = (board.data?.tasks ?? []).filter((t) => columnStatuses.some((s) => s.id === t.statusId));
-    return { all: all.length, mine: all.filter((t) => t.assigneeId === me.id).length, unassigned: all.filter((t) => !t.assigneeId).length };
+    return { all: all.length, mine: all.filter((t) => t.assigneeIds.includes(me.id)).length, unassigned: all.filter((t) => t.assigneeIds.length === 0).length };
   }, [board.data, columnStatuses, me.id]);
 
   /* ───── open / toggle ───── */
@@ -401,7 +402,7 @@ export function BoardScreen() {
               <TaskCard
                 task={activeTask}
                 status={statuses.find((x) => x.id === activeTask.statusId)}
-                assignee={activeTask.assigneeId ? userById.get(activeTask.assigneeId) ?? null : null}
+                assignees={assigneesOf(activeTask.assigneeIds, userById)}
                 labels={activeTask.labelIds.map((id) => labelById.get(id)).filter((l): l is Label => Boolean(l))}
                 overlay
               />
@@ -479,7 +480,7 @@ const BoardColumn = memo(function BoardColumn({
                 key={id}
                 task={t}
                 status={status}
-                assignee={t.assigneeId ? userById.get(t.assigneeId) ?? null : null}
+                assignees={assigneesOf(t.assigneeIds, userById)}
                 labels={t.labelIds.map((l) => labelById.get(l)).filter((l): l is Label => Boolean(l))}
                 selected={openKey === t.key}
                 present={viewers.get(t.id) ?? NO_PEOPLE}
@@ -504,7 +505,7 @@ const BoardColumn = memo(function BoardColumn({
 function SortableCard({
   task,
   status,
-  assignee,
+  assignees,
   labels,
   selected,
   present,
@@ -515,7 +516,7 @@ function SortableCard({
 }: {
   task: Task;
   status: Status;
-  assignee: User | null;
+  assignees: User[];
   labels: Label[];
   selected: boolean;
   present: readonly PresencePerson[];
@@ -534,7 +535,7 @@ function SortableCard({
       <TaskCard
         task={task}
         status={status}
-        assignee={assignee}
+        assignees={assignees}
         labels={labels}
         selected={selected}
         present={present}

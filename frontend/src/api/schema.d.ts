@@ -3083,6 +3083,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tracking/tasks/{task_id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description A task's checklist. Writes need task edit rights (edit_any, or edit_own as reporter or an assignee). */
+        post: operations["tracking_tasks_checklist_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tracking/tasks/{task_id}/checklist/{checklist_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Scope = the task's project (resolved from the task id in the URL). */
+        delete: operations["tracking_tasks_checklist_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Scope = the task's project (resolved from the task id in the URL). */
+        patch: operations["tracking_tasks_checklist_partial_update"];
+        trace?: never;
+    };
     "/api/v1/tracking/tasks/{task_id}/dependencies": {
         parameters: {
             query?: never;
@@ -4327,6 +4362,29 @@ export interface components {
         };
         /** @enum {string} */
         ChannelTestResultStatusEnum: "sent";
+        ChecklistItemInRequest: {
+            text: string;
+            /** @description Omitted or null: last. */
+            position?: string | null;
+        };
+        ChecklistItemOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            taskId: string;
+            text: string;
+            done: boolean;
+            /** @description Base-62 fractional index, like Task.position. */
+            position: string;
+            /** Format: date-time */
+            doneAt: string | null;
+            /** Format: uuid */
+            doneById: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdById: string | null;
+        };
         /** @enum {string} */
         ChecksStateEnum: "passing" | "failing" | "running";
         /** @enum {string} */
@@ -4503,8 +4561,7 @@ export interface components {
             /** Format: uuid */
             statusId: string;
             status: components["schemas"]["DependencyStatusOut"];
-            /** Format: uuid */
-            assigneeId: string | null;
+            assigneeIds: string[];
         };
         DevAuthorOut: {
             login: string;
@@ -5089,6 +5146,11 @@ export interface components {
         ObjectiveStatusEnum: "active" | "achieved" | "dropped";
         /** @enum {string} */
         OutcomeEnum: "task" | "epic" | "skipped";
+        PatchedChecklistItemPatchInRequest: {
+            text?: string;
+            done?: boolean;
+            position?: string;
+        };
         PatchedCommentInRequest: {
             body?: unknown;
         };
@@ -5348,8 +5410,8 @@ export interface components {
             statusId?: string;
             type?: components["schemas"]["TaskTypeEnum"];
             priority?: number;
-            /** Format: uuid */
-            assigneeId?: string | null;
+            /** @description Replaces the assignees (project members, up to 10, in order); [] or null unassigns everyone. */
+            assigneeIds?: string[] | null;
             /** Format: uuid */
             sprintId?: string | null;
             /** Format: uuid */
@@ -7327,8 +7389,8 @@ export interface components {
             priority: number;
             /** Format: uuid */
             statusId: string;
-            /** Format: uuid */
-            assigneeId: string | null;
+            /** @description Assignees in order (0–10). Replaced the single `assigneeId`. */
+            assigneeIds: string[];
             /** Format: uuid */
             reporterId: string;
             estimate: number | null;
@@ -7363,6 +7425,8 @@ export interface components {
             subtaskDoneCount: number;
             commentCount: number;
             attachmentCount: number;
+            checklistCount: number;
+            checklistDoneCount: number;
             /** @description Set values only, keyed by custom field id: select → option id, user → user id, date → ISO date, number → number, text → string. */
             customFields: {
                 [key: string]: unknown;
@@ -7375,6 +7439,8 @@ export interface components {
             dev: components["schemas"]["TaskDevSummaryOut"] | null;
             description: unknown;
             subtasks: components["schemas"]["TaskOut"][];
+            /** @description In position order. */
+            checklist: components["schemas"]["ChecklistItemOut"][];
             project: unknown;
             dependencies: components["schemas"]["TaskDependenciesOut"];
         };
@@ -7443,8 +7509,8 @@ export interface components {
             priority: number;
             /** Format: uuid */
             statusId: string;
-            /** Format: uuid */
-            assigneeId: string | null;
+            /** @description Assignees in order (0–10). Replaced the single `assigneeId`. */
+            assigneeIds: string[];
             /** Format: uuid */
             reporterId: string;
             estimate: number | null;
@@ -7479,6 +7545,8 @@ export interface components {
             subtaskDoneCount: number;
             commentCount: number;
             attachmentCount: number;
+            checklistCount: number;
+            checklistDoneCount: number;
             /** @description Set values only, keyed by custom field id: select → option id, user → user id, date → ISO date, number → number, text → string. */
             customFields: {
                 [key: string]: unknown;
@@ -7508,8 +7576,8 @@ export interface components {
             statusId?: string;
             type?: components["schemas"]["TaskTypeEnum"];
             priority?: number;
-            /** Format: uuid */
-            assigneeId?: string | null;
+            /** @description Replaces the assignees (project members, up to 10, in order); [] or null unassigns everyone. */
+            assigneeIds?: string[] | null;
             /** Format: uuid */
             sprintId?: string | null;
             /** Format: uuid */
@@ -13845,6 +13913,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActivityOut"][];
+                };
+            };
+        };
+    };
+    tracking_tasks_checklist_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemOut"];
+                };
+            };
+        };
+    };
+    tracking_tasks_checklist_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                checklist_item_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    tracking_tasks_checklist_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                checklist_item_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedChecklistItemPatchInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemOut"];
                 };
             };
         };

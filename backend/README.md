@@ -4,7 +4,8 @@ The v1 backend for Lightex, a project-management tool for software teams: worksp
 backlog and sprints, objectives, milestones and epics, comments and attachments, notifications, search,
 audit log, trash and reports. v2 adds custom fields, dependencies and time tracking (board 39), timeline dates
 (board 32), the import wizard (board 40), and dashboards, presence and realtime updates over Server-Sent Events
-(board 33).
+(board 33). Tasks have several assignees and a checklist
+([`../docs/tracking/checklist-assignees.md`](../docs/tracking/checklist-assignees.md)).
 
 It implements the contract the web client in [`../frontend`](../frontend) was built against, so the client
 switches from its mock API to this one by changing environment variables only.

@@ -23,6 +23,7 @@ import { auditList } from "./audit";
 import { creationModules } from "./modules";
 import { assertWithinOwnScope, resolveDataScopes, roleDataScopes, widestScopes } from "../data-scope";
 import { toInvite } from "./auth";
+import { matchesAssignee } from "./tasks";
 import { fail, filterValues, invalid, paginate, requireUser, requireWs, route, str, wsBySlug, type Ctx } from "../router";
 
 const RESERVED = ["admin", "lightex", "api", "app", "login", "register", "onboarding", "dev", "invite"];
@@ -474,7 +475,7 @@ export function registerWorkspaces() {
     const assignee = filterValues(ctx.query, "assignee").map((a) => (a === "me" ? ctx.userId! : a));
     const list = ctx.db.tasks
       .filter((t) => !t.deletedAt && ids.includes(t.projectId))
-      .filter((t) => !assignee.length || (t.assigneeId && assignee.includes(t.assigneeId)))
+      .filter((t) => !assignee.length || matchesAssignee(t, assignee))
       .map((t) => toTask(ctx.db, t))
       .sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999") || b.priority - a.priority);
     return paginate(list, ctx.query, 200);

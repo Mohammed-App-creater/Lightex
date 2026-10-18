@@ -167,7 +167,7 @@ function seedTimesheet(db: MockDB) {
     const members = db.projectMembers.filter((m) => m.projectId === pid);
     members.forEach((m) => {
       const ui = db.users.findIndex((u) => u.id === m.userId);
-      const open = db.tasks.filter((t) => t.projectId === pid && t.assigneeId === m.userId && !t.deletedAt && !done.has(t.statusId) && t.id !== "p_prj-t42");
+      const open = db.tasks.filter((t) => t.projectId === pid && t.assigneeIds.includes(m.userId) && !t.deletedAt && !done.has(t.statusId) && t.id !== "p_prj-t42");
       if (!open.length) return;
       for (let d = 0; d < 14; d++) {
         const date = addDays(start, d);
@@ -233,7 +233,19 @@ const utcToday = () => new Date().toISOString().slice(0, 10);
 
 /* ───────── audit (board 31 shape) ───────── */
 
-function audit(db: MockDB, projectId: string, actorId: string, action: string, target: string, extra: { key?: string | null; changes?: AuditChange[]; data?: Record<string, unknown> } = {}) {
+/** Also used by task writes (assignees, checklist): `targetId` names the task. */
+export function auditTask(
+  db: MockDB,
+  projectId: string,
+  actorId: string,
+  action: string,
+  target: string,
+  extra: { key?: string | null; targetId?: string | null; changes?: AuditChange[]; data?: Record<string, unknown> } = {},
+) {
+  audit(db, projectId, actorId, action, target, extra);
+}
+
+function audit(db: MockDB, projectId: string, actorId: string, action: string, target: string, extra: { key?: string | null; targetId?: string | null; changes?: AuditChange[]; data?: Record<string, unknown> } = {}) {
   const p = db.projects.find((x) => x.id === projectId);
   if (!p) return;
   db.audit.unshift({
@@ -246,6 +258,7 @@ function audit(db: MockDB, projectId: string, actorId: string, action: string, t
     target,
     ...auditTargetFields(action),
     entityKey: extra.key ?? null,
+    ...(extra.targetId ? { targetId: extra.targetId } : {}),
     source: "web",
     requestId: `req_${uid("").slice(-10)}`,
     changes: extra.changes ?? (extra.data ? Object.entries(extra.data).map(([field, v]) => ({ field, kind: "value" as const, before: null, after: v === null || v === undefined ? null : typeof v === "number" ? v : String(v) })) : undefined),
@@ -323,7 +336,7 @@ function depTask(db: MockDB, t: TaskRec) {
     title: t.title,
     statusId: t.statusId,
     status: { name: s?.name ?? "", glyph: s?.glyph ?? "todo", category: s?.category ?? "todo" },
-    assigneeId: t.assigneeId,
+    assigneeIds: [...t.assigneeIds],
   };
 }
 

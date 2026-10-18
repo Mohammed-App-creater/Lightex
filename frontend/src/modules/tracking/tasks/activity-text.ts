@@ -8,7 +8,8 @@ import type { ActivityEntry } from "@/api/types";
 const VERB: Record<ActivityEntry["verb"], (a: ActivityEntry) => string> = {
   created: () => "created the task",
   status_changed: (a) => `moved this to ${a.data.to ?? "a new status"}`,
-  assigned: (a) => `assigned ${a.data.assignee ?? "someone"}`,
+  // Multiple assignees: `data.assignee` is the new names joined with ", " ("nobody" when everyone was removed).
+  assigned: (a) => (a.data.assignee === "nobody" ? "removed every assignee" : `assigned ${a.data.assignee ?? "someone"}`),
   commented: () => "commented",
   linked_objective: (a) => `linked ${a.data.objective ?? "an objective"}`,
   updated: () => "updated the task",

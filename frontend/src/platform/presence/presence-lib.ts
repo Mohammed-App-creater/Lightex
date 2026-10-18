@@ -63,7 +63,8 @@ export function editingLabel(people: readonly PresencePerson[], meId: string, su
 /** Field names as both the §1.5 short form and the §3.4 Task field name → one canonical key. */
 const ALIAS: Record<string, string> = {
   status: "statusId",
-  assignee: "assigneeId",
+  assignee: "assigneeIds",
+  assigneeId: "assigneeIds",
   sprint: "sprintId",
   epic: "epicId",
   milestone: "milestoneId",

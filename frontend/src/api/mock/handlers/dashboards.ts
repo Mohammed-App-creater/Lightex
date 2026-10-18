@@ -268,7 +268,9 @@ export function workloadReport(db: MockDB, p: ProjectRec, q: { sprint?: string; 
 
   const statuses = statusesOf(db, p.id);
   const live = liveTasks(db, p.id);
-  const personOf = (t: (typeof live)[number]) => (field ? ((t.customFields?.[field.id] as string | undefined) ?? null) : t.assigneeId);
+  // A task with several assignees counts in full for each of them; no assignees = unassigned.
+  const peopleOf = (t: (typeof live)[number]): (string | null)[] =>
+    field ? [(t.customFields?.[field.id] as string | undefined) ?? null] : t.assigneeIds.length ? t.assigneeIds : [null];
   const logged = (taskId: string) => (db.timeEntries ?? []).reduce((a, e) => (e.taskId === taskId ? a + e.minutes : a), 0);
 
   const acc = new Map<string | null, { inProgress: number; todo: number; unestimated: number }>();
@@ -283,12 +285,13 @@ export function workloadReport(db: MockDB, p: ProjectRec, q: { sprint?: string; 
       else work = t.estimate;
     } else if (t.timeEstimateMinutes == null) unest = true;
     else work = Math.max(0, t.timeEstimateMinutes - logged(t.id));
-    const who = personOf(t);
-    const a = acc.get(who) ?? { ...empty };
-    if (cat === "in_progress") a.inProgress += work;
-    else a.todo += work;
-    if (unest) a.unestimated += 1;
-    acc.set(who, a);
+    for (const who of peopleOf(t)) {
+      const a = acc.get(who) ?? { ...empty };
+      if (cat === "in_progress") a.inProgress += work;
+      else a.todo += work;
+      if (unest) a.unestimated += 1;
+      acc.set(who, a);
+    }
   }
 
   // Capacity: the person's mean completed points (or logged minutes) over the last 3 completed sprints.
@@ -302,7 +305,7 @@ export function workloadReport(db: MockDB, p: ProjectRec, q: { sprint?: string; 
     for (const s of done) {
       if (unit === "points") {
         total += live
-          .filter((t) => t.sprintId === s.id && personOf(t) === userId)
+          .filter((t) => t.sprintId === s.id && peopleOf(t).includes(userId))
           .filter((t) => {
             const st = statuses.find((x) => x.id === t.statusId);
             return st?.category === "done" && st.glyph !== "canceled";

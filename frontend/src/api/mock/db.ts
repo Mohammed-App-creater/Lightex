@@ -5,6 +5,7 @@ import { ensureExt32 } from "./handlers/schedule";
 import { ensureExt33 } from "./handlers/dashboards";
 import { ensureExt37 } from "./handlers/integrations";
 import { ensureExt38 } from "./handlers/channels";
+import { ensureExtChecklist } from "./handlers/checklist";
 import { SCHEMA, createSeed } from "./seed";
 
 /*
@@ -35,6 +36,11 @@ export function getDB(): MockDB {
         const parsed = JSON.parse(raw) as MockDB;
         if (parsed.schema === SCHEMA) {
           db = parsed;
+          // Checklists and multiple assignees: `assigneeId` → `assigneeIds` on cached task records (every load,
+          // before the other upgrades read tasks), then the seeded co-assignees and checklists once.
+          const fresh = !db.extChecklist;
+          ensureExtChecklist(db);
+          if (fresh) persist();
           // Board 39: upgrade a database cached before v2 (roles, seed data, "Blocked" view), once.
           if (!db.ext39) {
             ensureExt39(db);

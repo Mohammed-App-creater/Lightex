@@ -81,7 +81,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     file: "due-soon.html",
     label: "Due soon",
     subject: "{{task_key}} is due {{due_relative}}",
-    trigger: "Preference event “Due soon” (tracking.task.due_soon · email): assignee, task due within 24 hours, not done.",
+    trigger: "Preference event “Due soon” (tracking.task.due_soon · email): every assignee, task due within 24 hours, not done.",
     sample: {
       ...COMMON,
       task_key: "PRJ-51",
