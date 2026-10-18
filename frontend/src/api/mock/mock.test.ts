@@ -167,6 +167,23 @@ describe("generic comment / attachment targets (platform Stage 2)", () => {
     expect((await rejects(req("GET", "/targets/tracking.task/p_prj-t42/comments"))).status).toBe(403);
   });
 
+  it("expands @all to the task's project members minus the author, notifying each once", async () => {
+    as("u_alex");
+    const db = getDB();
+    const members = db.projectMembers.filter((m) => m.projectId === "p_prj").map((m) => m.userId);
+    const outsider = db.users.find((u) => !members.includes(u.id))!.id;
+    const mention = (id: string, label: string) => ({ type: "mention", attrs: { id, label } });
+    const body = { type: "doc", content: [{ type: "paragraph", content: [mention("all", "all"), mention("u_sam", "Sam Patel")] }] };
+    const before = db.notifications.length;
+    const c = await req<Comment>("POST", "/targets/tracking.task/p_prj-t42/comments", { body });
+    expect(c.mentionsAll).toBe(true);
+    expect([...c.mentions].sort()).toEqual(members.filter((id) => id !== "u_alex").sort());
+    expect(c.mentions).not.toContain(outsider);
+    const fresh = getDB().notifications.slice(0, getDB().notifications.length - before).filter((n) => n.type === "mention");
+    expect(fresh.filter((n) => n.recipientId === "u_sam")).toHaveLength(1);
+    expect(fresh.map((n) => n.recipientId)).not.toContain("u_alex");
+  });
+
   it("confirms an upload at attachments/{uploadId}/confirm; the upload id becomes the attachment id", async () => {
     as("u_alex");
     const ticket = await req<UploadTicket>("POST", "/targets/tracking.task/p_prj-t42/attachments/upload-url", { fileName: "a.txt", size: 2, mimeType: "text/plain" });

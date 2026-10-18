@@ -91,7 +91,7 @@ function Comments({
     onMutate: async (body) => {
       await qc.cancelQueries({ queryKey: qk.comments(task.id) });
       const prev = qc.getQueryData<Comment[]>(qk.comments(task.id));
-      const temp: Comment = { id: `temp-${Date.now()}`, ...taskTarget(task.id), authorId: me.id, body, mentions: [], createdAt: new Date().toISOString(), editedAt: null };
+      const temp: Comment = { id: `temp-${Date.now()}`, ...taskTarget(task.id), authorId: me.id, body, mentions: [], mentionsAll: false, createdAt: new Date().toISOString(), editedAt: null };
       qc.setQueryData<Comment[]>(qk.comments(task.id), (l) => [...(l ?? []), temp]);
       return { prev, tempId: temp.id };
     },

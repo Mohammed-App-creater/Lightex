@@ -5,7 +5,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, ReactRenderer, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
-import { Bold, Code, Italic, List, ListOrdered, SquareCode } from "lucide-react";
+import { Bold, Code, Italic, List, ListOrdered, SquareCode, Users } from "lucide-react";
 import {
   forwardRef,
   useEffect,
@@ -82,7 +82,7 @@ function renderNode(n: RichNode, key: number): ReactNode {
       return <CodeBlockView key={key} language={String(n.attrs?.language ?? "") || "plain text"} code={(n.content ?? []).map((c) => c.text ?? "").join("")} />;
     case "mention":
       return (
-        <span key={key} className="rich-mention">
+        <span key={key} className={cn("rich-mention", n.attrs?.id === MENTION_ALL_ID && "rich-mention-all")}>
           @{String(n.attrs?.label ?? n.attrs?.id ?? "")}
         </span>
       );
@@ -139,7 +139,21 @@ export function richToText(doc: RichDoc | null | undefined): string {
 
 type MentionListHandle = { onKeyDown: (p: SuggestionKeyDownProps) => boolean };
 
-const MentionList = forwardRef<MentionListHandle, SuggestionProps<User>>(function MentionList(props, ref) {
+/** `@all` (mention id "all"): notifies everyone who can see the item, minus the author. */
+export const MENTION_ALL_ID = "all";
+const MENTION_ALL = { id: MENTION_ALL_ID, all: true } as const;
+export type MentionItem = User | typeof MENTION_ALL;
+
+/** Suggestion items: `@all` first when the query is empty or starts "all" / "everyone", then up to six people. */
+export function mentionItems(people: User[], query: string): MentionItem[] {
+  const q = query.toLowerCase();
+  const matches = people
+    .filter((u) => u.name.toLowerCase().split(" ").some((part) => part.startsWith(q)) || u.name.toLowerCase().startsWith(q))
+    .slice(0, 6);
+  return "all".startsWith(q) || "everyone".startsWith(q) ? [MENTION_ALL, ...matches] : matches;
+}
+
+export const MentionList = forwardRef<MentionListHandle, SuggestionProps<MentionItem>>(function MentionList(props, ref) {
   const [index, setIndex] = useState(0);
   const items = props.items;
   const [prevItems, setPrevItems] = useState(items);
@@ -149,7 +163,7 @@ const MentionList = forwardRef<MentionListHandle, SuggestionProps<User>>(functio
   }
   const pick = (i: number) => {
     const u = items[i];
-    if (u) props.command({ id: u.id, label: u.name });
+    if (u) props.command({ id: u.id, label: "all" in u ? MENTION_ALL_ID : u.name });
   };
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
@@ -174,7 +188,7 @@ const MentionList = forwardRef<MentionListHandle, SuggestionProps<User>>(functio
     <div
       role="listbox"
       aria-label="Mention"
-      className="fixed z-[95] w-[220px] animate-[menu-in_150ms_var(--ease)] rounded-[10px] border border-line-2 bg-raised p-1 shadow-pop"
+      className="fixed z-[95] w-[240px] animate-[menu-in_150ms_var(--ease)] rounded-[10px] border border-line-2 bg-raised p-1 shadow-pop"
       style={{ left: rect.left, top: rect.top - 8, transform: "translateY(-100%)" }}
     >
       {items.map((u, i) => (
@@ -189,8 +203,20 @@ const MentionList = forwardRef<MentionListHandle, SuggestionProps<User>>(functio
           }}
           className={cn("flex h-[30px] w-full items-center gap-2.5 rounded-sm px-2 text-left text-[13px] font-medium", i === index && "bg-hover")}
         >
-          <Avatar name={u.name} hue={u.hue} size={20} decorative />
-          {u.name}
+          {"all" in u ? (
+            <>
+              <span className="inline-flex size-5 items-center justify-center rounded-full bg-accent-s text-accent-t" aria-hidden>
+                <Users size={12} />
+              </span>
+              @all
+              <span className="ml-auto truncate text-[11.5px] font-normal text-fg-3">Notify everyone here</span>
+            </>
+          ) : (
+            <>
+              <Avatar name={u.name} hue={u.hue} size={20} decorative />
+              {u.name}
+            </>
+          )}
         </button>
       ))}
     </div>
@@ -202,12 +228,9 @@ function mentionExtension(getPeople: () => User[]) {
     HTMLAttributes: { class: "rich-mention" },
     suggestion: {
       char: "@",
-      items: ({ query }) =>
-        getPeople()
-          .filter((u) => u.name.toLowerCase().split(" ").some((part) => part.startsWith(query.toLowerCase())) || u.name.toLowerCase().startsWith(query.toLowerCase()))
-          .slice(0, 6),
+      items: ({ query }): MentionItem[] => mentionItems(getPeople(), query),
       render: () => {
-        let renderer: ReactRenderer<MentionListHandle, SuggestionProps<User>> | null = null;
+        let renderer: ReactRenderer<MentionListHandle, SuggestionProps<MentionItem>> | null = null;
         return {
           onStart: (props) => {
             renderer = new ReactRenderer(MentionList, { props, editor: props.editor });

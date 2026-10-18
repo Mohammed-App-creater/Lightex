@@ -391,6 +391,7 @@ function seedTrash(db: MockDB, store: TrashStore) {
       authorId,
       body: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text }] }] },
       mentions: [],
+      mentionsAll: false,
       createdAt: new Date(new Date(when).getTime() - 3 * DAY).toISOString(),
       editedAt: null,
       deletedAt: when,

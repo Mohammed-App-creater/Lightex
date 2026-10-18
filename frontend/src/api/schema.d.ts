@@ -4399,6 +4399,8 @@ export interface components {
             authorId: string | null;
             body: unknown;
             mentions: string[];
+            /** @description The body has an `@all` mention (id `all`). */
+            mentionsAll: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

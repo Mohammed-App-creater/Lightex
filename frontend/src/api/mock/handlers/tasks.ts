@@ -139,6 +139,19 @@ function mentionIds(doc: RichDoc | null | undefined): string[] {
   return [...out];
 }
 
+/**
+ * A comment's mentions as the backend stores them: explicit project members, plus, for `@all` (id "all"), every
+ * other member of the task's project (everyone who can see it), minus the author.
+ */
+function commentMentions(db: MockDB, t: TaskRec, authorId: string, body: RichDoc) {
+  const raw = mentionIds(body);
+  const members = db.projectMembers.filter((m) => m.projectId === t.projectId).map((m) => m.userId);
+  const ids = raw.filter((id) => members.includes(id));
+  const mentionsAll = raw.includes("all");
+  if (mentionsAll) for (const id of members) if (id !== authorId && !ids.includes(id)) ids.push(id);
+  return { mentions: ids, mentionsAll };
+}
+
 function richText(doc: RichDoc | null | undefined): string {
   const parts: string[] = [];
   const walk = (nodes: RichDoc["content"]) =>
@@ -563,7 +576,7 @@ export function registerTasks() {
     const text = richText(body);
     if (!body || !text) invalid({ body: "Write something first" });
     if (text.length > 2000) invalid({ body: "Keep comments under 2,000 characters" });
-    const c: Comment = { id: uid("c"), targetType: TASK_TARGET, targetId: t.id, authorId: ctx.userId!, body, mentions: mentionIds(body), createdAt: nowISO(), editedAt: null };
+    const c: Comment = { id: uid("c"), targetType: TASK_TARGET, targetId: t.id, authorId: ctx.userId!, body, ...commentMentions(ctx.db, t, ctx.userId!, body), createdAt: nowISO(), editedAt: null };
     ctx.db.comments.push(c);
     logActivity(ctx.db, ctx.userId, "commented", t.projectId, t);
     const quote = text.slice(0, 140);
@@ -584,8 +597,11 @@ export function registerTasks() {
     const body = (ctx.body as { body?: RichDoc })?.body;
     if (!body || !richText(body)) invalid({ body: "Write something first" });
     c.body = body;
-    c.mentions = mentionIds(body);
+    const before = c.mentions;
+    Object.assign(c, commentMentions(ctx.db, t, userId, body));
     c.editedAt = nowISO();
+    const quote = richText(body).slice(0, 140);
+    c.mentions.filter((m) => !before.includes(m)).forEach((m) => notify(ctx.db, m, "mention", userId, t, t.projectId, { quote }));
     publishComment(ctx.db, userId, t, c.id, "updated");
     return c;
   });
