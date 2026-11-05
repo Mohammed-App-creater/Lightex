@@ -11,7 +11,7 @@ import { Modal } from "@/ui/modal";
 import { Select } from "@/ui/select";
 import { toast } from "@/ui/toast";
 import { cn } from "@/lib/utils/cn";
-import { isValidation, useAllocateTarget, useSetTarget, useSlug } from "../api";
+import { isValidation, useAllocateTarget, useDeleteTarget, useSetTarget, useSlug, useTargets } from "../api";
 import { addMoney, formatMoney, isMoney, subMoney, toCents } from "../shared/money";
 import { UserPicker } from "../shared/user-picker";
 
@@ -75,6 +75,8 @@ export function SetTargetDialog({
   const slug = useSlug();
   const teams = useTeams(slug).data ?? [];
   const set = useSetTarget();
+  const del = useDeleteTarget();
+  const [confirm, setConfirm] = useState(false);
   const [type, setType] = useState<SubjectType>(fixed?.type ?? subjectTypes[0] ?? "user");
   const [subjectId, setSubjectId] = useState<string | null>(fixed?.id ?? null);
   const [periodType, setPeriodType] = useState<PeriodType>("year");
@@ -84,6 +86,9 @@ export function SetTargetDialog({
   const [local, setLocal] = useState<Record<string, string>>({});
   const server = set.error && isValidation(set.error) ? (set.error as ApiError).fieldErrors : {};
   const errs = { ...server, ...local };
+  // The stored target of the picked subject and period, if any: it can be removed.
+  const stored = useTargets({ filter: { subjectType: type, periodType, year } }).data ?? [];
+  const existing = stored.find((t) => t.periodStart === periodStart && (type === "company" || t.subjectId === subjectId));
 
   const pickPeriod = (t: PeriodType, start: string) => {
     setPeriodType(t);
@@ -116,14 +121,44 @@ export function SetTargetDialog({
       title={fixed ? `Set target · ${fixed.name ?? SUBJECT_LABEL[fixed.type]}` : "Set target"}
       width={480}
       footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" loading={set.isPending} onClick={save}>
-            Save target
-          </Button>
-        </>
+        existing && confirm ? (
+          <>
+            <span role="alert" className="mr-auto text-[13px] text-fg-2">
+              Remove the {formatMoney(existing.amount)} target?{periodType === "year" && " Its quarter and month targets stay."}
+            </span>
+            <Button variant="ghost" onClick={() => setConfirm(false)}>
+              Keep
+            </Button>
+            <Button
+              variant="danger"
+              loading={del.isPending}
+              onClick={() =>
+                del.mutate(existing.id, {
+                  onSuccess: () => {
+                    toast.success("Target removed");
+                    onClose();
+                  },
+                })
+              }
+            >
+              Remove
+            </Button>
+          </>
+        ) : (
+          <>
+            {existing && (
+              <Button variant="ghost" className="mr-auto text-danger" onClick={() => setConfirm(true)}>
+                Remove target
+              </Button>
+            )}
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={set.isPending} onClick={save}>
+              Save target
+            </Button>
+          </>
+        )
       }
     >
       {!fixed && (

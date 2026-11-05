@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mountSales, resetMock } from "../settings/test-mount";
 import { TargetsScreen } from "./targets-screen";
@@ -22,5 +22,17 @@ describe("TargetsScreen", () => {
     expect(within(dialog).getByText(/Year gap:/).textContent).toMatch(/left/);
     fireEvent.change(q1, { target: { value: "999999999" } });
     expect(within(dialog).getByText(/Year gap:/).textContent).toMatch(/Over by/);
+  });
+
+  it("removes a stored target after confirming", async () => {
+    await mountSales(<TargetsScreen />);
+    await screen.findByRole("table", { name: "Target allocation" });
+    fireEvent.click(screen.getAllByRole("button", { name: /^Set target for / })[0]!);
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(await within(dialog).findByRole("button", { name: "Remove target" }));
+    expect(within(dialog).getByRole("alert").textContent).toMatch(/^Remove the .+ target\?/);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    // The dialog closes only once the delete succeeded.
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 });
