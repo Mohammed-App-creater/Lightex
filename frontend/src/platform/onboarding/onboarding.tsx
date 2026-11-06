@@ -9,6 +9,7 @@ import { ProjectBadge } from "@/ui/avatar";
 import { Button } from "@/ui/button";
 import { Segmented } from "@/ui/choice";
 import { AuthBanner, AuthField, AuthInput } from "@/platform/auth/auth-ui";
+import { useSession } from "@/platform/auth/session";
 import { useWorkspaces } from "@/platform/workspace/queries";
 import { api } from "@/api/endpoints";
 import { errorMessage, isApiError } from "@/api/errors";
@@ -56,6 +57,7 @@ export function Onboarding() {
   const mobile = useIsMobile();
   const uid = useId();
   const existing = useWorkspaces();
+  const { user, signOut } = useSession();
 
   const [step, setStep] = useState<Step>(0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -255,6 +257,23 @@ export function Onboarding() {
       <header className="flex h-14 flex-none items-center gap-4 px-5 max-[760px]:h-[52px] max-[760px]:pl-3.5 max-[760px]:pr-2">
         <Wordmark size={17} />
         <span className="flex-1" />
+        {/* Someone signed in to the wrong account (say, before accepting an invite) must be able to get out of here. */}
+        {user && (
+          <span className="min-w-0 truncate text-meta text-fg-3 max-[480px]:hidden" title={user.email}>
+            {user.email}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="max-[760px]:h-11"
+          onClick={async () => {
+            await signOut();
+            router.replace(routes.login());
+          }}
+        >
+          Sign out
+        </Button>
         {step < READY && (
           <Button variant="ghost" size="sm" onClick={() => void skip()} disabled={busy} className="max-[760px]:h-11">
             Skip for now

@@ -8,12 +8,14 @@ import { api } from "@/api/endpoints";
 import { mockControls } from "@/api/mock/controls";
 import { getDB, mockSession, resetDB } from "@/api/mock/db";
 import { MockTransport } from "@/api/mock/transport";
+import { SessionProvider } from "@/platform/auth/session";
 import { modulesFor } from "./logic";
 import { Onboarding } from "./onboarding";
 
 /* Onboarding "What do you need?" (platform Stage 3): the choice is sent as `modules` on workspace creation. */
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace }) }));
 
 const transport = new MockTransport();
 
@@ -33,9 +35,11 @@ function mount() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={qc}>
-      <TooltipProvider>
-        <Onboarding />
-      </TooltipProvider>
+      <SessionProvider>
+        <TooltipProvider>
+          <Onboarding />
+        </TooltipProvider>
+      </SessionProvider>
     </QueryClientProvider>,
   );
 }
@@ -85,5 +89,15 @@ describe("onboarding: What do you need?", () => {
     expect(screen.getByText("lightex.app/skip-team")).toBeInTheDocument();
     expect(screen.getAllByText("· skipped")).toHaveLength(2);
     expect(screen.getByRole("button", { name: /Open workspace/ })).toBeInTheDocument();
+  });
+});
+
+describe("onboarding: signed in to the wrong account", () => {
+  it("shows who is signed in and signs out to the login page", async () => {
+    mount();
+    expect(await screen.findByText("alex@team.dev")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    expect(mockSession.get()).toBeNull();
   });
 });
